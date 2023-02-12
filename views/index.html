@@ -1,0 +1,14 @@
+{{define "index"}}
+
+{{template "head" .PageData}}
+
+<ul>
+  {{range .Posts}}
+  <li>
+    <div><a href="/post/{{.Id}}">{{.Title}}</a></div>
+    <div>by {{.Author}} at {{.Date}}</div>
+  </li>
+  {{end}}
+</ul>
+{{template "foot"}}
+{{end}}
