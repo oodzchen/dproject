@@ -1,14 +1,16 @@
 {{define "index"}}
 
-{{template "head" .PageData}}
+{{template "head" .}}
 
 <ul>
   {{range .Posts}}
   <li>
-    <div><a href="/post/{{.Id}}">{{.Title}}</a></div>
-    <div>by {{.Author}} at {{.Date}}</div>
+    <div><a href="/posts/{{.Id}}">{{.Title}}</a></div>
+    <div>由 {{.Author}} 更新于 {{.UpdatedStr}}</div>
   </li>
   {{end}}
 </ul>
+
+<div>总共 {{.PostTotal}} 条数据</div>
 {{template "foot"}}
 {{end}}

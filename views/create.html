@@ -1,9 +1,11 @@
 {{define "create"}}
 
-{{template "head" .PageData}}
+{{template "head" .}}
 
 <form method="POST" action="/submit">
   <input required type="text" name="title" placeholder="标题">
+  <br>
+  <input required type="text" name="author" placeholder="作者姓名">
   <br>
   <textarea name="content" cols="30" rows="10" placeholder="内容"></textarea>
   <br>

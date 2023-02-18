@@ -1,0 +1,11 @@
+{{define "post"}}
+
+{{template "head" .}}
+
+<article>
+  <h1>{{.Title}}</h1>
+  <section>{{.Author}} 发布于 {{.UpdatedStr}}</section>
+  <section>{{.Content}}</section>
+</article>
+{{template "foot"}}
+{{end}}
