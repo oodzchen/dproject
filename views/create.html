@@ -1,16 +1,21 @@
 {{define "create"}}
 
 {{template "head" .}}
-
-<form method="POST" action="/submit">
-  <input required type="text" name="title" placeholder="标题">
-  <br>
-  <input required type="text" name="author" placeholder="作者姓名">
-  <br>
-  <textarea name="content" cols="30" rows="10" placeholder="内容"></textarea>
-  <br>
-  <button type="submit">提交</button>
-</form>
-{{template "foot"}}
-
-{{end}}
+{{if .Post.Id}}
+<form method="post" action="/update">
+  {{else}}
+    <form method="post" action="/submit">
+      {{end}}
+      {{if .Post.Id}}
+      <input type="hidden" name="id" value="{{.Post.Id}}">
+      {{end}}
+      <input required type="text" name="title" value="{{.Post.Title}}" placeholder="标题">
+      <br>
+      <input required type="text" name="author" value="{{.Post.Author}}" placeholder="作者姓名">
+      <br>
+      <textarea name="content" cols="30" rows="10" placeholder="内容">{{.Post.Content}}</textarea>
+      <br>
+      <button type="submit">提交</button>
+    </form>
+    {{template "foot"}}
+    {{end}}

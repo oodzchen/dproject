@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -15,11 +16,13 @@ type RawPostItem struct {
 	Title   string
 	Author  string
 	Content string
+	Created time.Time
 	Updated time.Time
 }
 
 type PostItem struct {
 	RawPostItem
+	CreatedStr string
 	UpdatedStr string
 }
 
@@ -35,7 +38,7 @@ type HomePageData struct {
 
 type PostPageData struct {
 	BasePageData
-	PostItem
+	Post *PostItem
 }
 
 func render(w http.ResponseWriter, r *http.Request, name string, data any) {
@@ -46,7 +49,7 @@ func render(w http.ResponseWriter, r *http.Request, name string, data any) {
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	rows, err := DBConn.Query(context.Background(), "select id, title, author, content, created from posts")
+	rows, err := DBConn.Query(context.Background(), "select id, title, author, content, created, updated from posts order by created desc")
 
 	if err != nil {
 		fmt.Printf("Query database error: %v\n", err)
@@ -68,6 +71,8 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		listItem.Title = item.Title
 		listItem.Author = item.Author
 		listItem.Content = item.Content
+		listItem.Created = item.Created
+		listItem.CreatedStr = item.Created.Format("2006年1月2日 15:04:05")
 		listItem.Updated = item.Updated
 		listItem.UpdatedStr = item.Updated.Format("2006年1月2日 15:04:05")
 
@@ -83,7 +88,21 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreatePageHandler(w http.ResponseWriter, r *http.Request) {
-	render(w, r, "create", &BasePageData{PageTitle: "Create - Dproject"})
+	idParam := chi.URLParam(r, "id")
+	fmt.Printf("idParam: %v\n", idParam)
+
+	data := new(PostPageData)
+
+	if idParam == "" {
+		data.PageTitle = "Create - Dproject"
+		data.Post = &PostItem{}
+	} else {
+		postData, _ := getPostData(idParam)
+		data.PageTitle = fmt.Sprintf("Edit - %v", postData.Title)
+		data.Post = postData
+	}
+
+	render(w, r, "create", data)
 }
 
 func SubmitPostHandler(w http.ResponseWriter, r *http.Request) {
@@ -92,8 +111,8 @@ func SubmitPostHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	fmt.Printf("r.Form:\n %v\n", r.Form)
-	fmt.Printf("r.Form[\"title\"][0]: %v\n", r.Form["title"][0])
+	// fmt.Printf("r.Form:\n %v\n", r.Form)
+	// fmt.Printf("r.Form[\"title\"][0]: %v\n", r.Form["title"][0])
 
 	insertStr := fmt.Sprintf(
 		"insert into posts values (default, '%v', '%v', '%v', current_timestamp) returning (id)",
@@ -115,34 +134,98 @@ func SubmitPostHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, fmt.Sprintf("/posts/%v", id), http.StatusFound)
 }
 
-func PostDetailHandler(w http.ResponseWriter, r *http.Request) {
+func UpdatePostHandler(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	// fmt.Printf("r.Form:\n %v\n", r.Form)
+	// fmt.Printf("r.Form[\"title\"][0]: %v\n", r.Form["title"][0])
+
+	updateStr := fmt.Sprintf(
+		"update posts set title = '%v', author = '%v', content = '%v', updated = current_timestamp where id = %v returning (id)",
+		r.Form["title"][0],
+		r.Form["author"][0],
+		r.Form["content"][0],
+		r.Form["id"][0])
+	// fmt.Printf("updateStr: %v\n", updateStr)
+
+	var id int
+	err = DBConn.QueryRow(context.Background(), updateStr).Scan(&id)
+	fmt.Printf("res: %v\n", id)
+
+	if err != nil {
+		fmt.Printf("Update post error. Post Id: %v.\n %v\n", id, err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/posts/%v", id), http.StatusFound)
+}
+
+func getPostData(postId string) (*PostItem, error) {
 	var id int
 	var title string
 	var author string
 	var content string
 	var created time.Time
+	var updated time.Time
 
-	idParam := chi.URLParam(r, "id")
-	fmt.Printf("idParam: %v\n", idParam)
-
-	err := DBConn.QueryRow(context.Background(), fmt.Sprintf("select id, title, author, content, created from posts where id = %v", idParam)).Scan(
+	err := DBConn.QueryRow(context.Background(), fmt.Sprintf("select id, title, author, content, created, updated from posts where id = %v", postId)).Scan(
 		&id,
 		&title,
 		&author,
 		&content,
 		&created,
-	)
+		&updated)
 	if err != nil {
-		fmt.Printf("Query post detail error, id: %v, error: %v", idParam, err)
+		fmt.Printf("Query post detail error, id: %v, error: %v", postId, err)
+		return nil, err
+	}
+
+	postItem := new(PostItem)
+	postItem.Id = id
+	postItem.Title = title
+	postItem.Author = author
+	postItem.Content = content
+	postItem.Created = created
+	postItem.Updated = updated
+	postItem.CreatedStr = created.Format("2006年1月2日 15:04:05")
+	postItem.UpdatedStr = updated.Format("2006年1月2日 15:04:05")
+
+	return postItem, nil
+}
+
+func PostDetailHandler(w http.ResponseWriter, r *http.Request) {
+	idParam := chi.URLParam(r, "id")
+	fmt.Printf("idParam: %v\n", idParam)
+
+	postData, err := getPostData((idParam))
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
+
+	re := regexp.MustCompile(`\r`)
+
+	data := new(PostPageData)
+	data.PageTitle = postData.Title
+	data.Post = postData
+	data.Post.Content = re.ReplaceAllString(postData.Content, "<br/>")
+	render(w, r, "post", data)
+}
+
+func EditPostHandler(w http.ResponseWriter, r *http.Request) {
+	idParam := chi.URLParam(r, "id")
+	fmt.Printf("idParam: %v\n", idParam)
+
+	postData, err := getPostData((idParam))
+	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 
 	data := new(PostPageData)
-	data.PageTitle = title
-	data.Title = title
-	data.Author = author
-	data.Content = content
-	data.Updated = created
-	data.UpdatedStr = created.Format("2006年1月2日 15:04:05")
-	render(w, r, "post", data)
+	data.PageTitle = postData.Title
+	data.Post = postData
+	render(w, r, "create", data)
 }

@@ -30,6 +30,8 @@ func main() {
 	r.Post("/submit", SubmitPostHandler)
 	r.Get("/posts", HomeHandler)
 	r.Get("/posts/{id}", PostDetailHandler)
+	r.Get("/edit/{id}", EditPostHandler)
+	r.Post("/update", UpdatePostHandler)
 
 	fmt.Printf("Listening at http://localhost%v\n", Port)
 	err := http.ListenAndServe(Port, r)

@@ -5,8 +5,9 @@
 <ul>
   {{range .Posts}}
   <li>
-    <div><a href="/posts/{{.Id}}">{{.Title}}</a></div>
-    <div>由 {{.Author}} 更新于 {{.UpdatedStr}}</div>
+    <a href="/posts/{{.Id}}">{{.Title}}</a>
+    <br>
+    <small>{{.Author}} 发布于 {{.CreatedStr}}</small>
   </li>
   {{end}}
 </ul>
