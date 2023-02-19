@@ -49,7 +49,8 @@ func render(w http.ResponseWriter, r *http.Request, name string, data any) {
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	rows, err := DBConn.Query(context.Background(), "select id, title, author, content, created, updated from posts order by created desc")
+	queryStr := "select id, title, author, content, created, updated from posts where deleted = false order by created desc"
+	rows, err := DBConn.Query(context.Background(), queryStr)
 
 	if err != nil {
 		fmt.Printf("Query database error: %v\n", err)
@@ -228,4 +229,31 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 	data.PageTitle = postData.Title
 	data.Post = postData
 	render(w, r, "create", data)
+}
+
+func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	idForm := r.Form["id"][0]
+
+	// fmt.Printf("r.Form:\n %v\n", r.Form)
+	// fmt.Printf("r.Form[\"title\"][0]: %v\n", r.Form["title"][0])
+
+	updateStr := fmt.Sprintf("update posts set deleted = true where id = %v returning (id)", idForm)
+	// fmt.Printf("updateStr: %v\n", updateStr)
+
+	var id int
+	err = DBConn.QueryRow(context.Background(), updateStr).Scan(&id)
+	fmt.Printf("res: %v\n", id)
+
+	if err != nil {
+		fmt.Printf("Delete post error. Post Id: %v.\n %v\n", id, err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/", http.StatusFound)
 }

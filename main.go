@@ -32,6 +32,7 @@ func main() {
 	r.Get("/posts/{id}", PostDetailHandler)
 	r.Get("/edit/{id}", EditPostHandler)
 	r.Post("/update", UpdatePostHandler)
+	r.Post("/delete", DeletePostHandler)
 
 	fmt.Printf("Listening at http://localhost%v\n", Port)
 	err := http.ListenAndServe(Port, r)

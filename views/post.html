@@ -6,12 +6,16 @@
   <h1>{{.Post.Title}}</h1>
   <small>{{.Post.Author}} 发布于 {{.Post.CreatedStr}}, 更新于 {{.Post.UpdatedStr}}</small>
   <div><a href="/edit/{{.Post.Id}}">编辑</a> <a href="javascript:handleDelete({{.Post.Id}});" style="color:red">删除</a></div>
+  <form method="post" action="/delete" id="delForm" style="display: none">
+    <input type="hidden" name="id" value="{{.Post.Id}}">
+  </form>
   <section>{{.Post.Content}}</section>
 </article>
 <script>
   function handleDelete(id) {
     if (confirm('确认删除？')) {
-      console.lgo('delete!')
+      const formEl = document.getElementById('delForm')
+      formEl.submit()
     }
   }
 </script>
