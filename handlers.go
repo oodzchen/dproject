@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/jackc/pgx/v5"
 )
 
 type RawPostItem struct {
@@ -49,7 +48,7 @@ func render(w http.ResponseWriter, r *http.Request, name string, data any) {
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	queryStr := "select id, title, author, content, created, updated from posts where deleted = false order by created desc"
+	queryStr := "select id, title, author, content, created, updated from post where deleted = false order by created desc"
 	rows, err := DBConn.Query(context.Background(), queryStr)
 
 	if err != nil {
@@ -57,30 +56,22 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rawList, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByPos[RawPostItem])
-
-	if err != nil {
-		fmt.Printf("Collect rows error: %v\n", err)
-		return
-	}
+	defer rows.Close()
 
 	var list []*PostItem
-	for _, item := range rawList {
-		// fmt.Printf("List item: %v\n", item)
-		listItem := new(PostItem)
-		listItem.Id = item.Id
-		listItem.Title = item.Title
-		listItem.Author = item.Author
-		listItem.Content = item.Content
-		listItem.Created = item.Created
-		listItem.CreatedStr = item.Created.Format("2006年1月2日 15:04:05")
-		listItem.Updated = item.Updated
-		listItem.UpdatedStr = item.Updated.Format("2006年1月2日 15:04:05")
-
+	for rows.Next() {
+		var item RawPostItem
+		err := rows.Scan(&item.Id, &item.Title, &item.Author, &item.Content, &item.Created, &item.Updated)
+		if err != nil {
+			fmt.Printf("Collect rows error: %v\n", err)
+			return
+		}
+		listItem := &PostItem{item, item.Created.Format("2006年1月2日 15:04:05"), item.Updated.Format("2006年1月2日 15:04:05")}
+		// fmt.Printf("listItem: %v\n", listItem)
 		list = append(list, listItem)
 	}
 
-	data := new(HomePageData)
+	var data HomePageData
 	data.PageTitle = "Home - Dproject"
 	data.Posts = list
 	data.PostTotal = len(list)
@@ -92,7 +83,7 @@ func CreatePageHandler(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
 	fmt.Printf("idParam: %v\n", idParam)
 
-	data := new(PostPageData)
+	var data PostPageData
 
 	if idParam == "" {
 		data.PageTitle = "Create - Dproject"
@@ -112,11 +103,8 @@ func SubmitPostHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	// fmt.Printf("r.Form:\n %v\n", r.Form)
-	// fmt.Printf("r.Form[\"title\"][0]: %v\n", r.Form["title"][0])
-
 	insertStr := fmt.Sprintf(
-		"insert into posts values (default, '%v', '%v', '%v', current_timestamp) returning (id)",
+		"insert into post values (default, '%v', '%v', '%v', current_timestamp) returning (id)",
 		r.Form["title"][0],
 		r.Form["author"][0],
 		r.Form["content"][0])
@@ -127,7 +115,7 @@ func SubmitPostHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("res: %v\n", id)
 
 	if err != nil {
-		fmt.Printf("Insert into posts error: %v\n", err)
+		fmt.Printf("Insert into post error: %v\n", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -141,16 +129,12 @@ func UpdatePostHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	// fmt.Printf("r.Form:\n %v\n", r.Form)
-	// fmt.Printf("r.Form[\"title\"][0]: %v\n", r.Form["title"][0])
-
 	updateStr := fmt.Sprintf(
-		"update posts set title = '%v', author = '%v', content = '%v', updated = current_timestamp where id = %v returning (id)",
+		"update post set title = '%v', author = '%v', content = '%v', updated = current_timestamp where id = %v returning (id)",
 		r.Form["title"][0],
 		r.Form["author"][0],
 		r.Form["content"][0],
 		r.Form["id"][0])
-	// fmt.Printf("updateStr: %v\n", updateStr)
 
 	var id int
 	err = DBConn.QueryRow(context.Background(), updateStr).Scan(&id)
@@ -166,36 +150,15 @@ func UpdatePostHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getPostData(postId string) (*PostItem, error) {
-	var id int
-	var title string
-	var author string
-	var content string
-	var created time.Time
-	var updated time.Time
+	var item RawPostItem
 
-	err := DBConn.QueryRow(context.Background(), fmt.Sprintf("select id, title, author, content, created, updated from posts where id = %v", postId)).Scan(
-		&id,
-		&title,
-		&author,
-		&content,
-		&created,
-		&updated)
+	err := DBConn.QueryRow(context.Background(),
+		fmt.Sprintf("select id, title, author, content, created, updated from post where id = %v", postId)).Scan(&item.Id, &item.Title, &item.Author, &item.Content, &item.Created, &item.Updated)
 	if err != nil {
-		fmt.Printf("Query post detail error, id: %v, error: %v", postId, err)
-		return nil, err
+		fmt.Println(err)
 	}
-
-	postItem := new(PostItem)
-	postItem.Id = id
-	postItem.Title = title
-	postItem.Author = author
-	postItem.Content = content
-	postItem.Created = created
-	postItem.Updated = updated
-	postItem.CreatedStr = created.Format("2006年1月2日 15:04:05")
-	postItem.UpdatedStr = updated.Format("2006年1月2日 15:04:05")
-
-	return postItem, nil
+	fmt.Printf("item: %v\n", item)
+	return &PostItem{item, item.Created.Format("2006年1月2日 15:04:05"), item.Updated.Format("2006年1月2日 15:04:05")}, nil
 }
 
 func PostDetailHandler(w http.ResponseWriter, r *http.Request) {
@@ -209,7 +172,7 @@ func PostDetailHandler(w http.ResponseWriter, r *http.Request) {
 
 	re := regexp.MustCompile(`\r`)
 
-	data := new(PostPageData)
+	var data PostPageData
 	data.PageTitle = postData.Title
 	data.Post = postData
 	data.Post.Content = re.ReplaceAllString(postData.Content, "<br/>")
@@ -225,7 +188,7 @@ func EditPostHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 
-	data := new(PostPageData)
+	var data PostPageData
 	data.PageTitle = postData.Title
 	data.Post = postData
 	render(w, r, "create", data)
@@ -242,7 +205,7 @@ func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 	// fmt.Printf("r.Form:\n %v\n", r.Form)
 	// fmt.Printf("r.Form[\"title\"][0]: %v\n", r.Form["title"][0])
 
-	updateStr := fmt.Sprintf("update posts set deleted = true where id = %v returning (id)", idForm)
+	updateStr := fmt.Sprintf("update post set deleted = true where id = %v returning (id)", idForm)
 	// fmt.Printf("updateStr: %v\n", updateStr)
 
 	var id int

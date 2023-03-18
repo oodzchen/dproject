@@ -9,7 +9,7 @@ import (
 )
 
 func ConnectDB() *pgx.Conn {
-	conn, err := pgx.Connect(context.Background(), "postgres://postgres:888888@localhost:8888")
+	conn, err := pgx.Connect(context.Background(), "postgres://admin:88886666@localhost:8888/discuss")
 	if err != nil {
 		fmt.Printf("Connect database error: %v\n", err)
 		os.Exit(1)
