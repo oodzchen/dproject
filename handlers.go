@@ -11,18 +11,19 @@ import (
 )
 
 type RawPostItem struct {
-	Id      int
-	Title   string
-	Author  string
-	Content string
-	Created time.Time
-	Updated time.Time
+	Id         int
+	Title      string
+	AuthorName string
+	AuthorId   int
+	Content    string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }
 
 type PostItem struct {
 	RawPostItem
-	CreatedStr string
-	UpdatedStr string
+	CreatedAtStr string
+	UpdatedAtStr string
 }
 
 type BasePageData struct {
@@ -48,7 +49,23 @@ func render(w http.ResponseWriter, r *http.Request, name string, data any) {
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	queryStr := "select id, title, author, content, created, updated from post where deleted = false order by created desc"
+	// fmt.Printf("sessionManager: %v\n", sessionManager)
+	// SessionManager.Put(r.Context(), "tempUserId", 2)
+
+	queryStr := `select
+		p.id,
+		p.title,
+		u.name as author_name,
+		p.author_id,
+		p.content,
+		p.created_at,
+		p.updated_at,
+		to_char(p.created_at, 'YYYY-MM-DD HH24:MI:SS') as created_at_str,
+		to_char(p.updated_at, 'YYYY-MM-DD HH24:MI:SS') as updated_at_str
+	from posts p
+	left join users u
+	on p.author_id = u.id
+	where reply_to is null;`
 	rows, err := DBConn.Query(context.Background(), queryStr)
 
 	if err != nil {
@@ -60,15 +77,24 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	var list []*PostItem
 	for rows.Next() {
-		var item RawPostItem
-		err := rows.Scan(&item.Id, &item.Title, &item.Author, &item.Content, &item.Created, &item.Updated)
+		var item PostItem
+		err := rows.Scan(
+			&item.Id,
+			&item.Title,
+			&item.AuthorName,
+			&item.AuthorId,
+			&item.Content,
+			&item.CreatedAt,
+			&item.UpdatedAt,
+			&item.CreatedAtStr,
+			&item.UpdatedAtStr)
 		if err != nil {
 			fmt.Printf("Collect rows error: %v\n", err)
 			return
 		}
-		listItem := &PostItem{item, item.Created.Format("2006年1月2日 15:04:05"), item.Updated.Format("2006年1月2日 15:04:05")}
+		// listItem := &PostItem{item, item.CreatedAt, item.UpdatedAt.Format("2006年1月2日 15:04:05")}
 		// fmt.Printf("listItem: %v\n", listItem)
-		list = append(list, listItem)
+		list = append(list, &item)
 	}
 
 	var data HomePageData
@@ -82,6 +108,9 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 func CreatePageHandler(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
 	fmt.Printf("idParam: %v\n", idParam)
+
+	tempUserId := Session.Values["tempUserId"]
+	fmt.Printf("tempUserId: %v\n", tempUserId)
 
 	var data PostPageData
 
@@ -103,10 +132,14 @@ func SubmitPostHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
+	tempUserId := Session.Values["tempUserId"]
+	fmt.Printf("tempUserId: %v\n", tempUserId)
+
 	insertStr := fmt.Sprintf(
-		"insert into post values (default, '%v', '%v', '%v', current_timestamp) returning (id)",
+		"insert into posts (title, author_id, content) values ('%s', %d, '%s') returning (id)",
 		r.Form["title"][0],
-		r.Form["author"][0],
+		// r.Form["author"][0],
+		tempUserId,
 		r.Form["content"][0])
 	// fmt.Printf("insertStr: %v\n", insertStr)
 
@@ -115,7 +148,7 @@ func SubmitPostHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("res: %v\n", id)
 
 	if err != nil {
-		fmt.Printf("Insert into post error: %v\n", err)
+		fmt.Printf("Insert into posts error: %v\n", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -129,10 +162,16 @@ func UpdatePostHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
+	tempUserId := Session.Values["tempUserId"]
+
+	// r.Form
+	// fmt.Printf("r.Form: %v\n", r.Form)
+
 	updateStr := fmt.Sprintf(
-		"update post set title = '%v', author = '%v', content = '%v', updated = current_timestamp where id = %v returning (id)",
+		"update posts set title = '%s', author_id = %d, content = '%s', updated_at = current_timestamp where id = %s returning (id)",
 		r.Form["title"][0],
-		r.Form["author"][0],
+		// r.Form["author"][0],
+		tempUserId,
 		r.Form["content"][0],
 		r.Form["id"][0])
 
@@ -141,7 +180,7 @@ func UpdatePostHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("res: %v\n", id)
 
 	if err != nil {
-		fmt.Printf("Update post error. Post Id: %v.\n %v\n", id, err)
+		fmt.Printf("Update posts error. Post Id: %v.\n %v\n", id, err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -150,15 +189,36 @@ func UpdatePostHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getPostData(postId string) (*PostItem, error) {
-	var item RawPostItem
-
-	err := DBConn.QueryRow(context.Background(),
-		fmt.Sprintf("select id, title, author, content, created, updated from post where id = %v", postId)).Scan(&item.Id, &item.Title, &item.Author, &item.Content, &item.Created, &item.Updated)
+	var item PostItem
+	queryStr := fmt.Sprintf(`select
+		p.id,
+		p.title,
+		u.name as author_name,
+		p.author_id,
+		p.content,
+		p.created_at,
+		p.updated_at,
+		to_char(p.created_at, 'YYYY-MM-DD HH24:MI:SS') as created_at_str,
+		to_char(p.updated_at, 'YYYY-MM-DD HH24:MI:SS') as updated_at_str
+	from posts p
+	left join users u
+	on p.author_id = u.id
+	where p.id = %v`, postId)
+	err := DBConn.QueryRow(context.Background(), queryStr).Scan(
+		&item.Id,
+		&item.Title,
+		&item.AuthorName,
+		&item.AuthorId,
+		&item.Content,
+		&item.CreatedAt,
+		&item.UpdatedAt,
+		&item.CreatedAtStr,
+		&item.UpdatedAtStr)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Printf("item: %v\n", item)
-	return &PostItem{item, item.Created.Format("2006年1月2日 15:04:05"), item.Updated.Format("2006年1月2日 15:04:05")}, nil
+	// fmt.Printf("item: %v\n", item)
+	return &item, nil
 }
 
 func PostDetailHandler(w http.ResponseWriter, r *http.Request) {
@@ -205,7 +265,7 @@ func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 	// fmt.Printf("r.Form:\n %v\n", r.Form)
 	// fmt.Printf("r.Form[\"title\"][0]: %v\n", r.Form["title"][0])
 
-	updateStr := fmt.Sprintf("update post set deleted = true where id = %v returning (id)", idForm)
+	updateStr := fmt.Sprintf("update posts set deleted = true where id = %v returning (id)", idForm)
 	// fmt.Printf("updateStr: %v\n", updateStr)
 
 	var id int
@@ -213,7 +273,7 @@ func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("res: %v\n", id)
 
 	if err != nil {
-		fmt.Printf("Delete post error. Post Id: %v.\n %v\n", id, err)
+		fmt.Printf("Delete posts error. Post Id: %v.\n %v\n", id, err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}

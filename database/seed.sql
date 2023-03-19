@@ -1,6 +1,9 @@
 -- 创建超级管理员
 -- CREATE ROLE admin WITH SUPERUSER CREATEDB CREATEROLE LOGIN PASSWORD '88886666';
 
+-- 删除旧的数据库
+DROP DATABASE discuss;
+
 -- 创建数据库
 CREATE DATABASE discuss OWNER admin ENCODING 'UTF-8';
 
@@ -24,7 +27,8 @@ CREATE TABLE posts (
     content TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    reply_to INTEGER
+    reply_to INTEGER,
+    deleted BOOLEAN NOT NULL DEFAULT false
 );
 
 -- reply_to 为空时候标题不能为空，replay_to 不为空时标题可以为空

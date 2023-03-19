@@ -1,16 +1,21 @@
+{{define "article"}}
+<article>
+  <h1>{{.Title}}</h1>
+  <small>{{.AuthorName}} 发布于 {{.CreatedAtStr}}, 更新于 {{.UpdatedAtStr}}</small>
+  <div><a href="/edit/{{.Id}}">编辑</a> <a href="javascript:handleDelete({{.Id}});" style="color:red">删除</a></div>
+  <form method="post" action="/delete" id="delForm" style="display: none">
+    <input type="hidden" name="id" value="{{.Id}}">
+  </form>
+  <section>{{.Content}}</section>
+</article>
+{{end}}
+
 {{define "post"}}
 
 {{template "head" .}}
 
-<article>
-  <h1>{{.Post.Title}}</h1>
-  <small>{{.Post.Author}} 发布于 {{.Post.CreatedStr}}, 更新于 {{.Post.UpdatedStr}}</small>
-  <div><a href="/edit/{{.Post.Id}}">编辑</a> <a href="javascript:handleDelete({{.Post.Id}});" style="color:red">删除</a></div>
-  <form method="post" action="/delete" id="delForm" style="display: none">
-    <input type="hidden" name="id" value="{{.Post.Id}}">
-  </form>
-  <section>{{.Post.Content}}</section>
-</article>
+{{template "article" .Post}}
+
 <script>
   function handleDelete(id) {
     if (confirm('确认删除？')) {
