@@ -2,17 +2,27 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"os"
 
 	"github.com/jackc/pgx/v5"
 )
 
-func ConnectDB() *pgx.Conn {
-	conn, err := pgx.Connect(context.Background(), "postgres://admin:88886666@localhost:8888/discuss")
+type DB struct {
+	DSN  string
+	Conn *pgx.Conn
+}
+
+func (db *DB) Connect() error {
+	conn, err := pgx.Connect(context.Background(), db.DSN)
 	if err != nil {
-		fmt.Printf("Connect database error: %v\n", err)
-		os.Exit(1)
+		return err
 	}
-	return conn
+	db.Conn = conn
+	return nil
+}
+
+func (db *DB) Close() error {
+	if db.Conn != nil {
+		return db.Conn.Close(context.Background())
+	}
+	return nil
 }

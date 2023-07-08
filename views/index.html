@@ -3,15 +3,15 @@
 {{template "head" .}}
 
 <ul>
-  {{range .Posts}}
+  {{range .Data.Articles}}
   <li>
-    <a href="/posts/{{.Id}}">{{.Title}}</a>
+    <a href="/articles/{{.Id}}">{{.Title}}</a>
     <br>
     <small>{{.AuthorName}} 发布于 {{.CreatedAtStr}}</small>
   </li>
   {{end}}
 </ul>
 
-<div>总共 {{.PostTotal}} 条数据</div>
+<div>总共 {{.Data.ArticleTotal}} 篇文章</div>
 {{template "foot"}}
 {{end}}

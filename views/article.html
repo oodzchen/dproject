@@ -1,20 +1,20 @@
-{{define "article"}}
+{{define "article_content"}}
 <article>
   <h1>{{.Title}}</h1>
   <small>{{.AuthorName}} 发布于 {{.CreatedAtStr}}, 更新于 {{.UpdatedAtStr}}</small>
-  <div><a href="/edit/{{.Id}}">编辑</a> <a href="javascript:handleDelete({{.Id}});" style="color:red">删除</a></div>
-  <form method="post" action="/delete" id="delForm" style="display: none">
+  <div><a href="/articles/{{.Id}}/edit">编辑</a> <a href="javascript:handleDelete({{.Id}});" style="color:red">删除</a></div>
+  <form method="post" action="/articles/{{.Id}}/delete" id="delForm" style="display: none">
     <input type="hidden" name="id" value="{{.Id}}">
   </form>
   <section>{{.Content}}</section>
 </article>
 {{end}}
 
-{{define "post"}}
+{{define "article"}}
 
 {{template "head" .}}
 
-{{template "article" .Post}}
+{{template "article_content" .Data}}
 
 <script>
   function handleDelete(id) {

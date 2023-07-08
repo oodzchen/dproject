@@ -1,44 +1,36 @@
 package main
 
 import (
-	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"text/template"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/jackc/pgx/v5"
 )
 
-var Tmpl *template.Template
-var DBConn *pgx.Conn
-
-const Port = ":3000"
+const port = ":3000"
+const dsn = "postgres://admin:88886666@localhost:8088/discuss"
 
 func main() {
-	DBConn = ConnectDB()
-	defer DBConn.Close(context.Background())
+	db := &DB{DSN: dsn}
+	err := db.Connect()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 
-	Tmpl = template.Must(template.ParseGlob("./views/*.html"))
-	Tmpl.ParseGlob("./views/partials/*.html")
+	tmpl := template.Must(template.ParseGlob("./views/*.html"))
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(SessionMiddleware)
 
-	r.Get("/", HomeHandler)
-	r.Get("/submit", CreatePageHandler)
-	r.Post("/submit", SubmitPostHandler)
-	r.Get("/posts", HomeHandler)
-	r.Get("/posts/{id}", PostDetailHandler)
-	r.Get("/edit/{id}", EditPostHandler)
-	r.Post("/update", UpdatePostHandler)
-	r.Post("/delete", DeletePostHandler)
+	r.Mount("/", newArticleResource(tmpl, db.Conn).Routes())
 
-	fmt.Printf("Listening at http://localhost%v\n", Port)
-	err := http.ListenAndServe(Port, r)
-	if err != nil {
-		fmt.Printf("Error at Listening: %v\n", err)
-	}
+	// r.Get("/", HomePageHandler)
+
+	fmt.Printf("Listening at http://localhost%v\n", port)
+	log.Fatal(http.ListenAndServe(port, r))
 }

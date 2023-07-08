@@ -5,53 +5,53 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"text/template"
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5"
 )
 
-type RawPostItem struct {
-	Id         int
-	Title      string
-	AuthorName string
-	AuthorId   int
-	Content    string
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+type ArticleResource struct {
+	Renderer
+	DBConn *pgx.Conn
 }
 
-type PostItem struct {
-	RawPostItem
+type ArticleItem struct {
+	Id           int
+	Title        string
+	AuthorName   string
+	AuthorId     int
+	Content      string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 	CreatedAtStr string
 	UpdatedAtStr string
 }
 
-type BasePageData struct {
-	PageTitle string
+func newArticleResource(tmpl *template.Template, conn *pgx.Conn) *ArticleResource {
+	return &ArticleResource{Renderer{tmpl}, conn}
 }
 
-type HomePageData struct {
-	BasePageData
-	Posts     []*PostItem
-	PostTotal int
+func (rs *ArticleResource) Routes() http.Handler {
+	rt := chi.NewRouter()
+
+	rt.Get("/", rs.List)
+	rt.Get("/articles", rs.List)
+	rt.Post("/articles", rs.Submit)
+	rt.Get("/articles/new", rs.CreatePage)
+
+	rt.Route("/articles/{id}", func(r chi.Router) {
+		r.Get("/", rs.Get)
+		r.Get("/edit", rs.EditPage)
+		r.Post("/edit", rs.Update)
+		r.Post("/delete", rs.Delete)
+	})
+
+	return rt
 }
 
-type PostPageData struct {
-	BasePageData
-	Post *PostItem
-}
-
-func render(w http.ResponseWriter, r *http.Request, name string, data any) {
-	err := Tmpl.ExecuteTemplate(w, name, data)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}
-
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	// fmt.Printf("sessionManager: %v\n", sessionManager)
-	// SessionManager.Put(r.Context(), "tempUserId", 2)
-
+func (rs *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	queryStr := `select
 		p.id,
 		p.title,
@@ -65,8 +65,8 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	from posts p
 	left join users u
 	on p.author_id = u.id
-	where reply_to is null;`
-	rows, err := DBConn.Query(context.Background(), queryStr)
+	where reply_to is null and deleted is false;`
+	rows, err := rs.DBConn.Query(context.Background(), queryStr)
 
 	if err != nil {
 		fmt.Printf("Query database error: %v\n", err)
@@ -75,9 +75,9 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	defer rows.Close()
 
-	var list []*PostItem
+	var list []*ArticleItem
 	for rows.Next() {
-		var item PostItem
+		var item ArticleItem
 		err := rows.Scan(
 			&item.Id,
 			&item.Title,
@@ -92,41 +92,41 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("Collect rows error: %v\n", err)
 			return
 		}
-		// listItem := &PostItem{item, item.CreatedAt, item.UpdatedAt.Format("2006年1月2日 15:04:05")}
-		// fmt.Printf("listItem: %v\n", listItem)
 		list = append(list, &item)
 	}
 
-	var data HomePageData
-	data.PageTitle = "Home - Dproject"
-	data.Posts = list
-	data.PostTotal = len(list)
+	type ListData struct {
+		Articles     []*ArticleItem
+		ArticleTotal int
+	}
 
-	render(w, r, "index", data)
+	rs.render(w, r, "index", &PageData{"Home - Dproject", &ListData{list, len(list)}})
 }
 
-func CreatePageHandler(w http.ResponseWriter, r *http.Request) {
+func (rs *ArticleResource) CreatePage(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
 	fmt.Printf("idParam: %v\n", idParam)
 
 	tempUserId := Session.Values["tempUserId"]
 	fmt.Printf("tempUserId: %v\n", tempUserId)
 
-	var data PostPageData
+	// var data PostPageData
+	var pageTitle string
+	var data *ArticleItem
 
 	if idParam == "" {
-		data.PageTitle = "Create - Dproject"
-		data.Post = &PostItem{}
+		pageTitle = "Create - Dproject"
+		data = &ArticleItem{}
 	} else {
-		postData, _ := getPostData(idParam)
-		data.PageTitle = fmt.Sprintf("Edit - %v", postData.Title)
-		data.Post = postData
+		postData, _ := rs.getPostData(idParam)
+		pageTitle = fmt.Sprintf("Edit - %v", postData.Title)
+		data = postData
 	}
 
-	render(w, r, "create", data)
+	rs.render(w, r, "create", &PageData{pageTitle, data})
 }
 
-func SubmitPostHandler(w http.ResponseWriter, r *http.Request) {
+func (rs *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -144,7 +144,7 @@ func SubmitPostHandler(w http.ResponseWriter, r *http.Request) {
 	// fmt.Printf("insertStr: %v\n", insertStr)
 
 	var id int
-	err = DBConn.QueryRow(context.Background(), insertStr).Scan(&id)
+	err = rs.DBConn.QueryRow(context.Background(), insertStr).Scan(&id)
 	fmt.Printf("res: %v\n", id)
 
 	if err != nil {
@@ -153,30 +153,26 @@ func SubmitPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/posts/%v", id), http.StatusFound)
+	http.Redirect(w, r, fmt.Sprintf("/articles/%v", id), http.StatusFound)
 }
 
-func UpdatePostHandler(w http.ResponseWriter, r *http.Request) {
+func (rs *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-
-	tempUserId := Session.Values["tempUserId"]
-
-	// r.Form
-	// fmt.Printf("r.Form: %v\n", r.Form)
+	fmt.Printf("r.Form: %v\n", r.Form)
 
 	updateStr := fmt.Sprintf(
-		"update posts set title = '%s', author_id = %d, content = '%s', updated_at = current_timestamp where id = %s returning (id)",
+		"update posts set title = '%s', author_id = %s, content = '%s', updated_at = current_timestamp where id = %s returning (id)",
 		r.Form["title"][0],
-		// r.Form["author"][0],
-		tempUserId,
+		r.Form["author_id"][0],
+		// tempUserId,
 		r.Form["content"][0],
 		r.Form["id"][0])
 
 	var id int
-	err = DBConn.QueryRow(context.Background(), updateStr).Scan(&id)
+	err = rs.DBConn.QueryRow(context.Background(), updateStr).Scan(&id)
 	fmt.Printf("res: %v\n", id)
 
 	if err != nil {
@@ -185,11 +181,11 @@ func UpdatePostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/posts/%v", id), http.StatusFound)
+	http.Redirect(w, r, fmt.Sprintf("/articles/%v", id), http.StatusFound)
 }
 
-func getPostData(postId string) (*PostItem, error) {
-	var item PostItem
+func (rs *ArticleResource) getPostData(postId string) (*ArticleItem, error) {
+	var item ArticleItem
 	queryStr := fmt.Sprintf(`select
 		p.id,
 		p.title,
@@ -204,7 +200,7 @@ func getPostData(postId string) (*PostItem, error) {
 	left join users u
 	on p.author_id = u.id
 	where p.id = %v`, postId)
-	err := DBConn.QueryRow(context.Background(), queryStr).Scan(
+	err := rs.DBConn.QueryRow(context.Background(), queryStr).Scan(
 		&item.Id,
 		&item.Title,
 		&item.AuthorName,
@@ -215,46 +211,40 @@ func getPostData(postId string) (*PostItem, error) {
 		&item.CreatedAtStr,
 		&item.UpdatedAtStr)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 	// fmt.Printf("item: %v\n", item)
 	return &item, nil
 }
 
-func PostDetailHandler(w http.ResponseWriter, r *http.Request) {
+func (rs *ArticleResource) Get(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
 	fmt.Printf("idParam: %v\n", idParam)
 
-	postData, err := getPostData((idParam))
+	postData, err := rs.getPostData((idParam))
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 
 	re := regexp.MustCompile(`\r`)
 
-	var data PostPageData
-	data.PageTitle = postData.Title
-	data.Post = postData
-	data.Post.Content = re.ReplaceAllString(postData.Content, "<br/>")
-	render(w, r, "post", data)
+	postData.Content = re.ReplaceAllString(postData.Content, "<br/>")
+	rs.render(w, r, "article", &PageData{postData.Title, postData})
 }
 
-func EditPostHandler(w http.ResponseWriter, r *http.Request) {
+func (rs *ArticleResource) EditPage(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
 	fmt.Printf("idParam: %v\n", idParam)
 
-	postData, err := getPostData((idParam))
+	postData, err := rs.getPostData((idParam))
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 
-	var data PostPageData
-	data.PageTitle = postData.Title
-	data.Post = postData
-	render(w, r, "create", data)
+	rs.render(w, r, "create", &PageData{postData.Title, postData})
 }
 
-func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
+func (rs *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -262,14 +252,11 @@ func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 
 	idForm := r.Form["id"][0]
 
-	// fmt.Printf("r.Form:\n %v\n", r.Form)
-	// fmt.Printf("r.Form[\"title\"][0]: %v\n", r.Form["title"][0])
-
 	updateStr := fmt.Sprintf("update posts set deleted = true where id = %v returning (id)", idForm)
 	// fmt.Printf("updateStr: %v\n", updateStr)
 
 	var id int
-	err = DBConn.QueryRow(context.Background(), updateStr).Scan(&id)
+	err = rs.DBConn.QueryRow(context.Background(), updateStr).Scan(&id)
 	fmt.Printf("res: %v\n", id)
 
 	if err != nil {
