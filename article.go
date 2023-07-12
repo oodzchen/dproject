@@ -107,8 +107,8 @@ func (rs *ArticleResource) CreatePage(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
 	fmt.Printf("idParam: %v\n", idParam)
 
-	tempUserId := Session.Values["tempUserId"]
-	fmt.Printf("tempUserId: %v\n", tempUserId)
+	// tempUserId := Session.Values["tempUserId"]
+	// fmt.Printf("tempUserId: %v\n", tempUserId)
 
 	// var data PostPageData
 	var pageTitle string
@@ -132,14 +132,14 @@ func (rs *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	tempUserId := Session.Values["tempUserId"]
-	fmt.Printf("tempUserId: %v\n", tempUserId)
+	// tempUserId := Session.Values["tempUserId"]
+	// fmt.Printf("tempUserId: %v\n", tempUserId)
 
 	insertStr := fmt.Sprintf(
-		"insert into posts (title, author_id, content) values ('%s', %d, '%s') returning (id)",
+		"insert into posts (title, author_id, content) values ('%s', %s, '%s') returning (id)",
 		r.Form["title"][0],
-		// r.Form["author"][0],
-		tempUserId,
+		r.Form["author"][0],
+		// tempUserId,
 		r.Form["content"][0])
 	// fmt.Printf("insertStr: %v\n", insertStr)
 
