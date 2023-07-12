@@ -26,7 +26,7 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 
-	r.Mount("/", newArticleResource(tmpl, db.Conn).Routes())
+	r.Mount("/", newArticleResource(tmpl, db.Pool).Routes())
 
 	fmt.Printf("Listening at http://localhost%v\n", port)
 	log.Fatal(http.ListenAndServe(port, r))

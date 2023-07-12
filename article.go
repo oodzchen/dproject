@@ -9,12 +9,13 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type ArticleResource struct {
 	Renderer
-	DBConn *pgx.Conn
+	// DBConn *pgx.Conn
+	DBPool *pgxpool.Pool
 }
 
 type ArticleItem struct {
@@ -29,8 +30,8 @@ type ArticleItem struct {
 	UpdatedAtStr string
 }
 
-func newArticleResource(tmpl *template.Template, conn *pgx.Conn) *ArticleResource {
-	return &ArticleResource{Renderer{tmpl}, conn}
+func newArticleResource(tmpl *template.Template, pool *pgxpool.Pool) *ArticleResource {
+	return &ArticleResource{Renderer{tmpl}, pool}
 }
 
 func (rs *ArticleResource) Routes() http.Handler {
@@ -66,7 +67,8 @@ func (rs *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	left join users u
 	on p.author_id = u.id
 	where reply_to is null and deleted is false;`
-	rows, err := rs.DBConn.Query(context.Background(), queryStr)
+	// rows, err := rs.DBConn.Query(context.Background(), queryStr)
+	rows, err := rs.DBPool.Query(context.Background(), queryStr)
 
 	if err != nil {
 		fmt.Printf("Query database error: %v\n", err)
@@ -144,7 +146,7 @@ func (rs *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 	// fmt.Printf("insertStr: %v\n", insertStr)
 
 	var id int
-	err = rs.DBConn.QueryRow(context.Background(), insertStr).Scan(&id)
+	err = rs.DBPool.QueryRow(context.Background(), insertStr).Scan(&id)
 	fmt.Printf("res: %v\n", id)
 
 	if err != nil {
@@ -172,7 +174,7 @@ func (rs *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 		r.Form["id"][0])
 
 	var id int
-	err = rs.DBConn.QueryRow(context.Background(), updateStr).Scan(&id)
+	err = rs.DBPool.QueryRow(context.Background(), updateStr).Scan(&id)
 	fmt.Printf("res: %v\n", id)
 
 	if err != nil {
@@ -200,7 +202,7 @@ func (rs *ArticleResource) getPostData(postId string) (*ArticleItem, error) {
 	left join users u
 	on p.author_id = u.id
 	where p.id = %v`, postId)
-	err := rs.DBConn.QueryRow(context.Background(), queryStr).Scan(
+	err := rs.DBPool.QueryRow(context.Background(), queryStr).Scan(
 		&item.Id,
 		&item.Title,
 		&item.AuthorName,
@@ -256,7 +258,7 @@ func (rs *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 	// fmt.Printf("updateStr: %v\n", updateStr)
 
 	var id int
-	err = rs.DBConn.QueryRow(context.Background(), updateStr).Scan(&id)
+	err = rs.DBPool.QueryRow(context.Background(), updateStr).Scan(&id)
 	fmt.Printf("res: %v\n", id)
 
 	if err != nil {
