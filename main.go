@@ -8,25 +8,33 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/oodzchen/dproject/store"
+	"github.com/oodzchen/dproject/store/pgstore"
+	"github.com/oodzchen/dproject/web"
 )
 
 const port = ":3000"
 const dsn = "postgres://admin:88886666@localhost:8088/discuss"
 
 func main() {
-	db := &DB{DSN: dsn}
-	err := db.Connect()
+	pg := pgstore.New(&pgstore.DBConfig{
+		DSN: dsn,
+	})
+
+	err := pg.ConnectDB()
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
+	defer pg.CloseDB()
+
+	store, err := store.New(pg)
 
 	tmpl := template.Must(template.ParseGlob("./views/*.html"))
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 
-	r.Mount("/", newArticleResource(tmpl, db.Pool).Routes())
+	r.Mount("/", web.NewArticleResource(tmpl, store.Article).Routes())
 
 	fmt.Printf("Listening at http://localhost%v\n", port)
 	log.Fatal(http.ListenAndServe(port, r))

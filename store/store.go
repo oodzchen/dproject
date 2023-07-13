@@ -5,7 +5,11 @@ import (
 )
 
 type Store struct {
-	ArticleStore ArticleStore
+	Article ArticleStore
+}
+
+type DBStore interface {
+	NewArticle() (any, error)
 }
 
 type ArticleStore interface {
@@ -16,7 +20,16 @@ type ArticleStore interface {
 	Delete(int) error
 }
 
-func New() *Store {
+func New(dbStore DBStore) (*Store, error) {
 	//...f
-	return &Store{}
+	article, err := dbStore.NewArticle()
+	if err != nil {
+		return nil, err
+	}
+
+	articleStore := article.(ArticleStore)
+
+	return &Store{
+		Article: articleStore,
+	}, nil
 }

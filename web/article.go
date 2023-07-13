@@ -1,4 +1,4 @@
-package main
+package web
 
 import (
 	"fmt"
@@ -20,7 +20,7 @@ type ArticleResource struct {
 	store store.ArticleStore
 }
 
-func newArticleResource(tmpl *template.Template, store store.ArticleStore) *ArticleResource {
+func NewArticleResource(tmpl *template.Template, store store.ArticleStore) *ArticleResource {
 	return &ArticleResource{
 		utils.Renderer{Tmpl: tmpl},
 		store,
@@ -46,50 +46,6 @@ func (rs *ArticleResource) Routes() http.Handler {
 }
 
 func (rs *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
-	// queryStr := `select
-	// 	p.id,
-	// 	p.title,
-	// 	u.name as author_name,
-	// 	p.author_id,
-	// 	p.content,
-	// 	p.created_at,
-	// 	p.updated_at,
-	// 	to_char(p.created_at, 'YYYY-MM-DD HH24:MI:SS') as created_at_str,
-	// 	to_char(p.updated_at, 'YYYY-MM-DD HH24:MI:SS') as updated_at_str
-	// from posts p
-	// left join users u
-	// on p.author_id = u.id
-	// where reply_to is null and deleted is false;`
-	// // rows, err := rs.DBConn.Query(context.Background(), queryStr)
-	// rows, err := rs.DBPool.Query(context.Background(), queryStr)
-
-	// if err != nil {
-	// 	fmt.Printf("Query database error: %v\n", err)
-	// 	return
-	// }
-
-	// defer rows.Close()
-
-	// var list []*model.Article
-	// for rows.Next() {
-	// 	var item model.Article
-	// 	err := rows.Scan(
-	// 		&item.Id,
-	// 		&item.Title,
-	// 		&item.AuthorName,
-	// 		&item.AuthorId,
-	// 		&item.Content,
-	// 		&item.CreatedAt,
-	// 		&item.UpdatedAt,
-	// 		&item.CreatedAtStr,
-	// 		&item.UpdatedAtStr)
-	// 	if err != nil {
-	// 		fmt.Printf("Collect rows error: %v\n", err)
-	// 		return
-	// 	}
-	// 	list = append(list, &item)
-	// }
-
 	list, err := rs.store.List()
 	if err != nil {
 		fmt.Printf("Query database error: %v\n", err)
@@ -145,22 +101,7 @@ func (rs *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	// tempUserId := Session.Values["tempUserId"]
-	// fmt.Printf("tempUserId: %v\n", tempUserId)
-
-	// insertStr := fmt.Sprintf(
-	// 	"insert into posts (title, author_id, content) values ('%s', %s, '%s') returning (id)",
-	// 	r.Form["title"][0],
-	// 	r.Form["author"][0],
-	// 	// tempUserId,
-	// 	r.Form["content"][0])
-	// fmt.Printf("insertStr: %v\n", insertStr)
-
-	// var id int
-	// err = rs.DBPool.QueryRow(context.Background(), insertStr).Scan(&id)
-	// fmt.Printf("res: %v\n", id)
-
-	authorId, err := strconv.Atoi(r.Form["author"][0])
+	authorId, err := strconv.Atoi(r.Form["author_id"][0])
 	if err != nil {
 		http.Error(w, "Bad Reqeust", http.StatusBadRequest)
 		return
@@ -188,22 +129,11 @@ func (rs *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Printf("r.Form: %v\n", r.Form)
 
-	// updateStr := fmt.Sprintf(
-	// 	"update posts set title = '%s', author_id = %s, content = '%s', updated_at = current_timestamp where id = %s returning (id)",
-	// 	r.Form["title"][0],
-	// 	r.Form["author_id"][0],
-	// 	// tempUserId,
-	// 	r.Form["content"][0],
-	// 	r.Form["id"][0])
-
-	// var id int
-	// err = rs.DBPool.QueryRow(context.Background(), updateStr).Scan(&id)
-	// fmt.Printf("res: %v\n", id)
-
 	rId, err := strconv.Atoi(r.Form["id"][0])
-	authorId, err := strconv.Atoi(r.Form["author"][0])
+	authorId, err := strconv.Atoi(r.Form["author_id"][0])
 
 	if err != nil {
+		fmt.Printf("Convert id or authorId error: %s ", err.Error())
 		http.Error(w, "Bad Reqeust", http.StatusBadRequest)
 		return
 	}
@@ -223,39 +153,6 @@ func (rs *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, fmt.Sprintf("/articles/%v", id), http.StatusFound)
 }
-
-// func (rs *ArticleResource) getPostData(postId string) (*model.Article, error) {
-// 	var item model.Article
-// 	queryStr := fmt.Sprintf(`select
-// 		p.id,
-// 		p.title,
-// 		u.name as author_name,
-// 		p.author_id,
-// 		p.content,
-// 		p.created_at,
-// 		p.updated_at,
-// 		to_char(p.created_at, 'YYYY-MM-DD HH24:MI:SS') as created_at_str,
-// 		to_char(p.updated_at, 'YYYY-MM-DD HH24:MI:SS') as updated_at_str
-// 	from posts p
-// 	left join users u
-// 	on p.author_id = u.id
-// 	where p.id = %v`, postId)
-// 	err := rs.DBPool.QueryRow(context.Background(), queryStr).Scan(
-// 		&item.Id,
-// 		&item.Title,
-// 		&item.AuthorName,
-// 		&item.AuthorId,
-// 		&item.Content,
-// 		&item.CreatedAt,
-// 		&item.UpdatedAt,
-// 		&item.CreatedAtStr,
-// 		&item.UpdatedAtStr)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	// fmt.Printf("item: %v\n", item)
-// 	return &item, nil
-// }
 
 func (rs *ArticleResource) Get(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
