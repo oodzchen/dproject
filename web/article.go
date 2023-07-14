@@ -10,11 +10,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/store"
-	"github.com/oodzchen/dproject/utils"
 )
 
 type ArticleResource struct {
-	utils.Renderer
+	Renderer
 	// DBConn *pgx.Conn
 	// DBPool *pgxpool.Pool
 	store store.ArticleStore
@@ -22,7 +21,7 @@ type ArticleResource struct {
 
 func NewArticleResource(tmpl *template.Template, store store.ArticleStore) *ArticleResource {
 	return &ArticleResource{
-		utils.Renderer{Tmpl: tmpl},
+		Renderer{Tmpl: tmpl},
 		store,
 	}
 }
@@ -58,7 +57,7 @@ func (rs *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		ArticleTotal int
 	}
 
-	rs.Render(w, r, "index", &utils.PageData{Title: "Home - Dproject", Data: &ListData{list, len(list)}})
+	rs.Render(w, r, "index", &PageData{Title: "Home - Dproject", Data: &ListData{list, len(list)}})
 }
 
 func (rs *ArticleResource) CreatePage(w http.ResponseWriter, r *http.Request) {
@@ -68,7 +67,7 @@ func (rs *ArticleResource) CreatePage(w http.ResponseWriter, r *http.Request) {
 	// tempUserId := Session.Values["tempUserId"]
 	// fmt.Printf("tempUserId: %v\n", tempUserId)
 
-	// var data Postutils.PageData
+	// var data PostPageData
 	var pageTitle string
 	var data *model.Article
 
@@ -92,7 +91,7 @@ func (rs *ArticleResource) CreatePage(w http.ResponseWriter, r *http.Request) {
 		data = postData
 	}
 
-	rs.Render(w, r, "create", &utils.PageData{Title: pageTitle, Data: data})
+	rs.Render(w, r, "create", &PageData{Title: pageTitle, Data: data})
 }
 
 func (rs *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
@@ -175,7 +174,7 @@ func (rs *ArticleResource) Get(w http.ResponseWriter, r *http.Request) {
 	re := regexp.MustCompile(`\r`)
 
 	postData.Content = re.ReplaceAllString(postData.Content, "<br/>")
-	rs.Render(w, r, "article", &utils.PageData{Title: postData.Title, Data: postData})
+	rs.Render(w, r, "article", &PageData{Title: postData.Title, Data: postData})
 }
 
 func (rs *ArticleResource) EditPage(w http.ResponseWriter, r *http.Request) {
@@ -195,7 +194,7 @@ func (rs *ArticleResource) EditPage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
-	rs.Render(w, r, "create", &utils.PageData{Title: postData.Title, Data: postData})
+	rs.Render(w, r, "create", &PageData{Title: postData.Title, Data: postData})
 }
 
 func (rs *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {

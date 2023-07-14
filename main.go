@@ -27,14 +27,14 @@ func main() {
 	}
 	defer pg.CloseDB()
 
-	store, err := store.New(pg)
+	s, err := store.New(pg)
 
 	tmpl := template.Must(template.ParseGlob("./views/*.html"))
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 
-	r.Mount("/", web.NewArticleResource(tmpl, store.Article).Routes())
+	r.Mount("/", web.NewArticleResource(tmpl, s.Article).Routes())
 
 	fmt.Printf("Listening at http://localhost%v\n", port)
 	log.Fatal(http.ListenAndServe(port, r))
