@@ -20,9 +20,7 @@ func (a *Article) List() ([]*model.Article, error) {
 		p.author_id,
 		p.content,
 		p.created_at,
-		p.updated_at,
-		to_char(p.created_at, 'YYYY-MM-DD HH24:MI:SS') as created_at_str,
-		to_char(p.updated_at, 'YYYY-MM-DD HH24:MI:SS') as updated_at_str
+		p.updated_at
 	from posts p
 	left join users u
 	on p.author_id = u.id
@@ -48,12 +46,13 @@ func (a *Article) List() ([]*model.Article, error) {
 			&item.Content,
 			&item.CreatedAt,
 			&item.UpdatedAt,
-			&item.CreatedAtStr,
-			&item.UpdatedAtStr)
+		)
 		if err != nil {
 			fmt.Printf("Collect rows error: %v\n", err)
 			return nil, err
 		}
+
+		item.FormatTimeStr()
 		list = append(list, &item)
 	}
 
@@ -101,9 +100,7 @@ func (a *Article) Item(id int) (*model.Article, error) {
 		p.author_id,
 		p.content,
 		p.created_at,
-		p.updated_at,
-		to_char(p.created_at, 'YYYY-MM-DD HH24:MI:SS') as created_at_str,
-		to_char(p.updated_at, 'YYYY-MM-DD HH24:MI:SS') as updated_at_str
+		p.updated_at
 	from posts p
 	left join users u
 	on p.author_id = u.id
@@ -116,11 +113,12 @@ func (a *Article) Item(id int) (*model.Article, error) {
 		&item.Content,
 		&item.CreatedAt,
 		&item.UpdatedAt,
-		&item.CreatedAtStr,
-		&item.UpdatedAtStr)
+	)
 	if err != nil {
 		return nil, err
 	}
+
+	item.FormatTimeStr()
 	// fmt.Printf("item: %v\n", item)
 	return &item, nil
 }

@@ -3,7 +3,6 @@ package web
 import (
 	"fmt"
 	"net/http"
-	"regexp"
 	"strconv"
 	"text/template"
 
@@ -25,6 +24,13 @@ func NewArticleResource(tmpl *template.Template, store store.ArticleStore) *Arti
 		store,
 	}
 }
+
+// func ArticleContext(next http.Handler) http.Handler {
+// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 		ctx := context.WithValue(r.Context(), "global_tip_status", nil)
+// 		next.ServeHTTP(w, r.WithContext(ctx))
+// 	})
+// }
 
 func (rs *ArticleResource) Routes() http.Handler {
 	rt := chi.NewRouter()
@@ -100,16 +106,16 @@ func (rs *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	authorId, err := strconv.Atoi(r.Form["author_id"][0])
+	authorId, err := strconv.Atoi(r.Form.Get("author_id"))
 	if err != nil {
-		http.Error(w, "Bad Reqeust", http.StatusBadRequest)
+		http.Error(w, "Missing field required: author_id", http.StatusBadRequest)
 		return
 	}
 
 	id, err := rs.store.Create(&model.Article{
-		Title:    r.Form["title"][0],
+		Title:    r.Form.Get("title"),
 		AuthorId: authorId,
-		Content:  r.Form["content"][0],
+		Content:  r.Form.Get("content"),
 	})
 
 	if err != nil {
@@ -126,10 +132,10 @@ func (rs *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-	fmt.Printf("r.Form: %v\n", r.Form)
+	// fmt.Printf("r.Form: %v\n", r.Form)
 
-	rId, err := strconv.Atoi(r.Form["id"][0])
-	authorId, err := strconv.Atoi(r.Form["author_id"][0])
+	rId, err := strconv.Atoi(r.Form.Get("id"))
+	authorId, err := strconv.Atoi(r.Form.Get("author_id"))
 
 	if err != nil {
 		fmt.Printf("Convert id or authorId error: %s ", err.Error())
@@ -138,9 +144,9 @@ func (rs *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id, err := rs.store.Update(&model.Article{
-		Title:    r.Form["title"][0],
+		Title:    r.Form.Get("title"),
 		AuthorId: authorId,
-		Content:  r.Form["content"][0],
+		Content:  r.Form.Get("content"),
 		Id:       rId,
 	})
 
@@ -165,16 +171,14 @@ func (rs *ArticleResource) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// postData, err := rs.getPostData((idParam))
-	postData, err := rs.store.Item(rId)
+	articleData, err := rs.store.Item(rId)
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
-	re := regexp.MustCompile(`\r`)
-
-	postData.Content = re.ReplaceAllString(postData.Content, "<br/>")
-	rs.Render(w, r, "article", &PageData{Title: postData.Title, Data: postData})
+	articleData.TransformNewlines()
+	rs.Render(w, r, "article", &PageData{Title: articleData.Title, Data: articleData})
 }
 
 func (rs *ArticleResource) EditPage(w http.ResponseWriter, r *http.Request) {
@@ -188,7 +192,6 @@ func (rs *ArticleResource) EditPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// postData, err := rs.getPostData((idParam))
 	postData, err := rs.store.Item(rId)
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -203,7 +206,7 @@ func (rs *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	idForm := r.Form["id"][0]
+	idForm := r.Form.Get("id")
 
 	rId, err := strconv.Atoi(idForm)
 
@@ -211,13 +214,6 @@ func (rs *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
-
-	// updateStr := fmt.Sprintf("update posts set deleted = true where id = %v returning (id)", idForm)
-	// // fmt.Printf("updateStr: %v\n", updateStr)
-
-	// var id int
-	// err = rs.DBPool.QueryRow(context.Background(), updateStr).Scan(&id)
-	// fmt.Printf("res: %v\n", id)
 
 	err = rs.store.Delete(rId)
 

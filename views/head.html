@@ -16,6 +16,14 @@
 </head>
 
 <body>
+  {{if .TipStatus}}
+  <div style="display:flex;justify-content:space-between;background-color:gray">
+    {{else}}
+  <div style="display:none">
+  {{end}}
+    <span>{{.TipStatus}}</span>
+    <button>&times;</button>
+   </div>
   <nav>
     <div>
       <a href="/">Home</a>
