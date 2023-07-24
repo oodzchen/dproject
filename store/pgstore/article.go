@@ -13,7 +13,7 @@ type Article struct {
 }
 
 func (a *Article) List() ([]*model.Article, error) {
-	queryStr := `select
+	sqlStr := `select
 		p.id,
 		p.title,
 		u.name as author_name,
@@ -25,8 +25,8 @@ func (a *Article) List() ([]*model.Article, error) {
 	left join users u
 	on p.author_id = u.id
 	where reply_to is null and deleted is false;`
-	// rows, err := rs.DBConn.Query(context.Background(), queryStr)
-	rows, err := a.dbPool.Query(context.Background(), queryStr)
+	// rows, err := rs.DBConn.Query(context.Background(), sqlStr)
+	rows, err := a.dbPool.Query(context.Background(), sqlStr)
 
 	if err != nil {
 		fmt.Printf("Query database error: %v\n", err)
@@ -60,14 +60,14 @@ func (a *Article) List() ([]*model.Article, error) {
 }
 
 func (a *Article) Create(item *model.Article) (int, error) {
-	updateStr := fmt.Sprintf(
+	sqlStr := fmt.Sprintf(
 		"insert into posts (title, author_id, content) values ('%s', %d, '%s') returning (id)",
 		item.Title,
 		item.AuthorId,
 		item.Content)
 
 	var id int
-	err := a.dbPool.QueryRow(context.Background(), updateStr).Scan(&id)
+	err := a.dbPool.QueryRow(context.Background(), sqlStr).Scan(&id)
 	if err != nil {
 		return -1, err
 	}
@@ -93,7 +93,7 @@ func (a *Article) Update(item *model.Article) (int, error) {
 
 func (a *Article) Item(id int) (*model.Article, error) {
 	var item model.Article
-	queryStr := fmt.Sprintf(`select
+	sqlStr := fmt.Sprintf(`select
 		p.id,
 		p.title,
 		u.name as author_name,
@@ -104,8 +104,8 @@ func (a *Article) Item(id int) (*model.Article, error) {
 	from posts p
 	left join users u
 	on p.author_id = u.id
-	where p.id = %v`, id)
-	err := a.dbPool.QueryRow(context.Background(), queryStr).Scan(
+	where p.id = %d`, id)
+	err := a.dbPool.QueryRow(context.Background(), sqlStr).Scan(
 		&item.Id,
 		&item.Title,
 		&item.AuthorName,

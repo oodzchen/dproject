@@ -1,9 +1,10 @@
 package model
 
 import (
-	"fmt"
 	"regexp"
 	"time"
+
+	"github.com/oodzchen/dproject/utils"
 )
 
 type Article struct {
@@ -19,10 +20,8 @@ type Article struct {
 }
 
 func (a *Article) FormatTimeStr() {
-	c := a.CreatedAt
-	u := a.UpdatedAt
-	a.CreatedAtStr = fmt.Sprintf("%d年%d月%d日 %d时%d分", c.Year(), c.Month(), c.Day(), c.Hour(), c.Minute())
-	a.UpdatedAtStr = fmt.Sprintf("%d年%d月%d日 %d时%d分", u.Year(), u.Month(), u.Day(), u.Hour(), u.Minute())
+	a.CreatedAtStr = utils.FormatTime(a.CreatedAt, "Y年M月D日 h时m分s秒")
+	a.UpdatedAtStr = utils.FormatTime(a.UpdatedAt, "Y年M月D日 h时m分s秒")
 }
 
 func (a *Article) TransformNewlines() {
