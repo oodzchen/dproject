@@ -6,35 +6,33 @@ import (
 )
 
 func TestTimeFormat(t *testing.T) {
-	tTime := time.Date(2023, 7, 24, 8, 24, 23, 00, time.Local)
-
 	tests := []struct {
-		in   time.Time
+		in   []int
 		tpl  string
 		want string
 	}{
 		{
-			in:   tTime,
+			in:   []int{2023, 7, 24, 8, 24, 23},
 			tpl:  "YYYYMMDD hh:mm:ss",
 			want: "20230724 08:24:23",
 		},
 		{
-			in:   tTime,
+			in:   []int{2023, 7, 24, 8, 24, 23},
 			tpl:  "DD/MM/YYYY hh:mm:ss",
 			want: "24/07/2023 08:24:23",
 		},
 		{
-			in:   tTime,
+			in:   []int{2023, 7, 24, 8, 24, 23},
 			tpl:  "YYYY-M-D h:m:s",
 			want: "2023-7-24 8:24:23",
 		},
 		{
-			in:   time.Date(2023, 7, 24, 17, 4, 3, 00, time.Local),
+			in:   []int{2023, 7, 24, 17, 4, 3},
 			tpl:  "h:m:s",
 			want: "17:4:3",
 		},
 		{
-			in:   time.Date(2023, 7, 24, 17, 4, 3, 00, time.Local),
+			in:   []int{2023, 7, 24, 17, 4, 3},
 			tpl:  "h:mm:ss",
 			want: "17:04:03",
 		},
@@ -42,7 +40,8 @@ func TestTimeFormat(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.tpl, func(t *testing.T) {
-			got := FormatTime(tt.in, tt.tpl)
+			inTime := time.Date(tt.in[0], time.Month(tt.in[1]), tt.in[2], tt.in[3], tt.in[4], tt.in[5], 00, time.Local)
+			got := FormatTime(inTime, tt.tpl)
 			if got != tt.want {
 				t.Errorf("got time string %s but want %s", got, tt.want)
 			}
