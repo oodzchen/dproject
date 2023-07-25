@@ -1,0 +1,19 @@
+{{define "register"}}
+
+{{template "head" .}}
+
+<form method="post" action="/register">
+  <label for="email">Email:</label>
+  <input required name="email" id="email" type="email"/>
+  <br/>
+  <label for="username">User Name:</label>
+  <input required name="username" id="username" type="text"/>
+  <br/>
+  <label for="password">Password:</label>
+  <input required name="password" id="password" type="password" />
+  <br>
+  <button type="submit">Submit</button>
+</form>
+
+{{template "foot" .}}
+{{end}}

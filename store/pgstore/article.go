@@ -24,7 +24,7 @@ func (a *Article) List() ([]*model.Article, error) {
 	from posts p
 	left join users u
 	on p.author_id = u.id
-	where reply_to is null and deleted is false;`
+	where p.reply_to = 0 and p.deleted = false;`
 	// rows, err := rs.DBConn.Query(context.Background(), sqlStr)
 	rows, err := a.dbPool.Query(context.Background(), sqlStr)
 
@@ -69,13 +69,13 @@ func (a *Article) Create(item *model.Article) (int, error) {
 	var id int
 	err := a.dbPool.QueryRow(context.Background(), sqlStr).Scan(&id)
 	if err != nil {
-		return -1, err
+		return 0, err
 	}
 	return id, nil
 }
 
 func (a *Article) Update(item *model.Article) (int, error) {
-	updateStr := fmt.Sprintf(
+	sqlStr := fmt.Sprintf(
 		"update posts set title = '%s', author_id = %d, content = '%s', updated_at = current_timestamp where id = %d returning (id)",
 		item.Title,
 		item.AuthorId,
@@ -84,9 +84,9 @@ func (a *Article) Update(item *model.Article) (int, error) {
 	)
 
 	var id int
-	err := a.dbPool.QueryRow(context.Background(), updateStr).Scan(&id)
+	err := a.dbPool.QueryRow(context.Background(), sqlStr).Scan(&id)
 	if err != nil {
-		return -1, err
+		return 0, err
 	}
 	return id, nil
 }
@@ -125,10 +125,10 @@ func (a *Article) Item(id int) (*model.Article, error) {
 
 func (a *Article) Delete(id int) error {
 	//...
-	updateStr := fmt.Sprintf("update posts set deleted = true where id = %d returning (id)", id)
-	// fmt.Printf("updateStr: %v\n", updateStr)
+	sqlStr := fmt.Sprintf("update posts set deleted = true where id = %d returning (id)", id)
+	// fmt.Printf("sqlStr: %v\n", sqlStr)
 
-	err := a.dbPool.QueryRow(context.Background(), updateStr).Scan(nil)
+	err := a.dbPool.QueryRow(context.Background(), sqlStr).Scan(nil)
 	if err != nil {
 		return err
 	}

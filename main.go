@@ -27,7 +27,7 @@ func main() {
 	}
 	defer pg.CloseDB()
 
-	s, err := store.New(pg)
+	dataStore, err := store.New(pg)
 
 	tmpl := template.Must(template.ParseGlob("./views/*.html"))
 
@@ -35,7 +35,11 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	r.Mount("/", web.NewArticleResource(tmpl, s.Article).Routes())
+	articleResource := web.NewArticleResource(tmpl, dataStore.Article)
+
+	r.Mount("/", web.NewMainResource(tmpl, articleResource).Routes())
+	r.Mount("/articles", articleResource.Routes())
+	r.Mount("/users", web.NewUserResource(tmpl, dataStore.User).Routes())
 
 	fmt.Printf("Listening at http://localhost%v\n", port)
 	log.Fatal(http.ListenAndServe(port, r))

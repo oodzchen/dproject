@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/store"
+	"github.com/oodzchen/dproject/utils"
 )
 
 type ArticleResource struct {
@@ -25,36 +26,27 @@ func NewArticleResource(tmpl *template.Template, store store.ArticleStore) *Arti
 	}
 }
 
-// func ArticleContext(next http.Handler) http.Handler {
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		ctx := context.WithValue(r.Context(), "global_tip_status", nil)
-// 		next.ServeHTTP(w, r.WithContext(ctx))
-// 	})
-// }
-
-func (rs *ArticleResource) Routes() http.Handler {
+func (ar *ArticleResource) Routes() http.Handler {
 	rt := chi.NewRouter()
 
-	rt.Get("/", rs.List)
-	rt.Get("/articles", rs.List)
-	rt.Post("/articles", rs.Submit)
-	rt.Get("/articles/new", rs.CreatePage)
+	rt.Get("/", ar.List)
+	rt.Post("/", ar.Submit)
+	rt.Get("/new", ar.CreatePage)
 
-	rt.Route("/articles/{id}", func(r chi.Router) {
-		r.Get("/", rs.Get)
-		r.Get("/edit", rs.EditPage)
-		r.Post("/edit", rs.Update)
-		r.Post("/delete", rs.Delete)
+	rt.Route("/{id}", func(r chi.Router) {
+		r.Get("/", ar.Get)
+		r.Get("/edit", ar.EditPage)
+		r.Post("/edit", ar.Update)
+		r.Post("/delete", ar.Delete)
 	})
 
 	return rt
 }
 
-func (rs *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
-	list, err := rs.store.List()
+func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
+	list, err := ar.store.List()
 	if err != nil {
-		fmt.Printf("Query database error: %v\n", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		utils.HttpError("web.article.List", err, w, http.StatusInternalServerError)
 		return
 	}
 
@@ -63,10 +55,10 @@ func (rs *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		ArticleTotal int
 	}
 
-	rs.Render(w, r, "index", &PageData{Title: "Home - Dproject", Data: &ListData{list, len(list)}})
+	ar.Render(w, r, "article_list", &PageData{Title: "Home - Dproject", Data: &ListData{list, len(list)}})
 }
 
-func (rs *ArticleResource) CreatePage(w http.ResponseWriter, r *http.Request) {
+func (ar *ArticleResource) CreatePage(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
 	fmt.Printf("idParam: %v\n", idParam)
 
@@ -84,53 +76,52 @@ func (rs *ArticleResource) CreatePage(w http.ResponseWriter, r *http.Request) {
 		rId, err := strconv.Atoi(idParam)
 
 		if err != nil {
-			http.Error(w, "Bad Request", http.StatusBadRequest)
+			utils.HttpError("web.article.CreatePage1", err, w, http.StatusBadRequest)
 			return
 		}
-		// postData, _ := rs.getPostData(idParam)
-		postData, err := rs.store.Item(rId)
+		// postData, _ := ar.getPostData(idParam)
+		postData, err := ar.store.Item(rId)
 		if err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			utils.HttpError("web.article.CreatePage2", err, w, http.StatusInternalServerError)
 			return
 		}
 		pageTitle = fmt.Sprintf("Edit - %v", postData.Title)
 		data = postData
 	}
 
-	rs.Render(w, r, "create", &PageData{Title: pageTitle, Data: data})
+	ar.Render(w, r, "create", &PageData{Title: pageTitle, Data: data})
 }
 
-func (rs *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
+func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		utils.HttpError("web.article.Submit1", err, w, http.StatusBadRequest)
 	}
 
 	authorId, err := strconv.Atoi(r.Form.Get("author_id"))
 	if err != nil {
-		http.Error(w, "Missing field required: author_id", http.StatusBadRequest)
+		utils.HttpError("web.article.Submit2", err, w, http.StatusBadRequest)
 		return
 	}
 
-	id, err := rs.store.Create(&model.Article{
+	id, err := ar.store.Create(&model.Article{
 		Title:    r.Form.Get("title"),
 		AuthorId: authorId,
 		Content:  r.Form.Get("content"),
 	})
 
 	if err != nil {
-		fmt.Printf("Insert into posts error: %v\n", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		utils.HttpError("web.article.Submit3", err, w, http.StatusInternalServerError)
 		return
 	}
 
 	http.Redirect(w, r, fmt.Sprintf("/articles/%v", id), http.StatusFound)
 }
 
-func (rs *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
+func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		utils.HttpError("web.article.Update", err, w, http.StatusBadRequest)
 	}
 	// fmt.Printf("r.Form: %v\n", r.Form)
 
@@ -138,12 +129,11 @@ func (rs *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 	authorId, err := strconv.Atoi(r.Form.Get("author_id"))
 
 	if err != nil {
-		fmt.Printf("Convert id or authorId error: %s ", err.Error())
-		http.Error(w, "Bad Reqeust", http.StatusBadRequest)
+		utils.HttpError("web.article.Update1", err, w, http.StatusBadRequest)
 		return
 	}
 
-	id, err := rs.store.Update(&model.Article{
+	id, err := ar.store.Update(&model.Article{
 		Title:    r.Form.Get("title"),
 		AuthorId: authorId,
 		Content:  r.Form.Get("content"),
@@ -151,59 +141,58 @@ func (rs *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		fmt.Printf("Update posts error. Post Id: %v.\n %v\n", id, err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		utils.HttpError("web.article.Update2", err, w, http.StatusInternalServerError)
 		return
 	}
 
 	http.Redirect(w, r, fmt.Sprintf("/articles/%v", id), http.StatusFound)
 }
 
-func (rs *ArticleResource) Get(w http.ResponseWriter, r *http.Request) {
+func (ar *ArticleResource) Get(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
 	fmt.Printf("idParam: %v\n", idParam)
 
 	rId, err := strconv.Atoi(idParam)
 
 	if err != nil {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
+		utils.HttpError("web.article.Get", err, w, http.StatusBadRequest)
 		return
 	}
 
-	// postData, err := rs.getPostData((idParam))
-	articleData, err := rs.store.Item(rId)
+	// postData, err := ar.getPostData((idParam))
+	articleData, err := ar.store.Item(rId)
 	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		utils.HttpError("web.article.Get2", err, w, http.StatusInternalServerError)
 		return
 	}
 
 	articleData.TransformNewlines()
-	rs.Render(w, r, "article", &PageData{Title: articleData.Title, Data: articleData})
+	ar.Render(w, r, "article", &PageData{Title: articleData.Title, Data: articleData})
 }
 
-func (rs *ArticleResource) EditPage(w http.ResponseWriter, r *http.Request) {
+func (ar *ArticleResource) EditPage(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
 	fmt.Printf("idParam: %v\n", idParam)
 
 	rId, err := strconv.Atoi(idParam)
 
 	if err != nil {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
+		utils.HttpError("web.article.EditPage", err, w, http.StatusBadRequest)
 		return
 	}
 
-	postData, err := rs.store.Item(rId)
+	postData, err := ar.store.Item(rId)
 	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		utils.HttpError("web.article.EditPage2", err, w, http.StatusInternalServerError)
 		return
 	}
-	rs.Render(w, r, "create", &PageData{Title: postData.Title, Data: postData})
+	ar.Render(w, r, "create", &PageData{Title: postData.Title, Data: postData})
 }
 
-func (rs *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
+func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		utils.HttpError("web.article.Delete", err, w, http.StatusBadRequest)
 	}
 
 	idForm := r.Form.Get("id")
@@ -211,15 +200,14 @@ func (rs *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 	rId, err := strconv.Atoi(idForm)
 
 	if err != nil {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
+		utils.HttpError("web.article.Delete2", err, w, http.StatusBadRequest)
 		return
 	}
 
-	err = rs.store.Delete(rId)
+	err = ar.store.Delete(rId)
 
 	if err != nil {
-		fmt.Printf("Delete posts error. Post Id: %v.\n %v\n", rId, err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		utils.HttpError("web.article.Delete3", err, w, http.StatusInternalServerError)
 		return
 	}
 

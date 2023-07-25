@@ -1,10 +1,7 @@
--- 创建超级管理员
+DROP DATABASE IF EXISTS discuss;
+DROP ROLE IF EXISTS admin;
+
 CREATE ROLE admin WITH SUPERUSER CREATEDB CREATEROLE LOGIN PASSWORD '88886666';
-
--- 删除旧的数据库
-DROP DATABASE discuss;
-
--- 创建数据库
 CREATE DATABASE discuss OWNER admin ENCODING 'UTF-8';
 
 -- 连接到 discuss 数据库
@@ -16,7 +13,11 @@ CREATE TABLE users (
     email VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     name VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+    introduction TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    is_admin BOOLEAN NOT NULL DEFAULT false,
+    deleted BOOLEAN NOT NULL DEFAULT false,
+    banned BOOLEAN NOT NULL DEFAULT false
 );
 
 -- 创建文章数据表格
@@ -27,7 +28,7 @@ CREATE TABLE posts (
     content TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    reply_to INTEGER,
+    reply_to INTEGER DEFAULT 0,
     deleted BOOLEAN NOT NULL DEFAULT false
 );
 
@@ -39,11 +40,13 @@ ALTER TABLE posts ADD CONSTRAINT posts_reply_to_title_check CHECK (
 
 -- 插入样例数据
 -- 用户样例数据
-INSERT INTO users (email, password, name)
+INSERT INTO users (email, password, name, introduction, is_admin)
 VALUES
-    ('zhangsan@example.com', '123456', '张三'),
-    ('lisi@example.com', '123456', '李四'),
-    ('wangwu@example.com', '123456', '王五');
+    ('oodzchen@gmail.com', '666666', '欧辰', '这是欧辰的自我介绍', true),
+    ('zhangsan@example.com', '123456', '张三', '这是张三的自我介绍', false),
+    ('lisi@example.com', '123456', '李四', '这是李四的自我介绍', false),
+    ('wangwu@example.com', '123456', '王五', '这是王五的自我介绍', false),
+    ('mazi@example.com', '123456', '麻子', '这是麻子的自我介绍', false);
 
 -- 文章样例
 INSERT INTO posts (title, content, author_id)
@@ -58,4 +61,4 @@ INSERT INTO posts (title, content, author_id, reply_to)
 VALUES
     ('回“第一篇博客”', '我是这样想的，哈哈，非常有意思，只是测试而已', 2, 1),
     ('', '我就是想回复一下', 2, 1),
-    ('另外一片新的文章', '这是新的一片文章，测试看看', 3, 0);
+    ('另外一片新的文章', '这是新的一片文章，测试看看', 3, 3);

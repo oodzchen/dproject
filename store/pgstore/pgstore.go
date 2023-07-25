@@ -1,5 +1,7 @@
 package pgstore
 
+import "github.com/oodzchen/dproject/utils"
+
 type PGStore struct{}
 
 type DBConfig struct {
@@ -32,7 +34,7 @@ func (pg *PGStore) CloseDB() {
 
 func CheckDB(beforeConnect bool) error {
 	if pgDB == nil {
-		return NewDBError("store.pgstore.CheckDB", "Database config is required")
+		return utils.NewErrorWithId("store.pgstore.CheckDB", "Database config is required")
 	}
 
 	if beforeConnect {
@@ -40,7 +42,7 @@ func CheckDB(beforeConnect bool) error {
 	}
 
 	if pgDB.Pool == nil {
-		return NewDBError("store.pgstore.CheckDB", "No database connection")
+		return utils.NewErrorWithId("store.pgstore.CheckDB", "No database connection")
 	}
 
 	return nil
@@ -52,4 +54,12 @@ func (pg *PGStore) NewArticle() (any, error) {
 		return nil, err
 	}
 	return &Article{pgDB.Pool}, nil
+}
+
+func (pg *PGStore) NewUser() (any, error) {
+	err := CheckDB(false)
+	if err != nil {
+		return nil, err
+	}
+	return &User{pgDB.Pool}, nil
 }

@@ -6,10 +6,12 @@ import (
 
 type Store struct {
 	Article ArticleStore
+	User    UserStore
 }
 
 type DBStore interface {
 	NewArticle() (any, error)
+	NewUser() (any, error)
 }
 
 type ArticleStore interface {
@@ -20,16 +22,28 @@ type ArticleStore interface {
 	Delete(int) error
 }
 
+type UserStore interface {
+	List() ([]*model.User, error)
+	Create(*model.User) (int, error)
+	Update(*model.User) (int, error)
+	Item(int) (*model.User, error)
+	Delete(int) error
+	Ban(int) error
+}
+
 func New(dbStore DBStore) (*Store, error) {
 	//...f
 	article, err := dbStore.NewArticle()
+	user, err := dbStore.NewUser()
 	if err != nil {
 		return nil, err
 	}
 
 	articleStore := article.(ArticleStore)
+	userStore := user.(UserStore)
 
 	return &Store{
 		Article: articleStore,
+		User:    userStore,
 	}, nil
 }
