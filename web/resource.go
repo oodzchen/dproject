@@ -7,19 +7,21 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/oodzchen/dproject/model"
+	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type MainResource struct {
 	Renderer
 	articleRs *ArticleResource
+	store     *store.Store
 }
 
-func NewMainResource(tmpl *template.Template, ar *ArticleResource) *MainResource {
+func NewMainResource(tmpl *template.Template, ar *ArticleResource, store *store.Store) *MainResource {
 	return &MainResource{
 		Renderer{tmpl},
 		ar,
+		store,
 	}
 }
 
@@ -42,33 +44,32 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 	username := r.PostFormValue("username")
 	password := r.PostFormValue("password")
 
-	log.Printf("Register form.email: %s, form.username: %s, form.password: %s", email, username, password)
-
-	hashedPwd, err := hashPassword(password)
-	if err != nil {
-		utils.HttpError("web.resource.Register", err, w, http.StatusInternalServerError)
-	}
-
 	user := &model.User{
 		Email:    email,
 		Name:     username,
-		Password: hashedPwd,
+		Password: password,
 	}
 
-	err = user.Valid()
+	err := user.Valid()
 	if err != nil {
-		utils.HttpError("web.resource.RegisterPage", err, w, http.StatusBadRequest)
+		utils.HttpError("web.resource.Register", err, w, http.StatusBadRequest)
 		return
 	}
 
-	mr.Render(w, r, "register", &PageData{Title: "Register - Dproject", Data: ""})
-}
+	log.Printf("user model is %v", user)
 
-func hashPassword(pwd string) (string, error) {
-	hashedPwd, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
+	err = user.EncryptPassword()
 	if err != nil {
-		return "", nil
+		utils.HttpError("web.resource.Register1", err, w, http.StatusInternalServerError)
 	}
 
-	return string(hashedPwd), nil
+	// fmt.Printf("Password value: %s\n", user.Password)
+	id, err := mr.store.User.Create(user)
+	if err != nil {
+		utils.HttpError("web.resource.Register2", err, w, http.StatusInternalServerError)
+	}
+
+	log.Printf("create user success, user id: %d", id)
+
+	mr.Render(w, r, "register", &PageData{Title: "Register - Dproject", Data: ""})
 }

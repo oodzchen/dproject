@@ -37,7 +37,7 @@ func main() {
 
 	articleResource := web.NewArticleResource(tmpl, dataStore.Article)
 
-	r.Mount("/", web.NewMainResource(tmpl, articleResource).Routes())
+	r.Mount("/", web.NewMainResource(tmpl, articleResource, dataStore).Routes())
 	r.Mount("/articles", articleResource.Routes())
 	r.Mount("/users", web.NewUserResource(tmpl, dataStore.User).Routes())
 
