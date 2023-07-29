@@ -17,7 +17,8 @@ CREATE TABLE users (
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     is_admin BOOLEAN NOT NULL DEFAULT false,
     deleted BOOLEAN NOT NULL DEFAULT false,
-    banned BOOLEAN NOT NULL DEFAULT false
+    banned BOOLEAN NOT NULL DEFAULT false,
+    UNIQUE(email)
 );
 
 -- 创建文章数据表格
@@ -42,11 +43,11 @@ ALTER TABLE posts ADD CONSTRAINT posts_reply_to_title_check CHECK (
 -- 用户样例数据
 INSERT INTO users (email, password, name, introduction, is_admin)
 VALUES
-    ('oodzchen@gmail.com', '666666', '欧辰', '这是欧辰的自我介绍', true),
-    ('zhangsan@example.com', '123456', '张三', '这是张三的自我介绍', false),
-    ('lisi@example.com', '123456', '李四', '这是李四的自我介绍', false),
-    ('wangwu@example.com', '123456', '王五', '这是王五的自我介绍', false),
-    ('mazi@example.com', '123456', '麻子', '这是麻子的自我介绍', false);
+    ('oodzchen@gmail.com', '666666@#$abc', '欧辰', '这是欧辰的自我介绍', true),
+    ('zhangsan@example.com', '123456@#abc', '张三', '这是张三的自我介绍', false),
+    ('lisi@example.com', '123456!@abc', '李四', '这是李四的自我介绍', false),
+    ('wangwu@example.com', '123456!@ABC', '王五', '这是王五的自我介绍', false),
+    ('mazi@example.com', '123456$#abc', '麻子', '这是麻子的自我介绍', false);
 
 -- 文章样例
 INSERT INTO posts (title, content, author_id)
