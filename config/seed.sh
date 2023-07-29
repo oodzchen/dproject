@@ -16,7 +16,7 @@ DB_NAME="discuss"
 DB_USER="admin"
 
 function hashpassword {
-    htpasswd -bnBC 10 "" "$1" | tr -d ":\n" 
+    htpasswd -bnBC 10 "" $1 | tr -d ":\n" 
 }
 
 CSV_FILE="$GO_PATH/src/github.com/oodzchen/dproject/config/data.csv "

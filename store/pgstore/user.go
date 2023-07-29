@@ -6,6 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/oodzchen/dproject/model"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -103,4 +104,29 @@ func (u *User) Ban(id int) error {
 		return err
 	}
 	return nil
+}
+
+func (u *User) Login(email string, pwd string) (int, error) {
+	var id int
+	var hasedPwd string
+	sqlStr := fmt.Sprintf("select id, password from users where email = '%s'\n", email)
+
+	fmt.Printf("sql string: %s", sqlStr)
+
+	err := u.dbPool.QueryRow(context.Background(), sqlStr).Scan(&id, &hasedPwd)
+	if err != nil {
+		return 0, err
+	}
+
+	fmt.Printf("login query hashed password: %s\n", hasedPwd)
+
+	err = bcrypt.CompareHashAndPassword([]byte(hasedPwd), []byte(pwd))
+
+	if err != nil {
+		return 0, err
+	}
+
+	fmt.Printf("pass!\n")
+
+	return id, nil
 }

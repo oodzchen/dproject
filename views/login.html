@@ -1,0 +1,17 @@
+{{define "login"}}
+
+{{template "head" .}}
+
+<form method="post" action="/login">
+  <label for="email">Email:</label>
+  <input required name="email" id="email" type="email"/>
+  <br/>
+  <label for="password">Password:</label>
+  <input required name="password" id="password" type="password"/>
+  <br/>
+  <button type="submit">Login</button>
+</form>
+
+{{template "foot" .}}
+
+{{end}}

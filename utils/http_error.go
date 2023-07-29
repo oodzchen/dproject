@@ -1,11 +1,11 @@
 package utils
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 )
 
-func HttpError(errId string, err error, w http.ResponseWriter, code int) {
-	log.Printf("Error at %s: %s\n", errId, err.Error())
-	http.Error(w, http.StatusText(code)+"\n"+err.Error(), code)
+func HttpError(msg string, err error, w http.ResponseWriter, code int) {
+	fmt.Printf("%+v\n", err)
+	http.Error(w, http.StatusText(code)+"\n"+msg, code)
 }
