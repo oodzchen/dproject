@@ -60,14 +60,11 @@ func (a *Article) List() ([]*model.Article, error) {
 }
 
 func (a *Article) Create(item *model.Article) (int, error) {
-	sqlStr := fmt.Sprintf(
-		"insert into posts (title, author_id, content) values ('%s', %d, '%s') returning (id)",
+	var id int
+	err := a.dbPool.QueryRow(context.Background(), "insert into posts (title, author_id, content) values ('$1', $2, '$3') returning (id)",
 		item.Title,
 		item.AuthorId,
-		item.Content)
-
-	var id int
-	err := a.dbPool.QueryRow(context.Background(), sqlStr).Scan(&id)
+		item.Content).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -75,16 +72,12 @@ func (a *Article) Create(item *model.Article) (int, error) {
 }
 
 func (a *Article) Update(item *model.Article) (int, error) {
-	sqlStr := fmt.Sprintf(
-		"update posts set title = '%s', author_id = %d, content = '%s', updated_at = current_timestamp where id = %d returning (id)",
+	var id int
+	err := a.dbPool.QueryRow(context.Background(), "update posts set title = '$1', author_id = $2, content = '$3', updated_at = current_timestamp where id = $4 returning (id)",
 		item.Title,
 		item.AuthorId,
 		item.Content,
-		item.Id,
-	)
-
-	var id int
-	err := a.dbPool.QueryRow(context.Background(), sqlStr).Scan(&id)
+		item.Id).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -104,8 +97,8 @@ func (a *Article) Item(id int) (*model.Article, error) {
 	from posts p
 	left join users u
 	on p.author_id = u.id
-	where p.id = %d`, id)
-	err := a.dbPool.QueryRow(context.Background(), sqlStr).Scan(
+	where p.id = $1`)
+	err := a.dbPool.QueryRow(context.Background(), sqlStr, id).Scan(
 		&item.Id,
 		&item.Title,
 		&item.AuthorName,
@@ -119,16 +112,11 @@ func (a *Article) Item(id int) (*model.Article, error) {
 	}
 
 	item.FormatTimeStr()
-	// fmt.Printf("item: %v\n", item)
 	return &item, nil
 }
 
 func (a *Article) Delete(id int) error {
-	//...
-	sqlStr := fmt.Sprintf("update posts set deleted = true where id = %d returning (id)", id)
-	// fmt.Printf("sqlStr: %v\n", sqlStr)
-
-	err := a.dbPool.QueryRow(context.Background(), sqlStr).Scan(nil)
+	err := a.dbPool.QueryRow(context.Background(), "update posts set deleted = true where id = $1 returning (id)", id).Scan(nil)
 	if err != nil {
 		return err
 	}

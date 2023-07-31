@@ -7,11 +7,16 @@ import (
 	"text/template"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
 	"github.com/pkg/errors"
 )
+
+// https://www.postgresql.org/docs/current/errcodes-appendix.html
+const PGErrUniqueViolation = "23505"
 
 type MainResource struct {
 	Renderer
@@ -60,7 +65,7 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("user model is %v", user)
+	// log.Printf("user model is %v", user)
 
 	err = user.EncryptPassword()
 	if err != nil {
@@ -71,7 +76,15 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 	// fmt.Printf("Password value: %s\n", user.Password)
 	id, err := mr.store.User.Create(user)
 	if err != nil {
-		utils.HttpError("", errors.WithStack(err), w, http.StatusInternalServerError)
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == PGErrUniqueViolation {
+			// fmt.Println(pgErr.Code)
+			// fmt.Println(pgErr.Message)
+			utils.HttpError("the eamil already been registered", errors.WithStack(err), w, http.StatusBadRequest)
+		} else {
+			utils.HttpError("", errors.WithStack(err), w, http.StatusInternalServerError)
+		}
+
 		return
 	}
 
@@ -98,10 +111,21 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ok := utils.ValidateEmail(email)
+	if !ok {
+		utils.HttpError("email or password incorrect", errors.WithStack(utils.NewError("email not valid")), w, http.StatusBadRequest)
+		return
+	}
+
 	id, err := mr.store.User.Login(email, password)
 
 	if err != nil {
-		utils.HttpError("email or password incorrect", errors.WithStack(err), w, http.StatusBadRequest)
+		if errors.Is(err, pgx.ErrNoRows) {
+			utils.HttpError("the email has not been registered", errors.WithStack(err), w, http.StatusBadRequest)
+		} else {
+			utils.HttpError("email or password incorrect", errors.WithStack(err), w, http.StatusBadRequest)
+		}
+
 		return
 	}
 

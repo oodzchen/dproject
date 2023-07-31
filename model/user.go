@@ -2,7 +2,6 @@ package model
 
 import (
 	"fmt"
-	"net/mail"
 	"regexp"
 	"time"
 
@@ -45,11 +44,10 @@ func (u *User) Valid() error {
 		return utils.NewError(fmt.Sprintf("require field: %s", lackField))
 	}
 
-	parsedMailAddr, err := mail.ParseAddress(u.Email)
-	if err != nil {
-		return err
+	ok := utils.ValidateEmail(u.Email)
+	if !ok {
+		return utils.NewError("email format error")
 	}
-	u.Email = parsedMailAddr.Address
 
 	reUsername := regexp.MustCompile(`^[\p{L}\p{N}\s]+$`)
 	if !reUsername.Match([]byte(u.Name)) {

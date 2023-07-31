@@ -14,8 +14,7 @@ type User struct {
 }
 
 func (u *User) List() ([]*model.User, error) {
-	sqlStr := "select id, name, email, created_at from users where deleted = false"
-	rows, err := u.dbPool.Query(context.Background(), sqlStr)
+	rows, err := u.dbPool.Query(context.Background(), "select id, name, email, created_at from users where deleted = false")
 
 	if err != nil {
 		return nil, err
@@ -44,14 +43,12 @@ func (u *User) List() ([]*model.User, error) {
 }
 
 func (u *User) Create(item *model.User) (int, error) {
-	sqlStr := fmt.Sprintf("insert into users (email, password, name) values ('%s', '%s', '%s') returning (id)",
+	// fmt.Printf("user.create item: %+v\n", item)
+	var id int
+	err := u.dbPool.QueryRow(context.Background(), "insert into users (email, password, name) values ($1, $2, $3) returning (id)",
 		item.Email,
 		item.Password,
-		item.Name,
-	)
-
-	var id int
-	err := u.dbPool.QueryRow(context.Background(), sqlStr).Scan(&id)
+		item.Name).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -59,12 +56,11 @@ func (u *User) Create(item *model.User) (int, error) {
 }
 
 func (u *User) Update(item *model.User) (int, error) {
-	sqlStr := fmt.Sprintf("update users set introduction = %s, password = %s where id = %d",
+	var id int
+	err := u.dbPool.QueryRow(context.Background(), "update users set introduction = $1, password = $2 where id = $3",
 		item.Introduction,
 		item.Password,
-		item.Id)
-	var id int
-	err := u.dbPool.QueryRow(context.Background(), sqlStr).Scan(&id)
+		item.Id).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -74,9 +70,11 @@ func (u *User) Update(item *model.User) (int, error) {
 
 func (u *User) Item(id int) (*model.User, error) {
 	var item model.User
-	sqlStr := fmt.Sprintf("select id, email, name, created_at from users where id = %d", id)
-
-	err := u.dbPool.QueryRow(context.Background(), sqlStr).Scan(&item.Id, &item.Email, &item.Name, &item.RegisterAt)
+	err := u.dbPool.QueryRow(context.Background(), "select id, email, name, created_at from users where id = $1", id).Scan(
+		&item.Id,
+		&item.Email,
+		&item.Name,
+		&item.RegisterAt)
 	if err != nil {
 		return nil, err
 	}
@@ -87,9 +85,7 @@ func (u *User) Item(id int) (*model.User, error) {
 }
 
 func (u *User) Delete(id int) error {
-	sqlStr := fmt.Sprintf("update users set deleted = true where id = %d", id)
-
-	err := u.dbPool.QueryRow(context.Background(), sqlStr).Scan(nil)
+	err := u.dbPool.QueryRow(context.Background(), "update users set deleted = true where id = $1", id).Scan(nil)
 	if err != nil {
 		return err
 	}
@@ -97,9 +93,7 @@ func (u *User) Delete(id int) error {
 }
 
 func (u *User) Ban(id int) error {
-	sqlStr := fmt.Sprintf("update users set banned = true where id = %d", id)
-
-	err := u.dbPool.QueryRow(context.Background(), sqlStr).Scan(nil)
+	err := u.dbPool.QueryRow(context.Background(), "update users set banned = true where id = $1", id).Scan(nil)
 	if err != nil {
 		return err
 	}
@@ -109,16 +103,13 @@ func (u *User) Ban(id int) error {
 func (u *User) Login(email string, pwd string) (int, error) {
 	var id int
 	var hasedPwd string
-	sqlStr := fmt.Sprintf("select id, password from users where email = '%s'\n", email)
-
-	fmt.Printf("sql string: %s", sqlStr)
-
-	err := u.dbPool.QueryRow(context.Background(), sqlStr).Scan(&id, &hasedPwd)
+	err := u.dbPool.QueryRow(context.Background(), "select id, password from users where email = $1", email).Scan(&id, &hasedPwd)
 	if err != nil {
 		return 0, err
 	}
 
-	fmt.Printf("login query hashed password: %s\n", hasedPwd)
+	// fmt.Printf("query result: password: %s\n", hasedPwd)
+	// fmt.Printf("query result: id: %d\n", id)
 
 	err = bcrypt.CompareHashAndPassword([]byte(hasedPwd), []byte(pwd))
 
