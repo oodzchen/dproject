@@ -16,14 +16,12 @@
 </head>
 
 <body>
-  {{if .TipStatus}}
-  <div style="display:flex;justify-content:space-between;background-color:gray">
-    {{else}}
-  <div style="display:none">
+  {{range .TipMsg}}
+  <div style="display:flex;justify-content:space-between;background-color:yellow">
+    <span>{{.}}</span>
+    <button onclick="javascript:this.parentNode.remove()">&times;</button>
+  </div>
   {{end}}
-    <span>{{.TipStatus}}</span>
-    <button>&times;</button>
-   </div>
   <nav>
     <div>
       <a href="/">Home</a>

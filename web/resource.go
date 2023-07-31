@@ -7,6 +7,7 @@ import (
 	"text/template"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/oodzchen/dproject/model"
@@ -22,13 +23,15 @@ type MainResource struct {
 	Renderer
 	articleRs *ArticleResource
 	store     *store.Store
+	sessStore *sessions.CookieStore
 }
 
-func NewMainResource(tmpl *template.Template, ar *ArticleResource, store *store.Store) *MainResource {
+func NewMainResource(tmpl *template.Template, ar *ArticleResource, store *store.Store, sessStore *sessions.CookieStore) *MainResource {
 	return &MainResource{
-		Renderer{tmpl},
+		Renderer{tmpl, sessStore},
 		ar,
 		store,
+		sessStore,
 	}
 }
 
@@ -65,7 +68,7 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// log.Printf("user model is %v", user)
+	log.Printf("user model is %v", user)
 
 	err = user.EncryptPassword()
 	if err != nil {
@@ -90,7 +93,15 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("create user success, user id: %d", id)
 
-	mr.Render(w, r, "register", &PageData{Title: "Register - Dproject", Data: ""})
+	sess, err := mr.sessStore.Get(r, "flash-msg")
+	if err != nil {
+		utils.HttpError("", err, w, http.StatusInternalServerError)
+	}
+
+	sess.AddFlash("Register success! Please try to login.")
+	sess.Save(r, w)
+
+	http.Redirect(w, r, "/login", http.StatusFound)
 }
 
 func (mr *MainResource) LoginPage(w http.ResponseWriter, r *http.Request) {
@@ -136,6 +147,23 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("user %d login success!\n", user.Id)
 
-	//..
-	mr.Render(w, r, "login", &PageData{Title: "Login - Dproject", Data: ""})
+	userSess, err := mr.sessStore.Get(r, "user-info")
+	if err != nil {
+		utils.HttpError("", err, w, http.StatusInternalServerError)
+		return
+	}
+	userSess.Values["user_info"] = user
+	userSess.Save(r, w)
+
+	flashSess, err := mr.sessStore.Get(r, "flash-msg")
+	if err != nil {
+		utils.HttpError("", err, w, http.StatusInternalServerError)
+		return
+	}
+	flashSess.AddFlash(fmt.Sprintf("Hi, %s", user.Name))
+	flashSess.Save(r, w)
+
+	http.Redirect(w, r, "/", http.StatusFound)
+
+	// mr.Render(w, r, "login", &PageData{Title: "Login - Dproject", Data: ""})
 }

@@ -7,6 +7,7 @@ import (
 	"text/template"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/gorilla/sessions"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
@@ -19,9 +20,9 @@ type ArticleResource struct {
 	store store.ArticleStore
 }
 
-func NewArticleResource(tmpl *template.Template, store store.ArticleStore) *ArticleResource {
+func NewArticleResource(tmpl *template.Template, store store.ArticleStore, sessonStore *sessions.CookieStore) *ArticleResource {
 	return &ArticleResource{
-		Renderer{Tmpl: tmpl},
+		Renderer{tmpl, sessonStore},
 		store,
 	}
 }
