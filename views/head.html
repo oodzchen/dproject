@@ -16,6 +16,7 @@
 </head>
 
 <body>
+  {{printf "%+v" .}}
   {{range .TipMsg}}
   <div style="display:flex;justify-content:space-between;background-color:yellow">
     <span>{{.}}</span>
@@ -27,10 +28,17 @@
       <a href="/">Home</a>
       ·
       <a href="/articles/new">Create</a>
+      {{if .LoginedUser}}
+      ·
+      <a href="/users/{{.LoginedUser.Id}}">{{.LoginedUser.Name}}</a>
+      ·
+      <a href="/logout">Logout</a>
+      {{else}}
       ·
       <a href="/register">Register</a>
       ·
       <a href="/login">Login</a>
+      {{end}}
     </div>
   </nav>
   <hr/>

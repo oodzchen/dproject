@@ -1,17 +1,25 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
 	"text/template"
 
 	"github.com/gorilla/sessions"
 	"github.com/oodzchen/dproject/utils"
+	"github.com/pkg/errors"
 )
 
+type UserInfo struct {
+	Id   int
+	Name string
+}
+
 type PageData struct {
-	Title  string
-	Data   any
-	TipMsg []string
+	Title       string
+	Data        any
+	TipMsg      []string
+	LoginedUser *UserInfo
 }
 
 type Renderer struct {
@@ -20,7 +28,7 @@ type Renderer struct {
 }
 
 func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, data *PageData) {
-	sess, err := rd.sessStore.Get(r, "flash-msg")
+	sess, err := rd.sessStore.Get(r, "one-cookie")
 	if err != nil {
 		utils.HttpError("", err, w, http.StatusInternalServerError)
 		return
@@ -28,13 +36,35 @@ func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, 
 
 	if flashes := sess.Flashes(); len(flashes) > 0 {
 		for _, item := range flashes {
-			switch value := item.(type) {
-			case string:
+			if value, ok := item.(string); ok {
 				data.TipMsg = append(data.TipMsg, value)
 			}
 		}
 	}
+
+	userInfo := &UserInfo{}
+	if userId, idOk := sess.Values["user_id"].(int); idOk {
+		fmt.Printf("logined user id: %d", userId)
+		userInfo.Id = userId
+	}
+
+	if userName, nameOk := sess.Values["user_name"].(string); nameOk {
+		fmt.Printf("logined user name: %s", userName)
+		userInfo.Name = userName
+	}
+
+	// fmt.Printf("*userInfo == (UserInfo{}): %+v\n", *userInfo == (UserInfo{}))
+	// fmt.Printf("&UserInfo{}: %+v\n", &UserInfo{})
+
+	if (UserInfo{}) != *userInfo {
+		// fmt.Println("userInfo not empty")
+		data.LoginedUser = userInfo
+	}
+
 	sess.Save(r, w)
+	if err != nil {
+		HandleSessionErr(errors.WithStack(err))
+	}
 
 	err = rd.Tmpl.ExecuteTemplate(w, name, data)
 	if err != nil {

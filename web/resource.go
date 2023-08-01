@@ -43,6 +43,7 @@ func (mr *MainResource) Routes() http.Handler {
 	rt.Post("/register", mr.Register)
 	rt.Get("/login", mr.LoginPage)
 	rt.Post("/login", mr.Login)
+	rt.Get("/logout", mr.Logout)
 
 	return rt
 }
@@ -93,18 +94,25 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("create user success, user id: %d", id)
 
-	sess, err := mr.sessStore.Get(r, "flash-msg")
+	sess, err := mr.sessStore.Get(r, "one-cookie")
 	if err != nil {
 		utils.HttpError("", err, w, http.StatusInternalServerError)
 	}
 
 	sess.AddFlash("Register success! Please try to login.")
-	sess.Save(r, w)
+	err = sess.Save(r, w)
+	if err != nil {
+		HandleSessionErr(errors.WithStack(err))
+	}
 
 	http.Redirect(w, r, "/login", http.StatusFound)
 }
 
 func (mr *MainResource) LoginPage(w http.ResponseWriter, r *http.Request) {
+	if IsLogin(mr.sessStore, w, r) {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
 	mr.Render(w, r, "login", &PageData{Title: "Login - Dproject", Data: ""})
 }
 
@@ -122,9 +130,8 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ok := utils.ValidateEmail(email)
-	if !ok {
-		utils.HttpError("email or password incorrect", errors.WithStack(utils.NewError("email not valid")), w, http.StatusBadRequest)
+	if !utils.ValidateEmail(email) {
+		utils.HttpError("email or password is incorrect", errors.WithStack(utils.NewError("email not valid")), w, http.StatusBadRequest)
 		return
 	}
 
@@ -134,7 +141,7 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, pgx.ErrNoRows) {
 			utils.HttpError("the email has not been registered", errors.WithStack(err), w, http.StatusBadRequest)
 		} else {
-			utils.HttpError("email or password incorrect", errors.WithStack(err), w, http.StatusBadRequest)
+			utils.HttpError("email or password is incorrect", errors.WithStack(err), w, http.StatusBadRequest)
 		}
 
 		return
@@ -147,23 +154,33 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("user %d login success!\n", user.Id)
 
-	userSess, err := mr.sessStore.Get(r, "user-info")
+	sess, err := mr.sessStore.Get(r, "one-cookie")
 	if err != nil {
 		utils.HttpError("", err, w, http.StatusInternalServerError)
 		return
 	}
-	userSess.Values["user_info"] = user
-	userSess.Save(r, w)
+	sess.AddFlash(fmt.Sprintf("Hi, %s", user.Name))
 
-	flashSess, err := mr.sessStore.Get(r, "flash-msg")
+	sess.Values["user_id"] = user.Id
+	sess.Values["user_name"] = user.Name
+
+	err = sess.Save(r, w)
 	if err != nil {
-		utils.HttpError("", err, w, http.StatusInternalServerError)
-		return
+		HandleSessionErr(errors.WithStack(err))
 	}
-	flashSess.AddFlash(fmt.Sprintf("Hi, %s", user.Name))
-	flashSess.Save(r, w)
 
 	http.Redirect(w, r, "/", http.StatusFound)
+}
 
-	// mr.Render(w, r, "login", &PageData{Title: "Login - Dproject", Data: ""})
+func (mr *MainResource) Logout(w http.ResponseWriter, r *http.Request) {
+	if IsLogin(mr.sessStore, w, r) {
+		sess, _ := mr.sessStore.Get(r, "one-cookie")
+		sess.Options.MaxAge = -1
+		err := sess.Save(r, w)
+		if err != nil {
+			HandleSessionErr(errors.WithStack(err))
+		}
+	}
+
+	http.Redirect(w, r, "/", http.StatusFound)
 }
