@@ -1,7 +1,10 @@
 package web
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
 	"text/template"
 
 	"github.com/gorilla/sessions"
@@ -19,6 +22,7 @@ type PageData struct {
 	Data        any
 	TipMsg      []string
 	LoginedUser *UserInfo
+	JSONStr     string
 }
 
 type Renderer struct {
@@ -64,6 +68,16 @@ func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, 
 	if err != nil {
 		HandleSessionErr(errors.WithStack(err))
 	}
+
+	data.Title += fmt.Sprintf(" - %s", os.Getenv("SITE_NAME"))
+
+	jsonData, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		utils.HttpError("server error", errors.WithStack(err), w, http.StatusInternalServerError)
+		return
+	}
+
+	data.JSONStr = string(jsonData)
 
 	err = rd.Tmpl.ExecuteTemplate(w, name, data)
 	if err != nil {

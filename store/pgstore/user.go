@@ -27,7 +27,7 @@ func (u *User) List() ([]*model.User, error) {
 			&item.Id,
 			&item.Name,
 			&item.Email,
-			&item.RegisterAt,
+			&item.RegisteredAt,
 		)
 
 		if err != nil {
@@ -74,7 +74,7 @@ func (u *User) Item(id int) (*model.User, error) {
 		&item.Id,
 		&item.Email,
 		&item.Name,
-		&item.RegisterAt)
+		&item.RegisteredAt)
 	if err != nil {
 		return nil, err
 	}

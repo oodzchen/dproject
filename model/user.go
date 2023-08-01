@@ -10,21 +10,21 @@ import (
 )
 
 type User struct {
-	Id            int
-	Name          string
-	Email         string
-	Password      string
-	RegisterAt    time.Time
-	RegisterAtStr string
-	Introduction  string
-	IsAdmin       bool
-	Deleted       bool
-	Banned        bool
-	PasswordHased bool
+	Id              int
+	Name            string
+	Email           string
+	Password        string
+	RegisteredAt    time.Time
+	RegisteredAtStr string
+	Introduction    string
+	IsAdmin         bool
+	Deleted         bool
+	Banned          bool
+	PasswordHased   bool
 }
 
 func (u *User) FormatTimeStr() {
-	u.RegisterAtStr = utils.FormatTime(u.RegisterAt, "YYYY年MM月DD日")
+	u.RegisteredAtStr = utils.FormatTime(u.RegisteredAt, "YYYY年MM月DD日")
 }
 
 func (u *User) Valid() error {

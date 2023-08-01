@@ -50,7 +50,7 @@ func (mr *MainResource) Routes() http.Handler {
 }
 
 func (mr *MainResource) RegisterPage(w http.ResponseWriter, r *http.Request) {
-	mr.Render(w, r, "register", &PageData{Title: "Register - Dproject", Data: ""})
+	mr.Render(w, r, "register", &PageData{Title: "Register", Data: ""})
 }
 
 func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
@@ -114,7 +114,7 @@ func (mr *MainResource) LoginPage(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	mr.Render(w, r, "login", &PageData{Title: "Login - Dproject", Data: ""})
+	mr.Render(w, r, "login", &PageData{Title: "Login", Data: ""})
 }
 
 func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {

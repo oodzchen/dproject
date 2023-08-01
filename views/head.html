@@ -16,7 +16,11 @@
 </head>
 
 <body>
-  {{printf "%+v" .}}
+  <pre>{{printf "%+v" .JSONStr}}</pre>
+  <script>
+    const DEBUG_DATA = {{.JSONStr}}
+    console.dir("DEBUG_DATA:", DEBUG_DATA)
+  </script>
   {{range .TipMsg}}
   <div style="display:flex;justify-content:space-between;background-color:yellow">
     <span>{{.}}</span>

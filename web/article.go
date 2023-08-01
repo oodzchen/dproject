@@ -59,7 +59,7 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		ArticleTotal int
 	}
 
-	ar.Render(w, r, "article_list", &PageData{Title: "Home - Dproject", Data: &ListData{list, len(list)}})
+	ar.Render(w, r, "article_list", &PageData{Title: "Home", Data: &ListData{list, len(list)}})
 }
 
 func (ar *ArticleResource) CreatePage(w http.ResponseWriter, r *http.Request) {
@@ -86,7 +86,7 @@ func (ar *ArticleResource) CreatePage(w http.ResponseWriter, r *http.Request) {
 	var data *model.Article
 
 	if idParam == "" {
-		pageTitle = "Create - Dproject"
+		pageTitle = "Create"
 		data = &model.Article{}
 	} else {
 		rId, err := strconv.Atoi(idParam)
