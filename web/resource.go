@@ -66,7 +66,7 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 
 	err := user.Valid()
 	if err != nil {
-		utils.HttpError("", errors.WithStack(err), w, http.StatusBadRequest)
+		utils.HttpError(err.Error(), errors.WithStack(err), w, http.StatusBadRequest)
 		return
 	}
 
