@@ -1,7 +1,6 @@
 package web
 
 import (
-	"fmt"
 	"net/http"
 	"text/template"
 
@@ -44,12 +43,12 @@ func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, 
 
 	userInfo := &UserInfo{}
 	if userId, idOk := sess.Values["user_id"].(int); idOk {
-		fmt.Printf("logined user id: %d", userId)
+		// fmt.Printf("logined user id: %d\n", userId)
 		userInfo.Id = userId
 	}
 
 	if userName, nameOk := sess.Values["user_name"].(string); nameOk {
-		fmt.Printf("logined user name: %s", userName)
+		// fmt.Printf("logined user name: %s\n", userName)
 		userInfo.Name = userName
 	}
 

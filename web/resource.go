@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"text/template"
 
 	"github.com/go-chi/chi/v5"
@@ -169,7 +170,14 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 		HandleSessionErr(errors.WithStack(err))
 	}
 
-	http.Redirect(w, r, "/", http.StatusFound)
+	refererUrl, _ := url.Parse(r.Referer())
+	// fmt.Printf("query:%#v\n", refererUrl.Query())
+
+	if targetUrl := refererUrl.Query()["target"]; len(targetUrl) > 0 {
+		http.Redirect(w, r, targetUrl[0], http.StatusFound)
+	} else {
+		http.Redirect(w, r, "/", http.StatusFound)
+	}
 }
 
 func (mr *MainResource) Logout(w http.ResponseWriter, r *http.Request) {

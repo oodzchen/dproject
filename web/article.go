@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"text/template"
 
@@ -17,13 +18,15 @@ type ArticleResource struct {
 	Renderer
 	// DBConn *pgx.Conn
 	// DBPool *pgxpool.Pool
-	store store.ArticleStore
+	store     store.ArticleStore
+	sessStore *sessions.CookieStore
 }
 
-func NewArticleResource(tmpl *template.Template, store store.ArticleStore, sessonStore *sessions.CookieStore) *ArticleResource {
+func NewArticleResource(tmpl *template.Template, store store.ArticleStore, sessStore *sessions.CookieStore) *ArticleResource {
 	return &ArticleResource{
-		Renderer{tmpl, sessonStore},
+		Renderer{tmpl, sessStore},
 		store,
+		sessStore,
 	}
 }
 
@@ -60,6 +63,18 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ar *ArticleResource) CreatePage(w http.ResponseWriter, r *http.Request) {
+	// fmt.Printf("r.URL:%#v\n", r.URL)
+	if !IsLogin(ar.sessStore, w, r) {
+		var targetUrl string
+		if r.TLS != nil {
+			targetUrl = "https://" + r.Host + r.URL.Path
+		} else {
+			targetUrl = "http://" + r.Host + r.URL.Path
+		}
+		http.Redirect(w, r, "/login?target="+url.QueryEscape(targetUrl), http.StatusFound)
+		return
+	}
+
 	idParam := chi.URLParam(r, "id")
 	fmt.Printf("idParam: %v\n", idParam)
 
@@ -146,7 +161,7 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/articles/%v", id), http.StatusFound)
+	http.Redirect(w, r, fmt.Sprintf("/articles/%d", id), http.StatusFound)
 }
 
 func (ar *ArticleResource) Get(w http.ResponseWriter, r *http.Request) {
