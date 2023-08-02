@@ -17,9 +17,6 @@ import (
 	"github.com/oodzchen/dproject/web"
 )
 
-const port = ":3000"
-const dsn = "postgres://admin:88886666@localhost:8088/discuss"
-
 // func createSessionMiddleware(sessStore *sessions.CookieStore) func(http.Handler) http.Handler {
 // 	func(next http.Handler) http.Handler {
 // 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -45,7 +42,7 @@ func main() {
 	}
 
 	pg := pgstore.New(&pgstore.DBConfig{
-		DSN: dsn,
+		DSN: os.Getenv("DB_DSN"),
 	})
 
 	err = pg.ConnectDB()
@@ -72,6 +69,7 @@ func main() {
 	r.Mount("/articles", articleResource.Routes())
 	r.Mount("/users", web.NewUserResource(tmpl, dataStore, sessStore).Routes())
 
+	port := os.Getenv("PORT")
 	fmt.Printf("Listening at http://localhost%v\n", port)
 	log.Fatal(http.ListenAndServe(port, r))
 }
