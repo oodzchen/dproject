@@ -61,7 +61,7 @@ func (a *Article) List() ([]*model.Article, error) {
 
 func (a *Article) Create(item *model.Article) (int, error) {
 	var id int
-	err := a.dbPool.QueryRow(context.Background(), "insert into posts (title, author_id, content) values ('$1', $2, '$3') returning (id)",
+	err := a.dbPool.QueryRow(context.Background(), "insert into posts (title, author_id, content) values ($1, $2, $3) returning (id)",
 		item.Title,
 		item.AuthorId,
 		item.Content).Scan(&id)

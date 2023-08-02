@@ -10,10 +10,8 @@
   <input type="hidden" name="id" value="{{.Data.Id}}">
   <input type="hidden" name="author_id" value="{{.Data.AuthorId}}">
   {{end}}
-  <input type="hidden" name="author_id" value="3">
+  <input type="hidden" name="author_id" value="{{.LoginedUser.Id}}">
   <input required type="text" name="title" value="{{.Data.Title}}" placeholder="标题">
-  <br>
-  <input required type="text" name="author" value="{{.Data.AuthorName}}" placeholder="作者姓名">
   <br>
   <textarea name="content" cols="30" rows="10" placeholder="内容">{{.Data.Content}}</textarea>
   <br>

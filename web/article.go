@@ -120,11 +120,23 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := ar.store.Create(&model.Article{
+	article := &model.Article{
 		Title:    r.Form.Get("title"),
 		AuthorId: authorId,
 		Content:  r.Form.Get("content"),
-	})
+	}
+
+	fmt.Printf("article content length: %d\n", len(article.Content))
+
+	// article.Sanitize()
+
+	err = article.Valid()
+	if err != nil {
+		utils.HttpError(err.Error(), err, w, http.StatusBadRequest)
+		return
+	}
+
+	id, err := ar.store.Create(article)
 
 	if err != nil {
 		utils.HttpError("", err, w, http.StatusInternalServerError)

@@ -1,10 +1,18 @@
 package model
 
 import (
+	"errors"
+	"fmt"
 	"regexp"
+	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/oodzchen/dproject/utils"
+)
+
+const (
+	MAX_ARTICLE_TITLE_LEN, MAX_ARTICLE_CONTENT_LEN int = 80, 24000
 )
 
 type Article struct {
@@ -27,4 +35,31 @@ func (a *Article) FormatTimeStr() {
 func (a *Article) TransformNewlines() {
 	re := regexp.MustCompile(`\r`)
 	a.Content = re.ReplaceAllString(a.Content, "<br/>")
+}
+
+func (a *Article) Valid() error {
+	authorId := a.AuthorId
+	title := strings.TrimSpace(a.Title)
+	content := strings.TrimSpace(a.Content)
+
+	if authorId == 0 {
+		return errors.New("author id is required")
+	}
+
+	if title == "" {
+		return errors.New("article title is required")
+	}
+
+	if content == "" {
+		return errors.New("article content is required")
+	}
+
+	if utf8.RuneCountInString(title) > MAX_ARTICLE_TITLE_LEN {
+		return errors.New(fmt.Sprintf("article title limit to %d characters", MAX_ARTICLE_TITLE_LEN))
+	}
+
+	if utf8.RuneCountInString(content) > MAX_ARTICLE_CONTENT_LEN {
+		return errors.New(fmt.Sprintf("article content limit to %d characters", MAX_ARTICLE_CONTENT_LEN))
+	}
+	return nil
 }
