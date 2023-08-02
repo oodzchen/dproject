@@ -69,7 +69,7 @@ func main() {
 
 	r.Mount("/", web.NewMainResource(tmpl, articleResource, dataStore, sessStore).Routes())
 	r.Mount("/articles", articleResource.Routes())
-	r.Mount("/users", web.NewUserResource(tmpl, dataStore.User, sessStore).Routes())
+	r.Mount("/users", web.NewUserResource(tmpl, dataStore, sessStore).Routes())
 
 	fmt.Printf("Listening at http://localhost%v\n", port)
 	log.Fatal(http.ListenAndServe(port, r))

@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/sessions"
+	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
 	"github.com/pkg/errors"
@@ -14,11 +15,16 @@ import (
 
 type UserResource struct {
 	Renderer
-	store     store.UserStore
+	store     *store.Store
 	sessStore *sessions.CookieStore
 }
 
-func NewUserResource(tmpl *template.Template, store store.UserStore, sessStore *sessions.CookieStore) *UserResource {
+type userProfile struct {
+	UserInfo *model.User
+	Posts    []*model.Article
+}
+
+func NewUserResource(tmpl *template.Template, store *store.Store, sessStore *sessions.CookieStore) *UserResource {
 	return &UserResource{
 		Renderer{tmpl, sessStore},
 		store,
@@ -47,11 +53,20 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := ur.store.Item(userId)
+	user, err := ur.store.User.Item(userId)
 	if err != nil {
 		utils.HttpError("", errors.WithStack(err), w, http.StatusInternalServerError)
 		return
 	}
 
-	ur.Render(w, r, "user_item", &PageData{Title: user.Name, Data: user})
+	postList, err := ur.store.User.GetPosts(userId)
+	if err != nil {
+		utils.HttpError("", errors.WithStack(err), w, http.StatusInternalServerError)
+		return
+	}
+
+	ur.Render(w, r, "user_item", &PageData{Title: user.Name, Data: &userProfile{
+		UserInfo: user,
+		Posts:    postList,
+	}})
 }

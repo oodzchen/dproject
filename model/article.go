@@ -25,6 +25,7 @@ type Article struct {
 	UpdatedAt    time.Time
 	CreatedAtStr string
 	UpdatedAtStr string
+	ReplyTo      int
 }
 
 func (a *Article) FormatTimeStr() {

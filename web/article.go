@@ -38,7 +38,7 @@ func (ar *ArticleResource) Routes() http.Handler {
 	rt.Get("/new", ar.CreatePage)
 
 	rt.Route("/{id}", func(r chi.Router) {
-		r.Get("/", ar.Get)
+		r.Get("/", ar.Item)
 		r.Get("/edit", ar.EditPage)
 		r.Post("/edit", ar.Update)
 		r.Post("/delete", ar.Delete)
@@ -176,7 +176,7 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, fmt.Sprintf("/articles/%d", id), http.StatusFound)
 }
 
-func (ar *ArticleResource) Get(w http.ResponseWriter, r *http.Request) {
+func (ar *ArticleResource) Item(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
 	fmt.Printf("idParam: %v\n", idParam)
 

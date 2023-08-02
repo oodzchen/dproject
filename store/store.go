@@ -30,6 +30,7 @@ type UserStore interface {
 	Delete(int) error
 	Ban(int) error
 	Login(email string, pwd string) (int, error)
+	GetPosts(int) ([]*model.Article, error)
 }
 
 func New(dbStore DBStore) (*Store, error) {

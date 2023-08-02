@@ -73,7 +73,7 @@ func (a *Article) Create(item *model.Article) (int, error) {
 
 func (a *Article) Update(item *model.Article) (int, error) {
 	var id int
-	err := a.dbPool.QueryRow(context.Background(), "update posts set title = '$1', author_id = $2, content = '$3', updated_at = current_timestamp where id = $4 returning (id)",
+	err := a.dbPool.QueryRow(context.Background(), "update posts set title = $1, author_id = $2, content = $3, updated_at = current_timestamp where id = $4 returning (id)",
 		item.Title,
 		item.AuthorId,
 		item.Content,

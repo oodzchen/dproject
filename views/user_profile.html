@@ -1,0 +1,42 @@
+{{define "user_basic_info"}}
+<table>
+  <tbody>
+    <tr>
+      <td align="right">Joined At:</td>
+      <td align="left">{{.RegisteredAtStr}}</td>
+    </tr>
+    {{if .Introduction}}
+    <tr>
+      <td align="right">Introduction:</td>
+      <td align="left">{{.Introduction}}</td>
+    </tr>
+    {{end}}
+  </tbody>
+</table>
+{{end}}
+
+{{define "post_list"}}
+{{range .}}
+<ul>
+  <li>
+    <a href="/articles/{{.Id}}">{{.Title}}</a>
+    <small>{{.CreatedAtStr}}</small>
+  </li>
+</ul>
+{{end}}
+{{end}}
+
+{{define "user_item"}}
+
+{{template "head" .}}
+
+<h1>{{.Data.UserInfo.Name}}</h1>
+
+{{template "user_basic_info" .Data.UserInfo}}
+
+<h2>Posts</h2>
+{{template "post_list" .Data.Posts}}
+
+{{template "foot" .}}
+
+{{end}}

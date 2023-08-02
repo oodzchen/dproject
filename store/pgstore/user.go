@@ -121,3 +121,36 @@ func (u *User) Login(email string, pwd string) (int, error) {
 
 	return id, nil
 }
+
+func (u *User) GetPosts(userId int) ([]*model.Article, error) {
+	rows, err := u.dbPool.Query(context.Background(), `select p.id, p.title, p.content, p.created_at, p.updated_at, p.reply_to, p.author_id, u.name as author_name from posts p left join users u on p.author_id = u.id where p.author_id = $1 and p.deleted = false`, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	var posts []*model.Article
+	for rows.Next() {
+		var item model.Article
+		err = rows.Scan(
+			&item.Id,
+			&item.Title,
+			&item.Content,
+			&item.CreatedAt,
+			&item.UpdatedAt,
+			&item.ReplyTo,
+			&item.AuthorId,
+			&item.AuthorName,
+		)
+
+		if err != nil {
+			fmt.Printf("query user's posts error: %v", err)
+			return nil, err
+		}
+
+		item.FormatTimeStr()
+
+		posts = append(posts, &item)
+	}
+
+	return posts, nil
+}
