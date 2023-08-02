@@ -93,7 +93,8 @@ func (a *Article) Item(id int) (*model.Article, error) {
 		p.author_id,
 		p.content,
 		p.created_at,
-		p.updated_at
+		p.updated_at,
+		p.deleted
 	from posts p
 	left join users u
 	on p.author_id = u.id
@@ -106,6 +107,7 @@ func (a *Article) Item(id int) (*model.Article, error) {
 		&item.Content,
 		&item.CreatedAt,
 		&item.UpdatedAt,
+		&item.Deleted,
 	)
 	if err != nil {
 		return nil, err

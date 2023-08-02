@@ -7,6 +7,7 @@ import (
 	"os"
 	"text/template"
 
+	"github.com/Masterminds/sprig/v3"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/gorilla/sessions"
@@ -55,7 +56,7 @@ func main() {
 
 	dataStore, err := store.New(pg)
 
-	tmpl := template.Must(template.ParseGlob("./views/*.html"))
+	tmpl := template.Must(template.New("base").Funcs(sprig.FuncMap()).ParseGlob("./views/*.html"))
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)

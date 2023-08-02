@@ -64,6 +64,8 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 		Password: password,
 	}
 
+	user.Sanitize()
+
 	err := user.Valid()
 	if err != nil {
 		utils.HttpError(err.Error(), errors.WithStack(err), w, http.StatusBadRequest)
@@ -170,8 +172,7 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 		HandleSessionErr(errors.WithStack(err))
 	}
 
-	refererUrl, _ := url.Parse(r.Referer())
-	// fmt.Printf("query:%#v\n", refererUrl.Query())
+	refererUrl, err := url.Parse(r.Referer())
 
 	if targetUrl := refererUrl.Query()["target"]; len(targetUrl) > 0 {
 		http.Redirect(w, r, targetUrl[0], http.StatusFound)
@@ -190,5 +191,11 @@ func (mr *MainResource) Logout(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	http.Redirect(w, r, "/", http.StatusFound)
+	refererUrl, err := url.Parse(r.Referer())
+
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusFound)
+	} else {
+		http.Redirect(w, r, refererUrl.String(), http.StatusFound)
+	}
 }

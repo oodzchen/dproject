@@ -8,6 +8,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/oodzchen/dproject/utils"
 )
 
@@ -26,6 +27,7 @@ type Article struct {
 	CreatedAtStr string
 	UpdatedAtStr string
 	ReplyTo      int
+	Deleted      bool
 }
 
 func (a *Article) FormatTimeStr() {
@@ -36,6 +38,12 @@ func (a *Article) FormatTimeStr() {
 func (a *Article) TransformNewlines() {
 	re := regexp.MustCompile(`\r`)
 	a.Content = re.ReplaceAllString(a.Content, "<br/>")
+}
+
+func (a *Article) Sanitize() {
+	p := bluemonday.NewPolicy()
+	a.Title = p.Sanitize(a.Title)
+	a.Content = p.Sanitize(a.Content)
 }
 
 func (a *Article) Valid() error {

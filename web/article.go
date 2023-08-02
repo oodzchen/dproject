@@ -128,7 +128,7 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("article content length: %d\n", len(article.Content))
 
-	// article.Sanitize()
+	article.Sanitize()
 
 	err = article.Valid()
 	if err != nil {
@@ -161,12 +161,21 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := ar.store.Update(&model.Article{
+	article := &model.Article{
 		Title:    r.Form.Get("title"),
 		AuthorId: authorId,
 		Content:  r.Form.Get("content"),
 		Id:       rId,
-	})
+	}
+	article.Sanitize()
+
+	err = article.Valid()
+	if err != nil {
+		utils.HttpError(err.Error(), err, w, http.StatusBadRequest)
+		return
+	}
+
+	id, err := ar.store.Update(article)
 
 	if err != nil {
 		utils.HttpError("", err, w, http.StatusInternalServerError)
@@ -178,7 +187,7 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 
 func (ar *ArticleResource) Item(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
-	fmt.Printf("idParam: %v\n", idParam)
+	// fmt.Printf("idParam: %v\n", idParam)
 
 	rId, err := strconv.Atoi(idParam)
 
@@ -194,8 +203,12 @@ func (ar *ArticleResource) Item(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	articleData.TransformNewlines()
-	ar.Render(w, r, "article", &PageData{Title: articleData.Title, Data: articleData})
+	if articleData.Deleted {
+		utils.HttpError("the article is gone", err, w, http.StatusGone)
+	} else {
+		// articleData.TransformNewlines()
+		ar.Render(w, r, "article", &PageData{Title: articleData.Title, Data: articleData})
+	}
 }
 
 func (ar *ArticleResource) EditPage(w http.ResponseWriter, r *http.Request) {

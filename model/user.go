@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/oodzchen/dproject/utils"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -25,6 +26,14 @@ type User struct {
 
 func (u *User) FormatTimeStr() {
 	u.RegisteredAtStr = utils.FormatTime(u.RegisteredAt, "YYYY年MM月DD日")
+}
+
+func (u *User) Sanitize() {
+	p := bluemonday.NewPolicy()
+	u.Email = p.Sanitize(u.Email)
+	u.Name = p.Sanitize(u.Name)
+	u.Password = p.Sanitize(u.Password)
+	u.Introduction = p.Sanitize(u.Introduction)
 }
 
 func (u *User) Valid() error {

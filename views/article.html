@@ -1,12 +1,16 @@
 {{define "article_content"}}
 <article>
-  <h1>{{.Title}}</h1>
-  <small><a href="/users/{{.AuthorId}}">{{.AuthorName}}</a> 发布于 {{.CreatedAtStr}}, 更新于 {{.UpdatedAtStr}}</small>
-  <div><a href="/articles/{{.Id}}/edit">编辑</a> <a href="javascript:handleDelete({{.Id}});" style="color:red">删除</a></div>
-  <form method="post" action="/articles/{{.Id}}/delete" id="delForm" style="display: none">
-    <input type="hidden" name="id" value="{{.Id}}">
+  <h1>{{.article.Title}}</h1>
+  <p>
+    <small><a href="/users/{{.article.AuthorId}}">{{.article.AuthorName}}</a> 发布于<time>{{.article.CreatedAtStr}}</time>, 更新于<time>{{.article.UpdatedAtStr}}</time></small>
+    {{if and .currUser (eq .currUser.Id .article.AuthorId)}}
+    <small><a href="/articles/{{.article.Id}}/edit">编辑</a> <a href="javascript:handleDelete({{.article.Id}});" style="color:red">删除</a></small>
+  </p>
+  {{end}}
+  <form method="post" action="/articles/{{.article.Id}}/delete" id="delForm" style="display: none">
+    <input type="hidden" name="id" value="{{.article.Id}}">
   </form>
-  <section>{{.Content}}</section>
+  <section>{{.article.Content}}</section>
 </article>
 {{end}}
 
@@ -14,7 +18,8 @@
 
 {{template "head" .}}
 
-{{template "article_content" .Data}}
+{{$data := dict "currUser" .LoginedUser "article" .Data}}
+{{template "article_content" $data}}
 
 <script>
   function handleDelete(id) {
