@@ -172,6 +172,7 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 		HandleSessionErr(errors.WithStack(err))
 	}
 
+	//TODO: replace with session cookie
 	refererUrl, err := url.Parse(r.Referer())
 
 	if targetUrl := refererUrl.Query()["target"]; len(targetUrl) > 0 {

@@ -86,7 +86,7 @@ func (a *Article) Update(item *model.Article) (int, error) {
 
 func (a *Article) Item(id int) (*model.Article, error) {
 	var item model.Article
-	sqlStr := fmt.Sprintf(`select
+	sqlStr := `select
 		p.id,
 		p.title,
 		u.name as author_name,
@@ -98,7 +98,7 @@ func (a *Article) Item(id int) (*model.Article, error) {
 	from posts p
 	left join users u
 	on p.author_id = u.id
-	where p.id = $1`)
+	where p.id = $1`
 	err := a.dbPool.QueryRow(context.Background(), sqlStr, id).Scan(
 		&item.Id,
 		&item.Title,
@@ -115,6 +115,74 @@ func (a *Article) Item(id int) (*model.Article, error) {
 
 	item.FormatTimeStr()
 	return &item, nil
+}
+
+func (a *Article) GetReplies(id int) ([]*model.Article, error) {
+	sqlStr := `with recursive recurPosts as (select
+		p.id,
+		p.title,
+		p.author_id,
+		p.content,
+		p.created_at,
+		p.updated_at,
+		p.deleted,
+		p.reply_to,
+		1 as recur_depth
+	from posts p where p.id = $1
+	union all
+	select
+		p.id,
+		p.title,
+		p.author_id,
+		p.content,
+		p.created_at,
+		p.updated_at,
+		p.deleted,
+		p.reply_to,
+		rp.recur_depth + 1
+	from posts p
+	join recurPosts rp on p.reply_to = rp.id
+	where rp.recur_depth < 10
+)
+select
+	rp.id,
+	rp.title,
+	u.name as author_name,
+	rp.author_id,
+	rp.content,
+	rp.created_at,
+	rp.updated_at,
+	rp.deleted,
+	rp.reply_to
+from recurPosts rp
+left join users u on rp.author_id = u.id`
+
+	rows, err := a.dbPool.Query(context.Background(), sqlStr, id)
+
+	var list []*model.Article
+	for rows.Next() {
+		var item model.Article
+		err = rows.Scan(
+			&item.Id,
+			&item.Title,
+			&item.AuthorName,
+			&item.AuthorId,
+			&item.Content,
+			&item.CreatedAt,
+			&item.UpdatedAt,
+			&item.Deleted,
+			&item.ReplyTo,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		item.FormatTimeStr()
+		list = append(list, &item)
+	}
+
+	return list, nil
 }
 
 func (a *Article) Delete(id int) error {

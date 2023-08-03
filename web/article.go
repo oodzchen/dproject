@@ -22,6 +22,11 @@ type ArticleResource struct {
 	sessStore *sessions.CookieStore
 }
 
+type articleWithReplies struct {
+	Article *model.Article
+	Replies []*articleWithReplies
+}
+
 func NewArticleResource(tmpl *template.Template, store store.ArticleStore, sessStore *sessions.CookieStore) *ArticleResource {
 	return &ArticleResource{
 		Renderer{tmpl, sessStore},
@@ -197,18 +202,65 @@ func (ar *ArticleResource) Item(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// postData, err := ar.getPostData((idParam))
-	articleData, err := ar.store.Item(rId)
+	// articleData, err := ar.store.Item(rId)
+	replyData, err := ar.store.GetReplies(rId)
 	if err != nil {
 		utils.HttpError("", err, w, http.StatusInternalServerError)
 		return
 	}
 
-	if articleData.Deleted {
+	// var replies []*articleWithReplies
+	// for i := 0; i < len(replyData); i++ {
+	// 	item := &articleWithReplies{
+	// 		Article: replyData[i],
+	// 		//
+	// 	}
+	// 	replies := append(replies, item)
+	// }
+
+	// pageData := &PageData{
+	// 	Title: articleData.Title,
+	// 	Data: &articleWithReplies{
+	// 		Article: articleData,
+	// 		Replies: replies,
+	// 	},
+	// }
+
+	if len(replyData) == 0 {
+		utils.HttpError("the article is gone", err, w, http.StatusGone)
+		return
+	}
+
+	article := replyData[0]
+
+	articleTree := &articleWithReplies{
+		article,
+		make([]*articleWithReplies, 0),
+	}
+
+	articleTree = formatArticlesToTree(articleTree, replyData[1:])
+
+	if article.Deleted {
 		utils.HttpError("the article is gone", err, w, http.StatusGone)
 	} else {
 		// articleData.TransformNewlines()
-		ar.Render(w, r, "article", &PageData{Title: articleData.Title, Data: articleData})
+		ar.Render(w, r, "article", &PageData{Title: article.Title, Data: articleTree})
 	}
+}
+
+func formatArticlesToTree(rootAR *articleWithReplies, list []*model.Article) *articleWithReplies {
+	for i, reply := range list {
+		if reply.ReplyTo == rootAR.Article.Id {
+			currAR := &articleWithReplies{
+				Article: reply,
+				Replies: make([]*articleWithReplies, 0),
+			}
+			currAR = formatArticlesToTree(currAR, list[i:])
+			rootAR.Replies = append(rootAR.Replies, currAR)
+		}
+	}
+
+	return rootAR
 }
 
 func (ar *ArticleResource) EditPage(w http.ResponseWriter, r *http.Request) {

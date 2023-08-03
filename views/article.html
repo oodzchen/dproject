@@ -1,25 +1,75 @@
 {{define "article_content"}}
+{{$isRoot := eq .article.ReplyTo 0}}
+{{$depth := add .depth 1}}
+{{$data := dict "currUser" .currUser "article" .article "depth" $depth}}
 <article>
+  {{if $isRoot}}
   <h1>{{.article.Title}}</h1>
-  <p>
-    <small><a href="/users/{{.article.AuthorId}}">{{.article.AuthorName}}</a> 发布于<time>{{.article.CreatedAtStr}}</time>, 更新于<time>{{.article.UpdatedAtStr}}</time></small>
-    {{if and .currUser (eq .currUser.Id .article.AuthorId)}}
-    <small><a href="/articles/{{.article.Id}}/edit">编辑</a> <a href="javascript:handleDelete({{.article.Id}});" style="color:red">删除</a></small>
-  </p>
   {{end}}
-  <form method="post" action="/articles/{{.article.Id}}/delete" id="delForm" style="display: none">
-    <input type="hidden" name="id" value="{{.article.Id}}">
-  </form>
+
+  {{if $isRoot}}
+  {{template "article_control_bar" $data}}
+  {{end}}
   <section>{{.article.Content}}</section>
+  {{if not $isRoot}}
+  {{template "article_control_bar" $data}}
+  {{end}}
 </article>
+
+{{if $isRoot}}
+{{template "article_reply_form" .article}}
+{{end}}
+
+{{$replyData := dict "currUser" .currUser "replies" .replies "depth" $depth}}
+{{template "article_replies" $replyData}}
+
+{{end}}
+
+{{define "article_control_bar"}}
+<div style="margin-top:6px;margin-bottom:20px">
+  <small><a href="/users/{{.article.AuthorId}}">{{.article.AuthorName}}</a> Published <time>{{.article.CreatedTimeAgo}}</time>, Modified <time>{{.article.UpdatedTimeAgo}}</time></small>
+</div>
+{{if and .currUser (eq .currUser.Id .article.AuthorId)}}
+<div>
+<small><a href="/articles/{{.article.Id}}/edit">Edit</a> <a href="javascript:handleDelete({{.article.Id}});" style="color:red">Delete</a></small>
+</div>
+<form method="post" action="/articles/{{.article.Id}}/delete" id="delForm" style="display: none">
+  <input type="hidden" name="id" value="{{.article.Id}}">
+</form>
+{{end}}
+{{end}}
+
+{{define "article_reply_form"}}
+{{$isRoot := eq .ReplyTo 0}}
+<form method="post" action="/{{.Id}}/reply" style="{{if not $isRoot}}display:none;{{end}}margin-top: 10px">
+  <textarea cols="30" id="reply" name="reply" rows="10"></textarea>
+  </br>
+  <button type="submit">Submit</button>
+</form>
+{{end}}
+
+{{define "article_replies"}}
+{{$currUser := .currUser}}
+{{$depth := .depth}}
+<ul style="list-style:none;margin-left:0;{{if eq $depth 1}}padding-left:0;{{else}}padding-left:28px;{{end}}">
+{{range .replies}}
+{{$subData := dict "currUser" $currUser "article" .Article "replies" .Replies "depth" $depth}}  
+<li>
+  {{template "article_content" $subData}}
+</li>
+{{end}}
+</ul>
 {{end}}
 
 {{define "article"}}
+{{$depth := 0}}
+{{$data := dict "currUser" .LoginedUser "article" .Data.Article "replies" .Data.Replies "depth" $depth}}
 
 {{template "head" .}}
 
-{{$data := dict "currUser" .LoginedUser "article" .Data}}
+
 {{template "article_content" $data}}
+
 
 <script>
   function handleDelete(id) {

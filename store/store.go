@@ -20,6 +20,7 @@ type ArticleStore interface {
 	Update(*model.Article) (int, error)
 	Item(int) (*model.Article, error)
 	Delete(int) error
+	GetReplies(int) ([]*model.Article, error)
 }
 
 type UserStore interface {
