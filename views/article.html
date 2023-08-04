@@ -5,19 +5,26 @@
 <article>
   {{if $isRoot}}
   <h1>{{.article.Title}}</h1>
+  {{else}}
+    {{if eq $depth 1}}
+  <h1>Re: <a href="/articles/{{.article.ReplyTo}}">{{.article.ReplyToTitle}}</a></h1>
+    {{end}}
   {{end}}
 
-  {{if $isRoot}}
-  {{template "article_control_bar" $data}}
-  {{end}}
-  <section>{{.article.Content}}</section>
-  {{if not $isRoot}}
-  {{template "article_control_bar" $data}}
-  {{end}}
+  <div style="margin-top:10px;margin-bottom:0px;color:#999;">
+    <small><a style="color:#999;" href="/users/{{.article.AuthorId}}">{{.article.AuthorName}}</a> published <time>{{.article.CreatedTimeAgo}}</time>, modified <time>{{.article.UpdatedTimeAgo}}</time></small>
+  </div>
+  <section style="white-space: pre-line">{{.article.Content}}</section>
+
+  {{template "article_operation_bar" $data}}
 </article>
 
 {{if $isRoot}}
+{{if .currUser}}
 {{template "article_reply_form" .article}}
+{{else}}
+<a href="/login?target=/articles/{{.article.Id}}">Response</a>
+{{end}}
 {{end}}
 
 {{$replyData := dict "currUser" .currUser "replies" .replies "depth" $depth}}
@@ -25,25 +32,24 @@
 
 {{end}}
 
-{{define "article_control_bar"}}
-<div style="margin-top:6px;margin-bottom:20px">
-  <small><a href="/users/{{.article.AuthorId}}">{{.article.AuthorName}}</a> Published <time>{{.article.CreatedTimeAgo}}</time>, Modified <time>{{.article.UpdatedTimeAgo}}</time></small>
-</div>
-{{if and .currUser (eq .currUser.Id .article.AuthorId)}}
+{{define "article_operation_bar"}}
 <div>
-<small><a href="/articles/{{.article.Id}}/edit">Edit</a> <a href="javascript:handleDelete({{.article.Id}});" style="color:red">Delete</a></small>
-</div>
-<form method="post" action="/articles/{{.article.Id}}/delete" id="delForm" style="display: none">
+{{if and .currUser (eq .currUser.Id .article.AuthorId)}}
+<small><a href="/articles/{{.article.Id}}/edit">Edit</a>&nbsp;&nbsp;<a href="javascript:handleDelete({{.article.Id}});" style="color:red">Delete</a>&nbsp;</small>
+<form method="post" action="/articles/{{.article.Id}}/delete{{if gt .depth 1}}?from=reply{{end}}" id="del_form_{{.article.Id}}" style="display: none">
   <input type="hidden" name="id" value="{{.article.Id}}">
 </form>
 {{end}}
+{{if gt .depth 1}}
+<small><a href="#" onclick="showReplyForm(event, {{.article.Id}}, this)">Reply</a></small>
+{{end}}
+</div>
 {{end}}
 
 {{define "article_reply_form"}}
-{{$isRoot := eq .ReplyTo 0}}
-<form method="post" action="/{{.Id}}/reply" style="{{if not $isRoot}}display:none;{{end}}margin-top: 10px">
-  <textarea cols="30" id="reply" name="reply" rows="10"></textarea>
-  </br>
+<form id="reply_form" class="reply_form" method="post" action="/articles" style="margin-top: 10px">
+  <input id="reply_to" name="reply_to" type="hidden" value="{{.Id}}"/>
+  <textarea cols="30" id="content" name="content" rows="10" style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box;"></textarea>
   <button type="submit">Submit</button>
 </form>
 {{end}}
@@ -74,9 +80,36 @@
 <script>
   function handleDelete(id) {
     if (confirm('确认删除？')) {
-      const formEl = document.getElementById('delForm')
-      formEl.submit()
+	const formEl = document.getElementById('del_form_' + id)
+	if(formEl)formEl.submit()
     }
+  }
+  function showReplyForm(ev, id, el){
+      // console.log("ev:", ev)
+      ev.preventDefault()
+      var formId = "reply_form_" + id;
+      var form = el.parentNode.parentNode.getElementsByClassName("reply_form")[0]
+      
+      if (!form){
+	  var replyForm = document.getElementById('reply_form')
+	  form = replyForm.cloneNode(true)
+	  form.setAttribute("id", formId)
+	  var input = form.getElementsByTagName('input')[0]
+	  input.setAttribute("id", "reply_to_" + id)
+	  input.setAttribute("value", id)
+	  el.parentNode.parentNode.appendChild(form)
+
+	  var btnCancel = document.createElement('button')
+	  btnCancel.textContent = "Cancel"
+	  btnCancel.onclick = function(){
+	      form.remove()
+	  }
+	  form.appendChild(btnCancel)
+      }
+      // console.log("form:", form)
+      setTimeout(function(){
+	  form.getElementsByTagName("textarea")[0].focus()
+      }, 0)
   }
 </script>
 {{template "foot"}}

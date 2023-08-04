@@ -123,7 +123,22 @@ func (u *User) Login(email string, pwd string) (int, error) {
 }
 
 func (u *User) GetPosts(userId int) ([]*model.Article, error) {
-	rows, err := u.dbPool.Query(context.Background(), `select p.id, p.title, p.content, p.created_at, p.updated_at, p.reply_to, p.author_id, u.name as author_name from posts p left join users u on p.author_id = u.id where p.author_id = $1 and p.deleted = false`, userId)
+	sqlStr := `
+select
+p.id,
+p.title,
+p.content,
+p.created_at,
+p.updated_at,
+p.reply_to,
+p2.title as reply_to_title,
+p.author_id,
+u.name as author_name
+from posts p
+left join posts p2 on p.reply_to = p2.id
+left join users u on p.author_id = u.id
+where p.author_id = $1 and p.deleted = false`
+	rows, err := u.dbPool.Query(context.Background(), sqlStr, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -133,11 +148,12 @@ func (u *User) GetPosts(userId int) ([]*model.Article, error) {
 		var item model.Article
 		err = rows.Scan(
 			&item.Id,
-			&item.Title,
+			&item.NullTitle,
 			&item.Content,
 			&item.CreatedAt,
 			&item.UpdatedAt,
 			&item.ReplyTo,
+			&item.NullReplyToTitle,
 			&item.AuthorId,
 			&item.AuthorName,
 		)
@@ -147,6 +163,7 @@ func (u *User) GetPosts(userId int) ([]*model.Article, error) {
 			return nil, err
 		}
 
+		item.FormatNullValues()
 		item.FormatTimeStr()
 
 		posts = append(posts, &item)

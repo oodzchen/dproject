@@ -8,6 +8,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/oodzchen/dproject/utils"
 	"github.com/xeonx/timeago"
@@ -18,19 +19,32 @@ const (
 )
 
 type Article struct {
-	Id             int
-	Title          string
-	AuthorName     string
-	AuthorId       int
-	Content        string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
-	CreatedAtStr   string
-	UpdatedAtStr   string
-	CreatedTimeAgo string
-	UpdatedTimeAgo string
-	ReplyTo        int
-	Deleted        bool
+	Id               int
+	Title            string
+	NullTitle        pgtype.Text
+	AuthorName       string
+	AuthorId         int
+	Content          string
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	CreatedAtStr     string
+	UpdatedAtStr     string
+	CreatedTimeAgo   string
+	UpdatedTimeAgo   string
+	ReplyTo          int
+	ReplyToTitle     string
+	NullReplyToTitle pgtype.Text
+	Deleted          bool
+}
+
+func (a *Article) FormatNullValues() {
+	if a.Title == "" && a.NullTitle.Valid {
+		a.Title = a.NullTitle.String
+	}
+
+	if a.ReplyToTitle == "" && a.NullReplyToTitle.Valid {
+		a.ReplyToTitle = a.NullReplyToTitle.String
+	}
 }
 
 func (a *Article) FormatTimeStr() {
@@ -51,7 +65,7 @@ func (a *Article) Sanitize() {
 	a.Content = p.Sanitize(a.Content)
 }
 
-func (a *Article) Valid() error {
+func (a *Article) Valid(isReply bool) error {
 	authorId := a.AuthorId
 	title := strings.TrimSpace(a.Title)
 	content := strings.TrimSpace(a.Content)
@@ -60,16 +74,18 @@ func (a *Article) Valid() error {
 		return errors.New("author id is required")
 	}
 
-	if title == "" {
-		return errors.New("article title is required")
+	if !isReply {
+		if title == "" {
+			return errors.New("article title is required")
+		}
+
+		if utf8.RuneCountInString(title) > MAX_ARTICLE_TITLE_LEN {
+			return errors.New(fmt.Sprintf("article title limit to %d characters", MAX_ARTICLE_TITLE_LEN))
+		}
 	}
 
 	if content == "" {
 		return errors.New("article content is required")
-	}
-
-	if utf8.RuneCountInString(title) > MAX_ARTICLE_TITLE_LEN {
-		return errors.New(fmt.Sprintf("article title limit to %d characters", MAX_ARTICLE_TITLE_LEN))
 	}
 
 	if utf8.RuneCountInString(content) > MAX_ARTICLE_CONTENT_LEN {

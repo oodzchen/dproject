@@ -9,9 +9,11 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/sessions"
+	"github.com/jackc/pgx/v5"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
+	"github.com/pkg/errors"
 )
 
 type ArticleResource struct {
@@ -119,9 +121,33 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 		utils.HttpError("", err, w, http.StatusBadRequest)
 	}
 
-	authorId, err := strconv.Atoi(r.Form.Get("author_id"))
+	paramReplyTo := r.Form.Get("reply_to")
+	// fmt.Printf("paramReplyTo: %s\n", paramReplyTo)
+
+	var isReply bool
+	var replyTo int
+	if paramReplyTo != "" {
+		num, err := strconv.Atoi(paramReplyTo)
+		if err != nil {
+			utils.HttpError("", err, w, http.StatusBadRequest)
+			return
+		}
+		replyTo = num
+		// fmt.Printf("replyTo:%d\n", replyTo)
+		isReply = replyTo > 0
+	}
+
+	authorId, err := GetLoginUserId(ar.sessStore, w, r)
 	if err != nil {
-		utils.HttpError("", err, w, http.StatusBadRequest)
+		sess, _ := ar.sessStore.Get(r, "one-cookie")
+		var callbackUrl string
+		if isReply {
+			callbackUrl = fmt.Sprintf("/articles/%d", replyTo)
+		} else {
+			callbackUrl = "/create"
+		}
+		sess.Values["login_callback"] = callbackUrl
+		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
 
@@ -129,13 +155,14 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 		Title:    r.Form.Get("title"),
 		AuthorId: authorId,
 		Content:  r.Form.Get("content"),
+		ReplyTo:  replyTo,
 	}
 
-	fmt.Printf("article content length: %d\n", len(article.Content))
+	// fmt.Printf("article: %+v\n", article)
 
 	article.Sanitize()
 
-	err = article.Valid()
+	err = article.Valid(isReply)
 	if err != nil {
 		utils.HttpError(err.Error(), err, w, http.StatusBadRequest)
 		return
@@ -148,7 +175,13 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/articles/%v", id), http.StatusFound)
+	refererUrl := r.Referer()
+
+	if isReply && refererUrl != "" {
+		http.Redirect(w, r, refererUrl, http.StatusFound)
+	} else {
+		http.Redirect(w, r, fmt.Sprintf("/articles/%d", id), http.StatusFound)
+	}
 }
 
 func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
@@ -174,7 +207,7 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	article.Sanitize()
 
-	err = article.Valid()
+	err = article.Valid(false)
 	if err != nil {
 		utils.HttpError(err.Error(), err, w, http.StatusBadRequest)
 		return
@@ -194,65 +227,52 @@ func (ar *ArticleResource) Item(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
 	// fmt.Printf("idParam: %v\n", idParam)
 
-	rId, err := strconv.Atoi(idParam)
+	articleId, err := strconv.Atoi(idParam)
 
 	if err != nil {
 		utils.HttpError("", err, w, http.StatusBadRequest)
 		return
 	}
 
-	// postData, err := ar.getPostData((idParam))
-	// articleData, err := ar.store.Item(rId)
-	replyData, err := ar.store.GetReplies(rId)
+	article, err := ar.store.Item(articleId)
 	if err != nil {
-		utils.HttpError("", err, w, http.StatusInternalServerError)
+		if errors.Is(err, pgx.ErrNoRows) {
+			utils.HttpError("the article is gone", err, w, http.StatusGone)
+		} else {
+			utils.HttpError("", err, w, http.StatusInternalServerError)
+		}
 		return
 	}
 
-	// var replies []*articleWithReplies
-	// for i := 0; i < len(replyData); i++ {
-	// 	item := &articleWithReplies{
-	// 		Article: replyData[i],
-	// 		//
-	// 	}
-	// 	replies := append(replies, item)
-	// }
-
-	// pageData := &PageData{
-	// 	Title: articleData.Title,
-	// 	Data: &articleWithReplies{
-	// 		Article: articleData,
-	// 		Replies: replies,
-	// 	},
-	// }
-
-	if len(replyData) == 0 {
+	if article.Deleted {
 		utils.HttpError("the article is gone", err, w, http.StatusGone)
 		return
 	}
 
-	article := replyData[0]
-
+	replyData, err := ar.store.GetReplies(articleId)
+	if err != nil {
+		utils.HttpError("", err, w, http.StatusInternalServerError)
+		return
+	}
 	articleTree := &articleWithReplies{
 		article,
 		make([]*articleWithReplies, 0),
 	}
 
-	articleTree = formatArticlesToTree(articleTree, replyData[1:])
-
-	if article.Deleted {
-		utils.HttpError("the article is gone", err, w, http.StatusGone)
-	} else {
-		// articleData.TransformNewlines()
-		ar.Render(w, r, "article", &PageData{Title: article.Title, Data: articleTree})
+	if len(replyData) > 0 {
+		articleTree = formatArticlesToTree(articleTree, replyData)
 	}
+
+	// fmt.Printf("articleTree.Replies: %+v\n", articleTree.Replies)
+
+	ar.Render(w, r, "article", &PageData{Title: article.Title, Data: articleTree})
 }
 
 func formatArticlesToTree(rootAR *articleWithReplies, list []*model.Article) *articleWithReplies {
-	for i, reply := range list {
-		if reply.ReplyTo == rootAR.Article.Id {
+	for i, article := range list {
+		if article.ReplyTo == rootAR.Article.Id {
 			currAR := &articleWithReplies{
-				Article: reply,
+				Article: article,
 				Replies: make([]*articleWithReplies, 0),
 			}
 			currAR = formatArticlesToTree(currAR, list[i:])
@@ -291,18 +311,23 @@ func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 	idForm := r.Form.Get("id")
 
 	rId, err := strconv.Atoi(idForm)
-
 	if err != nil {
 		utils.HttpError("", err, w, http.StatusBadRequest)
 		return
 	}
 
 	err = ar.store.Delete(rId)
-
 	if err != nil {
 		utils.HttpError("", err, w, http.StatusInternalServerError)
 		return
 	}
 
-	http.Redirect(w, r, "/", http.StatusFound)
+	refereUrl := r.Referer()
+	from := r.Form.Get("from")
+
+	if from == "reply" && refereUrl != "" {
+		http.Redirect(w, r, refereUrl, http.StatusFound)
+	} else {
+		http.Redirect(w, r, "/", http.StatusFound)
+	}
 }

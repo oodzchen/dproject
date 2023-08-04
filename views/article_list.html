@@ -2,15 +2,15 @@
 
 {{template "head" .}}
 
-<ul>
+<ol>
   {{range .Data.Articles}}
   <li>
     <a href="/articles/{{.Id}}">{{.Title}}</a>
     <br>
-    <small>{{.AuthorName}} 发布于 {{.CreatedAtStr}}</small>
+    <small style="color:#999">By {{.AuthorName}} {{.CreatedTimeAgo}}</small>
   </li>
   {{end}}
-</ul>
+</ol>
 
 <div>总共 {{.Data.ArticleTotal}} 篇文章</div>
 {{template "foot"}}

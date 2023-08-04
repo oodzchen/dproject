@@ -12,16 +12,21 @@ func HandleSessionErr(err error) {
 	fmt.Printf("session save error: %+v", err)
 }
 
-func IsLogin(sessStoer *sessions.CookieStore, w http.ResponseWriter, r *http.Request) bool {
-	sess, err := sessStoer.Get(r, "one-cookie")
+func GetLoginUserId(sessStore *sessions.CookieStore, w http.ResponseWriter, r *http.Request) (int, error) {
+	sess, err := sessStore.Get(r, "one-cookie")
 	if err != nil {
 		fmt.Println(errors.WithStack(err))
-		return false
+		return 0, err
 	}
 
 	if userId, ok := (sess.Values["user_id"]).(int); ok && userId > 0 {
-		return true
+		return userId, nil
 	}
 
-	return false
+	return 0, errors.WithStack(errors.New("no user id in session"))
+}
+
+func IsLogin(sessStore *sessions.CookieStore, w http.ResponseWriter, r *http.Request) bool {
+	_, err := GetLoginUserId(sessStore, w, r)
+	return err == nil
 }

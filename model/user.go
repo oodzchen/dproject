@@ -30,9 +30,6 @@ func (u *User) FormatTimeStr() {
 
 func (u *User) Sanitize() {
 	p := bluemonday.NewPolicy()
-	u.Email = p.Sanitize(u.Email)
-	u.Name = p.Sanitize(u.Name)
-	u.Password = p.Sanitize(u.Password)
 	u.Introduction = p.Sanitize(u.Introduction)
 }
 
