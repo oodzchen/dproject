@@ -254,34 +254,61 @@ func (ar *ArticleResource) Item(w http.ResponseWriter, r *http.Request) {
 		utils.HttpError("", err, w, http.StatusInternalServerError)
 		return
 	}
-	articleTree := &articleWithReplies{
-		article,
-		make([]*articleWithReplies, 0),
-	}
+	// articleTree := &articleWithReplies{
+	// 	article,
+	// 	make([]*articleWithReplies, 0),
+	// }
 
 	if len(replyData) > 0 {
-		articleTree = formatArticlesToTree(articleTree, replyData)
+		// articleTree = formatArticlesToTree(articleTree, replyData)
+		article, err = genArticleTree(article, replyData)
+		if err != nil {
+			utils.HttpError("", err, w, http.StatusInternalServerError)
+			return
+		}
 	}
 
 	// fmt.Printf("articleTree.Replies: %+v\n", articleTree.Replies)
 
-	ar.Render(w, r, "article", &PageData{Title: article.Title, Data: articleTree})
+	ar.Render(w, r, "article", &PageData{Title: article.Title, Data: article})
 }
 
-func formatArticlesToTree(rootAR *articleWithReplies, list []*model.Article) *articleWithReplies {
-	for i, article := range list {
-		if article.ReplyTo == rootAR.Article.Id {
-			currAR := &articleWithReplies{
-				Article: article,
-				Replies: make([]*articleWithReplies, 0),
-			}
-			currAR = formatArticlesToTree(currAR, list[i:])
-			rootAR.Replies = append(rootAR.Replies, currAR)
+func genArticleTree(root *model.Article, list []*model.Article) (*model.Article, error) {
+	nodeMap := make(map[int][]*model.Article)
+	for _, item := range list {
+		nodeMap[item.ReplyTo] = append(nodeMap[item.ReplyTo], item)
+	}
+
+	if replies, ok := nodeMap[root.Id]; ok {
+		root.Replies = replies
+	} else {
+		if len(list) > 0 {
+			return nil, errors.New("no reply to the root in the list")
 		}
 	}
 
-	return rootAR
+	for _, item := range list {
+		if replies, ok := nodeMap[item.Id]; ok {
+			item.Replies = replies
+		}
+	}
+	return root, nil
 }
+
+// func formatArticlesToTree(rootAR *articleWithReplies, list []*model.Article) *articleWithReplies {
+// 	for _, article := range list {
+// 		if article.ReplyTo == rootAR.Article.Id {
+// 			currAR := &articleWithReplies{
+// 				Article: article,
+// 				Replies: make([]*articleWithReplies, 0),
+// 			}
+// 			currAR = formatArticlesToTree(currAR, list)
+// 			rootAR.Replies = append(rootAR.Replies, currAR)
+// 		}
+// 	}
+
+// 	return rootAR
+// }
 
 func (ar *ArticleResource) EditPage(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")

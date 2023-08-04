@@ -127,16 +127,16 @@ func (a *Article) Item(id int) (*model.Article, error) {
 
 func (a *Article) GetReplies(id int) ([]*model.Article, error) {
 	sqlStr := `with recursive recurPosts as (select
-		p.id,
-		p.title,
-		p.author_id,
-		p.content,
-		p.created_at,
-		p.updated_at,
-		p.deleted,
-		p.reply_to,
+		id,
+		title,
+		author_id,
+		content,
+		created_at,
+		updated_at,
+		deleted,
+		reply_to,
 		1 as recur_depth
-	from posts p where p.id = $1 and p.deleted = false
+	from posts where id = $1 and deleted = false
 	union all
 	select
 		p.id,

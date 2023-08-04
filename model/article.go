@@ -35,6 +35,7 @@ type Article struct {
 	ReplyToTitle     string
 	NullReplyToTitle pgtype.Text
 	Deleted          bool
+	Replies          []*Article
 }
 
 func (a *Article) FormatNullValues() {

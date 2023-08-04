@@ -12,14 +12,17 @@
   {{end}}
 
   <div style="margin-top:10px;margin-bottom:0px;color:#999;">
-    <small><a style="color:#999;" href="/users/{{.article.AuthorId}}">{{.article.AuthorName}}</a> published <time>{{.article.CreatedTimeAgo}}</time>, modified <time>{{.article.UpdatedTimeAgo}}</time></small>
+    <small>
+      <a style="color:#999;" href="/users/{{.article.AuthorId}}">{{.article.AuthorName}}</a> published <time>{{.article.CreatedTimeAgo}}</time> | modified <time>{{.article.UpdatedTimeAgo}}</time> |
+      <a style="color:#999;" href="/articles/{{.article.Id}}">link</a>
+    </small>
   </div>
   <section style="white-space: pre-line">{{.article.Content}}</section>
 
   {{template "article_operation_bar" $data}}
 </article>
 
-{{if $isRoot}}
+{{if eq .depth 0}}
 {{if .currUser}}
 {{template "article_reply_form" .article}}
 {{else}}
@@ -27,7 +30,7 @@
 {{end}}
 {{end}}
 
-{{$replyData := dict "currUser" .currUser "replies" .replies "depth" $depth}}
+{{$replyData := dict "currUser" .currUser "replies" .article.Replies "depth" $depth}}
 {{template "article_replies" $replyData}}
 
 {{end}}
@@ -59,7 +62,7 @@
 {{$depth := .depth}}
 <ul style="list-style:none;margin-left:0;{{if eq $depth 1}}padding-left:0;{{else}}padding-left:28px;{{end}}">
 {{range .replies}}
-{{$subData := dict "currUser" $currUser "article" .Article "replies" .Replies "depth" $depth}}  
+{{$subData := dict "currUser" $currUser "article" . "depth" $depth}}  
 <li>
   {{template "article_content" $subData}}
 </li>
@@ -69,7 +72,7 @@
 
 {{define "article"}}
 {{$depth := 0}}
-{{$data := dict "currUser" .LoginedUser "article" .Data.Article "replies" .Data.Replies "depth" $depth}}
+{{$data := dict "currUser" .LoginedUser "article" .Data "depth" $depth}}
 
 {{template "head" .}}
 
@@ -79,7 +82,7 @@
 
 <script>
   function handleDelete(id) {
-    if (confirm('确认删除？')) {
+    if (confirm('Confirm to delete？')) {
 	const formEl = document.getElementById('del_form_' + id)
 	if(formEl)formEl.submit()
     }
