@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
@@ -65,6 +66,10 @@ func main() {
 
 	articleResource := web.NewArticleResource(tmpl, dataStore.Article, sessStore)
 
+	FileServer(r, "/static", http.Dir("./static"))
+	r.Get("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/static/favicon.ico", http.StatusFound)
+	})
 	r.Mount("/", web.NewMainResource(tmpl, articleResource, dataStore, sessStore).Routes())
 	r.Mount("/articles", articleResource.Routes())
 	r.Mount("/users", web.NewUserResource(tmpl, dataStore, sessStore).Routes())
@@ -72,4 +77,23 @@ func main() {
 	port := os.Getenv("PORT")
 	fmt.Printf("Listening at http://localhost%v\n", port)
 	log.Fatal(http.ListenAndServe(port, r))
+}
+
+func FileServer(r chi.Router, path string, root http.FileSystem) {
+	if strings.ContainsAny(path, "{}*") {
+		panic("FileServer does not permit any URL parameters.")
+	}
+
+	if path != "/" && path[len(path)-1] != '/' {
+		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
+		path += "/"
+	}
+	path += "*"
+
+	r.Get(path, func(w http.ResponseWriter, r *http.Request) {
+		rctx := chi.RouteContext(r.Context())
+		pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
+		fs := http.StripPrefix(pathPrefix, http.FileServer(root))
+		fs.ServeHTTP(w, r)
+	})
 }
