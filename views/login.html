@@ -3,12 +3,18 @@
 {{template "head" .}}
 
 <form method="post" action="/login">
-  <label for="email">Email:</label>
-  <input required name="email" id="email" type="email"/>
-  <br/>
-  <label for="password">Password:</label>
-  <input required name="password" id="password" type="password"/>
-  <br/>
+  <table>
+    <tbody>
+      <tr>
+        <td><label for="email">Email:</label></td>
+	<td><input required name="email" id="email" type="email"/></td>
+      </tr>
+      <tr>
+	<td><label for="password">Password:</label></td>
+	<td><input required name="password" id="password" type="password"/></td>
+      </tr>
+    </tbody>
+  </table>
   <button type="submit">Login</button>
 </form>
 

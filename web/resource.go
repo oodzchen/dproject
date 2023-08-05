@@ -102,7 +102,7 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 		utils.HttpError("", err, w, http.StatusInternalServerError)
 	}
 
-	sess.AddFlash("Register success! Please try to login.")
+	sess.AddFlash("Register success")
 	err = sess.Save(r, w)
 	if err != nil {
 		HandleSessionErr(errors.WithStack(err))
@@ -162,7 +162,7 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 		utils.HttpError("", err, w, http.StatusInternalServerError)
 		return
 	}
-	sess.AddFlash(fmt.Sprintf("Hi, %s", user.Name))
+	// sess.AddFlash(fmt.Sprintf("Hi, %s", user.Name))
 
 	sess.Values["user_id"] = user.Id
 	sess.Values["user_name"] = user.Name

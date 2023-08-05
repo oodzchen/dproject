@@ -149,7 +149,7 @@ func (a *Article) GetReplies(id int) ([]*model.Article, error) {
 		depth,
 		root_article_id,
 		1 as recur_depth
-	from posts where id = $1 and deleted = false
+	from posts where id = $1
 	union all
 	select
 		p.id,
@@ -165,7 +165,7 @@ func (a *Article) GetReplies(id int) ([]*model.Article, error) {
 		rp.recur_depth + 1
 	from posts p
 	join recurPosts rp on p.reply_to = rp.id
-	where rp.recur_depth < 10 and p.deleted = false
+	where rp.recur_depth < 11
 )
 select
 	rp.id,

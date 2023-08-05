@@ -2,6 +2,9 @@
 {{$isRoot := eq .article.ReplyDepth 0}}
 {{$depth := add .depth 1}}
 {{$data := dict "currUser" .currUser "article" .article "depth" $depth}}
+{{if .article.Deleted}}
+<article style="color:#666"><i>&lt;Deleted&gt;</i></article>
+{{else}}
 <article>
   {{if $isRoot}}
   <h1>{{.article.Title}}</h1>
@@ -11,7 +14,7 @@
     {{end}}
   {{end}}
 
-  <div style="margin-top:10px;margin-bottom:0px;color:#999;">
+  <div style="margin-top:6px;margin-bottom:0px;color:#999;">
     <small>
       <a style="color:#999;" href="/users/{{.article.AuthorId}}">{{.article.AuthorName}}</a> published <time>{{.article.CreatedTimeAgo}}</time> | modified <time>{{.article.UpdatedTimeAgo}}</time> |
       <a style="color:#999;" href="/articles/{{.article.Id}}">link</a>
@@ -21,13 +24,14 @@
 
   {{template "article_operation_bar" $data}}
 </article>
-
-{{if eq .depth 0}}
-{{if .currUser}}
-{{template "article_reply_form" .article}}
-{{else}}
-<a href="/login?target=/articles/{{.article.Id}}">Response</a>
 {{end}}
+
+{{if and .currUser}}
+{{if eq .depth 0}}
+{{template "article_reply_form" .article}}
+{{end}}
+{{else}}
+<div><small><a href="/login?target=/articles/{{if $isRoot}}{{.article.Id}}{{else}}{{.article.ReplyRootArticleId}}{{end}}">Reply</a></small><div>
 {{end}}
 
 {{$replyData := dict "currUser" .currUser "replies" .article.Replies "depth" $depth}}
@@ -37,7 +41,8 @@
 
 {{define "article_operation_bar"}}
 <div>
-{{if and .currUser (eq .currUser.Id .article.AuthorId)}}
+{{if .currUser}}
+{{if eq .currUser.Id .article.AuthorId}}
 <small><a href="/articles/{{.article.Id}}/edit">Edit</a>&nbsp;&nbsp;<a href="javascript:handleDelete({{.article.Id}});" style="color:red">Delete</a>&nbsp;</small>
 <form method="post" action="/articles/{{.article.Id}}/delete{{if gt .depth 1}}?from=reply{{end}}" id="del_form_{{.article.Id}}" style="display: none">
   <input type="hidden" name="id" value="{{.article.Id}}">
@@ -45,6 +50,7 @@
 {{end}}
 {{if gt .depth 1}}
 <small><a href="#" onclick="showReplyForm(event, {{.article.Id}}, this)">Reply</a></small>
+{{end}}
 {{end}}
 </div>
 {{end}}
@@ -60,10 +66,10 @@
 {{define "article_replies"}}
 {{$currUser := .currUser}}
 {{$depth := .depth}}
-<ul style="list-style:none;margin-left:0;{{if eq $depth 1}}padding-left:0;{{else}}padding-left:28px;{{end}}">
+<ul style="list-style:none;margin-left:0;{{if eq $depth 1}}padding-left:0;{{else}}padding-left:14px;{{end}}">
 {{range .replies}}
 {{$subData := dict "currUser" $currUser "article" . "depth" $depth}}  
-<li>
+<li style="padding-top:6px">
   {{template "article_content" $subData}}
 </li>
 {{end}}

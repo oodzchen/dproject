@@ -9,14 +9,52 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
-  <link rel="manifest" href="/site.webmanifest">
+  <link rel="manifest" href="/static/site.webmanifest">
   <title>{{.Title}}</title>
   <style>
+    :root[data-theme="light"] {
+        color-scheme: light;
+        --text: black;
+        --background: white;
+      }
+      :root[data-theme="dark"] {
+          color-scheme: dark;
+          --text: white;
+          --background: #282A36;
+      }
     nav {
-      display: flex;
-      justify-content: space-between;
+	display: flex;
+	justify-content: space-between;
+    }
+    
+    body{
+	background: var(--background);
+	color: var(--text);
     }
   </style>
+  <script>
+    document.addEventListener("DOMContentLoaded", function(){
+	var selectedTheme = localStorage.getItem("theme")
+        if (selectedTheme){
+	    setTheme(selectedTheme)
+        } else {
+	    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                setTheme("dark")
+            } else {
+	        setTheme("light")
+	    }
+        }        
+    })
+        function onThemeChange(ev){
+	    setTheme(ev.target.value)
+        }
+        
+        function setTheme(themeName){
+	    document.getElementById("theme").value = themeName
+	    document.documentElement.setAttribute("data-theme", themeName)
+	    localStorage.setItem("theme", themeName)
+        }
+  </script>
 </head>
 
 <body>
@@ -28,7 +66,7 @@
   {{range .TipMsg}}
   <div style="display:flex;justify-content:space-between;background-color:yellow">
     <span>{{.}}</span>
-    <button onclick="javascript:this.parentNode.remove()">&times;</button>
+    <a href="#" onclick="javascript:this.parentNode.remove();return false;">&nbsp;&times;&nbsp;</a>
   </div>
   {{end}}
   <nav>
@@ -47,6 +85,14 @@
       ·
       <a href="/login">Login</a>
       {{end}}
+    </div>
+    <div>
+      <label for="theme">Theme:</label>
+      <select id="theme" name="theme" onchange="onThemeChange(event)">
+	<option value="system">System</option>
+	<option value="dark">Dark</option>
+	<option value="light">Light</option>
+      </select>
     </div>
   </nav>
   <hr/>

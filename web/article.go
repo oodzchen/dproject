@@ -277,6 +277,10 @@ func (ar *ArticleResource) Item(w http.ResponseWriter, r *http.Request) {
 
 	// utils.PrintJSONf("replyData: ", replyData)
 	if len(replyData) > 0 {
+		for _, item := range replyData {
+			item.FormatDeleted()
+		}
+
 		article, err = genArticleTree(article, replyData)
 		if err != nil {
 			// utils.HttpError("", err, w, http.StatusInternalServerError)

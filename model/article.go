@@ -70,6 +70,12 @@ func (a *Article) UpdateDisplayTitle() {
 	a.DisplayTitle = displayTitle
 }
 
+func (a *Article) FormatDeleted() {
+	if a.Deleted {
+		a.Content = ""
+	}
+}
+
 func (a *Article) FormatTimeStr() {
 	a.CreatedAtStr = utils.FormatTime(a.CreatedAt, "Y年M月D日 h时m分s秒")
 	a.UpdatedAtStr = utils.FormatTime(a.UpdatedAt, "Y年M月D日 h时m分s秒")
