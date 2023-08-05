@@ -1,5 +1,5 @@
 {{define "article_content"}}
-{{$isRoot := eq .article.ReplyTo 0}}
+{{$isRoot := eq .article.ReplyDepth 0}}
 {{$depth := add .depth 1}}
 {{$data := dict "currUser" .currUser "article" .article "depth" $depth}}
 <article>
@@ -7,7 +7,7 @@
   <h1>{{.article.Title}}</h1>
   {{else}}
     {{if eq $depth 1}}
-  <h1>Re: <a href="/articles/{{.article.ReplyTo}}">{{.article.ReplyToTitle}}</a></h1>
+  <h1>Re{{if gt .article.ReplyDepth 1}} &times; {{.article.ReplyDepth}}{{end}}: <a href="/articles/{{.article.ReplyRootArticleId}}">{{.article.ReplyRootArticleTitle}}</a></h1>
     {{end}}
   {{end}}
 
@@ -52,7 +52,7 @@
 {{define "article_reply_form"}}
 <form id="reply_form" class="reply_form" method="post" action="/articles" style="margin-top: 10px">
   <input id="reply_to" name="reply_to" type="hidden" value="{{.Id}}"/>
-  <textarea cols="30" id="content" name="content" rows="10" style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box;"></textarea>
+  <textarea required cols="30" id="content" name="content" rows="10" style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box;"></textarea>
   <button type="submit">Submit</button>
 </form>
 {{end}}

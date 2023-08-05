@@ -158,7 +158,25 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 		ReplyTo:  replyTo,
 	}
 
+	if isReply {
+		toArticle, err := ar.store.Item(replyTo)
+		if err != nil {
+			utils.HttpError("", err, w, http.StatusInternalServerError)
+			return
+		}
+		utils.PrintJSONf("toArticle: ", toArticle)
+
+		article.ReplyDepth = toArticle.ReplyDepth + 1
+
+		if toArticle.ReplyDepth == 0 {
+			article.ReplyRootArticleId = toArticle.Id
+		} else {
+			article.ReplyRootArticleId = toArticle.ReplyRootArticleId
+		}
+	}
+
 	// fmt.Printf("article: %+v\n", article)
+	utils.PrintJSONf("create article: ", article)
 
 	article.Sanitize()
 
@@ -225,7 +243,7 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 
 func (ar *ArticleResource) Item(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
-	// fmt.Printf("idParam: %v\n", idParam)
+	fmt.Printf("idParam: %v\n", idParam)
 
 	articleId, err := strconv.Atoi(idParam)
 
@@ -254,23 +272,21 @@ func (ar *ArticleResource) Item(w http.ResponseWriter, r *http.Request) {
 		utils.HttpError("", err, w, http.StatusInternalServerError)
 		return
 	}
-	// articleTree := &articleWithReplies{
-	// 	article,
-	// 	make([]*articleWithReplies, 0),
-	// }
 
+	// utils.PrintJSONf("article: ", article)
+
+	// utils.PrintJSONf("replyData: ", replyData)
 	if len(replyData) > 0 {
-		// articleTree = formatArticlesToTree(articleTree, replyData)
 		article, err = genArticleTree(article, replyData)
 		if err != nil {
-			utils.HttpError("", err, w, http.StatusInternalServerError)
-			return
+			// utils.HttpError("", err, w, http.StatusInternalServerError)
+			fmt.Printf("generate article tree error: %v", err)
 		}
 	}
 
-	// fmt.Printf("articleTree.Replies: %+v\n", articleTree.Replies)
+	article.UpdateDisplayTitle()
 
-	ar.Render(w, r, "article", &PageData{Title: article.Title, Data: article})
+	ar.Render(w, r, "article", &PageData{Title: article.DisplayTitle, Data: article})
 }
 
 func genArticleTree(root *model.Article, list []*model.Article) (*model.Article, error) {
@@ -283,7 +299,7 @@ func genArticleTree(root *model.Article, list []*model.Article) (*model.Article,
 		root.Replies = replies
 	} else {
 		if len(list) > 0 {
-			return nil, errors.New("no reply to the root in the list")
+			return root, errors.New("no reply to the root in the list")
 		}
 	}
 
@@ -294,21 +310,6 @@ func genArticleTree(root *model.Article, list []*model.Article) (*model.Article,
 	}
 	return root, nil
 }
-
-// func formatArticlesToTree(rootAR *articleWithReplies, list []*model.Article) *articleWithReplies {
-// 	for _, article := range list {
-// 		if article.ReplyTo == rootAR.Article.Id {
-// 			currAR := &articleWithReplies{
-// 				Article: article,
-// 				Replies: make([]*articleWithReplies, 0),
-// 			}
-// 			currAR = formatArticlesToTree(currAR, list)
-// 			rootAR.Replies = append(rootAR.Replies, currAR)
-// 		}
-// 	}
-
-// 	return rootAR
-// }
 
 func (ar *ArticleResource) EditPage(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")

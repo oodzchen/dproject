@@ -30,7 +30,9 @@ CREATE TABLE posts (
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     reply_to INTEGER DEFAULT 0,
-    deleted BOOLEAN NOT NULL DEFAULT false
+    deleted BOOLEAN NOT NULL DEFAULT false,
+    depth INTEGER DEFAULT 0 NOT NULL,
+    root_article_id INTEGER DEFAULT 0
 );
 
 -- reply_to 为空时候标题不能为空，replay_to 不为空时标题可以为空
@@ -58,8 +60,8 @@ VALUES
     ('How to Learn Programming', 'Programming is a very interesting skill. Here are my learning experience.', 3),
     ('Python 入门教程', 'Python 是一门非常受欢迎的编程语言，这里是一份简单的入门教程。', 3);
 
-INSERT INTO posts (title, content, author_id, reply_to)
+INSERT INTO posts (title, content, author_id, reply_to, depth, root_article_id)
 VALUES
-    ('回“第一篇博客”', '我是这样想的，哈哈，非常有意思，只是测试而已', 2, 1),
-    ('', '我就是想回复一下', 2, 1),
-    ('另外一片新的文章', '这是新的一片文章，测试看看', 3, 3);
+    ('回“第一篇博客”', '我是这样想的，哈哈，非常有意思，只是测试而已', 2, 1, 1, 1),
+    ('', '我就是想回复一下', 2, 1, 1, 1),
+    ('另外一片新的文章', '这是新的一片文章，测试看看', 3, 3, 1, 3);

@@ -24,7 +24,8 @@ func (a *Article) List() ([]*model.Article, error) {
 	from posts p
 	left join users u
 	on p.author_id = u.id
-	where p.reply_to = 0 and p.deleted = false;`
+	where p.reply_to = 0 and p.deleted = false
+	order by p.created_at desc`
 	// rows, err := rs.DBConn.Query(context.Background(), sqlStr)
 	rows, err := a.dbPool.Query(context.Background(), sqlStr)
 
@@ -61,11 +62,14 @@ func (a *Article) List() ([]*model.Article, error) {
 
 func (a *Article) Create(item *model.Article) (int, error) {
 	var id int
-	err := a.dbPool.QueryRow(context.Background(), "insert into posts (title, author_id, content, reply_to) values ($1, $2, $3, $4) returning (id)",
+	sqlStr := `insert into posts (title, author_id, content, reply_to, depth, root_article_id) values ($1, $2, $3, $4, $5, $6) returning (id);`
+	err := a.dbPool.QueryRow(context.Background(), sqlStr,
 		item.Title,
 		item.AuthorId,
 		item.Content,
 		item.ReplyTo,
+		item.ReplyDepth,
+		item.ReplyRootArticleId,
 	).Scan(&id)
 	if err != nil {
 		return 0, err
@@ -99,10 +103,14 @@ func (a *Article) Item(id int) (*model.Article, error) {
 		p.updated_at,
 		p.deleted,
 		p.reply_to,
-		p2.title as reply_to_title
+		p.depth,
+		p.root_article_id,
+		p2.title as reply_to_title,
+		p3.title as root_article_title
 	from posts p
 	left join users u on p.author_id = u.id
 	left join posts p2 on p.reply_to = p2.id
+	left join posts p3 on p.root_article_id = p3.id
 	where p.id = $1`
 	err := a.dbPool.QueryRow(context.Background(), sqlStr, id).Scan(
 		&item.Id,
@@ -114,7 +122,10 @@ func (a *Article) Item(id int) (*model.Article, error) {
 		&item.UpdatedAt,
 		&item.Deleted,
 		&item.ReplyTo,
+		&item.ReplyDepth,
+		&item.ReplyRootArticleId,
 		&item.NullReplyToTitle,
+		&item.NullReplyRootArticleTitle,
 	)
 	if err != nil {
 		return nil, err
@@ -135,6 +146,8 @@ func (a *Article) GetReplies(id int) ([]*model.Article, error) {
 		updated_at,
 		deleted,
 		reply_to,
+		depth,
+		root_article_id,
 		1 as recur_depth
 	from posts where id = $1 and deleted = false
 	union all
@@ -147,6 +160,8 @@ func (a *Article) GetReplies(id int) ([]*model.Article, error) {
 		p.updated_at,
 		p.deleted,
 		p.reply_to,
+		p.depth,
+		p.root_article_id,
 		rp.recur_depth + 1
 	from posts p
 	join recurPosts rp on p.reply_to = rp.id
@@ -162,10 +177,13 @@ select
 	rp.updated_at,
 	rp.deleted,
 	rp.reply_to,
+	rp.depth,
+	rp.root_article_id,
 	p2.title as reply_to_title
 from recurPosts rp
 left join posts p2 on rp.reply_to = p2.id
-join users u on rp.author_id = u.id`
+join users u on rp.author_id = u.id
+order by rp.created_at`
 
 	rows, err := a.dbPool.Query(context.Background(), sqlStr, id)
 
@@ -182,6 +200,8 @@ join users u on rp.author_id = u.id`
 			&item.UpdatedAt,
 			&item.Deleted,
 			&item.ReplyTo,
+			&item.ReplyDepth,
+			&item.ReplyRootArticleId,
 			&item.NullReplyToTitle,
 		)
 

@@ -19,23 +19,28 @@ const (
 )
 
 type Article struct {
-	Id               int
-	Title            string
-	NullTitle        pgtype.Text
-	AuthorName       string
-	AuthorId         int
-	Content          string
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
-	CreatedAtStr     string
-	UpdatedAtStr     string
-	CreatedTimeAgo   string
-	UpdatedTimeAgo   string
-	ReplyTo          int
-	ReplyToTitle     string
-	NullReplyToTitle pgtype.Text
-	Deleted          bool
-	Replies          []*Article
+	Id                        int
+	Title                     string
+	NullTitle                 pgtype.Text
+	AuthorName                string
+	AuthorId                  int
+	Content                   string
+	CreatedAt                 time.Time
+	UpdatedAt                 time.Time
+	CreatedAtStr              string
+	UpdatedAtStr              string
+	CreatedTimeAgo            string
+	UpdatedTimeAgo            string
+	ReplyTo                   int
+	ReplyToTitle              string
+	NullReplyToTitle          pgtype.Text
+	Deleted                   bool
+	Replies                   []*Article
+	ReplyDepth                int
+	ReplyRootArticleId        int
+	NullReplyRootArticleTitle pgtype.Text
+	ReplyRootArticleTitle     string
+	DisplayTitle              string // only for display
 }
 
 func (a *Article) FormatNullValues() {
@@ -46,6 +51,23 @@ func (a *Article) FormatNullValues() {
 	if a.ReplyToTitle == "" && a.NullReplyToTitle.Valid {
 		a.ReplyToTitle = a.NullReplyToTitle.String
 	}
+
+	if a.ReplyRootArticleTitle == "" && a.NullReplyRootArticleTitle.Valid {
+		a.ReplyRootArticleTitle = a.NullReplyRootArticleTitle.String
+	}
+}
+
+func (a *Article) UpdateDisplayTitle() {
+	var displayTitle string
+	if a.ReplyDepth == 0 {
+		displayTitle = a.Title
+	} else if a.ReplyDepth == 1 {
+		displayTitle = fmt.Sprintf("Re: %s", a.ReplyRootArticleTitle)
+	} else {
+		displayTitle = fmt.Sprintf("Re × %d: %s", a.ReplyDepth, a.ReplyRootArticleTitle)
+	}
+
+	a.DisplayTitle = displayTitle
 }
 
 func (a *Article) FormatTimeStr() {

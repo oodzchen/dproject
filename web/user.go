@@ -66,9 +66,7 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, article := range postList {
-		if article.ReplyTo > 0 {
-			article.Title = "Re: " + article.ReplyToTitle
-		}
+		article.UpdateDisplayTitle()
 	}
 
 	ur.Render(w, r, "user_item", &PageData{Title: user.Name, Data: &userProfile{
