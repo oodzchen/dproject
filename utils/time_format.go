@@ -6,10 +6,10 @@ import (
 )
 
 // Format time to string with "Y"(year), "M"(month), "D"(day), "h"(hour), "m"(minute), "s"(second)
-func FormatTime(t time.Time, tpl string) string {
-	tplArr := strings.Split(tpl, "")
-	nativeTpl := make([]string, 0)
-	nativeTplMap := map[string]string{
+func FormatTime(t time.Time, format string) string {
+	formatArr := strings.Split(format, "")
+	nativeFormat := make([]string, 0)
+	nativeFormatMap := map[string]string{
 		"Y": "2006",
 		"M": "1",
 		"D": "2",
@@ -19,12 +19,12 @@ func FormatTime(t time.Time, tpl string) string {
 	}
 	hour := t.Hour()
 
-	tplArr = reverse(tplArr)
+	formatArr = reverse(formatArr)
 
 	prev := ""
 	repeatCount := 0
-	for _, tp := range tplArr {
-		if _, found := nativeTplMap[tp]; found {
+	for _, tp := range formatArr {
+		if _, found := nativeFormatMap[tp]; found {
 			if tp == prev {
 				repeatCount++
 			} else {
@@ -33,27 +33,27 @@ func FormatTime(t time.Time, tpl string) string {
 
 			if repeatCount == 0 {
 				if tp == "h" && hour < 10 {
-					nativeTpl = append(nativeTpl, "3")
+					nativeFormat = append(nativeFormat, "3")
 				} else {
-					nativeTpl = append(nativeTpl, nativeTplMap[tp])
+					nativeFormat = append(nativeFormat, nativeFormatMap[tp])
 				}
 			} else {
 				if tp == "Y" && repeatCount < 4 {
 					prev = tp
 					continue
 				}
-				nativeTpl = append(nativeTpl, "0")
+				nativeFormat = append(nativeFormat, "0")
 			}
 
 			prev = tp
 		} else {
-			nativeTpl = append(nativeTpl, tp)
+			nativeFormat = append(nativeFormat, tp)
 		}
 	}
 
-	nativeTpl = reverse(nativeTpl)
-	// log.Printf("nativeTpl: %s\n", strings.Join(nativeTpl, ""))
-	return t.Format(strings.Join(nativeTpl, ""))
+	nativeFormat = reverse(nativeFormat)
+	// log.Printf("nativeFormat: %s\n", strings.Join(nativeFormat, ""))
+	return t.Format(strings.Join(nativeFormat, ""))
 }
 
 func reverse[V any](arr []V) []V {
