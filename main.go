@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/Masterminds/sprig/v3"
 	"github.com/go-chi/chi/v5"
@@ -16,6 +17,7 @@ import (
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/store/pgstore"
 	"github.com/oodzchen/dproject/web"
+	"github.com/xeonx/timeago"
 )
 
 // func createSessionMiddleware(sessStore *sessions.CookieStore) func(http.Handler) http.Handler {
@@ -36,6 +38,14 @@ import (
 // 	}
 // }
 
+var tmplFuncs = template.FuncMap{
+	"timeAgo": formatTimeAgo,
+}
+
+func formatTimeAgo(t time.Time) string {
+	return timeago.English.Format(t)
+}
+
 func main() {
 	err := godotenv.Load(".env.local")
 	if err != nil {
@@ -54,7 +64,8 @@ func main() {
 
 	dataStore, err := store.New(pg)
 
-	tmpl := template.Must(template.New("base").Funcs(sprig.FuncMap()).ParseGlob("./views/*.html"))
+	baseTmpl := template.New("base").Funcs(tmplFuncs).Funcs(sprig.FuncMap())
+	baseTmpl = template.Must(baseTmpl.ParseGlob("./views/*.html"))
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -64,15 +75,15 @@ func main() {
 
 	sessStore := sessions.NewCookieStore([]byte(os.Getenv("SESSION_SECRET")))
 
-	articleResource := web.NewArticleResource(tmpl, dataStore.Article, sessStore)
+	articleResource := web.NewArticleResource(baseTmpl, dataStore.Article, sessStore)
 
 	FileServer(r, "/static", http.Dir("./static"))
 	r.Get("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/static/favicon.ico", http.StatusFound)
 	})
-	r.Mount("/", web.NewMainResource(tmpl, articleResource, dataStore, sessStore).Routes())
+	r.Mount("/", web.NewMainResource(baseTmpl, articleResource, dataStore, sessStore).Routes())
 	r.Mount("/articles", articleResource.Routes())
-	r.Mount("/users", web.NewUserResource(tmpl, dataStore, sessStore).Routes())
+	r.Mount("/users", web.NewUserResource(baseTmpl, dataStore, sessStore).Routes())
 
 	port := os.Getenv("PORT")
 	fmt.Printf("Listening at http://localhost%v\n", port)

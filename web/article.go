@@ -42,11 +42,11 @@ func (ar *ArticleResource) Routes() http.Handler {
 
 	rt.Get("/", ar.List)
 	rt.Post("/", ar.Submit)
-	rt.Get("/new", ar.CreatePage)
+	rt.Get("/new", ar.FormPage)
 
 	rt.Route("/{id}", func(r chi.Router) {
 		r.Get("/", ar.Item)
-		r.Get("/edit", ar.EditPage)
+		r.Get("/edit", ar.FormPage)
 		r.Post("/edit", ar.Update)
 		r.Post("/delete", ar.Delete)
 	})
@@ -69,8 +69,7 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	ar.Render(w, r, "article_list", &PageData{Title: "Home", Data: &ListData{list, len(list)}})
 }
 
-func (ar *ArticleResource) CreatePage(w http.ResponseWriter, r *http.Request) {
-	// fmt.Printf("r.URL:%#v\n", r.URL)
+func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 	if !IsLogin(ar.sessStore, w, r) {
 		var targetUrl string
 		if r.TLS != nil {
@@ -82,34 +81,30 @@ func (ar *ArticleResource) CreatePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	idParam := chi.URLParam(r, "id")
-	fmt.Printf("idParam: %v\n", idParam)
-
-	// tempUserId := Session.Values["tempUserId"]
-	// fmt.Printf("tempUserId: %v\n", tempUserId)
-
-	// var data PostPageData
+	id := chi.URLParam(r, "id")
 	var pageTitle string
 	var data *model.Article
 
-	if idParam == "" {
+	if id == "" {
 		pageTitle = "Create"
 		data = &model.Article{}
 	} else {
-		rId, err := strconv.Atoi(idParam)
+		rId, err := strconv.Atoi(id)
 
 		if err != nil {
 			utils.HttpError("", err, w, http.StatusBadRequest)
 			return
 		}
 		// postData, _ := ar.getPostData(idParam)
-		postData, err := ar.store.Item(rId)
+		article, err := ar.store.Item(rId)
 		if err != nil {
 			utils.HttpError("", err, w, http.StatusInternalServerError)
 			return
 		}
-		pageTitle = fmt.Sprintf("Edit - %v", postData.Title)
-		data = postData
+		pageTitle = fmt.Sprintf("Edit - %s", article.Title)
+
+		article.UpdateDisplayTitle()
+		data = article
 	}
 
 	ar.Render(w, r, "create", &PageData{Title: pageTitle, Data: data})
@@ -122,7 +117,6 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	paramReplyTo := r.Form.Get("reply_to")
-	// fmt.Printf("paramReplyTo: %s\n", paramReplyTo)
 
 	var isReply bool
 	var replyTo int
@@ -133,7 +127,6 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		replyTo = num
-		// fmt.Printf("replyTo:%d\n", replyTo)
 		isReply = replyTo > 0
 	}
 
@@ -180,7 +173,7 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 
 	article.Sanitize()
 
-	err = article.Valid(isReply)
+	err = article.Valid(false)
 	if err != nil {
 		utils.HttpError(err.Error(), err, w, http.StatusBadRequest)
 		return
@@ -207,25 +200,29 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		utils.HttpError("", err, w, http.StatusBadRequest)
 	}
-	// fmt.Printf("r.Form: %v\n", r.Form)
 
 	rId, err := strconv.Atoi(r.Form.Get("id"))
-	authorId, err := strconv.Atoi(r.Form.Get("author_id"))
-
+	replyDepth, err := strconv.Atoi(r.Form.Get("reply_depth"))
+	// fmt.Printf("replyDepth: %d\n", replyDepth)
 	if err != nil {
 		utils.HttpError("", err, w, http.StatusBadRequest)
 		return
 	}
 
+	isReply := replyDepth > 0
+	fmt.Printf("isReply: %t\n", isReply)
+
 	article := &model.Article{
-		Title:    r.Form.Get("title"),
-		AuthorId: authorId,
-		Content:  r.Form.Get("content"),
-		Id:       rId,
+		Content:    r.Form.Get("content"),
+		Id:         rId,
+		ReplyDepth: replyDepth,
+	}
+	if !isReply {
+		article.Title = r.Form.Get("title")
 	}
 	article.Sanitize()
 
-	err = article.Valid(false)
+	err = article.Valid(true)
 	if err != nil {
 		utils.HttpError(err.Error(), err, w, http.StatusBadRequest)
 		return
@@ -315,24 +312,24 @@ func genArticleTree(root *model.Article, list []*model.Article) (*model.Article,
 	return root, nil
 }
 
-func (ar *ArticleResource) EditPage(w http.ResponseWriter, r *http.Request) {
-	idParam := chi.URLParam(r, "id")
-	fmt.Printf("idParam: %v\n", idParam)
+// func (ar *ArticleResource) EditPage(w http.ResponseWriter, r *http.Request) {
+// 	idParam := chi.URLParam(r, "id")
+// 	fmt.Printf("idParam: %v\n", idParam)
 
-	rId, err := strconv.Atoi(idParam)
+// 	rId, err := strconv.Atoi(idParam)
 
-	if err != nil {
-		utils.HttpError("", err, w, http.StatusBadRequest)
-		return
-	}
+// 	if err != nil {
+// 		utils.HttpError("", err, w, http.StatusBadRequest)
+// 		return
+// 	}
 
-	postData, err := ar.store.Item(rId)
-	if err != nil {
-		utils.HttpError("", err, w, http.StatusInternalServerError)
-		return
-	}
-	ar.Render(w, r, "create", &PageData{Title: postData.Title, Data: postData})
-}
+// 	postData, err := ar.store.Item(rId)
+// 	if err != nil {
+// 		utils.HttpError("", err, w, http.StatusInternalServerError)
+// 		return
+// 	}
+// 	ar.Render(w, r, "create", &PageData{Title: postData.Title, Data: postData})
+// }
 
 func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()

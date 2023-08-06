@@ -2,12 +2,12 @@
 <table>
   <tbody>
     <tr>
-      <td align="right">Joined At:</td>
+      <td align="right">Joined At</td>
       <td align="left">{{.RegisteredAtStr}}</td>
     </tr>
     {{if .Introduction}}
     <tr>
-      <td align="right">Introduction:</td>
+      <td align="right">Introduction</td>
       <td align="left">{{.Introduction}}</td>
     </tr>
     {{end}}
@@ -20,7 +20,7 @@
 <ul>
   <li>
     <a href="/articles/{{.Id}}">{{.DisplayTitle}}</a>
-    <small>{{.CreatedAtStr}}</small>
+    <small><time title="{{.CreatedAt}}">{{timeAgo .CreatedAt}}</time></small>
   </li>
 </ul>
 {{end}}

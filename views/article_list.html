@@ -7,7 +7,7 @@
   <li>
     <a href="/articles/{{.Id}}">{{.Title}}</a>
     <br>
-    <small style="color:#999">By {{.AuthorName}} {{.CreatedTimeAgo}}</small>
+    <small style="color:#999">By {{.AuthorName}} <time title="{{.CreatedAt}}">{{timeAgo .CreatedAt}}</time></small>
   </li>
   {{end}}
 </ol>

@@ -7,13 +7,18 @@
 <form method="post" action="/articles">
 {{end}}
 {{if .Data.Id}}
-  <input type="hidden" name="id" value="{{.Data.Id}}">
-  <input type="hidden" name="author_id" value="{{.Data.AuthorId}}">
-  {{end}}
-  <input type="hidden" name="author_id" value="{{.LoginedUser.Id}}">
-  <input required type="text" name="title" value="{{.Data.Title}}" placeholder="Title" style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box">
-  <textarea name="content" cols="30" rows="10" placeholder="Content" style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box;">{{.Data.Content}}</textarea>
-  <button type="submit">Submit</button>
+<input type="hidden" name="id" value="{{.Data.Id}}">
+<input name="reply_depth" type="hidden" value="{{.Data.ReplyDepth}}"/>
+{{end}}
+
+{{if and .Data.Id (gt .Data.ReplyDepth 0)}}
+<h1>{{.Data.DisplayTitle}}</h1>
+{{else}}
+<input required type="text" name="title" value="{{.Data.Title}}" placeholder="Title" style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box">
+{{end}}
+
+<textarea name="content" cols="30" rows="10" placeholder="Content" style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box;">{{.Data.Content}}</textarea>
+<button type="submit">Submit</button>
 </form>
 {{template "foot"}}
 {{end}}

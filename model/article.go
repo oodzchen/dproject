@@ -11,7 +11,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/oodzchen/dproject/utils"
-	"github.com/xeonx/timeago"
 )
 
 const (
@@ -29,8 +28,6 @@ type Article struct {
 	UpdatedAt                 time.Time
 	CreatedAtStr              string
 	UpdatedAtStr              string
-	CreatedTimeAgo            string
-	UpdatedTimeAgo            string
 	ReplyTo                   int
 	ReplyToTitle              string
 	NullReplyToTitle          pgtype.Text
@@ -79,8 +76,6 @@ func (a *Article) FormatDeleted() {
 func (a *Article) FormatTimeStr() {
 	a.CreatedAtStr = utils.FormatTime(a.CreatedAt, "Y年M月D日 h时m分s秒")
 	a.UpdatedAtStr = utils.FormatTime(a.UpdatedAt, "Y年M月D日 h时m分s秒")
-	a.CreatedTimeAgo = timeago.English.Format(a.CreatedAt)
-	a.UpdatedTimeAgo = timeago.English.Format(a.UpdatedAt)
 }
 
 func (a *Article) TransformNewlines() {
@@ -94,12 +89,13 @@ func (a *Article) Sanitize() {
 	a.Content = p.Sanitize(a.Content)
 }
 
-func (a *Article) Valid(isReply bool) error {
+func (a *Article) Valid(isUpdate bool) error {
+	isReply := a.ReplyDepth > 0
 	authorId := a.AuthorId
 	title := strings.TrimSpace(a.Title)
 	content := strings.TrimSpace(a.Content)
 
-	if authorId == 0 {
+	if !isUpdate && authorId == 0 {
 		return errors.New("author id is required")
 	}
 
