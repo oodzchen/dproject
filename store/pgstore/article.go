@@ -26,7 +26,7 @@ func (a *Article) List() ([]*model.Article, error) {
 	on p.author_id = u.id
 	where p.reply_to = 0 and p.deleted = false
 	order by p.created_at desc`
-	// rows, err := rs.DBConn.Query(context.Background(), sqlStr)
+
 	rows, err := a.dbPool.Query(context.Background(), sqlStr)
 
 	if err != nil {

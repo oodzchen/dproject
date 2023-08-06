@@ -312,25 +312,6 @@ func genArticleTree(root *model.Article, list []*model.Article) (*model.Article,
 	return root, nil
 }
 
-// func (ar *ArticleResource) EditPage(w http.ResponseWriter, r *http.Request) {
-// 	idParam := chi.URLParam(r, "id")
-// 	fmt.Printf("idParam: %v\n", idParam)
-
-// 	rId, err := strconv.Atoi(idParam)
-
-// 	if err != nil {
-// 		utils.HttpError("", err, w, http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	postData, err := ar.store.Item(rId)
-// 	if err != nil {
-// 		utils.HttpError("", err, w, http.StatusInternalServerError)
-// 		return
-// 	}
-// 	ar.Render(w, r, "create", &PageData{Title: postData.Title, Data: postData})
-// }
-
 func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {

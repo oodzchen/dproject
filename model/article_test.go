@@ -9,6 +9,7 @@ type articleData struct {
 	Title    string
 	AuthorId int
 	Content  string
+	Depth    int
 }
 
 func TestArticleValid(t *testing.T) {
@@ -18,9 +19,10 @@ func TestArticleValid(t *testing.T) {
 	}
 
 	tests := []struct {
-		desc  string
-		in    *articleData
-		valid bool
+		desc     string
+		in       *articleData
+		isUpdate bool
+		valid    bool
 	}{
 		{
 			desc: "All valid",
@@ -28,8 +30,10 @@ func TestArticleValid(t *testing.T) {
 				"This is Title",
 				1,
 				"This is content",
+				0,
 			},
-			valid: true,
+			isUpdate: false,
+			valid:    true,
 		},
 		{
 			desc: "Title is required",
@@ -37,8 +41,10 @@ func TestArticleValid(t *testing.T) {
 				" ",
 				1,
 				"This is content",
+				0,
 			},
-			valid: false,
+			isUpdate: false,
+			valid:    false,
 		},
 		{
 			desc: "Author is required",
@@ -46,8 +52,10 @@ func TestArticleValid(t *testing.T) {
 				"This is Title",
 				0,
 				"This is content",
+				0,
 			},
-			valid: false,
+			isUpdate: false,
+			valid:    false,
 		},
 		{
 			desc: "Content is required",
@@ -55,8 +63,10 @@ func TestArticleValid(t *testing.T) {
 				"This is Title",
 				1,
 				" ",
+				0,
 			},
-			valid: false,
+			isUpdate: false,
+			valid:    false,
 		},
 		{
 			desc: "Title limit",
@@ -64,8 +74,10 @@ func TestArticleValid(t *testing.T) {
 				"This is Title This is Title This is Title This is Title This is Title This is Title This is Title This is Title",
 				1,
 				"This is content",
+				0,
 			},
-			valid: false,
+			isUpdate: false,
+			valid:    false,
 		},
 		{
 			desc: "Content limit",
@@ -73,19 +85,66 @@ func TestArticleValid(t *testing.T) {
 				"This is Title",
 				1,
 				string(largeText),
+				0,
 			},
-			valid: false,
+			isUpdate: false,
+			valid:    false,
+		},
+		{
+			desc: "Update root article without title",
+			in: &articleData{
+				"",
+				1,
+				"This is Content",
+				0,
+			},
+			isUpdate: true,
+			valid:    false,
+		},
+		{
+			desc: "Update reply without title",
+			in: &articleData{
+				"",
+				0,
+				"This is Content",
+				1,
+			},
+			isUpdate: true,
+			valid:    true,
+		},
+		{
+			desc: "Update without author",
+			in: &articleData{
+				"",
+				0,
+				"This is Content",
+				1,
+			},
+			isUpdate: true,
+			valid:    true,
+		},
+		{
+			desc: "Update without content",
+			in: &articleData{
+				"This is Title",
+				0,
+				"",
+				1,
+			},
+			isUpdate: true,
+			valid:    false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
 			a := &Article{
-				Title:    tt.in.Title,
-				AuthorId: tt.in.AuthorId,
-				Content:  tt.in.Content,
+				Title:      tt.in.Title,
+				AuthorId:   tt.in.AuthorId,
+				Content:    tt.in.Content,
+				ReplyDepth: tt.in.Depth,
 			}
-			err := a.Valid()
+			err := a.Valid(tt.isUpdate)
 			got := err == nil
 			want := tt.valid
 
