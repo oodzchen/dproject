@@ -5,7 +5,8 @@
 <form method="post" action="/articles/{{.Data.Id}}/edit">
   {{else}}
 <form method="post" action="/articles">
-{{end}}
+  {{end}}
+  {{.CSRFField}}
 {{if .Data.Id}}
 <input type="hidden" name="id" value="{{.Data.Id}}">
 <input name="reply_depth" type="hidden" value="{{.Data.ReplyDepth}}"/>

@@ -7,6 +7,7 @@ import (
 	"os"
 	"text/template"
 
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
 	"github.com/oodzchen/dproject/utils"
 	"github.com/pkg/errors"
@@ -23,6 +24,7 @@ type PageData struct {
 	TipMsg      []string
 	LoginedUser *UserInfo
 	JSONStr     string
+	CSRFField   string
 }
 
 type Renderer struct {
@@ -70,7 +72,9 @@ func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, 
 	}
 
 	data.Title += fmt.Sprintf(" - %s", os.Getenv("SITE_NAME"))
+	data.CSRFField = string(csrf.TemplateField(r))
 
+	// DEBUG
 	jsonData, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		utils.HttpError("server error", errors.WithStack(err), w, http.StatusInternalServerError)
@@ -79,6 +83,7 @@ func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, 
 
 	data.JSONStr = string(jsonData)
 
+	w.Header().Set("Content-Type", "text/html")
 	err = rd.Tmpl.ExecuteTemplate(w, name, data)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

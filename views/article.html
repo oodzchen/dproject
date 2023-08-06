@@ -1,7 +1,7 @@
 {{define "article_content"}}
 {{$isRoot := eq .article.ReplyDepth 0}}
 {{$depth := add .depth 1}}
-{{$data := dict "currUser" .currUser "article" .article "depth" $depth}}
+{{$data := dict "currUser" .currUser "article" .article "depth" $depth "CSRFField" .CSRFField}}
 {{if .article.Deleted}}
 <article style="color:#666"><i>&lt;Deleted&gt;</i></article>
 {{else}}
@@ -28,13 +28,13 @@
 
 {{if and .currUser}}
 {{if eq .depth 0}}
-{{template "article_reply_form" .article}}
+{{template "article_reply_form" $data}}
 {{end}}
 {{else}}
 <div><small><a href="/login?target=/articles/{{if $isRoot}}{{.article.Id}}{{else}}{{.article.ReplyRootArticleId}}{{end}}">Reply</a></small><div>
 {{end}}
 
-{{$replyData := dict "currUser" .currUser "replies" .article.Replies "depth" $depth}}
+{{$replyData := dict "currUser" .currUser "replies" .article.Replies "depth" $depth "CSRFField" .CSRFField}}
 {{template "article_replies" $replyData}}
 
 {{end}}
@@ -45,6 +45,7 @@
 {{if eq .currUser.Id .article.AuthorId}}
 <small><a href="/articles/{{.article.Id}}/edit">Edit</a>&nbsp;&nbsp;<a href="javascript:handleDelete({{.article.Id}});" style="color:red">Delete</a>&nbsp;</small>
 <form method="post" action="/articles/{{.article.Id}}/delete{{if gt .depth 1}}?from=reply{{end}}" id="del_form_{{.article.Id}}" style="display: none">
+  {{.CSRFField}}
   <input type="hidden" name="id" value="{{.article.Id}}">
 </form>
 {{end}}
@@ -57,7 +58,8 @@
 
 {{define "article_reply_form"}}
 <form id="reply_form" class="reply_form" method="post" action="/articles" style="margin-top: 10px">
-  <input id="reply_to" name="reply_to" type="hidden" value="{{.Id}}"/>
+  {{.CSRFField}}
+  <input id="reply_to" name="reply_to" type="hidden" value="{{.article.Id}}"/>
   <textarea required cols="30" id="content" name="content" rows="10" style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box;"></textarea>
   <button type="submit">Submit</button>
 </form>
@@ -66,9 +68,10 @@
 {{define "article_replies"}}
 {{$currUser := .currUser}}
 {{$depth := .depth}}
+{{$CSRFField := .CSRFField}}
 <ul style="list-style:none;margin-left:0;{{if eq $depth 1}}padding-left:0;{{else}}padding-left:14px;{{end}}">
 {{range .replies}}
-{{$subData := dict "currUser" $currUser "article" . "depth" $depth}}  
+{{$subData := dict "currUser" $currUser "article" . "depth" $depth "CSRFField" $CSRFField}}
 <li style="padding-top:6px">
   {{template "article_content" $subData}}
 </li>
@@ -78,7 +81,7 @@
 
 {{define "article"}}
 {{$depth := 0}}
-{{$data := dict "currUser" .LoginedUser "article" .Data "depth" $depth}}
+{{$data := dict "currUser" .LoginedUser "article" .Data "depth" $depth "CSRFField" .CSRFField}}
 
 {{template "head" .}}
 
@@ -103,7 +106,7 @@
 	  var replyForm = document.getElementById('reply_form')
 	  form = replyForm.cloneNode(true)
 	  form.setAttribute("id", formId)
-	  var input = form.getElementsByTagName('input')[0]
+	  var input = form.querySelector('[name="reply_to"]')
 	  input.setAttribute("id", "reply_to_" + id)
 	  input.setAttribute("value", id)
 	  el.parentNode.parentNode.appendChild(form)

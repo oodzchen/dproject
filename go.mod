@@ -16,7 +16,10 @@ require (
 	github.com/Masterminds/semver/v3 v3.2.0 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
+	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/go-chi/httprate v0.7.4 // indirect
 	github.com/google/uuid v1.1.1 // indirect
+	github.com/gorilla/csrf v1.7.1 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect
 	github.com/huandu/xstrings v1.3.3 // indirect

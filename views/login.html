@@ -3,6 +3,7 @@
 {{template "head" .}}
 
 <form method="post" action="/login">
+  {{.CSRFField}}
   <table>
     <tbody>
       <tr>
