@@ -27,7 +27,7 @@
 	justify-content: space-between;
     }
     
-    body{
+    html,body{
 	background: var(--background);
 	color: var(--text);
     }
@@ -45,15 +45,28 @@
 	    }
         }        
     })
-        function onThemeChange(ev){
-	    setTheme(ev.target.value)
-        }
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+	setTheme("system")
+    });
+
+    function onThemeChange(ev){
+	setTheme(ev.target.value)
+    }
         
-        function setTheme(themeName){
-	    document.getElementById("theme").value = themeName
-	    document.documentElement.setAttribute("data-theme", themeName)
-	    localStorage.setItem("theme", themeName)
-        }
+    function setTheme(themeName){
+	document.getElementById("theme").value = themeName
+	localStorage.setItem("theme", themeName)
+	
+	if (themeName == "system") {
+	    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches){
+		themeName = "dark"
+	    } else {
+		themeName = "light"
+	    }
+	}
+	document.documentElement.setAttribute("data-theme", themeName)
+    }
   </script>
 </head>
 
@@ -87,7 +100,7 @@
       {{end}}
     </div>
     <div>
-      <label for="theme">Theme:</label>
+      <label for="theme">Theme</label>
       <select id="theme" name="theme" onchange="onThemeChange(event)">
 	<option value="system">System</option>
 	<option value="dark">Dark</option>
