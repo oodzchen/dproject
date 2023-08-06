@@ -79,6 +79,6 @@ func NewServer(c *ServerConfig) http.Handler {
 	r.Mount("/articles", articleResource.Routes())
 	r.Mount("/users", web.NewUserResource(baseTmpl, c.store, sessStore).Routes())
 
-	CSRF := csrf.Protect([]byte(c.csrfSecret), csrf.FieldName("tk"))
+	CSRF := csrf.Protect([]byte(c.csrfSecret), csrf.FieldName("tk"), csrf.CookieName("secure"))
 	return CSRF(r)
 }
