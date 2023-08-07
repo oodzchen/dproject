@@ -40,7 +40,7 @@
   {{if .article.Deleted}}
   <small>{{if eq .depth 0}}<a href="/articles/{{.article.ReplyTo}}">Parent</a>{{end}}</small>
   {{else}}
-  <small><a href="/login?target=/articles/{{if $isRoot}}{{.article.Id}}{{else}}{{.article.ReplyRootArticleId}}{{end}}">Reply</a>{{if eq .depth 0}}&nbsp;&nbsp;<a href="/articles/{{.article.ReplyTo}}">Parent</a>{{end}}</small>
+  <small><a href="/login?target=/articles/{{if $isRoot}}{{.article.Id}}{{else}}{{.article.ReplyRootArticleId}}{{end}}">Reply</a>{{if and (eq .depth 0) (not $isRoot)}}&nbsp;&nbsp;<a href="/articles/{{.article.ReplyTo}}">Parent</a>{{end}}</small>
   {{end}}
 <div>
 {{end}}
@@ -87,7 +87,7 @@
   {{template "article_content" $subData}}
 </li>
   {{if and (gt .TotalReplyCount 0) (eq $depth 9)}}
-<li style="padding-top:6px"><a href="/articles/{{.Id}}">More</a></li>
+<li style="padding-top:6px"><small><a href="/articles/{{.Id}}">More</a><small></li>
   {{end}}
 {{end}}
 </ul>

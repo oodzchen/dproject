@@ -25,6 +25,7 @@
     nav {
 	display: flex;
 	justify-content: space-between;
+	flex-wrap: wrap;
     }
     
     html,body{
@@ -105,12 +106,13 @@
       <a href="/login">Login</a>
       {{end}}
       <b>·</b>
-      <label for="theme">Theme</label>
-      <select id="theme" name="theme" onchange="onThemeChange(event)">
-	<option value="system">OS Default</option>
-	<option value="dark">Dark</option>
-	<option value="light">Light</option>
-      </select>
+      <label for="theme" style="white-space:nowrap">Theme
+        <select id="theme" name="theme" onchange="onThemeChange(event)">
+	  <option value="system">OS Default</option>
+	  <option value="dark">Dark</option>
+	  <option value="light">Light</option>
+        </select>
+      </label>
     </div>
   </nav>
   <hr/>
