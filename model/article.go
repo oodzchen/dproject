@@ -38,6 +38,7 @@ type Article struct {
 	NullReplyRootArticleTitle pgtype.Text
 	ReplyRootArticleTitle     string
 	DisplayTitle              string // only for display
+	TotalReplyCount           int
 }
 
 func (a *Article) FormatNullValues() {

@@ -32,7 +32,8 @@ CREATE TABLE posts (
     reply_to INTEGER DEFAULT 0,
     deleted BOOLEAN NOT NULL DEFAULT false,
     depth INTEGER DEFAULT 0 NOT NULL,
-    root_article_id INTEGER DEFAULT 0
+    root_article_id INTEGER DEFAULT 0,
+    total_reply_count INTEGER DEFAULT 0 NOT NULL
 );
 
 -- reply_to 为空时候标题不能为空，replay_to 不为空时标题可以为空
@@ -40,6 +41,45 @@ ALTER TABLE posts ADD CONSTRAINT posts_reply_to_title_check CHECK (
     (reply_to IS NULL AND title IS NOT NULL) OR
     (reply_to IS NOT NULL)
 );
+
+CREATE OR REPLACE FUNCTION recursive_count_reply() RETURNS TRIGGER AS $$
+    DECLARE
+        root_id int;
+    BEGIN
+        IF (TG_OP = 'INSERT') THEN
+	    root_id = NEW.reply_to;
+	ELSE
+	    root_id = OLD.reply_to;
+	END IF;
+	
+        WITH RECURSIVE RecurPosts AS (
+            SELECT id, reply_to, deleted, 0::bigint AS child_count
+            FROM posts p
+            WHERE p.id = root_id AND p.deleted = false
+        
+            UNION ALL
+        
+            SELECT p1.id, p1.reply_to, p1.deleted, rp.child_count + subquery.child_count
+            FROM posts p1
+            INNER JOIN RecurPosts rp ON p1.reply_to = rp.id
+            INNER JOIN (SELECT reply_to, COUNT(*) AS child_count FROM posts WHERE deleted = false GROUP BY reply_to) AS subquery
+            ON rp.id = subquery.reply_to
+            WHERE p1.deleted = false
+        )
+        , MaxChildCount AS (
+            SELECT MAX(child_count) AS max_child_count FROM RecurPosts
+        )
+        UPDATE posts p3 SET total_reply_count = mc.max_child_count
+        FROM MaxChildCount mc
+        WHERE p3.id = root_id;
+	RETURN NULL;
+    END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER update_reply_count
+    AFTER INSERT OR UPDATE OR DELETE ON posts
+    FOR EACH ROW
+    EXECUTE FUNCTION recursive_count_reply();
 
 -- 插入样例数据
 -- 用户样例数据
@@ -60,8 +100,11 @@ VALUES
     ('How to Learn Programming', 'Programming is a very interesting skill. Here are my learning experience.', 3),
     ('Python 入门教程', 'Python 是一门非常受欢迎的编程语言，这里是一份简单的入门教程。', 3);
 
-INSERT INTO posts (title, content, author_id, reply_to, depth, root_article_id)
+INSERT INTO posts (title, content, author_id, reply_to, depth, root_article_id, deleted)
 VALUES
-    ('回“第一篇博客”', '我是这样想的，哈哈，非常有意思，只是测试而已', 2, 1, 1, 1),
-    ('', '我就是想回复一下', 2, 1, 1, 1),
-    ('另外一片新的文章', '这是新的一片文章，测试看看', 3, 3, 1, 3);
+    ('回“第一篇博客”', '我是这样想的，哈哈，非常有意思，只是测试而已', 2, 1, 1, 1, false),
+    ('', '我就是想回复一下', 2, 1, 1, 1, false),
+    ('', '我就是想回复一下', 2, 6, 2, 1, false),
+    ('另外一片新的文章', '这是新的一片文章，测试看看', 3, 3, 1, 3, false),
+    ('回“第一篇博客”', '我是这样想的，哈哈，非常有意思，只是测试而已', 2, 8, 3, 1, false),
+    ('回“第一篇博客”', '我是这样想的，哈哈，非常有意思，只是测试而已', 2, 10, 4, 1, true);

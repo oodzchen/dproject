@@ -240,7 +240,7 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 
 func (ar *ArticleResource) Item(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
-	fmt.Printf("idParam: %v\n", idParam)
+	// fmt.Printf("idParam: %v\n", idParam)
 
 	articleId, err := strconv.Atoi(idParam)
 
@@ -259,10 +259,10 @@ func (ar *ArticleResource) Item(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if article.Deleted {
-		utils.HttpError("the article is gone", err, w, http.StatusGone)
-		return
-	}
+	// if article.Deleted {
+	// 	utils.HttpError("the article is gone", err, w, http.StatusGone)
+	// 	return
+	// }
 
 	replyData, err := ar.store.GetReplies(articleId)
 	if err != nil {
@@ -272,7 +272,7 @@ func (ar *ArticleResource) Item(w http.ResponseWriter, r *http.Request) {
 
 	// utils.PrintJSONf("article: ", article)
 
-	// utils.PrintJSONf("replyData: ", replyData)
+	utils.PrintJSONf("replyData: ", replyData)
 	if len(replyData) > 0 {
 		for _, item := range replyData {
 			item.FormatDeleted()
@@ -287,6 +287,9 @@ func (ar *ArticleResource) Item(w http.ResponseWriter, r *http.Request) {
 
 	article.UpdateDisplayTitle()
 
+	if article.Deleted {
+		w.WriteHeader(http.StatusGone)
+	}
 	ar.Render(w, r, "article", &PageData{Title: article.DisplayTitle, Data: article})
 }
 

@@ -7,11 +7,10 @@
   <li>
     <a href="/articles/{{.Id}}">{{.Title}}</a>
     <br>
-    <small style="color:#999">By {{.AuthorName}} <time title="{{.CreatedAt}}">{{timeAgo .CreatedAt}}</time></small>
+    <small style="color:#999">By {{.AuthorName}} <time title="{{.CreatedAt}}">{{timeAgo .CreatedAt}}</time> <a href="/articles/{{.Id}}" style="color:#999">{{.TotalReplyCount}} comment{{if ne .TotalReplyCount 1}}s{{end}}</a></small>
   </li>
   {{end}}
 </ol>
 
-<div>总共 {{.Data.ArticleTotal}} 篇文章</div>
 {{template "foot"}}
 {{end}}

@@ -31,6 +31,11 @@
 	background: var(--background);
 	color: var(--text);
     }
+    body{
+	margin: 0 auto;
+	padding: 10px 20px;
+	max-width: 1000px;
+    }
   </style>
   <script>
     document.addEventListener("DOMContentLoaded", function(){
@@ -85,21 +90,21 @@
   <nav>
     <div>
       <a href="/">Home</a>
-      ·
-      <a href="/articles/new">Create</a>
-      {{if .LoginedUser}}
-      ·
-      <a href="/users/{{.LoginedUser.Id}}">{{.LoginedUser.Name}}</a>
-      ·
-      <a href="/logout">Logout</a>
-      {{else}}
-      ·
-      <a href="/register">Register</a>
-      ·
-      <a href="/login">Login</a>
-      {{end}}
     </div>
     <div>
+      <a href="/articles/new">&plus;New</a>
+      {{if .LoginedUser}}
+      <b>·</b>
+      <a href="/users/{{.LoginedUser.Id}}">{{.LoginedUser.Name}}</a>
+      <b>·</b>
+      <a href="/logout">Logout</a>
+      {{else}}
+      <b>·</b>
+      <a href="/register">Register</a>
+      <b>·</b>
+      <a href="/login">Login</a>
+      {{end}}
+      <b>·</b>
       <label for="theme">Theme</label>
       <select id="theme" name="theme" onchange="onThemeChange(event)">
 	<option value="system">OS Default</option>

@@ -28,10 +28,21 @@
 
 {{if and .currUser}}
 {{if eq .depth 0}}
+  {{if not $isRoot}}
+<div><small><a href="/articles/{{.article.ReplyTo}}">Parent</a></small></div>
+  {{end}}
+  {{if not .article.Deleted}}
 {{template "article_reply_form" $data}}
+  {{end}}
 {{end}}
 {{else}}
-<div><small><a href="/login?target=/articles/{{if $isRoot}}{{.article.Id}}{{else}}{{.article.ReplyRootArticleId}}{{end}}">Reply</a></small><div>
+<div>
+  {{if .article.Deleted}}
+  <small>{{if eq .depth 0}}<a href="/articles/{{.article.ReplyTo}}">Parent</a>{{end}}</small>
+  {{else}}
+  <small><a href="/login?target=/articles/{{if $isRoot}}{{.article.Id}}{{else}}{{.article.ReplyRootArticleId}}{{end}}">Reply</a>{{if eq .depth 0}}&nbsp;&nbsp;<a href="/articles/{{.article.ReplyTo}}">Parent</a>{{end}}</small>
+  {{end}}
+<div>
 {{end}}
 
 {{$replyData := dict "currUser" .currUser "replies" .article.Replies "depth" $depth "CSRFField" .CSRFField}}
@@ -60,7 +71,7 @@
 <form id="reply_form" class="reply_form" method="post" action="/articles" style="margin-top: 10px">
   {{.CSRFField}}
   <input id="reply_to" name="reply_to" type="hidden" value="{{.article.Id}}"/>
-  <textarea required cols="30" id="content" name="content" rows="10" style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box;"></textarea>
+  <textarea required cols="30" id="content" name="content" rows="10" style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box;max-width:100%;"></textarea>
   <button type="submit">Submit</button>
 </form>
 {{end}}
@@ -75,6 +86,9 @@
 <li style="padding-top:6px">
   {{template "article_content" $subData}}
 </li>
+  {{if and (gt .TotalReplyCount 0) (eq $depth 9)}}
+<li style="padding-top:6px"><a href="/articles/{{.Id}}">More</a></li>
+  {{end}}
 {{end}}
 </ul>
 {{end}}

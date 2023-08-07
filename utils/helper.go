@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 )
+
+const DEFAULT_REPLY_DEPTH_SIZE int = 10
 
 func GetSiteHost() string {
 	domain := os.Getenv("DOMAIN_NAME")
@@ -24,4 +27,12 @@ func PrintJSONf(prefix string, data any) {
 		fmt.Printf("utils.PrintJSONf error: %v", err)
 	}
 	fmt.Printf("%s%s\n", prefix, jsonStr)
+}
+
+func GetReplyDepthSize() int {
+	size, _ := strconv.Atoi(os.Getenv("REPLY_DEPTH_PAGE_SIZE"))
+	if size == 0 {
+		return DEFAULT_REPLY_DEPTH_SIZE
+	}
+	return size
 }

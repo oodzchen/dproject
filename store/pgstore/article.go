@@ -6,6 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/oodzchen/dproject/model"
+	"github.com/oodzchen/dproject/utils"
 )
 
 type Article struct {
@@ -20,7 +21,8 @@ func (a *Article) List() ([]*model.Article, error) {
 		p.author_id,
 		p.content,
 		p.created_at,
-		p.updated_at
+		p.updated_at,
+		p.total_reply_count
 	from posts p
 	left join users u
 	on p.author_id = u.id
@@ -47,6 +49,7 @@ func (a *Article) List() ([]*model.Article, error) {
 			&item.Content,
 			&item.CreatedAt,
 			&item.UpdatedAt,
+			&item.TotalReplyCount,
 		)
 		if err != nil {
 			fmt.Printf("Collect rows error: %v\n", err)
@@ -105,7 +108,8 @@ func (a *Article) Item(id int) (*model.Article, error) {
 		p.depth,
 		p.root_article_id,
 		p2.title as reply_to_title,
-		p3.title as root_article_title
+		p3.title as root_article_title,
+		p.total_reply_count
 	from posts p
 	left join users u on p.author_id = u.id
 	left join posts p2 on p.reply_to = p2.id
@@ -125,6 +129,7 @@ func (a *Article) Item(id int) (*model.Article, error) {
 		&item.ReplyRootArticleId,
 		&item.NullReplyToTitle,
 		&item.NullReplyRootArticleTitle,
+		&item.TotalReplyCount,
 	)
 	if err != nil {
 		return nil, err
@@ -145,9 +150,9 @@ func (a *Article) GetReplies(id int) ([]*model.Article, error) {
 		updated_at,
 		deleted,
 		reply_to,
-		depth,
 		root_article_id,
-		1 as recur_depth
+		1 as recur_depth,
+		total_reply_count
 	from posts where id = $1
 	union all
 	select
@@ -159,12 +164,12 @@ func (a *Article) GetReplies(id int) ([]*model.Article, error) {
 		p.updated_at,
 		p.deleted,
 		p.reply_to,
-		p.depth,
 		p.root_article_id,
-		rp.recur_depth + 1
+		rp.recur_depth + 1,
+		p.total_reply_count
 	from posts p
 	join recurPosts rp on p.reply_to = rp.id
-	where rp.recur_depth < 11
+	where rp.recur_depth < $2
 )
 select
 	rp.id,
@@ -176,15 +181,19 @@ select
 	rp.updated_at,
 	rp.deleted,
 	rp.reply_to,
-	rp.depth,
+	rp.recur_depth,
 	rp.root_article_id,
-	p2.title as reply_to_title
+	p2.title as reply_to_title,
+	rp.total_reply_count
 from recurPosts rp
 left join posts p2 on rp.reply_to = p2.id
 join users u on rp.author_id = u.id
 order by rp.created_at`
 
-	rows, err := a.dbPool.Query(context.Background(), sqlStr, id)
+	rows, err := a.dbPool.Query(context.Background(), sqlStr, id, utils.GetReplyDepthSize())
+	if err != nil {
+		return nil, err
+	}
 
 	var list []*model.Article
 	for rows.Next() {
@@ -202,13 +211,14 @@ order by rp.created_at`
 			&item.ReplyDepth,
 			&item.ReplyRootArticleId,
 			&item.NullReplyToTitle,
+			&item.TotalReplyCount,
 		)
 
 		if err != nil {
 			return nil, err
 		}
 
-		// fmt.Printf("row item: %+v\n", &item)
+		fmt.Printf("row item: %+v\n", &item)
 
 		item.FormatNullValues()
 		item.FormatTimeStr()
