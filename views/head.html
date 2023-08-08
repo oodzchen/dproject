@@ -88,32 +88,44 @@
     <a href="#" onclick="javascript:this.parentNode.remove();return false;">&nbsp;&times;&nbsp;</a>
   </div>
   {{end}}
+  <style>
+    .nav-menu{
+	list-style: none;
+	margin: 0;
+	padding: 0;
+    }
+    .nav-menu li{
+	display: inline-block;
+	vertical-align: middle;
+	margin-right: 10px;
+    }
+    .nav-menu li:last-child{
+	margin-right: 0;
+    }
+  </style>
   <nav>
-    <div>
-      <a href="/">Home</a>
-    </div>
-    <div>
-      <a href="/articles/new">&plus;New</a>
+    <ul class="nav-menu">
+      <li><a href="/">Home</a></li>
+    </ul>
+    <ul class="nav-menu">
+      <li><a href="/articles/new">&plus;New</a></li>
       {{if .LoginedUser}}
-      <b>·</b>
-      <a href="/users/{{.LoginedUser.Id}}">{{.LoginedUser.Name}}</a>
-      <b>·</b>
-      <a href="/logout">Logout</a>
+      <li><a href="/users/{{.LoginedUser.Id}}">{{.LoginedUser.Name}}</a></li>
+      <li><a href="/logout">Logout</a></li>
       {{else}}
-      <b>·</b>
-      <a href="/register">Register</a>
-      <b>·</b>
-      <a href="/login">Login</a>
+      <li><a href="/register">Register</a></li>
+      <li><a href="/login">Login</a></li>
       {{end}}
-      <b>·</b>
-      <label for="theme" style="white-space:nowrap">Theme
+      <li>
+      <label for="theme" style="white-space:nowrap" title="Switch Color Theme">
+	<span>Theme</span>
         <select id="theme" name="theme" onchange="onThemeChange(event)">
 	  <option value="system">OS Default</option>
 	  <option value="dark">Dark</option>
 	  <option value="light">Light</option>
         </select>
-      </label>
-    </div>
+      </label></li>
+    </ul>
   </nav>
   <hr/>
 {{end}}
