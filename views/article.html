@@ -33,7 +33,10 @@
   {{end}}
   {{if not .article.Deleted}}
 {{template "article_reply_form" $data}}
-  {{end}}
+{{end}}
+
+{{$tplData := dict "CSRFField" .CSRFField}}
+{{template "article_reply_form" $tplData}}
 {{end}}
 {{else}}
 <div>
@@ -68,9 +71,13 @@
 {{end}}
 
 {{define "article_reply_form"}}
-<form id="reply_form" class="reply_form" method="post" action="/articles" style="margin-top: 10px">
+{{$inputName := "reply_to"}}
+{{if not .article}}
+  {{$inputName = "reply_to_tpl"}}
+{{end}}
+<form id="reply_form{{if not .article}}_tpl{{end}}" class="reply_form" method="post" action="/articles" style="{{if not .article}}display:none;{{end}}margin-top: 10px">
   {{.CSRFField}}
-  <input id="reply_to" name="reply_to" type="hidden" value="{{.article.Id}}"/>
+  <input id="{{$inputName}}" name="{{$inputName}}" type="hidden" value="{{if .article}}{{.article.Id}}{{end}}"/>
   <textarea required cols="30" id="content" name="content" rows="10" style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box;max-width:100%;"></textarea>
   <button type="submit">Submit</button>
 </form>
@@ -117,10 +124,11 @@
       var form = el.parentNode.parentNode.getElementsByClassName("reply_form")[0]
       
       if (!form){
-	  var replyForm = document.getElementById('reply_form')
+	  var replyForm = document.getElementById('reply_form_tpl')
 	  form = replyForm.cloneNode(true)
 	  form.setAttribute("id", formId)
-	  var input = form.querySelector('[name="reply_to"]')
+	  form.style.display = ""
+	  var input = form.querySelector('[name="reply_to_tpl"]')
 	  input.setAttribute("id", "reply_to_" + id)
 	  input.setAttribute("value", id)
 	  el.parentNode.parentNode.appendChild(form)
