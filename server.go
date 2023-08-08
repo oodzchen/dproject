@@ -27,6 +27,14 @@ var tmplFuncs = template.FuncMap{
 	"timeAgo": formatTimeAgo,
 }
 
+var AuthRequiredPathes map[string]Methods = map[string]Methods{
+	`^/articles/new($|/)`:        {"GET"},
+	`^/logout($|/)`:              {"GET"},
+	`^/articles($|/)`:            {"POST"},
+	`^/articles/\d+/delete($|/)`: {"DELETE"},
+	`^/articles/\d+/edit($|/)`:   {"GET", "POST"},
+}
+
 func formatTimeAgo(t time.Time) string {
 	return timeago.English.Format(t)
 }
@@ -64,11 +72,10 @@ func NewServer(c *ServerConfig) http.Handler {
 	r.Use(middleware.RedirectSlashes)
 	r.Use(httprate.LimitByIP(100, 1*time.Minute))
 
-	// fmt.Printf("env var SESSION_SECRET:%s\n", os.Getenv("SESSION_SECRET"))
-
 	sessStore := sessions.NewCookieStore([]byte(c.sessSecret))
-
 	articleResource := web.NewArticleResource(baseTmpl, c.store.Article, sessStore)
+
+	r.Use(CreateCheckAuthMiddleware(AuthRequiredPathes, sessStore))
 
 	r.Mount("/debug", middleware.Profiler())
 	FileServer(r, "/static", http.Dir("./static"))

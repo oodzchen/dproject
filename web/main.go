@@ -50,6 +50,10 @@ func (mr *MainResource) Routes() http.Handler {
 }
 
 func (mr *MainResource) RegisterPage(w http.ResponseWriter, r *http.Request) {
+	if IsLogin(mr.sessStore, w, r) {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
 	mr.Render(w, r, "register", &PageData{Title: "Register", Data: ""})
 }
 
@@ -112,10 +116,10 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (mr *MainResource) LoginPage(w http.ResponseWriter, r *http.Request) {
-	if IsLogin(mr.sessStore, w, r) {
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
+	// if IsLogin(mr.sessStore, w, r) {
+	// 	http.Redirect(w, r, "/", http.StatusFound)
+	// 	return
+	// }
 	mr.Render(w, r, "login", &PageData{Title: "Login", Data: ""})
 }
 
@@ -183,13 +187,24 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (mr *MainResource) Logout(w http.ResponseWriter, r *http.Request) {
-	if IsLogin(mr.sessStore, w, r) {
-		sess, _ := mr.sessStore.Get(r, "one-cookie")
-		sess.Options.MaxAge = -1
-		err := sess.Save(r, w)
-		if err != nil {
-			HandleSessionErr(errors.WithStack(err))
-		}
+	// if IsLogin(mr.sessStore, w, r) {
+	// 	sess, _ := mr.sessStore.Get(r, "one-cookie")
+	// 	sess.Options.MaxAge = -1
+	// 	err := sess.Save(r, w)
+	// 	if err != nil {
+	// 		HandleSessionErr(errors.WithStack(err))
+	// 	}
+	// }
+
+	sess, err := mr.sessStore.Get(r, "one-cookie")
+	if err != nil {
+		utils.HttpError("", err, w, http.StatusInternalServerError)
+		return
+	}
+	sess.Options.MaxAge = -1
+	err = sess.Save(r, w)
+	if err != nil {
+		HandleSessionErr(errors.WithStack(err))
 	}
 
 	refererUrl, err := url.Parse(r.Referer())
