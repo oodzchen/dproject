@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/oodzchen/dproject/store"
@@ -28,13 +32,49 @@ func main() {
 	defer pg.CloseDB()
 
 	dataStore, err := store.New(pg)
-
-	server := NewServer(&ServerConfig{
-		sessSecret: os.Getenv("SESSION_SECRET"),
-		store:      dataStore,
-	})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	port := os.Getenv("PORT")
-	fmt.Printf("Listening at http://localhost%v\n", port)
-	log.Fatal(http.ListenAndServe(port, server))
+	server := &http.Server{
+		Addr: fmt.Sprintf("0.0.0.0%s", port),
+		Handler: (Service(&ServiceConfig{
+			sessSecret: os.Getenv("SESSION_SECRET"),
+			store:      dataStore,
+		})),
+	}
+
+	serverCtx, serverStopCtx := context.WithCancel(context.Background())
+
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	go func() {
+		<-sig
+
+		shutdownCtx, cancel := context.WithTimeout(serverCtx, 3*time.Second)
+		defer cancel()
+
+		go func() {
+			<-shutdownCtx.Done()
+			if shutdownCtx.Err() == context.DeadlineExceeded {
+				log.Fatal("gracefual shutdown time out, force exit")
+			}
+		}()
+
+		err := server.Shutdown(shutdownCtx)
+		if err != nil {
+			log.Fatal(err)
+		}
+		serverStopCtx()
+	}()
+
+	fmt.Printf("Listening at http://localhost%s\n", port)
+	err = server.ListenAndServe()
+	if err != nil && err != http.ErrServerClosed {
+		log.Fatal(err)
+	}
+	// port := os.Getenv("PORT")
+	// log.Fatal(http.ListenAndServe(port, server))
+	<-serverCtx.Done()
 }

@@ -17,7 +17,7 @@ import (
 	"github.com/xeonx/timeago"
 )
 
-type ServerConfig struct {
+type ServiceConfig struct {
 	sessSecret string
 	csrfSecret string
 	store      *store.Store
@@ -58,7 +58,7 @@ func FileServer(r chi.Router, path string, root http.FileSystem) {
 	})
 }
 
-func NewServer(c *ServerConfig) http.Handler {
+func Service(c *ServiceConfig) http.Handler {
 	baseTmpl := template.New("base").Funcs(tmplFuncs).Funcs(sprig.FuncMap())
 	baseTmpl = template.Must(baseTmpl.ParseGlob("./views/*.html"))
 
