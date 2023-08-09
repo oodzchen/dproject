@@ -17,7 +17,7 @@
   <div style="margin-top:6px;margin-bottom:0px;color:#999;">
     <small>
       <a style="color:#999;" href="/users/{{.article.AuthorId}}">{{.article.AuthorName}}</a> published <time title="{{.article.CreatedAt}}">{{timeAgo .article.CreatedAt}}</time> |{{if ne .article.CreatedAt .article.UpdatedAt}} modified <time title="{{.article.UpdatedAt}}">{{timeAgo .article.UpdatedAt}}</time> |{{end}}
-      <a style="color:#999;" href="/articles/{{.article.Id}}">link</a>
+      <a style="color:#999;" href="/articles/{{.article.Id}}">link</a> | {{.article.TotalReplyCount}} comments | {{.article.ReplyDepth}} depth
     </small>
   </div>
   <section style="white-space: pre-line">{{.article.Content}}</section>

@@ -91,7 +91,7 @@ func (a *Article) Sanitize() {
 }
 
 func (a *Article) Valid(isUpdate bool) error {
-	isReply := a.ReplyDepth > 0
+	isReply := a.ReplyDepth > 0 || a.ReplyTo != 0
 	authorId := a.AuthorId
 	title := strings.TrimSpace(a.Title)
 	content := strings.TrimSpace(a.Content)

@@ -150,22 +150,22 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 		ReplyTo:  replyTo,
 	}
 
-	if isReply {
-		toArticle, err := ar.store.Article.Item(replyTo)
-		if err != nil {
-			HttpError("", err, w, http.StatusInternalServerError)
-			return
-		}
-		// utils.PrintJSONf("toArticle: ", toArticle)
+	// if isReply {
+	// 	toArticle, err := ar.store.Article.Item(replyTo)
+	// 	if err != nil {
+	// 		HttpError("", err, w, http.StatusInternalServerError)
+	// 		return
+	// 	}
+	// 	// utils.PrintJSONf("toArticle: ", toArticle)
 
-		article.ReplyDepth = toArticle.ReplyDepth + 1
+	// 	article.ReplyDepth = toArticle.ReplyDepth + 1
 
-		if toArticle.ReplyDepth == 0 {
-			article.ReplyRootArticleId = toArticle.Id
-		} else {
-			article.ReplyRootArticleId = toArticle.ReplyRootArticleId
-		}
-	}
+	// 	if toArticle.ReplyDepth == 0 {
+	// 		article.ReplyRootArticleId = toArticle.Id
+	// 	} else {
+	// 		article.ReplyRootArticleId = toArticle.ReplyRootArticleId
+	// 	}
+	// }
 
 	// fmt.Printf("article: %+v\n", article)
 	// utils.PrintJSONf("create article: ", article)

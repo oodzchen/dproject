@@ -65,13 +65,12 @@ func (a *Article) List() ([]*model.Article, error) {
 
 func (a *Article) Create(item *model.Article) (int, error) {
 	var id int
-	sqlStr := `insert into posts (title, author_id, content, reply_to, depth, root_article_id) values ($1, $2, $3, $4, $5, $6) returning (id);`
+	sqlStr := `insert into posts (title, author_id, content, reply_to, root_article_id) values ($1, $2, $3, $4, $5) returning (id);`
 	err := a.dbPool.QueryRow(context.Background(), sqlStr,
 		item.Title,
 		item.AuthorId,
 		item.Content,
 		item.ReplyTo,
-		item.ReplyDepth,
 		item.ReplyRootArticleId,
 	).Scan(&id)
 	if err != nil {
@@ -151,6 +150,7 @@ func (a *Article) GetReplies(id int) ([]*model.Article, error) {
 		deleted,
 		reply_to,
 		root_article_id,
+		depth,
 		1 as recur_depth,
 		total_reply_count
 	from posts where id = $1
@@ -165,6 +165,7 @@ func (a *Article) GetReplies(id int) ([]*model.Article, error) {
 		p.deleted,
 		p.reply_to,
 		p.root_article_id,
+		p.depth,
 		rp.recur_depth + 1,
 		p.total_reply_count
 	from posts p
@@ -181,7 +182,7 @@ select
 	rp.updated_at,
 	rp.deleted,
 	rp.reply_to,
-	rp.recur_depth,
+	rp.depth,
 	rp.root_article_id,
 	p2.title as reply_to_title,
 	rp.total_reply_count
