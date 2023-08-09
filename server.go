@@ -28,7 +28,6 @@ var tmplFuncs = template.FuncMap{
 }
 
 var AuthRequiredPathes map[string]Methods = map[string]Methods{
-	`^/articles/new($|/)`:        {"GET"},
 	`^/logout($|/)`:              {"GET"},
 	`^/articles($|/)`:            {"POST"},
 	`^/articles/\d+/delete($|/)`: {"DELETE"},
@@ -73,7 +72,7 @@ func Service(c *ServiceConfig) http.Handler {
 	r.Use(httprate.LimitByIP(100, 1*time.Minute))
 
 	sessStore := sessions.NewCookieStore([]byte(c.sessSecret))
-	articleResource := web.NewArticleResource(baseTmpl, c.store.Article, sessStore)
+	articleResource := web.NewArticleResource(baseTmpl, c.store, sessStore)
 
 	r.Use(CreateCheckAuthMiddleware(AuthRequiredPathes, sessStore))
 

@@ -12,7 +12,6 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/store"
-	"github.com/oodzchen/dproject/utils"
 	"github.com/pkg/errors"
 )
 
@@ -20,7 +19,7 @@ type ArticleResource struct {
 	Renderer
 	// DBConn *pgx.Conn
 	// DBPool *pgxpool.Pool
-	store     store.ArticleStore
+	store     *store.Store
 	sessStore *sessions.CookieStore
 }
 
@@ -29,7 +28,7 @@ type articleWithReplies struct {
 	Replies []*articleWithReplies
 }
 
-func NewArticleResource(tmpl *template.Template, store store.ArticleStore, sessStore *sessions.CookieStore) *ArticleResource {
+func NewArticleResource(tmpl *template.Template, store *store.Store, sessStore *sessions.CookieStore) *ArticleResource {
 	return &ArticleResource{
 		Renderer{tmpl, sessStore},
 		store,
@@ -55,9 +54,9 @@ func (ar *ArticleResource) Routes() http.Handler {
 }
 
 func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
-	list, err := ar.store.List()
+	list, err := ar.store.Article.List()
 	if err != nil {
-		utils.HttpError("", err, w, http.StatusInternalServerError)
+		HttpError("", err, w, http.StatusInternalServerError)
 		return
 	}
 
@@ -92,13 +91,13 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 		rId, err := strconv.Atoi(id)
 
 		if err != nil {
-			utils.HttpError("", err, w, http.StatusBadRequest)
+			HttpError("", err, w, http.StatusBadRequest)
 			return
 		}
 		// postData, _ := ar.getPostData(idParam)
-		article, err := ar.store.Item(rId)
+		article, err := ar.store.Article.Item(rId)
 		if err != nil {
-			utils.HttpError("", err, w, http.StatusInternalServerError)
+			HttpError("", err, w, http.StatusInternalServerError)
 			return
 		}
 		pageTitle = fmt.Sprintf("Edit - %s", article.Title)
@@ -113,7 +112,7 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		utils.HttpError("", err, w, http.StatusBadRequest)
+		HttpError("", err, w, http.StatusBadRequest)
 	}
 
 	paramReplyTo := r.Form.Get("reply_to")
@@ -123,7 +122,7 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 	if paramReplyTo != "" {
 		num, err := strconv.Atoi(paramReplyTo)
 		if err != nil {
-			utils.HttpError("", err, w, http.StatusBadRequest)
+			HttpError("", err, w, http.StatusBadRequest)
 			return
 		}
 		replyTo = num
@@ -152,12 +151,12 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if isReply {
-		toArticle, err := ar.store.Item(replyTo)
+		toArticle, err := ar.store.Article.Item(replyTo)
 		if err != nil {
-			utils.HttpError("", err, w, http.StatusInternalServerError)
+			HttpError("", err, w, http.StatusInternalServerError)
 			return
 		}
-		utils.PrintJSONf("toArticle: ", toArticle)
+		// utils.PrintJSONf("toArticle: ", toArticle)
 
 		article.ReplyDepth = toArticle.ReplyDepth + 1
 
@@ -169,20 +168,20 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// fmt.Printf("article: %+v\n", article)
-	utils.PrintJSONf("create article: ", article)
+	// utils.PrintJSONf("create article: ", article)
 
 	article.Sanitize()
 
 	err = article.Valid(false)
 	if err != nil {
-		utils.HttpError(err.Error(), err, w, http.StatusBadRequest)
+		HttpError(err.Error(), err, w, http.StatusBadRequest)
 		return
 	}
 
-	id, err := ar.store.Create(article)
+	id, err := ar.store.Article.Create(article)
 
 	if err != nil {
-		utils.HttpError("", err, w, http.StatusInternalServerError)
+		HttpError("", err, w, http.StatusInternalServerError)
 		return
 	}
 
@@ -198,19 +197,19 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		utils.HttpError("", err, w, http.StatusBadRequest)
+		HttpError("", err, w, http.StatusBadRequest)
 	}
 
 	rId, err := strconv.Atoi(r.Form.Get("id"))
 	replyDepth, err := strconv.Atoi(r.Form.Get("reply_depth"))
 	// fmt.Printf("replyDepth: %d\n", replyDepth)
 	if err != nil {
-		utils.HttpError("", err, w, http.StatusBadRequest)
+		HttpError("", err, w, http.StatusBadRequest)
 		return
 	}
 
 	isReply := replyDepth > 0
-	fmt.Printf("isReply: %t\n", isReply)
+	// fmt.Printf("isReply: %t\n", isReply)
 
 	article := &model.Article{
 		Content:    r.Form.Get("content"),
@@ -224,14 +223,14 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 
 	err = article.Valid(true)
 	if err != nil {
-		utils.HttpError(err.Error(), err, w, http.StatusBadRequest)
+		HttpError(err.Error(), err, w, http.StatusBadRequest)
 		return
 	}
 
-	id, err := ar.store.Update(article)
+	id, err := ar.store.Article.Update(article)
 
 	if err != nil {
-		utils.HttpError("", err, w, http.StatusInternalServerError)
+		HttpError("", err, w, http.StatusInternalServerError)
 		return
 	}
 
@@ -245,34 +244,34 @@ func (ar *ArticleResource) Item(w http.ResponseWriter, r *http.Request) {
 	articleId, err := strconv.Atoi(idParam)
 
 	if err != nil {
-		utils.HttpError("", err, w, http.StatusBadRequest)
+		HttpError("", err, w, http.StatusBadRequest)
 		return
 	}
 
-	article, err := ar.store.Item(articleId)
+	article, err := ar.store.Article.Item(articleId)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			utils.HttpError("the article is gone", err, w, http.StatusGone)
+			HttpError("the article is gone", err, w, http.StatusGone)
 		} else {
-			utils.HttpError("", err, w, http.StatusInternalServerError)
+			HttpError("", err, w, http.StatusInternalServerError)
 		}
 		return
 	}
 
 	// if article.Deleted {
-	// 	utils.HttpError("the article is gone", err, w, http.StatusGone)
+	// 	HttpError("the article is gone", err, w, http.StatusGone)
 	// 	return
 	// }
 
-	replyData, err := ar.store.GetReplies(articleId)
+	replyData, err := ar.store.Article.GetReplies(articleId)
 	if err != nil {
-		utils.HttpError("", err, w, http.StatusInternalServerError)
+		HttpError("", err, w, http.StatusInternalServerError)
 		return
 	}
 
 	// utils.PrintJSONf("article: ", article)
 
-	utils.PrintJSONf("replyData: ", replyData)
+	// utils.PrintJSONf("replyData: ", replyData)
 	if len(replyData) > 0 {
 		for _, item := range replyData {
 			item.FormatDeleted()
@@ -280,7 +279,7 @@ func (ar *ArticleResource) Item(w http.ResponseWriter, r *http.Request) {
 
 		article, err = genArticleTree(article, replyData)
 		if err != nil {
-			// utils.HttpError("", err, w, http.StatusInternalServerError)
+			// HttpError("", err, w, http.StatusInternalServerError)
 			fmt.Printf("generate article tree error: %v", err)
 		}
 	}
@@ -318,20 +317,20 @@ func genArticleTree(root *model.Article, list []*model.Article) (*model.Article,
 func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		utils.HttpError("", err, w, http.StatusBadRequest)
+		HttpError("", err, w, http.StatusBadRequest)
 	}
 
 	idForm := r.Form.Get("id")
 
 	rId, err := strconv.Atoi(idForm)
 	if err != nil {
-		utils.HttpError("", err, w, http.StatusBadRequest)
+		HttpError("", err, w, http.StatusBadRequest)
 		return
 	}
 
-	err = ar.store.Delete(rId)
+	err = ar.store.Article.Delete(rId)
 	if err != nil {
-		utils.HttpError("", err, w, http.StatusInternalServerError)
+		HttpError("", err, w, http.StatusInternalServerError)
 		return
 	}
 

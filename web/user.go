@@ -9,7 +9,6 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/store"
-	"github.com/oodzchen/dproject/utils"
 	"github.com/pkg/errors"
 )
 
@@ -43,25 +42,25 @@ func (ur *UserResource) Routes() http.Handler {
 func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 	// sess, err := ur.sessStore.Get(r, "one-cookie")
 	// if err != nil{
-	// 	utils.HttpError("", err, w, http.StatusInternalServerError)
+	// 	HttpError("", err, w, http.StatusInternalServerError)
 	// 	return
 	// }
 
 	userId, err := strconv.Atoi(chi.URLParam(r, "userId"))
 	if err != nil {
-		utils.HttpError("user id is required", errors.WithStack(err), w, http.StatusBadRequest)
+		HttpError("user id is required", errors.WithStack(err), w, http.StatusBadRequest)
 		return
 	}
 
 	user, err := ur.store.User.Item(userId)
 	if err != nil {
-		utils.HttpError("", errors.WithStack(err), w, http.StatusInternalServerError)
+		HttpError("", errors.WithStack(err), w, http.StatusInternalServerError)
 		return
 	}
 
 	postList, err := ur.store.User.GetPosts(userId)
 	if err != nil {
-		utils.HttpError("", errors.WithStack(err), w, http.StatusInternalServerError)
+		HttpError("", errors.WithStack(err), w, http.StatusInternalServerError)
 		return
 	}
 

@@ -9,7 +9,6 @@ import (
 
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
-	"github.com/oodzchen/dproject/utils"
 	"github.com/pkg/errors"
 )
 
@@ -35,7 +34,7 @@ type Renderer struct {
 func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, data *PageData) {
 	sess, err := rd.sessStore.Get(r, "one-cookie")
 	if err != nil {
-		utils.HttpError("", err, w, http.StatusInternalServerError)
+		HttpError("", err, w, http.StatusInternalServerError)
 		return
 	}
 
@@ -77,7 +76,7 @@ func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, 
 	// DEBUG
 	jsonData, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
-		utils.HttpError("server error", errors.WithStack(err), w, http.StatusInternalServerError)
+		HttpError("server error", errors.WithStack(err), w, http.StatusInternalServerError)
 		return
 	}
 

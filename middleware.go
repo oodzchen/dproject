@@ -5,7 +5,6 @@ import (
 	"regexp"
 
 	"github.com/gorilla/sessions"
-	"github.com/oodzchen/dproject/utils"
 	"github.com/oodzchen/dproject/web"
 	"github.com/pkg/errors"
 )
@@ -22,7 +21,7 @@ func CreateCheckAuthMiddleware(pathes PahthesNeedAuth, sessStore *sessions.Cooki
 			for pathRe, methods := range pathes {
 				re, err := regexp.Compile(pathRe)
 				if err != nil {
-					utils.HttpError("", errors.WithStack(err), w, http.StatusInternalServerError)
+					web.HttpError("", errors.WithStack(err), w, http.StatusInternalServerError)
 					return
 				}
 				if re.Match([]byte(r.URL.Path)) {

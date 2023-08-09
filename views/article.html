@@ -129,7 +129,8 @@
 	  form.setAttribute("id", formId)
 	  form.style.display = ""
 	  var input = form.querySelector('[name="reply_to_tpl"]')
-	  input.setAttribute("id", "reply_to_" + id)
+          input.setAttribute("id", "reply_to_" + id)
+          input.setAttribute("name", "reply_to")
 	  input.setAttribute("value", id)
 	  el.parentNode.parentNode.appendChild(form)
 

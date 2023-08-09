@@ -218,7 +218,7 @@ order by rp.created_at`
 			return nil, err
 		}
 
-		fmt.Printf("row item: %+v\n", &item)
+		// fmt.Printf("row item: %+v\n", &item)
 
 		item.FormatNullValues()
 		item.FormatTimeStr()

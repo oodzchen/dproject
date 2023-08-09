@@ -30,3 +30,8 @@ func IsLogin(sessStore *sessions.CookieStore, w http.ResponseWriter, r *http.Req
 	_, err := GetLoginUserId(sessStore, w, r)
 	return err == nil
 }
+
+func HttpError(msg string, err error, w http.ResponseWriter, code int) {
+	fmt.Printf("%+v\n", err)
+	http.Error(w, http.StatusText(code)+" - "+msg, code)
+}
