@@ -1,0 +1,132 @@
+{{define "head" -}}
+    <!DOCTYPE html>
+    <html lang="en">
+
+	<head>
+	    <meta charset="UTF-8">
+	    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+	    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	    <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+	    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+	    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
+	    <link rel="manifest" href="/static/site.webmanifest">
+	    <title>{{.Title}}</title>
+	    <style>
+	     :root[data-theme="light"] {
+		 color-scheme: light;
+		 --text: black;
+		 --background: white;
+	     }
+	     :root[data-theme="dark"] {
+		 color-scheme: dark;
+		 --text: white;
+		 --background: #282A36;
+	     }
+	     nav {
+		 display: flex;
+		 justify-content: space-between;
+		 flex-wrap: wrap;
+	     }
+
+	     html,body{
+		 background: var(--background);
+		 color: var(--text);
+	     }
+	     body{
+		 margin: 0 auto;
+		 padding: 10px 20px;
+		 max-width: 1000px;
+	     }
+	    </style>
+	    <script>
+	     document.addEventListener("DOMContentLoaded", function(){
+		 var selectedTheme = localStorage.getItem("theme")
+		 if (selectedTheme){
+		     setTheme(selectedTheme)
+		 } else {
+		     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+			 setTheme("dark")
+		     } else {
+			 setTheme("light")
+		     }
+		 }
+	     })
+
+	     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+		 setTheme("system")
+	     });
+
+	     function onThemeChange(ev){
+		 setTheme(ev.target.value)
+	     }
+
+	     function setTheme(themeName){
+		 document.getElementById("theme").value = themeName
+		 localStorage.setItem("theme", themeName)
+
+		 if (themeName == "system") {
+		     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches){
+			 themeName = "dark"
+		     } else {
+			 themeName = "light"
+		     }
+		 }
+		 document.documentElement.setAttribute("data-theme", themeName)
+	     }
+	    </script>
+	</head>
+
+	<body>
+	    <script>
+	     const DEBUG_DATA = {{.JSONStr -}}
+		 console.dir("DEBUG_DATA:", DEBUG_DATA)
+	    </script>
+	    {{range .TipMsg -}}
+		<div style="display:flex;justify-content:space-between;background-color:yellow">
+		    <span>{{.}}</span>
+		    <a href="#" onclick="javascript:this.parentNode.remove();return false;">&nbsp;&times;&nbsp;</a>
+		</div>
+	    {{end -}}
+	    <style>
+	     .nav-menu{
+		 display: flex;
+		 align-items: center;
+		 list-style: none;
+		 margin: 0;
+		 padding: 0;
+	     }
+	     .nav-menu li{
+		 vertical-align: middle;
+		 margin-right: 10px;
+		 line-height: 1.2rem;
+	     }
+	     .nav-menu li:last-child{
+		 margin-right: 0;
+	     }
+	    </style>
+	    <nav>
+		<ul class="nav-menu">
+		    <li><a href="/">Home</a></li>
+		</ul>
+		<ul class="nav-menu">
+		    <li><a href="/articles/new">&plus;New</a></li>
+		    {{if .LoginedUser -}}
+			<li><a href="/users/{{.LoginedUser.Id}}">{{.LoginedUser.Name}}</a></li>
+			<li><a href="/logout">Logout</a></li>
+		    {{else -}}
+			<li><a href="/register">Register</a></li>
+			<li><a href="/login">Login</a></li>
+		    {{end -}}
+		    <li>
+			<label for="theme" style="white-space:nowrap" title="Switch Color Theme">
+			    <span>Theme</span>
+			    <select id="theme" name="theme" onchange="onThemeChange(event)">
+				<option value="system">OS Default</option>
+				<option value="dark">Dark</option>
+				<option value="light">Light</option>
+			    </select>
+			</label></li>
+		</ul>
+	    </nav>
+	    <hr/>
+{{- end -}}

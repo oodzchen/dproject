@@ -1,0 +1,151 @@
+{{define "article_content" -}}
+{{$isRoot := eq .article.ReplyDepth 0 -}}
+{{$depth := add .depth 1 -}}
+{{$data := dict "currUser" .currUser "article" .article "depth" $depth "CSRFField" .CSRFField -}}
+{{if .article.Deleted -}}
+<article style="color:#666"><i>&lt;Deleted&gt;</i></article>
+{{else -}}
+<article>
+    {{if $isRoot -}}
+    <h1>{{.article.Title}}</h1>
+    {{else -}}
+    {{if eq $depth 1 -}}
+    <h1>Re{{if gt .article.ReplyDepth 1}} &times; {{.article.ReplyDepth}}{{- end -}}: <a href="/articles/{{.article.ReplyRootArticleId}}">{{.article.ReplyRootArticleTitle}}</a></h1>
+    {{- end -}}
+    {{- end -}}
+
+    <div style="margin-top:6px;margin-bottom:0px;color:#999;">
+	<small>
+	    <a style="color:#999;" href="/users/{{.article.AuthorId}}">{{.article.AuthorName}}</a> published <time title="{{.article.CreatedAt}}">{{timeAgo .article.CreatedAt}}</time> |{{if ne .article.CreatedAt .article.UpdatedAt}} modified <time title="{{.article.UpdatedAt}}">{{timeAgo .article.UpdatedAt}}</time> |{{- end -}}
+	    <a style="color:#999;" href="/articles/{{.article.Id}}">link</a> | {{.article.TotalReplyCount}} comments | {{.article.ReplyDepth}} depth
+	</small>
+    </div>
+    <section style="white-space: pre-line">{{.article.Content}}</section>
+
+    {{template "article_operation_bar" $data -}}
+</article>
+{{- end -}}
+
+{{if and .currUser -}}
+{{if eq .depth 0 -}}
+{{if not $isRoot -}}
+<div><small><a href="/articles/{{.article.ReplyTo}}">Parent</a></small></div>
+{{- end -}}
+{{if not .article.Deleted -}}
+{{template "article_reply_form" $data -}}
+{{- end -}}
+
+{{$tplData := dict "CSRFField" .CSRFField -}}
+{{template "article_reply_form" $tplData -}}
+{{- end -}}
+{{else -}}
+<div>
+    {{if .article.Deleted -}}
+    <small>{{if eq .depth 0}}<a href="/articles/{{.article.ReplyTo}}">Parent</a>{{- end}}</small>
+    {{else -}}
+    <small><a href="/login?target=/articles/{{if $isRoot}}{{.article.Id}}{{else}}{{.article.ReplyRootArticleId}}{{- end}}">Reply</a>{{if and (eq .depth 0) (not $isRoot)}}&nbsp;&nbsp;<a href="/articles/{{.article.ReplyTo}}">Parent</a>{{- end}}</small>
+    {{- end -}}
+    <div>
+	{{- end -}}
+
+	{{$replyData := dict "currUser" .currUser "replies" .article.Replies "depth" $depth "CSRFField" .CSRFField -}}
+	{{template "article_replies" $replyData -}}
+
+	{{- end -}}
+
+	{{define "article_operation_bar" -}}
+	<div>
+	    {{if .currUser -}}
+	    {{if eq .currUser.Id .article.AuthorId -}}
+	    <small><a href="/articles/{{.article.Id}}/edit">Edit</a>&nbsp;&nbsp;<a href="javascript:handleDelete({{.article.Id}});" style="color:red">Delete</a>&nbsp;</small>
+	    <form method="post" action="/articles/{{.article.Id}}/delete{{if gt .depth 1}}?from=reply{{- end}}" id="del_form_{{.article.Id}}" style="display: none">
+		{{.CSRFField -}}
+		<input type="hidden" name="id" value="{{.article.Id}}">
+	    </form>
+	    {{- end -}}
+	    {{if gt .depth 1 -}}
+	    <small><a href="#" onclick="showReplyForm(event, {{.article.Id}}, this)">Reply</a></small>
+	    {{- end -}}
+	    {{- end -}}
+	</div>
+	{{- end -}}
+
+	{{define "article_reply_form" -}}
+	{{$inputName := "reply_to" -}}
+	{{if not .article -}}
+	{{$inputName = "reply_to_tpl" -}}
+	{{- end -}}
+	<form id="reply_form{{if not .article}}_tpl{{- end}}" class="reply_form" method="post" action="/articles" style="{{if not .article}}display:none;{{- end}}margin-top: 10px">
+	    {{.CSRFField -}}
+	    <input id="{{$inputName}}" name="{{$inputName}}" type="hidden" value="{{if .article}}{{.article.Id}}{{- end}}"/>
+	    <textarea required cols="30" id="content" name="content" rows="10" style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box;max-width:100%;"></textarea>
+	    <button type="submit">Submit</button>
+	</form>
+	{{- end -}}
+
+	{{define "article_replies" -}}
+	{{$currUser := .currUser -}}
+	{{$depth := .depth -}}
+	{{$CSRFField := .CSRFField -}}
+	<ul style="list-style:none;margin-left:0;{{if eq $depth 1}}padding-left:0;{{else}}padding-left:14px;{{- end}}">
+	    {{range .replies -}}
+	    {{$subData := dict "currUser" $currUser "article" . "depth" $depth "CSRFField" $CSRFField -}}
+	    <li style="padding-top:6px">
+		{{template "article_content" $subData -}}
+	    </li>
+	    {{if and (gt .TotalReplyCount 0) (eq $depth 9) -}}
+	    <li style="padding-top:6px"><small><a href="/articles/{{.Id}}">More</a></small></li>
+	    {{- end -}}
+	    {{- end -}}
+	</ul>
+	{{- end -}}
+
+	{{define "article" -}}
+	{{$depth := 0 -}}
+	{{$data := dict "currUser" .LoginedUser "article" .Data "depth" $depth "CSRFField" .CSRFField -}}
+
+	{{template "head" . -}}
+
+
+	{{template "article_content" $data -}}
+
+
+	<script>
+	 function handleDelete(id) {
+	     if (confirm('Confirm to delete？')) {
+		 const formEl = document.getElementById('del_form_' + id)
+		 if(formEl)formEl.submit()
+	     }
+	 }
+	 function showReplyForm(ev, id, el){
+	     // console.log("ev:", ev)
+	     ev.preventDefault()
+	     var formId = "reply_form_" + id;
+	     var form = el.parentNode.parentNode.getElementsByClassName("reply_form")[0]
+
+	     if (!form){
+		 var replyForm = document.getElementById('reply_form_tpl')
+		 form = replyForm.cloneNode(true)
+		 form.setAttribute("id", formId)
+		 form.style.display = ""
+		 var input = form.querySelector('[name="reply_to_tpl"]')
+		 input.setAttribute("id", "reply_to_" + id)
+		 input.setAttribute("name", "reply_to")
+		 input.setAttribute("value", id)
+		 el.parentNode.parentNode.appendChild(form)
+
+		 var btnCancel = document.createElement('button')
+		 btnCancel.textContent = "Cancel"
+		 btnCancel.onclick = function(){
+		     form.remove()
+		 }
+		 form.appendChild(btnCancel)
+	     }
+	     // console.log("form:", form)
+	     setTimeout(function(){
+		 form.getElementsByTagName("textarea")[0].focus()
+	     }, 0)
+	 }
+	</script>
+	{{template "foot" -}}
+	{{- end -}}

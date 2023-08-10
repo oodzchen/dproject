@@ -189,7 +189,7 @@ select
 from recurPosts rp
 left join posts p2 on rp.reply_to = p2.id
 join users u on rp.author_id = u.id
-order by rp.created_at`
+order by rp.updated_at desc`
 
 	rows, err := a.dbPool.Query(context.Background(), sqlStr, id, utils.GetReplyDepthSize())
 	if err != nil {

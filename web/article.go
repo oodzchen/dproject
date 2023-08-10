@@ -23,11 +23,6 @@ type ArticleResource struct {
 	sessStore *sessions.CookieStore
 }
 
-type articleWithReplies struct {
-	Article *model.Article
-	Replies []*articleWithReplies
-}
-
 func NewArticleResource(tmpl *template.Template, store *store.Store, sessStore *sessions.CookieStore) *ArticleResource {
 	return &ArticleResource{
 		Renderer{tmpl, sessStore},

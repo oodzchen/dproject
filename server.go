@@ -59,7 +59,7 @@ func FileServer(r chi.Router, path string, root http.FileSystem) {
 
 func Service(c *ServiceConfig) http.Handler {
 	baseTmpl := template.New("base").Funcs(tmplFuncs).Funcs(sprig.FuncMap())
-	baseTmpl = template.Must(baseTmpl.ParseGlob("./views/*.html"))
+	baseTmpl = template.Must(baseTmpl.ParseGlob("./views/*.tmpl"))
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
