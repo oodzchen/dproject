@@ -24,7 +24,6 @@ type MainResource struct {
 	*Renderer
 	articleRs *ArticleResource
 	store     *store.Store
-	sessStore *sessions.CookieStore
 }
 
 func NewMainResource(tmpl *template.Template, ar *ArticleResource, store *store.Store, sessStore *sessions.CookieStore) *MainResource {
@@ -32,7 +31,6 @@ func NewMainResource(tmpl *template.Template, ar *ArticleResource, store *store.
 		&Renderer{tmpl, sessStore},
 		ar,
 		store,
-		sessStore,
 	}
 }
 

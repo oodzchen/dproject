@@ -19,15 +19,13 @@ type ArticleResource struct {
 	*Renderer
 	// DBConn *pgx.Conn
 	// DBPool *pgxpool.Pool
-	store     *store.Store
-	sessStore *sessions.CookieStore
+	store *store.Store
 }
 
 func NewArticleResource(tmpl *template.Template, store *store.Store, sessStore *sessions.CookieStore) *ArticleResource {
 	return &ArticleResource{
 		&Renderer{tmpl, sessStore},
 		store,
-		sessStore,
 	}
 }
 
