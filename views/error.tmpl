@@ -1,0 +1,11 @@
+{{define "error" -}}
+
+    {{template "head" . -}}
+
+    {{.Data -}}
+
+    <p><a href="javascript:history.go(-1);">Go Back</a>&nbsp;&nbsp;<a href="/">Go Home</a></p>
+
+    {{template "foot" . -}}
+
+{{end -}}

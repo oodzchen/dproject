@@ -1,7 +1,6 @@
 {{define "head" -}}
     <!DOCTYPE html>
     <html lang="en">
-
 	<head>
 	    <meta charset="UTF-8">
 	    <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -75,11 +74,10 @@
 	     }
 	    </script>
 	</head>
-
 	<body>
 	    <script>
-	     const DEBUG_DATA = {{.JSONStr -}}
-		 console.dir("DEBUG_DATA:", DEBUG_DATA)
+	     const DEBUG_DATA = {{.JSONStr -}};
+	     console.dir(DEBUG_DATA);
 	    </script>
 	    {{range .TipMsg -}}
 		<div style="display:flex;justify-content:space-between;background-color:yellow">

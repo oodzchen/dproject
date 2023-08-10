@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"text/template"
 
 	"github.com/gorilla/csrf"
@@ -27,7 +28,7 @@ type PageData struct {
 }
 
 type Renderer struct {
-	Tmpl      *template.Template
+	tmpl      *template.Template
 	sessStore *sessions.CookieStore
 }
 
@@ -47,12 +48,12 @@ func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, 
 	}
 
 	userInfo := &UserInfo{}
-	if userId, idOk := sess.Values["user_id"].(int); idOk {
+	if userId, ok := sess.Values["user_id"].(int); ok {
 		// fmt.Printf("logined user id: %d\n", userId)
 		userInfo.Id = userId
 	}
 
-	if userName, nameOk := sess.Values["user_name"].(string); nameOk {
+	if userName, ok := sess.Values["user_name"].(string); ok {
 		// fmt.Printf("logined user name: %s\n", userName)
 		userInfo.Name = userName
 	}
@@ -70,21 +71,44 @@ func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, 
 		HandleSessionErr(errors.WithStack(err))
 	}
 
-	data.Title += fmt.Sprintf(" - %s", os.Getenv("SITE_NAME"))
 	data.CSRFField = string(csrf.TemplateField(r))
+
+	rd.doRender(w, name, data, http.StatusOK)
+}
+
+func (rd *Renderer) Error(msg string, err error, w http.ResponseWriter, code int) {
+	fmt.Printf("%+v\n", err)
+
+	errText := http.StatusText(code)
+	data := &PageData{
+		Title: errText,
+		Data:  errText,
+	}
+
+	if len(msg) > 0 {
+		errText += " - " + strings.ToUpper(msg[:1]) + msg[1:]
+		data.Data = errText
+	}
+
+	rd.doRender(w, "error", data, code)
+}
+
+func (rd *Renderer) doRender(w http.ResponseWriter, name string, data *PageData, code int) {
+	data.Title += fmt.Sprintf(" - %s", os.Getenv("SITE_NAME"))
 
 	// DEBUG
 	jsonData, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
-		HttpError("server error", errors.WithStack(err), w, http.StatusInternalServerError)
+		HttpError("", errors.WithStack(err), w, http.StatusInternalServerError)
 		return
 	}
 
 	data.JSONStr = string(jsonData)
 
+	w.WriteHeader(code)
 	w.Header().Set("Content-Type", "text/html")
-	err = rd.Tmpl.ExecuteTemplate(w, name, data)
+	err = rd.tmpl.ExecuteTemplate(w, name, data)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		HttpError("", errors.WithStack(err), w, http.StatusInternalServerError)
 	}
 }

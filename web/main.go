@@ -21,7 +21,7 @@ import (
 const PGErrUniqueViolation = "23505"
 
 type MainResource struct {
-	Renderer
+	*Renderer
 	articleRs *ArticleResource
 	store     *store.Store
 	sessStore *sessions.CookieStore
@@ -29,7 +29,7 @@ type MainResource struct {
 
 func NewMainResource(tmpl *template.Template, ar *ArticleResource, store *store.Store, sessStore *sessions.CookieStore) *MainResource {
 	return &MainResource{
-		Renderer{tmpl, sessStore},
+		&Renderer{tmpl, sessStore},
 		ar,
 		store,
 		sessStore,
@@ -72,7 +72,7 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 
 	err := user.Valid()
 	if err != nil {
-		HttpError(err.Error(), errors.WithStack(err), w, http.StatusBadRequest)
+		mr.Error(err.Error(), errors.WithStack(err), w, http.StatusBadRequest)
 		return
 	}
 
@@ -80,7 +80,7 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 
 	err = user.EncryptPassword()
 	if err != nil {
-		HttpError("", errors.WithStack(err), w, http.StatusInternalServerError)
+		mr.Error("", errors.WithStack(err), w, http.StatusInternalServerError)
 		return
 	}
 
@@ -91,9 +91,9 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 		if errors.As(err, &pgErr) && pgErr.Code == PGErrUniqueViolation {
 			// fmt.Println(pgErr.Code)
 			// fmt.Println(pgErr.Message)
-			HttpError("the eamil already been registered", errors.WithStack(err), w, http.StatusBadRequest)
+			mr.Error("the eamil already been registered", errors.WithStack(err), w, http.StatusBadRequest)
 		} else {
-			HttpError("", errors.WithStack(err), w, http.StatusInternalServerError)
+			mr.Error("", errors.WithStack(err), w, http.StatusInternalServerError)
 		}
 
 		return
@@ -103,7 +103,7 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 
 	sess, err := mr.sessStore.Get(r, "one-cookie")
 	if err != nil {
-		HttpError("", err, w, http.StatusInternalServerError)
+		mr.Error("", err, w, http.StatusInternalServerError)
 	}
 
 	sess.AddFlash("Register success")
@@ -128,17 +128,17 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 	password := r.PostFormValue("password")
 
 	if email == "" {
-		HttpError("email is required", nil, w, http.StatusBadRequest)
+		mr.Error("email is required", nil, w, http.StatusBadRequest)
 		return
 	}
 
 	if password == "" {
-		HttpError("password is required", nil, w, http.StatusBadRequest)
+		mr.Error("password is required", nil, w, http.StatusBadRequest)
 		return
 	}
 
 	if !utils.ValidateEmail(email) {
-		HttpError("email or password is incorrect", errors.WithStack(utils.NewError("email not valid")), w, http.StatusBadRequest)
+		mr.Error("email or password is incorrect", errors.WithStack(utils.NewError("email not valid")), w, http.StatusBadRequest)
 		return
 	}
 
@@ -146,9 +146,9 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			HttpError("the email has not been registered", errors.WithStack(err), w, http.StatusBadRequest)
+			mr.Error("the email has not been registered", errors.WithStack(err), w, http.StatusBadRequest)
 		} else {
-			HttpError("email or password is incorrect", errors.WithStack(err), w, http.StatusBadRequest)
+			mr.Error("email or password is incorrect", errors.WithStack(err), w, http.StatusBadRequest)
 		}
 
 		return
@@ -156,14 +156,14 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 
 	user, err := mr.store.User.Item(id)
 	if err != nil {
-		HttpError("internal server error", err, w, http.StatusInternalServerError)
+		mr.Error("internal server error", err, w, http.StatusInternalServerError)
 	}
 
 	fmt.Printf("user %d login success!\n", user.Id)
 
 	sess, err := mr.sessStore.Get(r, "one-cookie")
 	if err != nil {
-		HttpError("", err, w, http.StatusInternalServerError)
+		mr.Error("", err, w, http.StatusInternalServerError)
 		return
 	}
 	// sess.AddFlash(fmt.Sprintf("Hi, %s", user.Name))
@@ -198,7 +198,7 @@ func (mr *MainResource) Logout(w http.ResponseWriter, r *http.Request) {
 
 	sess, err := mr.sessStore.Get(r, "one-cookie")
 	if err != nil {
-		HttpError("", err, w, http.StatusInternalServerError)
+		mr.Error("", err, w, http.StatusInternalServerError)
 		return
 	}
 	sess.Options.MaxAge = -1

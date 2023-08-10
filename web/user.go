@@ -13,7 +13,7 @@ import (
 )
 
 type UserResource struct {
-	Renderer
+	*Renderer
 	store     *store.Store
 	sessStore *sessions.CookieStore
 }
@@ -25,7 +25,7 @@ type userProfile struct {
 
 func NewUserResource(tmpl *template.Template, store *store.Store, sessStore *sessions.CookieStore) *UserResource {
 	return &UserResource{
-		Renderer{tmpl, sessStore},
+		&Renderer{tmpl, sessStore},
 		store,
 		sessStore,
 	}
