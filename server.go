@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
 	"github.com/oodzchen/dproject/store"
+	"github.com/oodzchen/dproject/utils"
 	"github.com/oodzchen/dproject/web"
 	"github.com/xeonx/timeago"
 )
@@ -72,6 +73,10 @@ func Service(c *ServiceConfig) http.Handler {
 	r.Use(httprate.LimitByIP(100, 1*time.Minute))
 
 	sessStore := sessions.NewCookieStore([]byte(c.sessSecret))
+	sessStore.Options.HttpOnly = true
+	sessStore.Options.Secure = !utils.IsDebug()
+	sessStore.Options.SameSite = http.SameSiteLaxMode
+
 	articleResource := web.NewArticleResource(baseTmpl, c.store, sessStore)
 
 	r.Use(CreateCheckAuthMiddleware(AuthRequiredPathes, sessStore))
@@ -85,6 +90,13 @@ func Service(c *ServiceConfig) http.Handler {
 	r.Mount("/articles", articleResource.Routes())
 	r.Mount("/users", web.NewUserResource(baseTmpl, c.store, sessStore).Routes())
 
-	CSRF := csrf.Protect([]byte(c.csrfSecret), csrf.FieldName("tk"), csrf.CookieName("secure"))
+	CSRF := csrf.Protect([]byte(c.csrfSecret),
+		csrf.FieldName("tk"),
+		csrf.CookieName("secure"),
+		csrf.HttpOnly(true),
+		csrf.Secure(!utils.IsDebug()),
+		csrf.Path("/"),
+		// csrf.ErrorHandler(r),
+	)
 	return CSRF(r)
 }

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"text/template"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/sessions"
@@ -169,6 +170,10 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 	sess.Values["user_id"] = user.Id
 	sess.Values["user_name"] = user.Name
 
+	sess.Options.HttpOnly = true
+	sess.Options.Secure = !utils.IsDebug()
+	sess.Options.SameSite = http.SameSiteLaxMode
+
 	err = sess.Save(r, w)
 	if err != nil {
 		HandleSessionErr(errors.WithStack(err))
@@ -204,6 +209,17 @@ func (mr *MainResource) Logout(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		HandleSessionErr(errors.WithStack(err))
 	}
+
+	csrfExpiredCookie := &http.Cookie{
+		Name:     "secure",
+		Value:    "",
+		Expires:  time.Unix(0, 0),
+		HttpOnly: true,
+		Secure:   !utils.IsDebug(),
+		Path:     "/",
+	}
+
+	http.SetCookie(w, csrfExpiredCookie)
 
 	refererUrl, err := url.Parse(r.Referer())
 

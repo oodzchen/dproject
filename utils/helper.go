@@ -36,3 +36,7 @@ func GetReplyDepthSize() int {
 	}
 	return size
 }
+
+func IsDebug() bool {
+	return os.Getenv("DEBUG") == "1"
+}
