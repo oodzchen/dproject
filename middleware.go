@@ -28,7 +28,7 @@ func CreateCheckAuthMiddleware(pathes PahthesNeedAuth, sessStore *sessions.Cooki
 					for _, method := range methods {
 						if r.Method == method {
 							if !web.IsLogin(sessStore, w, r) {
-								http.Redirect(w, r, "/login", http.StatusUnauthorized)
+								http.Redirect(w, r, "/login", http.StatusFound)
 								return
 							}
 						}
