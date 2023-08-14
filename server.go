@@ -25,7 +25,8 @@ type ServiceConfig struct {
 }
 
 var tmplFuncs = template.FuncMap{
-	"timeAgo": formatTimeAgo,
+	"timeAgo":    formatTimeAgo,
+	"timeFormat": utils.FormatTime,
 }
 
 var AuthRequiredPathes map[string]Methods = map[string]Methods{

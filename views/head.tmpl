@@ -80,7 +80,7 @@
 	     console.dir(DEBUG_DATA);
 	    </script>
 	    {{range .TipMsg -}}
-		<div style="display:flex;justify-content:space-between;background-color:yellow">
+		<div id="page-tip" style="display:flex;justify-content:space-between;background-color:yellow">
 		    <span>{{.}}</span>
 		    <a href="#" onclick="javascript:this.parentNode.remove();return false;">&nbsp;&times;&nbsp;</a>
 		</div>
