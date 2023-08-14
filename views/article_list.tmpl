@@ -6,7 +6,7 @@
 	{{range .Data.Articles -}}
 	    <li>
 		<a href="/articles/{{.Id}}">{{.Title}}</a>
-		<br>
+		<br/>
 		<small style="color:#999">By <a style="color:#999" href="/users/{{.AuthorId}}">{{.AuthorName}}</a> <time title="{{.CreatedAt}}">{{timeAgo .CreatedAt}}</time> <a href="/articles/{{.Id}}" style="color:#999">{{.TotalReplyCount}} comment{{if ne .TotalReplyCount 1}}s{{end}}</a></small>
 	    </li>
 	{{end -}}

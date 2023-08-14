@@ -3,7 +3,6 @@ package web
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"strconv"
 	"text/template"
 
@@ -63,13 +62,7 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 
 func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 	if !IsLogin(ar.sessStore, w, r) {
-		var targetUrl string
-		if r.TLS != nil {
-			targetUrl = "https://" + r.Host + r.URL.Path
-		} else {
-			targetUrl = "http://" + r.Host + r.URL.Path
-		}
-		http.Redirect(w, r, "/login?target="+url.QueryEscape(targetUrl), http.StatusFound)
+		http.Redirect(w, r, "/login?target="+r.URL.Path, http.StatusFound)
 		return
 	}
 

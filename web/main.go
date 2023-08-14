@@ -115,10 +115,10 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (mr *MainResource) LoginPage(w http.ResponseWriter, r *http.Request) {
-	// if IsLogin(mr.sessStore, w, r) {
-	// 	http.Redirect(w, r, "/", http.StatusFound)
-	// 	return
-	// }
+	if IsLogin(mr.sessStore, w, r) {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
 	mr.Render(w, r, "login", &PageData{Title: "Login", Data: ""})
 }
 
