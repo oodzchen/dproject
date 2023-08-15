@@ -1,6 +1,6 @@
 {{define "head" -}}
     <!DOCTYPE html>
-    <html lang="en">
+    <html lang="en" {{if .Settings}}data-theme="{{.Settings.Theme}}"{{end}}>
 	<head>
 	    <meta charset="UTF-8">
 	    <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -116,15 +116,39 @@
 			<li><a href="/login">Login</a></li>
 		    {{end -}}
 		    <li>
-			<label for="theme" style="white-space:nowrap" title="Switch Color Theme">
-			    <span>Theme</span>
-			    <select id="theme" name="theme" onchange="onThemeChange(event)">
-				<option value="system">OS Default</option>
-				<option value="dark">Dark</option>
-				<option value="light">Light</option>
-			    </select>
-			</label></li>
+			<a href="/settings">Settings</a>
+			<!-- <label for="theme" style="white-space:nowrap" title="Switch Color Theme">
+			     <span>Theme</span>
+			     <select id="theme" name="theme" onchange="onThemeChange(event)">
+			     <option value="system">OS Default</option>
+			     <option value="dark">Dark</option>
+			     <option value="light">Light</option>
+			     </select>
+			     </label> -->
+		    </li>
 		</ul>
 	    </nav>
+	    {{if eq .Type "settings" -}}
+		<div style="margin: 12px 0;padding: 10px;border:1px solid #ccc;">
+		    <form method="POST" action="/settings">
+			{{$themeDict := dict "light" "Light" "dark" "Dark" "system" "OS Default (Must enable JavaScript)"}}
+			{{$themes := keys $themeDict | sortAlpha}}
+			{{$settings := .Settings}}
+			{{.CSRFField}}
+			Theme:
+			{{range $themes -}}
+			    <span {{if eq . "system"}}style="display:none"{{- end -}}>
+				<input name="theme" required autocomplete="off" id="{{.}}" {{if eq . "system"}}disabled{{- end -}} {{if and $settings (eq $settings.Theme .)}}checked{{end}} type="radio" value="{{.}}"/>
+				<label for="{{.}}">{{get $themeDict .}}</label>
+			    </span>&nbsp;&nbsp;
+			{{- end -}}
+			    <!-- <input name="theme" id="dark" type="radio" value="dark"/><label for="dark">Dark</label>&nbsp;&nbsp;
+				 <span style="display:none"><input name="theme" disabled id="system" type="radio" value="system"/><label for="system">OS Default (Must enable JavaScript)</label>&nbsp;&nbsp;</span> -->
+			<br/>
+			<br/>
+			<button type="submit">Save</button>
+		    </form>
+		</div>
+	    {{- end -}}
 	    <hr/>
 {{- end -}}

@@ -59,7 +59,13 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		ArticleTotal int
 	}
 
-	ar.Render(w, r, "article_list", &PageData{Title: "Home", Data: &ListData{list, len(list)}})
+	pageData := &PageData{Title: "Home", Data: &ListData{list, len(list)}}
+
+	if r.URL.Path == "/settings" {
+		pageData.Type = PageTypeSettings
+	}
+
+	ar.Render(w, r, "article_list", pageData)
 }
 
 func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {

@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"regexp"
 	"text/template"
 	"time"
 
@@ -39,6 +40,8 @@ func (mr *MainResource) Routes() http.Handler {
 	rt := chi.NewRouter()
 
 	rt.Get("/", mr.articleRs.List)
+	rt.Get("/settings", mr.articleRs.List)
+	rt.Post("/settings", mr.SaveSettings)
 	rt.Get("/register", mr.RegisterPage)
 	rt.Post("/register", mr.Register)
 	rt.Get("/login", mr.LoginPage)
@@ -233,4 +236,17 @@ func (mr *MainResource) Logout(w http.ResponseWriter, r *http.Request) {
 	} else {
 		http.Redirect(w, r, refererUrl.String(), http.StatusFound)
 	}
+}
+
+func (mr *MainResource) SaveSettings(w http.ResponseWriter, r *http.Request) {
+	theme := r.PostForm.Get("theme")
+
+	fmt.Printf("post theme: %s\n", theme)
+
+	if regexp.MustCompile(`^light|dark|system$`).Match([]byte(theme)) {
+		sess := mr.Session("one-cookie", w, r)
+		sess.SetValue("page_theme", theme)
+	}
+
+	http.Redirect(w, r, "/", http.StatusFound)
 }

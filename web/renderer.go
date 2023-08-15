@@ -13,9 +13,24 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	PageTypeDefault  string = "default"
+	PageTypeSettings        = "settings"
+)
+
+const (
+	PageThemeLight  string = "light"
+	PageThemeDark          = "dark"
+	PageThemeSystem        = "system"
+)
+
 type UserInfo struct {
 	Id   int
 	Name string
+}
+
+type PageSettings struct {
+	Theme string
 }
 
 type PageData struct {
@@ -25,6 +40,8 @@ type PageData struct {
 	LoginedUser *UserInfo
 	JSONStr     string
 	CSRFField   string
+	Type        string
+	Settings    *PageSettings
 }
 
 type Renderer struct {
@@ -64,6 +81,14 @@ func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, 
 	if (UserInfo{}) != *userInfo {
 		// fmt.Println("userInfo not empty")
 		data.LoginedUser = userInfo
+	}
+
+	// _, ok := sess.Values["page_theme"].(string)
+	// fmt.Printf("sess.Values[\"page_theme\"].(PageTheme): %v", ok)
+
+	if theme, ok := sess.Values["page_theme"].(string); ok {
+		// fmt.Printf("assert PageTheme ok: %s\n", theme)
+		data.Settings = &PageSettings{theme}
 	}
 
 	sess.Save(r, w)
