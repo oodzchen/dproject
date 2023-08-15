@@ -166,7 +166,6 @@ func main() {
 	logFailed(err)
 
 	newArticle := genArticle()
-	logln("new article: ", newArticle.title)
 	err = runTasks("create article as logined user", ctx,
 		login(newUser),
 		chp.Click(`ul.nav-menu:nth-child(2) > li:nth-child(1) > a:nth-child(1)`),
@@ -175,8 +174,10 @@ func main() {
 		chp.SetValue(`textarea[name="content"]`, newArticle.content),
 		chp.Click(`button[type="submit"]`),
 		chp.WaitVisible(`body>footer`),
-		chp.TextContent(`h1`, &resultText),
+		chp.TextContent(`body>article>h1`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
+			logln("new article: ", newArticle.title)
+			logln("resulteText: ", resultText)
 			if resultText != newArticle.title {
 				return errors.New("new article title incorrect")
 			}
@@ -216,7 +217,6 @@ func main() {
 	logFailed(err)
 
 	newReply := gofakeit.Sentence(5 + rand.Intn(10))
-	logln("new reply:", newReply)
 	err = runTasks("reply article", ctx,
 		chp.NavigateBack(),
 		chp.SetValue(`textarea[name="content"]`, newReply),
@@ -224,6 +224,8 @@ func main() {
 		chp.WaitVisible(`body>footer`),
 		chp.TextContent(`ul.replies:nth-child(8) > li:last-child > article:nth-child(1) > section:nth-child(2)`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
+			logln("new reply: ", newReply)
+			logln("resultText: ", resultText)
 			if resultText != newReply {
 				return errors.New("reply content incorrect")
 			}

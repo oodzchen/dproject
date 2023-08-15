@@ -229,10 +229,14 @@ order by rp.created_at`
 	return list, nil
 }
 
-func (a *Article) Delete(id int) error {
-	err := a.dbPool.QueryRow(context.Background(), "update posts set deleted = true where id = $1 returning (id)", id).Scan(nil)
-	if err != nil {
-		return err
+func (a *Article) Delete(id int, authorId int) (rootArticleId int, err error) {
+	err = a.dbPool.QueryRow(context.Background(),
+		"update posts set deleted = true where id = $1 and author_id = $2 returning (root_article_id)",
+		id,
+		authorId,
+	).Scan(&rootArticleId)
+	if rootArticleId == 0 {
+		rootArticleId = id
 	}
-	return nil
+	return
 }

@@ -32,7 +32,7 @@ var tmplFuncs = template.FuncMap{
 var AuthRequiredPathes map[string]Methods = map[string]Methods{
 	`^/logout($|/)`:              {"GET"},
 	`^/articles($|/)`:            {"POST"},
-	`^/articles/\d+/delete($|/)`: {"DELETE"},
+	`^/articles/\d+/delete($|/)`: {"GET", "POST"},
 	`^/articles/\d+/edit($|/)`:   {"GET", "POST"},
 }
 

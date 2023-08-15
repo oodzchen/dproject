@@ -39,6 +39,7 @@ func (ar *ArticleResource) Routes() http.Handler {
 		r.Get("/", ar.Item)
 		r.Get("/edit", ar.FormPage)
 		r.Post("/edit", ar.Update)
+		r.Get("/delete", ar.DeletePage)
 		r.Post("/delete", ar.Delete)
 	})
 
@@ -80,12 +81,24 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 			ar.Error("", err, w, http.StatusBadRequest)
 			return
 		}
-		// postData, _ := ar.getPostData(idParam)
+
+		currUserId, err := GetLoginUserId(ar.sessStore, w, r)
+		if err != nil {
+			ar.Error("Please login", err, w, http.StatusUnauthorized)
+			return
+		}
+
 		article, err := ar.store.Article.Item(rId)
 		if err != nil {
 			ar.Error("", err, w, http.StatusInternalServerError)
 			return
 		}
+
+		if article.AuthorId != currUserId {
+			http.Redirect(w, r, fmt.Sprintf("/articles/%d", rId), http.StatusFound)
+			return
+		}
+
 		pageTitle = fmt.Sprintf("Edit - %s", article.Title)
 
 		article.UpdateDisplayTitle()
@@ -224,6 +237,10 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ar *ArticleResource) Item(w http.ResponseWriter, r *http.Request) {
+	ar.handleItem(w, r, false)
+}
+
+func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, delPage bool) {
 	idParam := chi.URLParam(r, "id")
 	// fmt.Printf("idParam: %v\n", idParam)
 
@@ -244,6 +261,19 @@ func (ar *ArticleResource) Item(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if delPage {
+		currUserId, err := GetLoginUserId(ar.sessStore, w, r)
+		if err != nil {
+			ar.Error("Please login", err, w, http.StatusUnauthorized)
+			return
+		}
+
+		if article.AuthorId != currUserId {
+			http.Redirect(w, r, fmt.Sprintf("/articles/%d", articleId), http.StatusFound)
+			return
+		}
+	}
+
 	// if article.Deleted {
 	// 	ar.Error("the article is gone", err, w, http.StatusGone)
 	// 	return
@@ -256,7 +286,6 @@ func (ar *ArticleResource) Item(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// utils.PrintJSONf("article: ", article)
-
 	// utils.PrintJSONf("replyData: ", replyData)
 	if len(replyData) > 0 {
 		for _, item := range replyData {
@@ -275,7 +304,16 @@ func (ar *ArticleResource) Item(w http.ResponseWriter, r *http.Request) {
 	if article.Deleted {
 		w.WriteHeader(http.StatusGone)
 	}
-	ar.Render(w, r, "article", &PageData{Title: article.DisplayTitle, Data: article})
+
+	type itemPageData struct {
+		Article *model.Article
+		DelPage bool
+	}
+
+	ar.Render(w, r, "article", &PageData{Title: article.DisplayTitle, Data: &itemPageData{
+		article,
+		delPage,
+	}})
 }
 
 func genArticleTree(root *model.Article, list []*model.Article) (*model.Article, error) {
@@ -304,6 +342,7 @@ func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		ar.Error("", err, w, http.StatusBadRequest)
+		return
 	}
 
 	idForm := r.Form.Get("id")
@@ -314,18 +353,43 @@ func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = ar.store.Article.Delete(rId)
+	confirmText := r.Form.Get("confirm_del")
+	if confirmText != "yes" {
+		if confirmText == "no" {
+			http.Redirect(w, r, fmt.Sprintf("/articles/%d", rId), http.StatusFound)
+		} else {
+			ar.Error("Delete failed", err, w, http.StatusBadRequest)
+		}
+		return
+	}
+
+	currUserId, err := GetLoginUserId(ar.sessStore, w, r)
+	if err != nil {
+		ar.Error("Please login", err, w, http.StatusUnauthorized)
+		return
+	}
+
+	article, err := ar.store.Article.Item(rId)
 	if err != nil {
 		ar.Error("", err, w, http.StatusInternalServerError)
 		return
 	}
 
-	refereUrl := r.Referer()
-	from := r.Form.Get("from")
-
-	if from == "reply" && refereUrl != "" {
-		http.Redirect(w, r, refereUrl, http.StatusFound)
-	} else {
-		http.Redirect(w, r, "/", http.StatusFound)
+	if article.AuthorId != currUserId {
+		http.Redirect(w, r, fmt.Sprintf("/articles/%d", rId), http.StatusFound)
+		ar.Error("Forbidden", err, w, http.StatusForbidden)
+		return
 	}
+
+	rootArticleId, err := ar.store.Article.Delete(rId, currUserId)
+	if err != nil {
+		ar.Error("", err, w, http.StatusBadRequest)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/articles/%d", rootArticleId), http.StatusFound)
+}
+
+func (ar *ArticleResource) DeletePage(w http.ResponseWriter, r *http.Request) {
+	ar.handleItem(w, r, true)
 }

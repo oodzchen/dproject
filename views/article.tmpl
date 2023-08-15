@@ -22,34 +22,46 @@
 	    </div>
 	    <section style="white-space: pre-line">{{.article.Content}}</section>
 
-	    {{template "article_operation_bar" $data -}}
+	    {{if not .delPage -}}
+		{{template "article_operation_bar" $data -}}
+	    {{- end -}}
 	</article>
     {{- end -}}
 
-    {{if and .currUser -}}
-	{{if eq .depth 0 -}}
-	    {{if not $isRoot -}}
-		<div><small><a href="/articles/{{.article.ReplyTo}}">Parent</a></small></div>
-	    {{- end -}}
-	    {{if not .article.Deleted -}}
-		{{template "article_reply_form" $data -}}
-	    {{- end -}}
+    {{if and .delPage .currUser -}}
+	<form method="post" action="/articles/{{.article.Id}}/delete{{if gt .depth 1}}?from=reply{{- end}}" id="del_form_{{.article.Id}}" style="margin:12px 0 12px;">
+	    {{.CSRFField -}}
+	    <input type="hidden" name="id" value="{{.article.Id}}">
+	    <label for="confirm_del">Confirm to delete? (yes/no)</label><input required name="confirm_del" type="text"/>
+	    <br/>
+	    <button type="submit" style="background:red;color:white;">Delete</button>
+	</form>
+    {{- else -}}
+	{{if .currUser -}}
+	    {{if eq .depth 0 -}}
+		{{if not $isRoot -}}
+		    <div><small><a href="/articles/{{.article.ReplyTo}}">Parent</a></small></div>
+		{{- end -}}
+		{{if not .article.Deleted -}}
+		    {{template "article_reply_form" $data -}}
+		{{- end -}}
 
-	    {{$tplData := dict "CSRFField" .CSRFField -}}
-	    {{template "article_reply_form" $tplData -}}
+		{{$tplData := dict "CSRFField" .CSRFField -}}
+		{{template "article_reply_form" $tplData -}}
+	    {{- end -}}
+	{{else -}}
+	    <div>
+		{{if .article.Deleted -}}
+		    <small>{{if eq .depth 0}}<a href="/articles/{{.article.ReplyTo}}">Parent</a>{{- end}}</small>
+		{{else -}}
+		    <small><a href="/login?target=/articles/{{if $isRoot}}{{.article.Id}}{{else}}{{.article.ReplyRootArticleId}}{{- end}}">Reply</a>{{if and (eq .depth 0) (not $isRoot)}}&nbsp;&nbsp;<a href="/articles/{{.article.ReplyTo}}">Parent</a>{{- end}}</small>
+		{{- end -}}
+	    </div>
 	{{- end -}}
-    {{else -}}
-	<div>
-	    {{if .article.Deleted -}}
-		<small>{{if eq .depth 0}}<a href="/articles/{{.article.ReplyTo}}">Parent</a>{{- end}}</small>
-	    {{else -}}
-		<small><a href="/login?target=/articles/{{if $isRoot}}{{.article.Id}}{{else}}{{.article.ReplyRootArticleId}}{{- end}}">Reply</a>{{if and (eq .depth 0) (not $isRoot)}}&nbsp;&nbsp;<a href="/articles/{{.article.ReplyTo}}">Parent</a>{{- end}}</small>
-	    {{- end -}}
-	</div>
-    {{- end -}}
 
-    {{$replyData := dict "currUser" .currUser "replies" .article.Replies "depth" $depth "CSRFField" .CSRFField -}}
-    {{template "article_replies" $replyData -}}
+	{{$replyData := dict "currUser" .currUser "replies" .article.Replies "depth" $depth "CSRFField" .CSRFField -}}
+	{{template "article_replies" $replyData -}}
+    {{- end -}}
 
 {{- end -}}
 
@@ -57,11 +69,7 @@
     {{if .currUser -}}
 	<div>
 	    {{if eq .currUser.Id .article.AuthorId -}}
-		<small><a href="/articles/{{.article.Id}}/edit">Edit</a>&nbsp;&nbsp;<a href="javascript:handleDelete({{.article.Id}});" style="color:red">Delete</a>&nbsp;</small>
-		<form method="post" action="/articles/{{.article.Id}}/delete{{if gt .depth 1}}?from=reply{{- end}}" id="del_form_{{.article.Id}}" style="display: none">
-		    {{.CSRFField -}}
-		    <input type="hidden" name="id" value="{{.article.Id}}">
-		</form>
+		<small><a href="/articles/{{.article.Id}}/edit">Edit</a>&nbsp;&nbsp;<a href="/articles/{{.article.Id}}/delete" style="color:red">Delete</a>&nbsp;</small>
 	    {{- end -}}
 	    {{if gt .depth 1 -}}
 		<small><a href="#" onclick="showReplyForm(event, {{.article.Id}}, this)">Reply</a></small>
@@ -102,7 +110,7 @@
 
 {{define "article" -}}
     {{$depth := 0 -}}
-    {{$data := dict "currUser" .LoginedUser "article" .Data "depth" $depth "CSRFField" .CSRFField -}}
+    {{$data := dict "currUser" .LoginedUser "article" .Data.Article "delPage" .Data.DelPage "depth" $depth "CSRFField" .CSRFField -}}
 
     {{template "head" . -}}
 
@@ -111,12 +119,12 @@
 
 
     <script>
-     function handleDelete(id) {
-	 if (confirm('Confirm to delete？')) {
-	     const formEl = document.getElementById('del_form_' + id)
-	     if(formEl)formEl.submit()
-	 }
-     }
+     /* function handleDelete(id) {
+	if (confirm('Confirm to delete？')) {
+	const formEl = document.getElementById('del_form_' + id)
+	if(formEl)formEl.submit()
+	}
+      * } */
      function showReplyForm(ev, id, el){
 	 // console.log("ev:", ev)
 	 ev.preventDefault()

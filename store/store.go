@@ -19,7 +19,7 @@ type ArticleStore interface {
 	Create(*model.Article) (int, error)
 	Update(*model.Article) (int, error)
 	Item(int) (*model.Article, error)
-	Delete(int) error
+	Delete(id int, authorId int) (int, error)
 	GetReplies(int) ([]*model.Article, error)
 }
 

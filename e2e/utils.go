@@ -36,8 +36,18 @@ func getRandUser() *testUser {
 // }
 
 func genArticle() *testArticle {
+	title := gofakeit.Sentence(3 + rand.Intn(9))
+	content := gofakeit.Paragraph(2+rand.Intn(5), 1+rand.Intn(6), 100, "\n\n")
+	if len(title) > 80 {
+		title = title[:80]
+	}
+
+	if len(content) > 20000 {
+		content = content[:20000]
+	}
+
 	return &testArticle{
-		title:   gofakeit.Sentence(3 + rand.Intn(9)),
-		content: gofakeit.Paragraph(2+rand.Intn(5), 1+rand.Intn(6), 100, "\n\n"),
+		title:   title,
+		content: content,
 	}
 }
