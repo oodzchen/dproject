@@ -34,6 +34,7 @@ var AuthRequiredPathes map[string]Methods = map[string]Methods{
 	`^/articles($|/)`:            {"POST"},
 	`^/articles/\d+/delete($|/)`: {"GET", "POST"},
 	`^/articles/\d+/edit($|/)`:   {"GET", "POST"},
+	`^/articles/\d+/reply($|/)`:  {"GET", "POST"},
 }
 
 func formatTimeAgo(t time.Time) string {

@@ -41,6 +41,7 @@ func (ar *ArticleResource) Routes() http.Handler {
 		r.Post("/edit", ar.Update)
 		r.Get("/delete", ar.DeletePage)
 		r.Post("/delete", ar.Delete)
+		r.Get("/reply", ar.ReplyPage)
 	})
 
 	return rt
@@ -49,7 +50,7 @@ func (ar *ArticleResource) Routes() http.Handler {
 func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	list, err := ar.store.Article.List()
 	if err != nil {
-		ar.Error("", err, w, http.StatusInternalServerError)
+		ar.Error("", err, w, r, http.StatusInternalServerError)
 		return
 	}
 
@@ -63,7 +64,11 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 
 func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 	if !IsLogin(ar.sessStore, w, r) {
-		http.Redirect(w, r, "/login?target="+r.URL.Path, http.StatusFound)
+		// http.Redirect(w, r, "/login?target="+r.URL.Path, http.StatusFound)
+		sess := ar.Session("one-cookie", w, r)
+		sess.SetValue("target_url", "/articles/new")
+		//
+		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
 
@@ -78,19 +83,19 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 		rId, err := strconv.Atoi(id)
 
 		if err != nil {
-			ar.Error("", err, w, http.StatusBadRequest)
+			ar.Error("", err, w, r, http.StatusBadRequest)
 			return
 		}
 
 		currUserId, err := GetLoginUserId(ar.sessStore, w, r)
 		if err != nil {
-			ar.Error("Please login", err, w, http.StatusUnauthorized)
+			ar.Error("Please login", err, w, r, http.StatusUnauthorized)
 			return
 		}
 
 		article, err := ar.store.Article.Item(rId)
 		if err != nil {
-			ar.Error("", err, w, http.StatusInternalServerError)
+			ar.Error("", err, w, r, http.StatusInternalServerError)
 			return
 		}
 
@@ -111,7 +116,7 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		ar.Error("", err, w, http.StatusBadRequest)
+		ar.Error("", err, w, r, http.StatusBadRequest)
 	}
 
 	paramReplyTo := r.Form.Get("reply_to")
@@ -121,7 +126,7 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 	if paramReplyTo != "" {
 		num, err := strconv.Atoi(paramReplyTo)
 		if err != nil {
-			ar.Error("", err, w, http.StatusBadRequest)
+			ar.Error("", err, w, r, http.StatusBadRequest)
 			return
 		}
 		replyTo = num
@@ -152,7 +157,7 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 	// if isReply {
 	// 	toArticle, err := ar.store.Article.Item(replyTo)
 	// 	if err != nil {
-	// 		ar.Error("", err, w, http.StatusInternalServerError)
+	// 		ar.Error("", err, w, r, http.StatusInternalServerError)
 	// 		return
 	// 	}
 	// 	// utils.PrintJSONf("toArticle: ", toArticle)
@@ -173,14 +178,14 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 
 	err = article.Valid(false)
 	if err != nil {
-		ar.Error(err.Error(), err, w, http.StatusBadRequest)
+		ar.Error(err.Error(), err, w, r, http.StatusBadRequest)
 		return
 	}
 
 	id, err := ar.store.Article.Create(article)
 
 	if err != nil {
-		ar.Error("", err, w, http.StatusInternalServerError)
+		ar.Error("", err, w, r, http.StatusInternalServerError)
 		return
 	}
 
@@ -196,14 +201,14 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		ar.Error("", err, w, http.StatusBadRequest)
+		ar.Error("", err, w, r, http.StatusBadRequest)
 	}
 
 	rId, err := strconv.Atoi(r.Form.Get("id"))
 	replyDepth, err := strconv.Atoi(r.Form.Get("reply_depth"))
 	// fmt.Printf("replyDepth: %d\n", replyDepth)
 	if err != nil {
-		ar.Error("", err, w, http.StatusBadRequest)
+		ar.Error("", err, w, r, http.StatusBadRequest)
 		return
 	}
 
@@ -222,14 +227,14 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 
 	err = article.Valid(true)
 	if err != nil {
-		ar.Error(err.Error(), err, w, http.StatusBadRequest)
+		ar.Error(err.Error(), err, w, r, http.StatusBadRequest)
 		return
 	}
 
 	id, err := ar.store.Article.Update(article)
 
 	if err != nil {
-		ar.Error("", err, w, http.StatusInternalServerError)
+		ar.Error("", err, w, r, http.StatusInternalServerError)
 		return
 	}
 
@@ -247,16 +252,16 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 	articleId, err := strconv.Atoi(idParam)
 
 	if err != nil {
-		ar.Error("", err, w, http.StatusBadRequest)
+		ar.Error("", err, w, r, http.StatusBadRequest)
 		return
 	}
 
 	article, err := ar.store.Article.Item(articleId)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			ar.Error("the article is gone", err, w, http.StatusGone)
+			ar.Error("the article is gone", err, w, r, http.StatusGone)
 		} else {
-			ar.Error("", err, w, http.StatusInternalServerError)
+			ar.Error("", err, w, r, http.StatusInternalServerError)
 		}
 		return
 	}
@@ -264,7 +269,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 	if delPage {
 		currUserId, err := GetLoginUserId(ar.sessStore, w, r)
 		if err != nil {
-			ar.Error("Please login", err, w, http.StatusUnauthorized)
+			ar.Error("Please login", err, w, r, http.StatusUnauthorized)
 			return
 		}
 
@@ -275,13 +280,13 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 	}
 
 	// if article.Deleted {
-	// 	ar.Error("the article is gone", err, w, http.StatusGone)
+	// 	ar.Error("the article is gone", err, w, r, http.StatusGone)
 	// 	return
 	// }
 
 	replyData, err := ar.store.Article.GetReplies(articleId)
 	if err != nil {
-		ar.Error("", err, w, http.StatusInternalServerError)
+		ar.Error("", err, w, r, http.StatusInternalServerError)
 		return
 	}
 
@@ -294,7 +299,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 
 		article, err = genArticleTree(article, replyData)
 		if err != nil {
-			// ar.Error("", err, w, http.StatusInternalServerError)
+			// ar.Error("", err, w, r, http.StatusInternalServerError)
 			fmt.Printf("generate article tree error: %v", err)
 		}
 	}
@@ -341,7 +346,7 @@ func genArticleTree(root *model.Article, list []*model.Article) (*model.Article,
 func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		ar.Error("", err, w, http.StatusBadRequest)
+		ar.Error("", err, w, r, http.StatusBadRequest)
 		return
 	}
 
@@ -349,7 +354,7 @@ func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 
 	rId, err := strconv.Atoi(idForm)
 	if err != nil {
-		ar.Error("", err, w, http.StatusBadRequest)
+		ar.Error("", err, w, r, http.StatusBadRequest)
 		return
 	}
 
@@ -358,32 +363,32 @@ func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 		if confirmText == "no" {
 			http.Redirect(w, r, fmt.Sprintf("/articles/%d", rId), http.StatusFound)
 		} else {
-			ar.Error("Delete failed", err, w, http.StatusBadRequest)
+			ar.Error("Delete failed", err, w, r, http.StatusBadRequest)
 		}
 		return
 	}
 
 	currUserId, err := GetLoginUserId(ar.sessStore, w, r)
 	if err != nil {
-		ar.Error("Please login", err, w, http.StatusUnauthorized)
+		ar.Error("Please login", err, w, r, http.StatusUnauthorized)
 		return
 	}
 
 	article, err := ar.store.Article.Item(rId)
 	if err != nil {
-		ar.Error("", err, w, http.StatusInternalServerError)
+		ar.Error("", err, w, r, http.StatusInternalServerError)
 		return
 	}
 
 	if article.AuthorId != currUserId {
 		http.Redirect(w, r, fmt.Sprintf("/articles/%d", rId), http.StatusFound)
-		ar.Error("Forbidden", err, w, http.StatusForbidden)
+		ar.Error("Forbidden", err, w, r, http.StatusForbidden)
 		return
 	}
 
 	rootArticleId, err := ar.store.Article.Delete(rId, currUserId)
 	if err != nil {
-		ar.Error("", err, w, http.StatusBadRequest)
+		ar.Error("", err, w, r, http.StatusBadRequest)
 		return
 	}
 
@@ -392,4 +397,9 @@ func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 
 func (ar *ArticleResource) DeletePage(w http.ResponseWriter, r *http.Request) {
 	ar.handleItem(w, r, true)
+}
+
+func (ar *ArticleResource) ReplyPage(w http.ResponseWriter, r *http.Request) {
+	// ar.handleItem(w, r, false)
+	http.Redirect(w, r, fmt.Sprintf("/articles/%s", chi.URLParam(r, "id")), http.StatusFound)
 }

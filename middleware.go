@@ -28,6 +28,12 @@ func CreateCheckAuthMiddleware(pathes PahthesNeedAuth, sessStore *sessions.Cooki
 					for _, method := range methods {
 						if r.Method == method {
 							if !web.IsLogin(sessStore, w, r) {
+								if method == "GET" {
+									sess, _ := sessStore.Get(r, "one-cookie")
+									sess.Values["target_url"] = r.URL.Path
+									sess.Save(r, w) // error here can be ignored
+								}
+
 								http.Redirect(w, r, "/login", http.StatusFound)
 								return
 							}

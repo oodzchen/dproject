@@ -2,9 +2,14 @@
 
     {{template "head" . -}}
 
-    <p id="err-msg">{{.Data -}}</p>
+    <p id="err-msg">{{.Data.ErrText -}}</p>
 
-    <p><a href="javascript:history.go(-1);">Go Back</a>&nbsp;&nbsp;<a href="/">Go Home</a></p>
+    <p>
+	{{if .Data.PrevUrl -}}
+	    <a href="{{.Data.PrevUrl}}">Go Back</a>
+	{{- end -}}
+	&nbsp;&nbsp;<a href="/">Go Home</a>
+    </p>
 
     {{template "foot" . -}}
 

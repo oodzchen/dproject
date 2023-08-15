@@ -40,25 +40,25 @@ func (ur *UserResource) Routes() http.Handler {
 func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 	// sess, err := ur.sessStore.Get(r, "one-cookie")
 	// if err != nil{
-	// 	HttpError("", err, w, http.StatusInternalServerError)
+	// 	ur.Error("", err, w, r, http.StatusInternalServerError)
 	// 	return
 	// }
 
 	userId, err := strconv.Atoi(chi.URLParam(r, "userId"))
 	if err != nil {
-		HttpError("user id is required", errors.WithStack(err), w, http.StatusBadRequest)
+		ur.Error("user id is required", errors.WithStack(err), w, r, http.StatusBadRequest)
 		return
 	}
 
 	user, err := ur.store.User.Item(userId)
 	if err != nil {
-		HttpError("", errors.WithStack(err), w, http.StatusInternalServerError)
+		ur.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
 		return
 	}
 
 	postList, err := ur.store.User.GetPosts(userId)
 	if err != nil {
-		HttpError("", errors.WithStack(err), w, http.StatusInternalServerError)
+		ur.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
 		return
 	}
 

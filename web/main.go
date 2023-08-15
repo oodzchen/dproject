@@ -71,7 +71,7 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 
 	err := user.Valid()
 	if err != nil {
-		mr.Error(err.Error(), errors.WithStack(err), w, http.StatusBadRequest)
+		mr.Error(err.Error(), errors.WithStack(err), w, r, http.StatusBadRequest)
 		return
 	}
 
@@ -79,7 +79,7 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 
 	err = user.EncryptPassword()
 	if err != nil {
-		mr.Error("", errors.WithStack(err), w, http.StatusInternalServerError)
+		mr.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
 		return
 	}
 
@@ -90,9 +90,9 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 		if errors.As(err, &pgErr) && pgErr.Code == PGErrUniqueViolation {
 			// fmt.Println(pgErr.Code)
 			// fmt.Println(pgErr.Message)
-			mr.Error("the eamil already been registered", errors.WithStack(err), w, http.StatusBadRequest)
+			mr.Error("the eamil already been registered", errors.WithStack(err), w, r, http.StatusBadRequest)
 		} else {
-			mr.Error("", errors.WithStack(err), w, http.StatusInternalServerError)
+			mr.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
 		}
 
 		return
@@ -102,7 +102,7 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 
 	sess, err := mr.sessStore.Get(r, "one-cookie")
 	if err != nil {
-		mr.Error("", err, w, http.StatusInternalServerError)
+		mr.Error("", err, w, r, http.StatusInternalServerError)
 	}
 
 	sess.AddFlash("Register success")
@@ -127,17 +127,17 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 	password := r.PostFormValue("password")
 
 	if email == "" {
-		mr.Error("email is required", nil, w, http.StatusBadRequest)
+		mr.Error("email is required", nil, w, r, http.StatusBadRequest)
 		return
 	}
 
 	if password == "" {
-		mr.Error("password is required", nil, w, http.StatusBadRequest)
+		mr.Error("password is required", nil, w, r, http.StatusBadRequest)
 		return
 	}
 
 	if !utils.ValidateEmail(email) {
-		mr.Error("email or password is incorrect", errors.WithStack(utils.NewError("email not valid")), w, http.StatusBadRequest)
+		mr.Error("email or password is incorrect", errors.WithStack(utils.NewError("email not valid")), w, r, http.StatusBadRequest)
 		return
 	}
 
@@ -145,9 +145,9 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			mr.Error("the email has not been registered", errors.WithStack(err), w, http.StatusBadRequest)
+			mr.Error("the email has not been registered", errors.WithStack(err), w, r, http.StatusBadRequest)
 		} else {
-			mr.Error("email or password is incorrect", errors.WithStack(err), w, http.StatusBadRequest)
+			mr.Error("email or password is incorrect", errors.WithStack(err), w, r, http.StatusBadRequest)
 		}
 
 		return
@@ -155,14 +155,14 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 
 	user, err := mr.store.User.Item(id)
 	if err != nil {
-		mr.Error("internal server error", err, w, http.StatusInternalServerError)
+		mr.Error("internal server error", err, w, r, http.StatusInternalServerError)
 	}
 
 	fmt.Printf("user %d login success!\n", user.Id)
 
 	sess, err := mr.sessStore.Get(r, "one-cookie")
 	if err != nil {
-		mr.Error("", err, w, http.StatusInternalServerError)
+		mr.Error("", err, w, r, http.StatusInternalServerError)
 		return
 	}
 	// sess.AddFlash(fmt.Sprintf("Hi, %s", user.Name))
@@ -170,20 +170,25 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 	sess.Values["user_id"] = user.Id
 	sess.Values["user_name"] = user.Name
 
+	targetUrl, _ := sess.Values["target_url"].(string)
+	sess.Values["target_url"] = ""
+
 	sess.Options.HttpOnly = true
 	sess.Options.Secure = !utils.IsDebug()
 	sess.Options.SameSite = http.SameSiteLaxMode
+	sess.Options.Path = "/"
 
 	err = sess.Save(r, w)
 	if err != nil {
-		HandleSessionErr(errors.WithStack(err))
+		mr.Error("", err, w, r, http.StatusInternalServerError)
+		return
 	}
 
 	//TODO: replace with session cookie
-	refererUrl, err := url.Parse(r.Referer())
+	// refererUrl, err := url.Parse(r.Referer())
 
-	if targetUrl := refererUrl.Query()["target"]; len(targetUrl) > 0 {
-		http.Redirect(w, r, targetUrl[0], http.StatusFound)
+	if len(targetUrl) > 0 {
+		http.Redirect(w, r, targetUrl, http.StatusFound)
 	} else {
 		http.Redirect(w, r, "/", http.StatusFound)
 	}
@@ -201,7 +206,7 @@ func (mr *MainResource) Logout(w http.ResponseWriter, r *http.Request) {
 
 	sess, err := mr.sessStore.Get(r, "one-cookie")
 	if err != nil {
-		mr.Error("", err, w, http.StatusInternalServerError)
+		mr.Error("", err, w, r, http.StatusInternalServerError)
 		return
 	}
 	sess.Options.MaxAge = -1

@@ -76,18 +76,25 @@ func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, 
 	rd.doRender(w, name, data, http.StatusOK)
 }
 
-func (rd *Renderer) Error(msg string, err error, w http.ResponseWriter, code int) {
+func (rd *Renderer) Error(msg string, err error, w http.ResponseWriter, r *http.Request, code int) {
 	fmt.Printf("%+v\n", err)
 
+	refererUrl := r.Referer()
+
 	errText := http.StatusText(code)
+
+	type errPageData struct {
+		ErrText string
+		PrevUrl string
+	}
 	data := &PageData{
 		Title: errText,
-		Data:  errText,
+		Data:  &errPageData{errText, refererUrl},
 	}
 
 	if len(msg) > 0 {
 		errText += " - " + strings.ToUpper(msg[:1]) + msg[1:]
-		data.Data = errText
+		data.Data = &errPageData{errText, refererUrl}
 	}
 
 	rd.doRender(w, "error", data, code)
@@ -110,5 +117,35 @@ func (rd *Renderer) doRender(w http.ResponseWriter, name string, data *PageData,
 	err = rd.tmpl.ExecuteTemplate(w, name, data)
 	if err != nil {
 		HttpError("", errors.WithStack(err), w, http.StatusInternalServerError)
+	}
+}
+
+func (rd *Renderer) Session(name string, w http.ResponseWriter, r *http.Request) *Session {
+	sess, err := rd.sessStore.Get(r, name)
+	if err != nil {
+		rd.Error("", err, w, r, http.StatusInternalServerError)
+		return nil
+	}
+	return &Session{rd, sess, w, r}
+}
+
+type Session struct {
+	rd   *Renderer
+	sess *sessions.Session
+	w    http.ResponseWriter
+	r    *http.Request
+}
+
+// Get value from *sessions.Session.Values
+func (ss *Session) GetValue(key string) any {
+	return ss.sess.Values[key]
+}
+
+// Set data to *sessons.Session.Values and auto save, handle save error
+func (ss *Session) SetValue(key string, val any) {
+	ss.sess.Values[key] = val
+	err := ss.sess.Save(ss.r, ss.w)
+	if err != nil {
+		ss.rd.Error("", err, ss.w, ss.r, http.StatusInternalServerError)
 	}
 }
