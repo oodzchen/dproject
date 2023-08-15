@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"math/rand"
@@ -33,9 +34,19 @@ func logln(data ...any) {
 // 	}
 // }
 
-const TIMEOUT_DURATION = 5 * time.Second
+const TIMEOUT_DURATION int = 6
 const TESTING_PWD string = `123!@#abc`
 const SERVER_URL string = `http://localhost:3000`
+
+var showHead bool
+var timeoutDuration int
+
+func init() {
+	const defaultSowHead = false
+	flag.BoolVar(&showHead, "h", defaultSowHead, "Show browser head")
+
+	flag.IntVar(&timeoutDuration, "t", TIMEOUT_DURATION, "Timeout duration")
+}
 
 func main() {
 	startTime := time.Now()
@@ -43,10 +54,15 @@ func main() {
 	defer os.RemoveAll(dir)
 	logErrf("create temp dir failed:%v", err)
 
+	flag.Parse()
+
+	fmt.Printf("Show browser head: %t\n", showHead)
+	fmt.Printf("Timeout duration: %ds\n", timeoutDuration*int(time.Second))
+
 	opts := append(chp.DefaultExecAllocatorOptions[:],
 		chp.DisableGPU,
 		chp.UserDataDir(dir),
-		chp.Flag("headless", true),
+		chp.Flag("headless", !showHead),
 	)
 
 	allocCtx, cancel := chp.NewExecAllocator(context.Background(), opts...)
@@ -55,7 +71,7 @@ func main() {
 	ctx, cancel := chp.NewContext(allocCtx, chp.WithLogf(log.Printf))
 	defer cancel()
 
-	ctx, tcancel := context.WithTimeout(ctx, TIMEOUT_DURATION)
+	ctx, tcancel := context.WithTimeout(ctx, time.Duration(timeoutDuration*int(time.Second)))
 	defer tcancel()
 
 	var content string
@@ -89,6 +105,7 @@ func main() {
 		register(newUser),
 		chp.TextContent(`#page-tip>span`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
+			logln("new user: ", newUser)
 			if len(resultText) == 0 {
 				return errors.New("empty register success message")
 			}
@@ -204,9 +221,9 @@ func main() {
 	logFailed(err)
 
 	err = runTasks("visit profile post list", ctx,
-		chp.Click(`ul.nav-menu:nth-child(2) > li:nth-child(2) > a:nth-child(1)`),
+		chp.Click(`ul.nav-menu:last-child > li:nth-child(2) > a:nth-child(1)`),
 		chp.WaitVisible(`body>footer`),
-		chp.TextContent(`body > ul:nth-child(8) > li:nth-child(1) > div:nth-child(2)`, &resultText),
+		chp.TextContent(`body > ul:nth-child(8) > li:nth-child(1) > div:last-child`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
 			if len(resultText) == 0 {
 				return errors.New("user post list is empty")
@@ -218,16 +235,57 @@ func main() {
 
 	newReply := gofakeit.Sentence(5 + rand.Intn(10))
 	err = runTasks("reply article", ctx,
-		chp.NavigateBack(),
-		chp.SetValue(`textarea[name="content"]`, newReply),
+		chp.Click(`body > ul:nth-child(8) > li:last-child > div:first-child > a`),
+		chp.WaitVisible(`body>footer`),
+		chp.SetValue(`#content`, newReply, chp.ByID),
 		chp.Click(`#reply_form>button[type="submit"]`),
 		chp.WaitVisible(`body>footer`),
-		chp.TextContent(`ul.replies:nth-child(8) > li:last-child > article:nth-child(1) > section:nth-child(2)`, &resultText),
+		chp.TextContent(`ul.replies > li:last-child > article > section`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
 			logln("new reply: ", newReply)
 			logln("resultText: ", resultText)
 			if resultText != newReply {
-				return errors.New("reply content incorrect")
+				return errors.New("reply content is incorrect")
+			}
+			return nil
+		}),
+	)
+	logFailed(err)
+
+	newReply = gofakeit.Sentence(5 + rand.Intn(10))
+	err = runTasks("reply comment", ctx,
+		chp.WaitVisible(`body>footer`),
+		chp.Click(`ul.replies > li:nth-child(1) > article > section+div > small:last-child > a`),
+		chp.WaitVisible(`body>footer`),
+		chp.SetValue(`#reply_form>textarea[name="content"]`, newReply),
+		chp.Click(`#reply_form>button[type="submit"]`),
+		chp.WaitVisible(`body>footer`),
+		chp.TextContent(`ul.replies > li:last-child > article:nth-child(1) > section:nth-child(2)`, &resultText),
+		chp.ActionFunc(func(ctx context.Context) error {
+			logln("new reply: ", newReply)
+			logln("resultText: ", resultText)
+			if resultText != newReply {
+				return errors.New("reply content is incorrect")
+			}
+			return nil
+		}),
+	)
+	logFailed(err)
+
+	err = runTasks("delete article", ctx,
+		chp.Click(`ul.nav-menu:last-child > li:nth-child(2) > a:nth-child(1)`),
+		chp.WaitVisible(`body>footer`),
+		chp.Click(`body > ul:nth-child(8) > li:last-child > div:first-child > a`),
+		chp.WaitVisible(`body>footer`),
+		chp.Click(`.btn-del`),
+		chp.WaitVisible(`body>footer`),
+		chp.SetValue(`body>form>input[name="confirm_del"]`, "yes"),
+		chp.Click(`body>form>button[type=submit]`),
+		chp.WaitVisible(`body>footer`),
+		chp.TextContent(`body>article>i`, &resultText),
+		chp.ActionFunc(func(ctx context.Context) error {
+			if resultText != "<Deleted>" {
+				return errors.New("delete article failed")
 			}
 			return nil
 		}),

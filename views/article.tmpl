@@ -45,9 +45,6 @@
 		{{if not .article.Deleted -}}
 		    {{template "article_reply_form" $data -}}
 		{{- end -}}
-
-		{{$tplData := dict "CSRFField" .CSRFField -}}
-		{{template "article_reply_form" $tplData -}}
 	    {{- end -}}
 	{{else -}}
 	    <div>
@@ -69,7 +66,7 @@
     {{if .currUser -}}
 	<div>
 	    {{if eq .currUser.Id .article.AuthorId -}}
-		<small><a href="/articles/{{.article.Id}}/edit">Edit</a>&nbsp;&nbsp;<a href="/articles/{{.article.Id}}/delete" style="color:red">Delete</a>&nbsp;</small>
+		<small><a href="/articles/{{.article.Id}}/edit">Edit</a>&nbsp;&nbsp;<a class="btn-del" href="/articles/{{.article.Id}}/delete" style="color:red">Delete</a>&nbsp;</small>
 	    {{- end -}}
 	    {{if gt .depth 1 -}}
 		<small><a href="/articles/{{.article.Id}}/reply">Reply</a></small>
@@ -113,7 +110,6 @@
     {{$data := dict "currUser" .LoginedUser "article" .Data.Article "delPage" .Data.DelPage "depth" $depth "CSRFField" .CSRFField -}}
 
     {{template "head" . -}}
-
 
     {{template "article_content" $data -}}
 

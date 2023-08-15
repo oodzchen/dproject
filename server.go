@@ -72,7 +72,12 @@ func Service(c *ServiceConfig) http.Handler {
 	r.Use(middleware.Compress(5, "text/html", "text/css", "text/plain", "text/javascript"))
 	r.Use(middleware.GetHead)
 	r.Use(middleware.RedirectSlashes)
-	r.Use(httprate.LimitByIP(100, 1*time.Minute))
+
+	rateLimit := 100
+	if utils.IsDebug() {
+		rateLimit = 10000
+	}
+	r.Use(httprate.LimitByIP(rateLimit, 1*time.Minute))
 
 	sessStore := sessions.NewCookieStore([]byte(c.sessSecret))
 	sessStore.Options.HttpOnly = true
