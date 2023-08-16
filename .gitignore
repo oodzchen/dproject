@@ -19,3 +19,4 @@ tmp
 #*#
 *~
 .env.local
+*_password.txt

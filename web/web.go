@@ -8,14 +8,22 @@ import (
 	"github.com/pkg/errors"
 )
 
-func HandleSessionErr(err error) {
-	fmt.Printf("session save error: %+v", err)
+func HandleGetSessionErr(err error) {
+	if err != nil {
+		fmt.Printf("get session error: %v\n", err)
+	}
+}
+
+func HandleSaveSessionErr(err error) {
+	if err != nil {
+		fmt.Printf("session save error: %+v", err)
+	}
 }
 
 func GetLoginUserId(sessStore *sessions.CookieStore, w http.ResponseWriter, r *http.Request) (int, error) {
 	sess, err := sessStore.Get(r, "one")
 	if err != nil {
-		fmt.Println(errors.WithStack(err))
+		fmt.Println("get session error", errors.WithStack(err))
 		return 0, err
 	}
 

@@ -15,11 +15,26 @@ import (
 	"github.com/oodzchen/dproject/store/pgstore"
 )
 
+// var clearCookie bool
+
+// func init() {
+// 	flag.BoolVar(&clearCookie, "clear-cookie", false, "Clear cookie")
+// 	flag.BoolVar(&clearCookie, "cc", false, "Clear cookie")
+// }
+
 func main() {
+	// flag.Parse()
+
+	// if utils.IsDebug() {
+	// 	fmt.Println("Clear cookie: ", clearCookie)
+	// }
+
 	err := godotenv.Load(".env.local")
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// fmt.Println("DSN: ", os.Getenv("DB_DSN"))
 
 	pg := pgstore.New(&pgstore.DBConfig{
 		DSN: os.Getenv("DB_DSN"),

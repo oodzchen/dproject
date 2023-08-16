@@ -10,6 +10,7 @@ import (
 
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
+	"github.com/oodzchen/dproject/utils"
 	"github.com/pkg/errors"
 )
 
@@ -51,10 +52,7 @@ type Renderer struct {
 
 func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, data *PageData) {
 	sess, err := rd.sessStore.Get(r, "one")
-	if err != nil {
-		HttpError("", err, w, http.StatusInternalServerError)
-		return
-	}
+	HandleGetSessionErr(err)
 
 	if flashes := sess.Flashes(); len(flashes) > 0 {
 		for _, item := range flashes {
@@ -83,17 +81,16 @@ func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, 
 		data.LoginedUser = userInfo
 	}
 
-	sess.Save(r, w)
+	err = sess.Save(r, w)
+	if err != nil {
+		HandleSaveSessionErr(errors.WithStack(err))
+	}
 
 	localSess := rd.Session("local", w, r)
 
 	if theme, ok := localSess.GetValue("page_theme").(string); ok {
 		// fmt.Printf("assert PageTheme ok: %s\n", theme)
 		data.Settings = &PageSettings{theme}
-	}
-
-	if err != nil {
-		HandleSessionErr(errors.WithStack(err))
 	}
 
 	data.CSRFField = string(csrf.TemplateField(r))
@@ -128,18 +125,19 @@ func (rd *Renderer) Error(msg string, err error, w http.ResponseWriter, r *http.
 func (rd *Renderer) doRender(w http.ResponseWriter, name string, data *PageData, code int) {
 	data.Title += fmt.Sprintf(" - %s", os.Getenv("SITE_NAME"))
 
-	// DEBUG
-	jsonData, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		HttpError("", errors.WithStack(err), w, http.StatusInternalServerError)
-		return
-	}
+	if utils.IsDebug() {
+		jsonData, err := json.MarshalIndent(data, "", "  ")
+		if err != nil {
+			HttpError("", errors.WithStack(err), w, http.StatusInternalServerError)
+			return
+		}
 
-	data.JSONStr = string(jsonData)
+		data.JSONStr = string(jsonData)
+	}
 
 	w.WriteHeader(code)
 	w.Header().Set("Content-Type", "text/html")
-	err = rd.tmpl.ExecuteTemplate(w, name, data)
+	err := rd.tmpl.ExecuteTemplate(w, name, data)
 	if err != nil {
 		HttpError("", errors.WithStack(err), w, http.StatusInternalServerError)
 	}
@@ -147,10 +145,7 @@ func (rd *Renderer) doRender(w http.ResponseWriter, name string, data *PageData,
 
 func (rd *Renderer) Session(name string, w http.ResponseWriter, r *http.Request) *Session {
 	sess, err := rd.sessStore.Get(r, name)
-	if err != nil {
-		rd.Error("", err, w, r, http.StatusInternalServerError)
-		return nil
-	}
+	HandleGetSessionErr(err)
 	return &Session{rd, sess, w, r}
 }
 
@@ -171,6 +166,6 @@ func (ss *Session) SetValue(key string, val any) {
 	ss.Raw.Values[key] = val
 	err := ss.Raw.Save(ss.r, ss.w)
 	if err != nil {
-		ss.rd.Error("", err, ss.w, ss.r, http.StatusInternalServerError)
+		ss.rd.Error("", errors.WithStack(err), ss.w, ss.r, http.StatusInternalServerError)
 	}
 }

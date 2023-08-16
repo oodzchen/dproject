@@ -111,7 +111,7 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 	sess.AddFlash("Register success")
 	err = sess.Save(r, w)
 	if err != nil {
-		HandleSessionErr(errors.WithStack(err))
+		HandleSaveSessionErr(errors.WithStack(err))
 	}
 
 	http.Redirect(w, r, "/login", http.StatusFound)
@@ -203,7 +203,7 @@ func (mr *MainResource) Logout(w http.ResponseWriter, r *http.Request) {
 	// 	sess.Options.MaxAge = -1
 	// 	err := sess.Save(r, w)
 	// 	if err != nil {
-	// 		HandleSessionErr(errors.WithStack(err))
+	// 		HandleSaveSessionErr(errors.WithStack(err))
 	// 	}
 	// }
 
@@ -215,7 +215,7 @@ func (mr *MainResource) Logout(w http.ResponseWriter, r *http.Request) {
 	sess.Options.MaxAge = -1
 	err = sess.Save(r, w)
 	if err != nil {
-		HandleSessionErr(errors.WithStack(err))
+		HandleSaveSessionErr(errors.WithStack(err))
 	}
 
 	csrfExpiredCookie := &http.Cookie{
