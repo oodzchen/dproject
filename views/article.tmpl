@@ -20,7 +20,7 @@
 		    <a style="color:#999;" href="/articles/{{.article.Id}}">link</a> | {{.article.TotalReplyCount}} comments | {{.article.ReplyDepth}} depth
 		</small>
 	    </div>
-	    <section style="white-space: pre-line">{{.article.Content}}</section>
+	    <section style="white-space: pre">{{.article.Content}}</section>
 
 	    {{if not .delPage -}}
 		{{template "article_operation_bar" $data -}}
@@ -29,10 +29,11 @@
     {{- end -}}
 
     {{if and .delPage .currUser -}}
-	<form method="post" action="/articles/{{.article.Id}}/delete{{if gt .depth 1}}?from=reply{{- end}}" id="del_form_{{.article.Id}}" style="margin:12px 0 12px;">
+	<form method="post" action="/articles/{{.article.Id}}/delete{{if gt .depth 1}}?from=reply{{- end}}" id="del_form_{{.article.Id}}" style="margin:12px 0 12px;padding:10px;border:1px solid #ccc;">
 	    {{.CSRFField -}}
 	    <input type="hidden" name="id" value="{{.article.Id}}">
-	    <label for="confirm_del">Confirm to delete? (yes/no)</label><input required name="confirm_del" type="text"/>
+	    <label for="confirm_del">Confirm to delete? (yes/no)</label>&nbsp;&nbsp;<input required name="confirm_del" type="text"/>
+	    <br/>
 	    <br/>
 	    <button type="submit" style="background:red;color:white;">Delete</button>
 	</form>

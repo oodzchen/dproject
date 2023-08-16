@@ -13,7 +13,7 @@ func HandleSessionErr(err error) {
 }
 
 func GetLoginUserId(sessStore *sessions.CookieStore, w http.ResponseWriter, r *http.Request) (int, error) {
-	sess, err := sessStore.Get(r, "one-cookie")
+	sess, err := sessStore.Get(r, "one")
 	if err != nil {
 		fmt.Println(errors.WithStack(err))
 		return 0, err

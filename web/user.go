@@ -38,7 +38,7 @@ func (ur *UserResource) Routes() http.Handler {
 }
 
 func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
-	// sess, err := ur.sessStore.Get(r, "one-cookie")
+	// sess, err := ur.sessStore.Get(r, "one")
 	// if err != nil{
 	// 	ur.Error("", err, w, r, http.StatusInternalServerError)
 	// 	return

@@ -40,7 +40,7 @@ func (mr *MainResource) Routes() http.Handler {
 	rt := chi.NewRouter()
 
 	rt.Get("/", mr.articleRs.List)
-	rt.Get("/settings", mr.articleRs.List)
+	rt.Get("/settings", mr.SettingsPage)
 	rt.Post("/settings", mr.SaveSettings)
 	rt.Get("/register", mr.RegisterPage)
 	rt.Post("/register", mr.Register)
@@ -103,7 +103,7 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("create user success, user id: %d", id)
 
-	sess, err := mr.sessStore.Get(r, "one-cookie")
+	sess, err := mr.sessStore.Get(r, "one")
 	if err != nil {
 		mr.Error("", err, w, r, http.StatusInternalServerError)
 	}
@@ -163,7 +163,7 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("user %d login success!\n", user.Id)
 
-	sess, err := mr.sessStore.Get(r, "one-cookie")
+	sess, err := mr.sessStore.Get(r, "one")
 	if err != nil {
 		mr.Error("", err, w, r, http.StatusInternalServerError)
 		return
@@ -199,7 +199,7 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 
 func (mr *MainResource) Logout(w http.ResponseWriter, r *http.Request) {
 	// if IsLogin(mr.sessStore, w, r) {
-	// 	sess, _ := mr.sessStore.Get(r, "one-cookie")
+	// 	sess, _ := mr.sessStore.Get(r, "one")
 	// 	sess.Options.MaxAge = -1
 	// 	err := sess.Save(r, w)
 	// 	if err != nil {
@@ -207,7 +207,7 @@ func (mr *MainResource) Logout(w http.ResponseWriter, r *http.Request) {
 	// 	}
 	// }
 
-	sess, err := mr.sessStore.Get(r, "one-cookie")
+	sess, err := mr.sessStore.Get(r, "one")
 	if err != nil {
 		mr.Error("", err, w, r, http.StatusInternalServerError)
 		return
@@ -219,7 +219,7 @@ func (mr *MainResource) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	csrfExpiredCookie := &http.Cookie{
-		Name:     "secure",
+		Name:     "sc",
 		Value:    "",
 		Expires:  time.Unix(0, 0),
 		HttpOnly: true,
@@ -241,12 +241,23 @@ func (mr *MainResource) Logout(w http.ResponseWriter, r *http.Request) {
 func (mr *MainResource) SaveSettings(w http.ResponseWriter, r *http.Request) {
 	theme := r.PostForm.Get("theme")
 
-	fmt.Printf("post theme: %s\n", theme)
+	// fmt.Printf("post theme: %s\n", theme)
 
 	if regexp.MustCompile(`^light|dark|system$`).Match([]byte(theme)) {
-		sess := mr.Session("one-cookie", w, r)
+		sess := mr.Session("local", w, r)
+		sess.Raw.Options.HttpOnly = false
+		sess.Raw.Options.Path = "/"
+		sess.Raw.Options.SameSite = http.SameSiteLaxMode
+		sess.Raw.Options.Secure = !utils.IsDebug()
+		sess.Raw.Options.MaxAge = 0
 		sess.SetValue("page_theme", theme)
 	}
 
 	http.Redirect(w, r, "/", http.StatusFound)
+}
+
+func (mr *MainResource) SettingsPage(w http.ResponseWriter, r *http.Request) {
+	mr.Render(w, r, "settings", &PageData{
+		Title: "Settings",
+	})
 }

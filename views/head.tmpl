@@ -38,40 +38,40 @@
 	     }
 	    </style>
 	    <script>
-	     document.addEventListener("DOMContentLoaded", function(){
-		 var selectedTheme = localStorage.getItem("theme")
-		 if (selectedTheme){
-		     setTheme(selectedTheme)
-		 } else {
-		     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-			 setTheme("dark")
-		     } else {
-			 setTheme("light")
-		     }
-		 }
-	     })
+	     /* document.addEventListener("DOMContentLoaded", function(){
+		var selectedTheme = localStorage.getItem("theme")
+		if (selectedTheme){
+		setTheme(selectedTheme)
+		} else {
+		if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+		setTheme("dark")
+		} else {
+		setTheme("light")
+		}
+		}
+		})
 
-	     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
-		 setTheme("system")
-	     });
+		window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+		setTheme("system")
+		});
 
-	     function onThemeChange(ev){
-		 setTheme(ev.target.value)
-	     }
+		function onThemeChange(ev){
+		setTheme(ev.target.value)
+		}
 
-	     function setTheme(themeName){
-		 document.getElementById("theme").value = themeName
-		 localStorage.setItem("theme", themeName)
+		function setTheme(themeName){
+		document.getElementById("theme").value = themeName
+		localStorage.setItem("theme", themeName)
 
-		 if (themeName == "system") {
-		     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches){
-			 themeName = "dark"
-		     } else {
-			 themeName = "light"
-		     }
-		 }
-		 document.documentElement.setAttribute("data-theme", themeName)
-	     }
+		if (themeName == "system") {
+		if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches){
+		themeName = "dark"
+		} else {
+		themeName = "light"
+		}
+		}
+		document.documentElement.setAttribute("data-theme", themeName)
+		} */
 	    </script>
 	</head>
 	<body>
@@ -142,8 +142,6 @@
 				<label for="{{.}}">{{get $themeDict .}}</label>
 			    </span>&nbsp;&nbsp;
 			{{- end -}}
-			    <!-- <input name="theme" id="dark" type="radio" value="dark"/><label for="dark">Dark</label>&nbsp;&nbsp;
-				 <span style="display:none"><input name="theme" disabled id="system" type="radio" value="system"/><label for="system">OS Default (Must enable JavaScript)</label>&nbsp;&nbsp;</span> -->
 			<br/>
 			<br/>
 			<button type="submit">Save</button>

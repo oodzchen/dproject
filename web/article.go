@@ -61,9 +61,9 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 
 	pageData := &PageData{Title: "Home", Data: &ListData{list, len(list)}}
 
-	if r.URL.Path == "/settings" {
-		pageData.Type = PageTypeSettings
-	}
+	// if r.URL.Path == "/settings" {
+	// 	pageData.Type = PageTypeSettings
+	// }
 
 	ar.Render(w, r, "article_list", pageData)
 }
@@ -71,7 +71,7 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 	if !IsLogin(ar.sessStore, w, r) {
 		// http.Redirect(w, r, "/login?target="+r.URL.Path, http.StatusFound)
-		sess := ar.Session("one-cookie", w, r)
+		sess := ar.Session("one", w, r)
 		sess.SetValue("target_url", "/articles/new")
 		//
 		http.Redirect(w, r, "/login", http.StatusFound)
@@ -141,7 +141,7 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 
 	authorId, err := GetLoginUserId(ar.sessStore, w, r)
 	if err != nil {
-		sess, _ := ar.sessStore.Get(r, "one-cookie")
+		sess, _ := ar.sessStore.Get(r, "one")
 		var callbackUrl string
 		if isReply {
 			callbackUrl = fmt.Sprintf("/articles/%d", replyTo)

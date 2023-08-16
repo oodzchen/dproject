@@ -99,7 +99,7 @@ func Service(c *ServiceConfig) http.Handler {
 
 	CSRF := csrf.Protect([]byte(c.csrfSecret),
 		csrf.FieldName("tk"),
-		csrf.CookieName("secure"),
+		csrf.CookieName("sc"),
 		csrf.HttpOnly(true),
 		csrf.Secure(!utils.IsDebug()),
 		csrf.Path("/"),

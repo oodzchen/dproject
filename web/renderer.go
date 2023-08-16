@@ -50,7 +50,7 @@ type Renderer struct {
 }
 
 func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, data *PageData) {
-	sess, err := rd.sessStore.Get(r, "one-cookie")
+	sess, err := rd.sessStore.Get(r, "one")
 	if err != nil {
 		HttpError("", err, w, http.StatusInternalServerError)
 		return
@@ -83,15 +83,15 @@ func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, 
 		data.LoginedUser = userInfo
 	}
 
-	// _, ok := sess.Values["page_theme"].(string)
-	// fmt.Printf("sess.Values[\"page_theme\"].(PageTheme): %v", ok)
+	sess.Save(r, w)
 
-	if theme, ok := sess.Values["page_theme"].(string); ok {
+	localSess := rd.Session("local", w, r)
+
+	if theme, ok := localSess.GetValue("page_theme").(string); ok {
 		// fmt.Printf("assert PageTheme ok: %s\n", theme)
 		data.Settings = &PageSettings{theme}
 	}
 
-	sess.Save(r, w)
 	if err != nil {
 		HandleSessionErr(errors.WithStack(err))
 	}
@@ -155,21 +155,21 @@ func (rd *Renderer) Session(name string, w http.ResponseWriter, r *http.Request)
 }
 
 type Session struct {
-	rd   *Renderer
-	sess *sessions.Session
-	w    http.ResponseWriter
-	r    *http.Request
+	rd  *Renderer
+	Raw *sessions.Session
+	w   http.ResponseWriter
+	r   *http.Request
 }
 
 // Get value from *sessions.Session.Values
 func (ss *Session) GetValue(key string) any {
-	return ss.sess.Values[key]
+	return ss.Raw.Values[key]
 }
 
 // Set data to *sessons.Session.Values and auto save, handle save error
 func (ss *Session) SetValue(key string, val any) {
-	ss.sess.Values[key] = val
-	err := ss.sess.Save(ss.r, ss.w)
+	ss.Raw.Values[key] = val
+	err := ss.Raw.Save(ss.r, ss.w)
 	if err != nil {
 		ss.rd.Error("", err, ss.w, ss.r, http.StatusInternalServerError)
 	}
