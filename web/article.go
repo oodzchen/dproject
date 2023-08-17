@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"strconv"
 	"text/template"
@@ -48,7 +49,28 @@ func (ar *ArticleResource) Routes() http.Handler {
 }
 
 func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
-	list, err := ar.store.Article.List()
+	r.ParseForm()
+
+	paramPage := r.Form.Get("page")
+	// fmt.Println("paramPage:", paramPage)
+	page, err := strconv.Atoi(paramPage)
+	if err != nil {
+		// fmt.Printf("page err %v\n", err)
+		page = 1
+	}
+
+	pageSize, err := strconv.Atoi(r.Form.Get("page_size"))
+	if err != nil {
+		pageSize = 100
+	}
+
+	list, err := ar.store.Article.List(page, pageSize)
+	if err != nil {
+		ar.Error("", err, w, r, http.StatusInternalServerError)
+		return
+	}
+
+	total, err := ar.store.Article.Count()
 	if err != nil {
 		ar.Error("", err, w, r, http.StatusInternalServerError)
 		return
@@ -57,9 +79,12 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	type ListData struct {
 		Articles     []*model.Article
 		ArticleTotal int
+		CurrPage     int
+		PageSize     int
+		TotalPage    int
 	}
 
-	pageData := &PageData{Title: "Home", Data: &ListData{list, len(list)}}
+	pageData := &PageData{Title: "Home", Data: &ListData{list, total, page, pageSize, int(math.Ceil(float64(total) / float64(pageSize)))}}
 
 	// if r.URL.Path == "/settings" {
 	// 	pageData.Type = PageTypeSettings

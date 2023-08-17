@@ -15,12 +15,13 @@ type DBStore interface {
 }
 
 type ArticleStore interface {
-	List() ([]*model.Article, error)
+	List(page int, pageSize int) ([]*model.Article, error)
 	Create(*model.Article) (int, error)
 	Update(*model.Article) (int, error)
 	Item(int) (*model.Article, error)
 	Delete(id int, authorId int) (int, error)
 	GetReplies(int) ([]*model.Article, error)
+	Count() (int, error)
 }
 
 type UserStore interface {

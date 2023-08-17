@@ -20,7 +20,7 @@
 		    <a style="color:#999;" href="/articles/{{.article.Id}}">link</a> | {{.article.TotalReplyCount}} comments | {{.article.ReplyDepth}} depth
 		</small>
 	    </div>
-	    <section style="white-space: pre">{{.article.Content}}</section>
+	    <section style="white-space: break-spaces">{{.article.Content}}</section>
 
 	    {{if not .delPage -}}
 		{{template "article_operation_bar" $data -}}

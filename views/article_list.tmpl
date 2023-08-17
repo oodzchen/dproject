@@ -2,15 +2,30 @@
 
     {{template "head" . -}}
 
-    <ol style="padding-left:1rem">
-	{{range .Data.Articles -}}
+    {{$data := .Data -}}
+    <ol style="padding-left:1rem;list-style-position:inside;" start="{{add (mul (add $data.CurrPage -1) $data.PageSize) 1}}">
+	{{range $idx, $item := .Data.Articles -}}
 	    <li>
-		<a href="/articles/{{.Id}}">{{.Title}}</a>
+		<a href="/articles/{{$item.Id}}">{{$item.Title}}</a>
 		<br/>
-		<small style="color:#999">By <a style="color:#999" href="/users/{{.AuthorId}}">{{.AuthorName}}</a> <time title="{{.CreatedAt}}">{{timeAgo .CreatedAt}}</time> <a href="/articles/{{.Id}}" style="color:#999">{{.TotalReplyCount}} comment{{if ne .TotalReplyCount 1}}s{{end}}</a></small>
+		<small style="color:#999">By <a style="color:#999" href="/users/{{$item.AuthorId}}">{{$item.AuthorName}}</a> <time title="{{$item.CreatedAt}}">{{timeAgo $item.CreatedAt}}</time> <a href="/articles/{{$item.Id}}" style="color:#999">{{$item.TotalReplyCount}} comment{{if ne $item.TotalReplyCount 1}}s{{end}}</a></small>
 	    </li>
 	{{end -}}
     </ol>
+
+    <div>
+	{{- if gt .Data.CurrPage 1 -}}
+	    <a href="/articles">First</a>&nbsp;
+	    <a href="/articles?page={{add .Data.CurrPage -1}}">Prev Page</a>
+	{{- end -}}
+
+	{{- if lt .Data.CurrPage .Data.TotalPage -}}
+	    &nbsp;&nbsp;{{.Data.CurrPage}}&nbsp;&nbsp
+	    <a href="/articles?page={{add .Data.CurrPage 1}}">Next Page</a>&nbsp;
+	    <a href="/articles?page={{.Data.TotalPage}}">Last</a>&nbsp;
+	{{- end -}}
+    </div>
+    
 
     {{template "foot" -}}
 {{end -}}
