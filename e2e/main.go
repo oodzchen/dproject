@@ -11,22 +11,9 @@ import (
 
 	"github.com/brianvoe/gofakeit/v6"
 	chp "github.com/chromedp/chromedp"
+	"github.com/oodzchen/dproject/mocktool"
 	"github.com/pkg/errors"
 )
-
-func logFailed(err error) {
-	logErrf("FAILED: %v", err)
-}
-
-func logErrf(msg string, err error) {
-	if err != nil {
-		log.Fatalf(msg, err)
-	}
-}
-
-func logln(data ...any) {
-	fmt.Println(data...)
-}
 
 // func deepEqual(want, got any) {
 // 	if !reflect.DeepEqual(want, got) {
@@ -35,8 +22,6 @@ func logln(data ...any) {
 // }
 
 const TIMEOUT_DURATION int = 6
-const TESTING_PWD string = `123!@#abc`
-const SERVER_URL string = `http://localhost:3000`
 
 var showHead bool
 var timeoutDuration int
@@ -52,7 +37,7 @@ func main() {
 	startTime := time.Now()
 	dir, err := os.MkdirTemp("", "chromedp-example")
 	defer os.RemoveAll(dir)
-	logErrf("create temp dir failed:%v", err)
+	mocktool.LogErrf("create temp dir failed:%v", err)
 
 	flag.Parse()
 
@@ -76,7 +61,7 @@ func main() {
 
 	var content string
 	err = runTasks("visit article and get content", ctx,
-		chp.Navigate(SERVER_URL),
+		chp.Navigate(mocktool.ServerURL),
 		chp.WaitVisible(`body>footer`),
 		chp.Click(`ol>li:first-child>a`, chp.NodeVisible),
 		chp.WaitVisible(`body>footer`),
@@ -88,38 +73,38 @@ func main() {
 			return nil
 		}),
 	)
-	logFailed(err)
+	mocktool.LogFailed(err)
 
 	err = runTasks("add new as anonymous", ctx,
-		chp.Navigate(SERVER_URL),
+		chp.Navigate(mocktool.ServerURL),
 		chp.WaitVisible(`body>footer`),
 		chp.Click(`ul.nav-menu:nth-child(2) > li:nth-child(1) > a:nth-child(1)`, chp.NodeVisible),
 		chp.WaitVisible(`body>footer`),
 		chp.WaitVisible(`#password`, chp.ByID),
 	)
-	logFailed(err)
+	mocktool.LogFailed(err)
 
-	newUser := getRandUser()
+	newUser := mocktool.GenUser()
 	var resultText string
 	err = runTasks("register new user", ctx,
-		register(newUser),
+		mocktool.Register(newUser),
 		chp.TextContent(`#page-tip>span`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
-			logln("new user: ", newUser)
+			mocktool.Logln("new user: ", newUser)
 			if len(resultText) == 0 {
 				return errors.New("empty register success message")
 			}
 			return nil
 		}),
 	)
-	logFailed(err)
+	mocktool.LogFailed(err)
 
 	// if regexp.MustCompile(``).Match([]byte(resultText)){
-	// 	logErrf(msg string, err error)
+	// 	mocktool.LogErrf(msg string, err error)
 	// }
 
 	err = runTasks("register duplicate user", ctx,
-		register(newUser),
+		mocktool.Register(newUser),
 		chp.TextContent(`#err-msg`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
 			if len(resultText) == 0 {
@@ -128,22 +113,22 @@ func main() {
 			return nil
 		}),
 	)
-	logFailed(err)
+	mocktool.LogFailed(err)
 
 	err = runTasks("login", ctx,
-		login(newUser),
+		mocktool.Login(newUser),
 		chp.TextContent(`ul.nav-menu:nth-child(2) > li:nth-child(2) > a:nth-child(1)`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
-			if len(resultText) == 0 || resultText != newUser.name {
+			if len(resultText) == 0 || resultText != newUser.Name {
 				return errors.New("user name incorrect")
 			}
 			return nil
 		}),
 	)
-	logFailed(err)
+	mocktool.LogFailed(err)
 
 	err = runTasks("logout", ctx,
-		logout(),
+		mocktool.Logout(),
 		chp.TextContent(`ul.nav-menu:nth-child(2) > li:nth-child(3) > a:nth-child(1)`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
 			if resultText != "Login" {
@@ -152,10 +137,10 @@ func main() {
 			return nil
 		}),
 	)
-	logFailed(err)
+	mocktool.LogFailed(err)
 
 	err = runTasks("user profile", ctx,
-		login(newUser),
+		mocktool.Login(newUser),
 		chp.Click(`ul.nav-menu:nth-child(2) > li:nth-child(2) > a:nth-child(1)`),
 		chp.WaitVisible(`body>footer`),
 		chp.TextContent(`body > table:nth-child(6) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(1)`, &resultText),
@@ -166,10 +151,10 @@ func main() {
 			return nil
 		}),
 	)
-	logFailed(err)
+	mocktool.LogFailed(err)
 
 	err = runTasks("create article as anonymous", ctx,
-		logout(),
+		mocktool.Logout(),
 		chp.Click(`ul.nav-menu:nth-child(2) > li:nth-child(1) > a:nth-child(1)`),
 		chp.WaitVisible(`body>footer`),
 		chp.TextContent(`button[type=submit]`, &resultText),
@@ -180,45 +165,31 @@ func main() {
 			return nil
 		}),
 	)
-	logFailed(err)
+	mocktool.LogFailed(err)
 
-	newArticle := genArticle()
+	newArticle := mocktool.GenArticle()
 	err = runTasks("create article as logined user", ctx,
-		login(newUser),
-		chp.Click(`ul.nav-menu:nth-child(2) > li:nth-child(1) > a:nth-child(1)`),
-		chp.WaitVisible(`body>footer`),
-		chp.SetValue(`input[name="title"]`, newArticle.title),
-		chp.SetValue(`textarea[name="content"]`, newArticle.content),
-		chp.Click(`button[type="submit"]`),
-		chp.WaitVisible(`body>footer`),
-		chp.TextContent(`body>article>h1`, &resultText),
-		chp.ActionFunc(func(ctx context.Context) error {
-			logln("new article: ", newArticle.title)
-			logln("resulteText: ", resultText)
-			if resultText != newArticle.title {
-				return errors.New("new article title incorrect")
-			}
-			return nil
-		}),
+		mocktool.Login(newUser),
+		mocktool.CreateArticle(newArticle),
 	)
-	logFailed(err)
+	mocktool.LogFailed(err)
 
-	editArticle := genArticle()
+	editArticle := mocktool.GenArticle()
 	err = runTasks("edit article", ctx,
 		chp.Click(`body > article:nth-child(5) > div:nth-child(4) > small:nth-child(1) > a:nth-child(1)`),
 		chp.WaitVisible(`body>footer`),
-		chp.SetValue(`textarea[name="content"]`, editArticle.content),
+		chp.SetValue(`textarea[name="content"]`, editArticle.Content),
 		chp.Click(`button[type="submit"]`),
 		chp.WaitVisible(`body>footer`),
 		chp.TextContent(`body > article:nth-child(5) > section:nth-child(3)`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
-			if resultText != editArticle.content {
+			if resultText != editArticle.Content {
 				return errors.New("content not match after edit")
 			}
 			return nil
 		}),
 	)
-	logFailed(err)
+	mocktool.LogFailed(err)
 
 	err = runTasks("visit profile post list", ctx,
 		chp.Click(`ul.nav-menu:last-child > li:nth-child(2) > a:nth-child(1)`),
@@ -231,7 +202,7 @@ func main() {
 			return nil
 		}),
 	)
-	logFailed(err)
+	mocktool.LogFailed(err)
 
 	newReply := gofakeit.Sentence(5 + rand.Intn(10))
 	err = runTasks("reply article", ctx,
@@ -242,15 +213,15 @@ func main() {
 		chp.WaitVisible(`body>footer`),
 		chp.TextContent(`ul.replies > li:last-child > article > section`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
-			logln("new reply: ", newReply)
-			logln("resultText: ", resultText)
+			mocktool.Logln("new reply: ", newReply)
+			mocktool.Logln("resultText: ", resultText)
 			if resultText != newReply {
 				return errors.New("reply content is incorrect")
 			}
 			return nil
 		}),
 	)
-	logFailed(err)
+	mocktool.LogFailed(err)
 
 	newReply = gofakeit.Sentence(5 + rand.Intn(10))
 	err = runTasks("reply comment", ctx,
@@ -262,15 +233,15 @@ func main() {
 		chp.WaitVisible(`body>footer`),
 		chp.TextContent(`ul.replies > li:last-child > article:nth-child(1) > section:nth-child(2)`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
-			logln("new reply: ", newReply)
-			logln("resultText: ", resultText)
+			mocktool.Logln("new reply: ", newReply)
+			mocktool.Logln("resultText: ", resultText)
 			if resultText != newReply {
 				return errors.New("reply content is incorrect")
 			}
 			return nil
 		}),
 	)
-	logFailed(err)
+	mocktool.LogFailed(err)
 
 	err = runTasks("delete article", ctx,
 		chp.Click(`ul.nav-menu:last-child > li:nth-child(2) > a:nth-child(1)`),
@@ -290,55 +261,21 @@ func main() {
 			return nil
 		}),
 	)
-	logFailed(err)
+	mocktool.LogFailed(err)
 
 	testingDuration := time.Now().Sub(startTime)
 	fmt.Printf("OK, all pass! Testing duration: %fs\n", testingDuration.Seconds())
 }
 
 func runTasks(name string, ctx context.Context, actions ...chp.Action) error {
-	logln("Task: " + name)
+	mocktool.Logln("Task: " + name)
 
 	err := chp.Run(ctx, actions...)
 
 	if err != nil {
 		return err
 	}
-	logln("PASS: ", name)
-	logln("")
+	mocktool.Logln("PASS: ", name)
+	mocktool.Logln("")
 	return nil
-}
-
-func register(data *testUser) chp.Tasks {
-	return chp.Tasks{
-		chp.Navigate(SERVER_URL),
-		chp.WaitVisible(`body>footer`),
-		chp.Click(`ul.nav-menu:nth-child(2) > li:nth-child(2) > a:nth-child(1)`, chp.NodeNotVisible),
-		chp.WaitVisible(`body>footer`),
-		chp.WaitVisible(`input[name="email"]`),
-		chp.SetValue(`input[name="email"]`, data.email),
-		chp.SetValue(`input[name="password"]`, TESTING_PWD),
-		chp.SetValue(`input[name="username"]`, data.name),
-		chp.Click(`button[type="submit"]`, chp.NodeVisible),
-		chp.WaitVisible(`body>footer`),
-	}
-}
-
-func login(data *testUser) chp.Tasks {
-	return chp.Tasks{
-		chp.Navigate(SERVER_URL),
-		chp.WaitVisible(`body>footer`),
-		chp.Click(`ul.nav-menu:nth-child(2) > li:nth-child(3) > a:nth-child(1)`),
-		chp.SetValue(`input[name="email"]`, data.email),
-		chp.SetValue(`input[name="password"]`, TESTING_PWD),
-		chp.Click(`button[type="submit"]`),
-		chp.WaitVisible(`body>footer`),
-	}
-}
-
-func logout() chp.Tasks {
-	return chp.Tasks{
-		chp.Click(`ul.nav-menu:nth-child(2) > li:nth-child(3) > a:nth-child(1)`),
-		chp.WaitVisible(`body>footer`),
-	}
 }

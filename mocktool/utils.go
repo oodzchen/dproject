@@ -1,25 +1,27 @@
-package main
+package mocktool
 
 import (
+	"fmt"
+	"log"
 	"math/rand"
 
 	"github.com/brianvoe/gofakeit/v6"
 )
 
-type testUser struct {
-	email string
-	name  string
+type TestUser struct {
+	Email string
+	Name  string
 }
 
-type testArticle struct {
-	title   string
-	content string
+type TestArticle struct {
+	Title   string
+	Content string
 }
 
-func getRandUser() *testUser {
-	return &testUser{
-		email: gofakeit.Email(),
-		name:  gofakeit.Name(),
+func GenUser() *TestUser {
+	return &TestUser{
+		Email: gofakeit.Email(),
+		Name:  gofakeit.Name(),
 	}
 }
 
@@ -35,7 +37,7 @@ func getRandUser() *testUser {
 // 	}
 // }
 
-func genArticle() *testArticle {
+func GenArticle() *TestArticle {
 	title := gofakeit.Sentence(3 + rand.Intn(9))
 	content := gofakeit.Paragraph(2+rand.Intn(5), 1+rand.Intn(6), 100, "\n\n")
 	if len(title) > 80 {
@@ -46,8 +48,22 @@ func genArticle() *testArticle {
 		content = content[:20000]
 	}
 
-	return &testArticle{
-		title:   title,
-		content: content,
+	return &TestArticle{
+		Title:   title,
+		Content: content,
 	}
+}
+
+func LogFailed(err error) {
+	LogErrf("FAILED: %v", err)
+}
+
+func LogErrf(msg string, err error) {
+	if err != nil {
+		log.Fatalf(msg, err)
+	}
+}
+
+func Logln(data ...any) {
+	fmt.Println(data...)
 }
