@@ -131,13 +131,11 @@ p.content,
 p.created_at,
 p.updated_at,
 p.reply_to,
-p2.title as reply_to_title,
 p.author_id,
 u.name as author_name,
 p.depth,
 p3.title as root_article_title
 from posts p
-left join posts p2 on p.reply_to = p2.id
 left join users u on p.author_id = u.id
 left join posts p3 on p.root_article_id = p3.id
 where p.author_id = $1 and p.deleted = false
@@ -157,7 +155,6 @@ order by p.created_at desc`
 			&item.CreatedAt,
 			&item.UpdatedAt,
 			&item.ReplyTo,
-			&item.NullReplyToTitle,
 			&item.AuthorId,
 			&item.AuthorName,
 			&item.ReplyDepth,

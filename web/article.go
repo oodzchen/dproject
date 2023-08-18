@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/store"
+	"github.com/oodzchen/dproject/utils"
 	"github.com/pkg/errors"
 )
 
@@ -287,7 +288,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 		return
 	}
 
-	article, err := ar.store.Article.Item(articleId)
+	articleTreeList, err := ar.store.Article.ItemTree(articleId)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			ar.Error("the article is gone", err, w, r, http.StatusGone)
@@ -297,6 +298,21 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 		return
 	}
 
+	if len(articleTreeList) == 0 {
+		ar.Error("the article is gone", err, w, r, http.StatusGone)
+	}
+
+	var rootArticle *model.Article
+	for _, item := range articleTreeList {
+		if item.Id == articleId {
+			rootArticle = item
+		}
+	}
+
+	if rootArticle.Id == 0 {
+		ar.Error("the article is gone", err, w, r, http.StatusGone)
+	}
+
 	if delPage {
 		currUserId, err := GetLoginUserId(ar.sessStore, w, r)
 		if err != nil {
@@ -304,7 +320,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 			return
 		}
 
-		if article.AuthorId != currUserId {
+		if rootArticle.AuthorId != currUserId {
 			http.Redirect(w, r, fmt.Sprintf("/articles/%d", articleId), http.StatusFound)
 			return
 		}
@@ -315,40 +331,42 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 	// 	return
 	// }
 
-	replyData, err := ar.store.Article.GetReplies(articleId)
-	if err != nil {
-		ar.Error("", err, w, r, http.StatusInternalServerError)
-		return
-	}
+	// replyData, err := ar.store.Article.ItemTree(articleId)
+	// if err != nil {
+	// 	ar.Error("", err, w, r, http.StatusInternalServerError)
+	// 	return
+	// }
 
 	// utils.PrintJSONf("article: ", article)
 	// utils.PrintJSONf("replyData: ", replyData)
-	if len(replyData) > 0 {
-		for _, item := range replyData {
+	if len(articleTreeList) > 1 {
+		for _, item := range articleTreeList {
 			item.FormatDeleted()
 		}
 
-		article, err = genArticleTree(article, replyData)
+		rootArticle, err = genArticleTree(rootArticle, articleTreeList)
 		if err != nil {
 			// ar.Error("", err, w, r, http.StatusInternalServerError)
 			fmt.Printf("generate article tree error: %v", err)
 		}
 	}
 
-	article.UpdateDisplayTitle()
+	rootArticle.UpdateDisplayTitle()
 
-	if article.Deleted {
+	if rootArticle.Deleted {
 		w.WriteHeader(http.StatusGone)
 	}
 
 	type itemPageData struct {
-		Article *model.Article
-		DelPage bool
+		Article  *model.Article
+		DelPage  bool
+		MaxDepth int
 	}
 
-	ar.Render(w, r, "article", &PageData{Title: article.DisplayTitle, Data: &itemPageData{
-		article,
+	ar.Render(w, r, "article", &PageData{Title: rootArticle.DisplayTitle, Data: &itemPageData{
+		rootArticle,
 		delPage,
+		utils.GetReplyDepthSize(),
 	}})
 }
 

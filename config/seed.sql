@@ -32,9 +32,9 @@ CREATE TABLE posts (
     reply_to INTEGER DEFAULT 0,
     deleted BOOLEAN NOT NULL DEFAULT false,
     depth INTEGER DEFAULT 0 NOT NULL,
-    root_article_id INTEGER DEFAULT 0,
-    total_reply_count INTEGER DEFAULT 0 NOT NULL,
-    child_count INTEGER DEFAULT 0 NOT NULL
+    root_article_id INTEGER DEFAULT 0 NOT NULL
+    -- total_reply_count INTEGER DEFAULT 0 NOT NULL,
+    -- child_count INTEGER DEFAULT 0 NOT NULL
 );
 
 -- reply_to 为空时候标题不能为空，replay_to 不为空时标题可以为空
@@ -43,89 +43,89 @@ ALTER TABLE posts ADD CONSTRAINT posts_reply_to_title_check CHECK (
     (reply_to IS NOT NULL)
 );
 
-CREATE OR REPLACE FUNCTION update_parent_child_count() RETURNS TRIGGER AS $$
-    BEGIN
-        UPDATE posts
-	SET child_count = child_count +1
-	WHERE id = NEW.reply_to;
-	RETURN NULL;
-    END
-$$ LANGUAGE plpgsql;
+-- CREATE OR REPLACE FUNCTION update_parent_child_count() RETURNS TRIGGER AS $$
+--     BEGIN
+--         UPDATE posts
+-- 	SET child_count = child_count +1
+-- 	WHERE id = NEW.reply_to;
+-- 	RETURN NULL;
+--     END
+-- $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION update_depth() RETURNS TRIGGER AS $$
-    DECLARE
-        parent_depth int;
-    BEGIN
-	IF NEW.reply_to = 0 THEN
-	    RETURN NEW;
-	END IF;
+-- CREATE OR REPLACE FUNCTION update_depth() RETURNS TRIGGER AS $$
+--     DECLARE
+--         parent_depth int;
+--     BEGIN
+-- 	IF NEW.reply_to = 0 THEN
+-- 	    RETURN NEW;
+-- 	END IF;
 	
-        SELECT depth INTO parent_depth
-	FROM posts
-	WHERE id = NEW.reply_to;
+--         SELECT depth INTO parent_depth
+-- 	FROM posts
+-- 	WHERE id = NEW.reply_to;
 
-        NEW.depth = parent_depth + 1;
-	RETURN NEW;
-    END
-$$ LANGUAGE plpgsql;
+--         NEW.depth = parent_depth + 1;
+-- 	RETURN NEW;
+--     END
+-- $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION pass_root_id() RETURNS TRIGGER AS $$
-    DECLARE
-        root_id int;
-    BEGIN
-	IF NEW.reply_to = 0 THEN
-	    RETURN NEW;
-	END IF;
+-- CREATE OR REPLACE FUNCTION pass_root_id() RETURNS TRIGGER AS $$
+--     DECLARE
+--         root_id int;
+--     BEGIN
+-- 	IF NEW.reply_to = 0 THEN
+-- 	    RETURN NEW;
+-- 	END IF;
 	
-        SELECT root_article_id INTO root_id
-	FROM posts
-	WHERE id = NEW.reply_to;
+--         SELECT root_article_id INTO root_id
+-- 	FROM posts
+-- 	WHERE id = NEW.reply_to;
 	
-        IF root_id = 0 THEN
-	    NEW.root_article_id = NEW.reply_to;
-	ELSE
-	    NEW.root_article_id = root_id;
-	END IF;
+--         IF root_id = 0 THEN
+-- 	    NEW.root_article_id = NEW.reply_to;
+-- 	ELSE
+-- 	    NEW.root_article_id = root_id;
+-- 	END IF;
 
-	RETURN NEW;
-    END
-$$ LANGUAGE plpgsql;
+-- 	RETURN NEW;
+--     END
+-- $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION update_parent_total_reply_count() RETURNS TRIGGER AS $$
-    DECLARE
-        parent_id INT;
-    BEGIN
-        parent_id := NEW.reply_to;
+-- CREATE OR REPLACE FUNCTION update_parent_total_reply_count() RETURNS TRIGGER AS $$
+--     DECLARE
+--         parent_id INT;
+--     BEGIN
+--         parent_id := NEW.reply_to;
 
-        WHILE parent_id != 0 LOOP
-	    UPDATE posts SET total_reply_count = (SELECT COALESCE(SUM(total_reply_count), 0)+COUNT(*) FROM posts WHERE reply_to = parent_id) WHERE id = parent_id;
-	    SELECT reply_to INTO parent_id FROM posts WHERE id = parent_id;
-	END LOOP;    
-        RETURN NULL;
-    END;
-$$ LANGUAGE plpgsql;
+--         WHILE parent_id != 0 LOOP
+-- 	    UPDATE posts SET total_reply_count = (SELECT COALESCE(SUM(total_reply_count), 0)+COUNT(*) FROM posts WHERE reply_to = parent_id) WHERE id = parent_id;
+-- 	    SELECT reply_to INTO parent_id FROM posts WHERE id = parent_id;
+-- 	END LOOP;    
+--         RETURN NULL;
+--     END;
+-- $$ LANGUAGE plpgsql;
 
 CREATE RULE post_del_protect AS ON DELETE TO posts DO INSTEAD NOTHING;
 
-CREATE OR REPLACE TRIGGER update_parent_child_count_trigger
-    AFTER INSERT ON posts
-    FOR EACH ROW
-    EXECUTE FUNCTION update_parent_child_count();
+-- CREATE OR REPLACE TRIGGER update_parent_child_count_trigger
+--     AFTER INSERT ON posts
+--     FOR EACH ROW
+--     EXECUTE FUNCTION update_parent_child_count();
 
-CREATE OR REPLACE TRIGGER update_depth_trigger
-    BEFORE INSERT ON posts
-    FOR EACH ROW
-    EXECUTE FUNCTION update_depth();
+-- CREATE OR REPLACE TRIGGER update_depth_trigger
+--     BEFORE INSERT ON posts
+--     FOR EACH ROW
+--     EXECUTE FUNCTION update_depth();
 
-CREATE OR REPLACE TRIGGER pass_root_id_trigger
-    BEFORE INSERT ON posts
-    FOR EACH ROW
-    EXECUTE FUNCTION pass_root_id();
+-- CREATE OR REPLACE TRIGGER pass_root_id_trigger
+--     BEFORE INSERT ON posts
+--     FOR EACH ROW
+--     EXECUTE FUNCTION pass_root_id();
 
-CREATE OR REPLACE TRIGGER update_parent_total_reply_count_trigger
-    AFTER INSERT ON posts
-    FOR EACH ROW
-    EXECUTE FUNCTION update_parent_total_reply_count();
+-- CREATE OR REPLACE TRIGGER update_parent_total_reply_count_trigger
+--     AFTER INSERT ON posts
+--     FOR EACH ROW
+--     EXECUTE FUNCTION update_parent_total_reply_count();
 
 -- 插入样例数据
 -- 用户样例数据
@@ -146,11 +146,11 @@ VALUES
     ('How to Learn Programming', 'Programming is a very interesting skill. Here are my learning experience.', 3),
     ('Python 入门教程', 'Python 是一门非常受欢迎的编程语言，这里是一份简单的入门教程。', 3);
 
-INSERT INTO posts (title, content, author_id, reply_to, deleted)
+INSERT INTO posts (title, content, author_id, reply_to, depth, root_article_id, deleted)
 VALUES
-    ('回“第一篇博客”', '我是这样想的，哈哈，非常有意思，只是测试而已', 2, 1, false),
-    ('', '我就是想回复一下', 2, 1, false),
-    ('', '我就是想回复一下', 2, 6, false),
-    ('', '这是新的一片文章，测试看看', 3, 3, false),
-    ('', '我是这样想的，哈哈，非常有意思，只是测试而已', 2, 8, false),
-    ('', '我是这样想的，哈哈，非常有意思，只是测试而已', 2, 10, true);
+    ('', '我是这样想的，哈哈，非常有意思，只是测试而已', 2, 1, 1, 1, false),
+    ('', '我就是想回复一下', 2, 1, 1, 1, false),
+    ('', '我就是想回复一下', 2, 6, 2, 1, false),
+    ('', '这是新的一片文章，测试看看', 3, 3, 1, 3, false),
+    ('', '我是这样想的，哈哈，非常有意思，只是测试而已', 2, 8, 3, 1, false),
+    ('', '我是这样想的，哈哈，非常有意思，只是测试而已', 2, 10, 4, 1, true);

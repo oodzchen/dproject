@@ -19,12 +19,14 @@
 	    <a href="/articles?page={{add .Data.CurrPage -1}}">Prev Page</a>&nbsp;&nbsp;
 	{{- end -}}
 
-	{{$currPage := .Data.CurrPage}}
-	{{- range $page := intRange 1 .Data.TotalPage -}}
-	    {{- if eq $currPage $page -}}
-		&nbsp;{{$page}}&nbsp;&nbsp;
-	    {{- else -}}
-		&nbsp;<a href="/articles?page={{$page}}">{{$page}}</a>&nbsp;&nbsp;
+	{{- if gt .Data.TotalPage 1 -}}
+	    {{$currPage := .Data.CurrPage}}
+	    {{- range $page := intRange 1 .Data.TotalPage -}}
+		{{- if eq $currPage $page -}}
+		    &nbsp;{{$page}}&nbsp;&nbsp;
+		{{- else -}}
+		    &nbsp;<a href="/articles?page={{$page}}">{{$page}}</a>&nbsp;&nbsp;
+		{{- end -}}
 	    {{- end -}}
 	{{- end -}}
 

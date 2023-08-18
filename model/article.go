@@ -18,19 +18,19 @@ const (
 )
 
 type Article struct {
-	Id                        int
-	Title                     string
-	NullTitle                 pgtype.Text
-	AuthorName                string
-	AuthorId                  int
-	Content                   string
-	CreatedAt                 time.Time
-	UpdatedAt                 time.Time
-	CreatedAtStr              string
-	UpdatedAtStr              string
-	ReplyTo                   int
-	ReplyToTitle              string
-	NullReplyToTitle          pgtype.Text
+	Id           int
+	Title        string
+	NullTitle    pgtype.Text
+	AuthorName   string
+	AuthorId     int
+	Content      string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	CreatedAtStr string
+	UpdatedAtStr string
+	ReplyTo      int
+	// ReplyToTitle              string
+	// NullReplyToTitle          pgtype.Text
 	Deleted                   bool
 	Replies                   []*Article
 	ReplyDepth                int
@@ -46,9 +46,9 @@ func (a *Article) FormatNullValues() {
 		a.Title = a.NullTitle.String
 	}
 
-	if a.ReplyToTitle == "" && a.NullReplyToTitle.Valid {
-		a.ReplyToTitle = a.NullReplyToTitle.String
-	}
+	// if a.ReplyToTitle == "" && a.NullReplyToTitle.Valid {
+	// 	a.ReplyToTitle = a.NullReplyToTitle.String
+	// }
 
 	if a.ReplyRootArticleTitle == "" && a.NullReplyRootArticleTitle.Valid {
 		a.ReplyRootArticleTitle = a.NullReplyRootArticleTitle.String

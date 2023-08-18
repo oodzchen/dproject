@@ -1,7 +1,7 @@
 {{define "article_content" -}}
     {{$isRoot := eq .article.ReplyDepth 0 -}}
-    {{$depth := add .depth 1 -}}
-    {{$data := dict "currUser" .currUser "article" .article "depth" $depth "CSRFField" .CSRFField -}}
+    {{$pageDepth := add .pageDepth 1 -}}
+    {{$data := dict "currUser" .currUser "article" .article "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth -}}
     {{if .article.Deleted -}}
 	<article style="color:#666"><i>&lt;Deleted&gt;</i></article>
     {{else -}}
@@ -9,7 +9,7 @@
 	    {{if $isRoot -}}
 		<h1>{{.article.Title}}</h1>
 	    {{else -}}
-		{{if eq $depth 1 -}}
+		{{if eq $pageDepth 1 -}}
 		    <h1>Re{{if gt .article.ReplyDepth 1}} &times; {{.article.ReplyDepth}}{{- end -}}: <a href="/articles/{{.article.ReplyRootArticleId}}">{{.article.ReplyRootArticleTitle}}</a></h1>
 		{{- end -}}
 	    {{- end -}}
@@ -29,7 +29,7 @@
     {{- end -}}
 
     {{if and .delPage .currUser -}}
-	<form method="post" action="/articles/{{.article.Id}}/delete{{if gt .depth 1}}?from=reply{{- end}}" id="del_form_{{.article.Id}}" style="margin:12px 0 12px;padding:10px;border:1px solid #ccc;">
+	<form method="post" action="/articles/{{.article.Id}}/delete{{if gt .pageDepth 1}}?from=reply{{- end}}" id="del_form_{{.article.Id}}" style="margin:12px 0 12px;padding:10px;border:1px solid #ccc;">
 	    {{.CSRFField -}}
 	    <input type="hidden" name="id" value="{{.article.Id}}">
 	    <label for="confirm_del">Confirm to delete? (yes/no)</label>&nbsp;&nbsp;<input required name="confirm_del" type="text"/>
@@ -39,7 +39,7 @@
 	</form>
     {{- else -}}
 	{{if .currUser -}}
-	    {{if eq .depth 0 -}}
+	    {{if eq .pageDepth 0 -}}
 		{{if not $isRoot -}}
 		    <div><small><a href="/articles/{{.article.ReplyTo}}">Parent</a></small></div>
 		{{- end -}}
@@ -50,14 +50,14 @@
 	{{else -}}
 	    <div>
 		{{if .article.Deleted -}}
-		    <small>{{if eq .depth 0}}<a href="/articles/{{.article.ReplyTo}}">Parent</a>{{- end}}</small>
+		    <small>{{if eq .pageDepth 0}}<a href="/articles/{{.article.ReplyTo}}">Parent</a>{{- end}}</small>
 		{{else -}}
-		    <small><a href="/articles/{{.article.Id}}/reply">Reply</a>{{if and (eq .depth 0) (not $isRoot)}}&nbsp;&nbsp;<a href="/articles/{{.article.ReplyTo}}">Parent</a>{{- end}}</small>
+		    <small><a href="/articles/{{.article.Id}}/reply">Reply</a>{{if and (eq .pageDepth 0) (not $isRoot)}}&nbsp;&nbsp;<a href="/articles/{{.article.ReplyTo}}">Parent</a>{{- end}}</small>
 		{{- end -}}
 	    </div>
 	{{- end -}}
 
-	{{$replyData := dict "currUser" .currUser "replies" .article.Replies "depth" $depth "CSRFField" .CSRFField -}}
+	{{$replyData := dict "currUser" .currUser "replies" .article.Replies "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth -}}
 	{{template "article_replies" $replyData -}}
     {{- end -}}
 
@@ -69,7 +69,7 @@
 	    {{if eq .currUser.Id .article.AuthorId -}}
 		<small><a href="/articles/{{.article.Id}}/edit">Edit</a>&nbsp;&nbsp;<a class="btn-del" href="/articles/{{.article.Id}}/delete" style="color:red">Delete</a>&nbsp;</small>
 	    {{- end -}}
-	    {{if gt .depth 1 -}}
+	    {{if gt .pageDepth 1 -}}
 		<small><a href="/articles/{{.article.Id}}/reply">Reply</a></small>
 	    {{- end -}}
 	</div>
@@ -91,15 +91,16 @@
 
 {{define "article_replies" -}}
     {{$currUser := .currUser -}}
-    {{$depth := .depth -}}
+    {{$pageDepth := .pageDepth -}}
     {{$CSRFField := .CSRFField -}}
-    <ul class="replies" style="list-style:none;margin-left:0;{{if eq $depth 1}}padding-left:0;{{else}}padding-left:14px;{{- end}}">
+    {{$maxDepth := .maxDepth}}
+    <ul class="replies" style="list-style:none;margin-left:0;{{if eq $pageDepth 1}}padding-left:0;{{else}}padding-left:14px;{{- end}}">
 	{{range .replies -}}
-	    {{$subData := dict "currUser" $currUser "article" . "depth" $depth "CSRFField" $CSRFField -}}
+	    {{$subData := dict "currUser" $currUser "article" . "pageDepth" $pageDepth "CSRFField" $CSRFField "maxDepth" $maxDepth -}}
 	    <li style="padding-top:6px">
 		{{template "article_content" $subData -}}
 	    </li>
-	    {{if and (gt .TotalReplyCount 0) (eq $depth 9) -}}
+	    {{if and (gt .TotalReplyCount 0) (eq $pageDepth $maxDepth) -}}
 		<li style="padding-top:6px"><small><a href="/articles/{{.Id}}">More</a></small></li>
 	    {{- end -}}
 	{{- end -}}
@@ -107,8 +108,8 @@
 {{- end -}}
 
 {{define "article" -}}
-    {{$depth := 0 -}}
-    {{$data := dict "currUser" .LoginedUser "article" .Data.Article "delPage" .Data.DelPage "depth" $depth "CSRFField" .CSRFField -}}
+    {{$pageDepth := 0 -}}
+    {{$data := dict "currUser" .LoginedUser "article" .Data.Article "delPage" .Data.DelPage "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .Data.MaxDepth -}}
 
     {{template "head" . -}}
 

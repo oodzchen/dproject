@@ -20,11 +20,11 @@ func (a *Article) List(page int, pageSize int) ([]*model.Article, error) {
 	sqlStr := `
 SELECT tp.id, tp.title, u.name as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, (
 	WITH RECURSIVE replies AS (
-	   SELECT id, title, author_id, content, created_at, updated_at
+	   SELECT id
 	   FROM posts
 	   WHERE reply_to = tp.id AND deleted = false
 	   UNION ALL
-	   SELECT p.id, p.title, p.author_id, p.content, p.created_at, p.updated_at
+	   SELECT p.id
 	   FROM posts p
 	   INNER JOIN replies pr
 	   ON p.reply_to = pr.id
@@ -97,13 +97,26 @@ func (a *Article) Count() (int, error) {
 
 func (a *Article) Create(item *model.Article) (int, error) {
 	var id int
-	sqlStr := `insert into posts (title, author_id, content, reply_to, root_article_id) values ($1, $2, $3, $4, $5) returning (id);`
+	sqlStr := `
+INSERT INTO posts (title, author_id, content, reply_to, root_article_id)
+VALUES (
+    $1,
+    $2,
+    $3,
+    $4,
+    (
+        CASE WHEN $4 = 0 THEN 0
+	     WHEN (SELECT p.reply_to FROM posts p WHERE $4 = p.id) = 0 THEN $4
+             ELSE (SELECT p.root_article_id FROM posts p WHERE $4 = p.id)
+        END
+    )
+)
+RETURNING (id);`
 	err := a.dbPool.QueryRow(context.Background(), sqlStr,
 		item.Title,
 		item.AuthorId,
 		item.Content,
 		item.ReplyTo,
-		item.ReplyRootArticleId,
 	).Scan(&id)
 	if err != nil {
 		return 0, err
@@ -126,26 +139,39 @@ func (a *Article) Update(item *model.Article) (int, error) {
 
 func (a *Article) Item(id int) (*model.Article, error) {
 	var item model.Article
-	sqlStr := `select
-		p.id,
-		p.title,
-		u.name as author_name,
-		p.author_id,
-		p.content,
-		p.created_at,
-		p.updated_at,
-		p.deleted,
-		p.reply_to,
-		p.depth,
-		p.root_article_id,
-		p2.title as reply_to_title,
-		p3.title as root_article_title,
-		p.total_reply_count
-	from posts p
-	left join users u on p.author_id = u.id
-	left join posts p2 on p.reply_to = p2.id
-	left join posts p3 on p.root_article_id = p3.id
-	where p.id = $1`
+	sqlStr := `
+WITH RECURSIVE parents AS (
+    SELECT id, reply_to
+    FROM posts
+    WHERE id = $1
+    UNION ALL
+    SELECT p.id, p.reply_to
+    FROM posts p
+    INNER JOIN parents pr
+    ON p.id = pr.reply_to
+)
+SELECT p.id, p.title, u.name AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, (
+    SELECT COUNT(*) - 1
+    FROM parents
+) AS depth, p.root_article_id, p2.title as root_article_title, (
+	WITH RECURSIVE replies AS (
+	   SELECT id
+	   FROM posts
+	   WHERE reply_to = p.id AND deleted = false
+	   UNION ALL
+	   SELECT p1.id
+	   FROM posts p1
+	   INNER JOIN replies pr
+	   ON p1.reply_to = pr.id
+	   WHERE p1.deleted = false
+	)
+	SELECT COUNT(*)
+	FROM replies
+) AS total_reply_count
+FROM posts p
+LEFT JOIN users u ON p.author_id = u.id
+LEFT JOIN posts p2 ON p.root_article_id = p2.id
+WHERE p.id = $1;`
 	err := a.dbPool.QueryRow(context.Background(), sqlStr, id).Scan(
 		&item.Id,
 		&item.Title,
@@ -158,7 +184,6 @@ func (a *Article) Item(id int) (*model.Article, error) {
 		&item.ReplyTo,
 		&item.ReplyDepth,
 		&item.ReplyRootArticleId,
-		&item.NullReplyToTitle,
 		&item.NullReplyRootArticleTitle,
 		&item.TotalReplyCount,
 	)
@@ -171,57 +196,51 @@ func (a *Article) Item(id int) (*model.Article, error) {
 	return &item, nil
 }
 
-func (a *Article) GetReplies(id int) ([]*model.Article, error) {
-	sqlStr := `with recursive recurPosts as (select
-		id,
-		title,
-		author_id,
-		content,
-		created_at,
-		updated_at,
-		deleted,
-		reply_to,
-		root_article_id,
-		depth,
-		1 as recur_depth,
-		total_reply_count
-	from posts where id = $1
-	union all
-	select
-		p.id,
-		p.title,
-		p.author_id,
-		p.content,
-		p.created_at,
-		p.updated_at,
-		p.deleted,
-		p.reply_to,
-		p.root_article_id,
-		p.depth,
-		rp.recur_depth + 1,
-		p.total_reply_count
-	from posts p
-	join recurPosts rp on p.reply_to = rp.id
-	where rp.recur_depth < $2
+func (a *Article) ItemTree(id int) ([]*model.Article, error) {
+	sqlStr := `
+WITH RECURSIVE parents AS (
+    SELECT id, reply_to
+    FROM posts
+    WHERE id = $1
+    UNION ALL
+    SELECT p.id, p.reply_to
+    FROM posts p
+    INNER JOIN parents pr
+    ON p.id = pr.reply_to
+),
+articleTree AS (
+     SELECT id, title, author_id, content, created_at, updated_at, deleted, reply_to, 0 AS depth, root_article_id
+     FROM posts
+     WHERE id = $1
+     UNION ALL
+     SELECT p.id, p.title, p.author_id, p.content, p.created_at,p.updated_at, p.deleted, p.reply_to, ar.depth + 1, p.root_article_id
+     FROM posts p
+     JOIN articleTree ar
+     ON p.reply_to = ar.id
+     WHERE ar.depth < $2
 )
-select
-	rp.id,
-	rp.title,
-	u.name as author_name,
-	rp.author_id,
-	rp.content,
-	rp.created_at,
-	rp.updated_at,
-	rp.deleted,
-	rp.reply_to,
-	rp.depth,
-	rp.root_article_id,
-	p2.title as reply_to_title,
-	rp.total_reply_count
-from recurPosts rp
-left join posts p2 on rp.reply_to = p2.id
-join users u on rp.author_id = u.id
-order by rp.created_at`
+SELECT ar.id, ar.title, u.name as author_name, ar.author_id, ar.content, ar.created_at, ar.updated_at, ar.deleted, ar.reply_to, (
+     SELECT COUNT(*) - 1 + ar.depth
+       FROM parents
+) AS depth, ar.root_article_id, p2.title as root_article_title, (
+	WITH RECURSIVE replies AS (
+	   SELECT id
+	   FROM posts
+	   WHERE reply_to = ar.id AND deleted = false
+	   UNION ALL
+	   SELECT p.id
+	   FROM posts p
+	   INNER JOIN replies pr
+	   ON p.reply_to = pr.id
+	   WHERE p.deleted = false
+	)
+	SELECT COUNT(*)
+	FROM replies
+) AS total_reply_count
+FROM articleTree ar
+JOIN users u ON ar.author_id = u.id
+LEFT JOIN posts p2 ON ar.root_article_id = p2.id
+ORDER BY ar.created_at;`
 
 	rows, err := a.dbPool.Query(context.Background(), sqlStr, id, utils.GetReplyDepthSize())
 	if err != nil {
@@ -243,7 +262,7 @@ order by rp.created_at`
 			&item.ReplyTo,
 			&item.ReplyDepth,
 			&item.ReplyRootArticleId,
-			&item.NullReplyToTitle,
+			&item.NullReplyRootArticleTitle,
 			&item.TotalReplyCount,
 		)
 

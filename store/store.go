@@ -20,7 +20,7 @@ type ArticleStore interface {
 	Update(*model.Article) (int, error)
 	Item(int) (*model.Article, error)
 	Delete(id int, authorId int) (int, error)
-	GetReplies(int) ([]*model.Article, error)
+	ItemTree(int) ([]*model.Article, error)
 	Count() (int, error)
 }
 
