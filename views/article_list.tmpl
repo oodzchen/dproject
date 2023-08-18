@@ -3,7 +3,7 @@
     {{template "head" . -}}
 
     {{$data := .Data -}}
-    <ol style="padding-left:1rem;list-style-position:inside;" start="{{add (mul (add $data.CurrPage -1) $data.PageSize) 1}}">
+    <ol style="padding-left:0rem;list-style-position:inside;" start="{{add (mul (add $data.CurrPage -1) $data.PageSize) 1}}">
 	{{range $idx, $item := .Data.Articles -}}
 	    <li>
 		<a href="/articles/{{$item.Id}}">{{$item.Title}}</a>
@@ -16,11 +16,19 @@
     <div>
 	{{- if gt .Data.CurrPage 1 -}}
 	    <a href="/articles">First</a>&nbsp;
-	    <a href="/articles?page={{add .Data.CurrPage -1}}">Prev Page</a>
+	    <a href="/articles?page={{add .Data.CurrPage -1}}">Prev Page</a>&nbsp;&nbsp;
+	{{- end -}}
+
+	{{$currPage := .Data.CurrPage}}
+	{{- range $page := intRange 1 .Data.TotalPage -}}
+	    {{- if eq $currPage $page -}}
+		&nbsp;{{$page}}&nbsp;&nbsp;
+	    {{- else -}}
+		&nbsp;<a href="/articles?page={{$page}}">{{$page}}</a>&nbsp;&nbsp;
+	    {{- end -}}
 	{{- end -}}
 
 	{{- if lt .Data.CurrPage .Data.TotalPage -}}
-	    &nbsp;&nbsp;{{.Data.CurrPage}}&nbsp;&nbsp
 	    <a href="/articles?page={{add .Data.CurrPage 1}}">Next Page</a>&nbsp;
 	    <a href="/articles?page={{.Data.TotalPage}}">Last</a>&nbsp;
 	{{- end -}}

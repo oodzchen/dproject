@@ -15,7 +15,6 @@ import (
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
 	"github.com/oodzchen/dproject/web"
-	"github.com/xeonx/timeago"
 )
 
 type ServiceConfig struct {
@@ -24,21 +23,12 @@ type ServiceConfig struct {
 	store      *store.Store
 }
 
-var tmplFuncs = template.FuncMap{
-	"timeAgo":    formatTimeAgo,
-	"timeFormat": utils.FormatTime,
-}
-
 var AuthRequiredPathes map[string]Methods = map[string]Methods{
 	`^/logout($|/)`:              {"GET"},
 	`^/articles($|/)`:            {"POST"},
 	`^/articles/\d+/delete($|/)`: {"GET", "POST"},
 	`^/articles/\d+/edit($|/)`:   {"GET", "POST"},
 	`^/articles/\d+/reply($|/)`:  {"GET", "POST"},
-}
-
-func formatTimeAgo(t time.Time) string {
-	return timeago.English.Format(t)
 }
 
 func FileServer(r chi.Router, path string, root http.FileSystem) {
@@ -61,7 +51,7 @@ func FileServer(r chi.Router, path string, root http.FileSystem) {
 }
 
 func Service(c *ServiceConfig) http.Handler {
-	baseTmpl := template.New("base").Funcs(tmplFuncs).Funcs(sprig.FuncMap())
+	baseTmpl := template.New("base").Funcs(TmplFuncs).Funcs(sprig.FuncMap())
 	baseTmpl = template.Must(baseTmpl.ParseGlob("./views/*.tmpl"))
 
 	r := chi.NewRouter()

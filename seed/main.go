@@ -13,7 +13,7 @@ import (
 	"github.com/oodzchen/dproject/mocktool"
 )
 
-const timeoutDuration int = 500
+const timeoutDuration int = 300
 
 var articleNum int
 

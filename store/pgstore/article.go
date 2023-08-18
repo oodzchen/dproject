@@ -49,8 +49,8 @@ LIMIT $2;`
 		pageSize = defaultPage
 	}
 
-	fmt.Println("page", page)
-	fmt.Println("pageSize", pageSize)
+	// fmt.Println("page", page)
+	// fmt.Println("pageSize", pageSize)
 
 	rows, err := a.dbPool.Query(context.Background(), sqlStr, pageSize*(page-1), pageSize)
 
