@@ -3,7 +3,7 @@
     {{template "head" . -}}
 
     {{$data := .Data -}}
-    <ol style="padding-left:0rem;list-style-position:inside;" start="{{add (mul (add $data.CurrPage -1) $data.PageSize) 1}}">
+    <ol class="article-list" style="padding-left:0rem;list-style-position:inside;" start="{{add (mul (add $data.CurrPage -1) $data.PageSize) 1}}">
 	{{range $idx, $item := .Data.Articles -}}
 	    <li>
 		<a href="/articles/{{$item.Id}}">{{$item.Title}}</a>

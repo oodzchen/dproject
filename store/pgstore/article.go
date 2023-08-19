@@ -98,7 +98,7 @@ func (a *Article) Count() (int, error) {
 func (a *Article) Create(item *model.Article) (int, error) {
 	var id int
 	sqlStr := `
-INSERT INTO posts (title, author_id, content, reply_to, root_article_id)
+INSERT INTO posts (title, author_id, content, reply_to, root_article_id, depth)
 VALUES (
     $1,
     $2,
@@ -108,6 +108,12 @@ VALUES (
         CASE WHEN $4 = 0 THEN 0
 	     WHEN (SELECT p.reply_to FROM posts p WHERE $4 = p.id) = 0 THEN $4
              ELSE (SELECT p.root_article_id FROM posts p WHERE $4 = p.id)
+        END
+    ),
+    (
+        CASE WHEN $4 = 0 THEN 0
+             WHEN (SELECT p.reply_to FROM posts p WHERE $4 = p.id) = 0 THEN 0
+             ELSE (SELECT p.depth + 1 FROM posts p WHERE $4 = p.id)
         END
     )
 )
@@ -140,20 +146,7 @@ func (a *Article) Update(item *model.Article) (int, error) {
 func (a *Article) Item(id int) (*model.Article, error) {
 	var item model.Article
 	sqlStr := `
-WITH RECURSIVE parents AS (
-    SELECT id, reply_to
-    FROM posts
-    WHERE id = $1
-    UNION ALL
-    SELECT p.id, p.reply_to
-    FROM posts p
-    INNER JOIN parents pr
-    ON p.id = pr.reply_to
-)
-SELECT p.id, p.title, u.name AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, (
-    SELECT COUNT(*) - 1
-    FROM parents
-) AS depth, p.root_article_id, p2.title as root_article_title, (
+SELECT p.id, p.title, u.name AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title as root_article_title, (
 	WITH RECURSIVE replies AS (
 	   SELECT id
 	   FROM posts
@@ -198,31 +191,18 @@ WHERE p.id = $1;`
 
 func (a *Article) ItemTree(id int) ([]*model.Article, error) {
 	sqlStr := `
-WITH RECURSIVE parents AS (
-    SELECT id, reply_to
-    FROM posts
-    WHERE id = $1
-    UNION ALL
-    SELECT p.id, p.reply_to
-    FROM posts p
-    INNER JOIN parents pr
-    ON p.id = pr.reply_to
-),
-articleTree AS (
-     SELECT id, title, author_id, content, created_at, updated_at, deleted, reply_to, 0 AS depth, root_article_id
+WITH RECURSIVE articleTree AS (
+     SELECT id, title, author_id, content, created_at, updated_at, deleted, reply_to, depth, 0 AS cur_depth, root_article_id
      FROM posts
      WHERE id = $1
      UNION ALL
-     SELECT p.id, p.title, p.author_id, p.content, p.created_at,p.updated_at, p.deleted, p.reply_to, ar.depth + 1, p.root_article_id
+     SELECT p.id, p.title, p.author_id, p.content, p.created_at,p.updated_at, p.deleted, p.reply_to, p.depth, ar.cur_depth + 1, p.root_article_id
      FROM posts p
      JOIN articleTree ar
      ON p.reply_to = ar.id
-     WHERE ar.depth < $2
+     WHERE ar.cur_depth < $2
 )
-SELECT ar.id, ar.title, u.name as author_name, ar.author_id, ar.content, ar.created_at, ar.updated_at, ar.deleted, ar.reply_to, (
-     SELECT COUNT(*) - 1 + ar.depth
-       FROM parents
-) AS depth, ar.root_article_id, p2.title as root_article_title, (
+SELECT ar.id, ar.title, u.name as author_name, ar.author_id, ar.content, ar.created_at, ar.updated_at, ar.deleted, ar.reply_to, ar.depth, ar.root_article_id, p2.title as root_article_title, (
 	WITH RECURSIVE replies AS (
 	   SELECT id
 	   FROM posts
