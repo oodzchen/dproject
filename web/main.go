@@ -253,10 +253,15 @@ func (mr *MainResource) SaveSettings(w http.ResponseWriter, r *http.Request) {
 		sess.SetValue("page_theme", theme)
 	}
 
-	http.Redirect(w, r, "/", http.StatusFound)
+	if nextUrl, ok := mr.Session("one-cookie", w, r).GetValue("next_url").(string); ok && len(nextUrl) > 0{
+		http.Redirect(w, r, nextUrl, http.StatusFound)
+	} else {
+		http.Redirect(w, r, "/", http.StatusFound)
+	}
 }
 
 func (mr *MainResource) SettingsPage(w http.ResponseWriter, r *http.Request) {
+	mr.Session("one-cookie", w, r).SetValue("next_url", r.Referer())
 	mr.Render(w, r, "settings", &PageData{
 		Title: "Settings",
 	})
