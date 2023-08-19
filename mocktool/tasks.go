@@ -71,8 +71,8 @@ func CreateArticle(a *TestArticle) chp.Tasks {
 		chp.WaitVisible(`body>footer`),
 		chp.TextContent(`body>article>h1`, &result),
 		chp.ActionFunc(func(ctx context.Context) error {
-			Logln("\nnew article: ", a.Title)
-			Logln("resulteText: \n", result)
+			// Logln("\nnew article: ", a.Title)
+			// Logln("resulteText: \n", result)
 			if result != a.Title {
 				return errors.New("create article failed, new article title incorrect")
 			}

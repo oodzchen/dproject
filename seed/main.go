@@ -5,8 +5,8 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"math/rand"
 	"os"
+	"sync"
 	"time"
 
 	chp "github.com/chromedp/chromedp"
@@ -42,60 +42,120 @@ func main() {
 
 	allocCtx, cancel := chp.NewExecAllocator(context.Background(), opts...)
 	defer cancel()
-
-	ctx, cancel := chp.NewContext(allocCtx, chp.WithLogf(log.Printf))
-	defer cancel()
-
-	ctx, tcancel := context.WithTimeout(ctx, time.Duration(timeoutDuration*int(time.Second)))
-	defer tcancel()
-
-	err = chp.Run(ctx,
-		chp.Navigate(mocktool.ServerURL),
-		chp.WaitVisible(`body > footer`),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	
 	const userNum int = 30
-	var userPool []*mocktool.TestUser
+	var userPool []*userCtx
+	var wg sync.WaitGroup
+	userResults := make(chan *userCtx)
 
 	for i := 0; i < userNum; i++ {
+		wg.Add(1)
 		user := mocktool.GenUser()
-		fmt.Println("register user: ", user)
-		err := chp.Run(ctx,
-			mocktool.MustLogout(),
-			mocktool.Register(user),
-		)
-		if err != nil {
-			fmt.Printf("register user %v failed: %v\n", user, err)
-			continue
-		}
-		userPool = append(userPool, user)
+		
+		go registerUser(allocCtx, user, &wg, userResults)
 	}
 
+	go func() {
+		wg.Wait()
+		close(userResults)
+	}()
+
+	for res := range userResults {
+		fmt.Println("result from user channel: ", res)
+		if res != nil{
+			defer res.cancel()
+			defer res.tcancel()
+			
+			userPool = append(userPool, res)
+		}
+	}
+
+	fmt.Printf("Register complete. Successed: %d, Failed: %d\n", len(userPool), userNum - len(userPool))
+
+	var aWg sync.WaitGroup
+	articleResult := make(chan error, articleNum)
+	articleQueue := make(chan *mocktool.TestArticle, articleNum)
+	
 	failedNum := 0
-	for i := 0; i < articleNum; i++ {
-		user := userPool[rand.Intn(len(userPool))]
-		article := mocktool.GenArticle()
-		fmt.Printf("user %v create article \"%s\"\n", user, article.Title)
-
-		err := createSampleArticle(ctx, user, article)
-		if err != nil {
-			failedNum += 1
-			continue
-		}
+	for i := 0; i < len(userPool); i++ {
+		aWg.Add(1)
+		uCtx := userPool[i]
+		// uCtx := userPool[i]
+		// article := mocktool.GenArticle()
+		go createSampleArticle(&aWg, uCtx.ctx, uCtx.user, articleQueue, articleResult)
 	}
+
+	go func(){
+		for res := range articleResult{
+			fmt.Println("result from article channel: ", res)
+			if res != nil {
+				failedNum += 1
+			}
+		}
+	}()
+
+	for i := 0; i < articleNum; i++ {
+		articleQueue <- mocktool.GenArticle()
+	}
+	close(articleQueue)
+
+	aWg.Wait()
+	close(articleResult)
 
 	fmt.Printf("Create article complete. Successed: %d, Failed: %d\n", articleNum-failedNum, failedNum)
 }
 
-func createSampleArticle(ctx context.Context, u *mocktool.TestUser, a *mocktool.TestArticle) error {
-	return chp.Run(ctx,
+type userCtx struct {
+	ctx context.Context
+	cancel context.CancelFunc
+	tcancel context.CancelFunc
+	user *mocktool.TestUser
+}
+
+func registerUser(ctx context.Context, u *mocktool.TestUser, wg *sync.WaitGroup, results chan<- *userCtx) {
+	uCtx := new(userCtx)
+	uCtx.user = u
+	
+	ctx, cancel := chp.NewContext(ctx, chp.WithLogf(log.Printf))
+
+	uCtx.cancel = cancel
+	// defer cancel()
+
+	ctx, tcancel := context.WithTimeout(ctx, time.Duration(timeoutDuration*int(time.Second)))
+	uCtx.tcancel = tcancel
+	// defer tcancel()
+
+	uCtx.ctx = ctx
+	
+	defer wg.Done()
+	
+	fmt.Println("register user: ", u)
+	err := chp.Run(ctx,
+		chp.Navigate(mocktool.ServerURL),
+		chp.WaitVisible(`body > footer`),
 		mocktool.MustLogout(),
-		// mocktool.Register(u),
-		mocktool.Login(u),
-		mocktool.CreateArticle(a),
-		mocktool.Logout(),
+		mocktool.Register(u),
 	)
+	if err != nil {
+		results <- nil
+		fmt.Printf("register user failed: \n\tuser:%v\n\terror:%v\n", u, err)
+		return
+	}
+	results <- uCtx
+}
+
+func createSampleArticle(wg *sync.WaitGroup, ctx context.Context, u *mocktool.TestUser, ach <-chan *mocktool.TestArticle, results chan<- error) {
+	defer wg.Done()
+
+	for a := range ach {
+		fmt.Printf("user %v create article \"%s\"\n", u, a.Title)
+		err := chp.Run(ctx,
+			mocktool.MustLogout(),
+			mocktool.Login(u),
+			mocktool.CreateArticle(a),
+			mocktool.Logout(),
+		)
+
+		results <- err
+	}
 }
