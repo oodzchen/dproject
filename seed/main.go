@@ -28,6 +28,8 @@ func main() {
 
 	fmt.Printf("Creating article number: %d\n", articleNum)
 
+	startTime := time.Now()
+
 	dir, err := os.MkdirTemp("", "chromedp-example")
 	defer os.RemoveAll(dir)
 	if err != nil {
@@ -92,6 +94,11 @@ func main() {
 				failedNum += 1
 			}
 		}
+
+		fmt.Printf("Create article complete. Successed: %d, Failed: %d\n", articleNum-failedNum, failedNum)
+
+		seedDuration := time.Now().Sub(startTime)
+		fmt.Printf("Total duration: %fs\n", seedDuration.Seconds())
 	}()
 
 	for i := 0; i < articleNum; i++ {
@@ -101,8 +108,6 @@ func main() {
 
 	aWg.Wait()
 	close(articleResult)
-
-	fmt.Printf("Create article complete. Successed: %d, Failed: %d\n", articleNum-failedNum, failedNum)
 }
 
 type userCtx struct {
