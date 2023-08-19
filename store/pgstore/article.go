@@ -112,7 +112,7 @@ VALUES (
     ),
     (
         CASE WHEN $4 = 0 THEN 0
-             WHEN (SELECT p.reply_to FROM posts p WHERE $4 = p.id) = 0 THEN 0
+             WHEN (SELECT p.reply_to FROM posts p WHERE $4 = p.id) = 0 THEN 1
              ELSE (SELECT p.depth + 1 FROM posts p WHERE $4 = p.id)
         END
     )
@@ -131,7 +131,7 @@ RETURNING (id);`
 }
 
 func (a *Article) Update(item *model.Article) (int, error) {
-	sqlStr := `update posts set title = $1, content = $2, updated_at = current_timestamp where id = $3 returning (id)`
+	sqlStr := `UPDATE posts SET title = $1, content = $2, updated_at = current_timestamp WHERE id = $3 RETURNING (id)`
 	var id int
 	err := a.dbPool.QueryRow(context.Background(), sqlStr,
 		item.Title,
@@ -262,7 +262,7 @@ ORDER BY ar.created_at;`
 
 func (a *Article) Delete(id int, authorId int) (rootArticleId int, err error) {
 	err = a.dbPool.QueryRow(context.Background(),
-		"update posts set deleted = true where id = $1 and author_id = $2 returning (root_article_id)",
+		"UPDATE posts SET deleted = true WHERE id = $1 AND author_id = $2 RETURNING (root_article_id)",
 		id,
 		authorId,
 	).Scan(&rootArticleId)
