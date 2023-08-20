@@ -31,16 +31,17 @@ jobs:
       env:
           DB_PWD: ${{ secrets.DB_PASSWORD }}
           ADMIN_DB_PWD: ${{ secrets.ADMIN_DB_PASSWORD }}
-      run: echo $DB_PWD > ./config/pg_password.txt && echo $ADMIN_DB_PWD > ./config/admin_password.txt
+      run: |
+          echo $DB_PWD > ./config/pg_password.txt
+          echo $ADMIN_DB_PWD > ./config/admin_password.txt
       
     - name: Database
-      run: docker compose -f ./docker-compose.dev.yml -p webapp up
+      run: docker compose -f ./docker-compose.dev.yml -p webapp up -d
 
     - name: Configuer db and app
       run: ./config/seed.sh "webapp-db-1"
 
-    - name: Run app
-      run: ./app
-      
-    - name: E2E testing
-      run: go run ./e2e
+    - name: Run app and e2e test
+      run: |
+          ./app
+          go run ./e2e
