@@ -16,17 +16,22 @@ import (
 const timeoutDuration int = 300
 
 var articleNum int
+var parallelNum int
 
 func init() {
 	const defaultArticleNum int = 16
+	const defaultParallel int = 30
 	flag.IntVar(&articleNum, "article-num", defaultArticleNum, "Create article with specific number")
 	flag.IntVar(&articleNum, "an", defaultArticleNum, "Create article with specific number")
+	flag.IntVar(&parallelNum, "parallel", defaultParallel, "Goroutine number")
+	flag.IntVar(&parallelNum, "p", defaultParallel, "Goroutine number")
 }
 
 func main() {
 	flag.Parse()
 
 	fmt.Printf("Creating article number: %d\n", articleNum)
+	fmt.Printf("Parallel number: %d\n", parallelNum)
 
 	startTime := time.Now()
 
@@ -44,8 +49,8 @@ func main() {
 
 	allocCtx, cancel := chp.NewExecAllocator(context.Background(), opts...)
 	defer cancel()
-	
-	const userNum int = 30
+
+	userNum := parallelNum
 	var userPool []*userCtx
 	var wg sync.WaitGroup
 	userResults := make(chan *userCtx)
@@ -53,7 +58,6 @@ func main() {
 	for i := 0; i < userNum; i++ {
 		wg.Add(1)
 		user := mocktool.GenUser()
-		
 		go registerUser(allocCtx, user, &wg, userResults)
 	}
 
@@ -64,20 +68,20 @@ func main() {
 
 	for res := range userResults {
 		fmt.Println("result from user channel: ", res)
-		if res != nil{
+		if res != nil {
 			defer res.cancel()
 			defer res.tcancel()
-			
+
 			userPool = append(userPool, res)
 		}
 	}
 
-	fmt.Printf("Register complete. Successed: %d, Failed: %d\n", len(userPool), userNum - len(userPool))
+	fmt.Printf("Register complete. Successed: %d, Failed: %d\n", len(userPool), userNum-len(userPool))
 
 	var aWg sync.WaitGroup
 	articleResult := make(chan error, articleNum)
 	articleQueue := make(chan *mocktool.TestArticle, articleNum)
-	
+
 	failedNum := 0
 	for i := 0; i < len(userPool); i++ {
 		aWg.Add(1)
@@ -87,8 +91,8 @@ func main() {
 		go createSampleArticle(&aWg, uCtx.ctx, uCtx.user, articleQueue, articleResult)
 	}
 
-	go func(){
-		for res := range articleResult{
+	go func() {
+		for res := range articleResult {
 			fmt.Println("result from article channel: ", res)
 			if res != nil {
 				failedNum += 1
@@ -111,16 +115,16 @@ func main() {
 }
 
 type userCtx struct {
-	ctx context.Context
-	cancel context.CancelFunc
+	ctx     context.Context
+	cancel  context.CancelFunc
 	tcancel context.CancelFunc
-	user *mocktool.TestUser
+	user    *mocktool.TestUser
 }
 
 func registerUser(ctx context.Context, u *mocktool.TestUser, wg *sync.WaitGroup, results chan<- *userCtx) {
 	uCtx := new(userCtx)
 	uCtx.user = u
-	
+
 	ctx, cancel := chp.NewContext(ctx, chp.WithLogf(log.Printf))
 
 	uCtx.cancel = cancel
@@ -131,9 +135,9 @@ func registerUser(ctx context.Context, u *mocktool.TestUser, wg *sync.WaitGroup,
 	// defer tcancel()
 
 	uCtx.ctx = ctx
-	
+
 	defer wg.Done()
-	
+
 	fmt.Println("register user: ", u)
 	err := chp.Run(ctx,
 		chp.Navigate(mocktool.ServerURL),
