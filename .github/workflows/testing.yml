@@ -27,6 +27,9 @@ jobs:
     - name: Test
       run: go test -v ./...
       
+    - name: Database
+      run: docker compose -f ./docker-compose.dev.yml -p webapp up -d
+
     - name: Password files
       env:
           DB_PWD: ${{ secrets.DB_PASSWORD }}
@@ -34,10 +37,8 @@ jobs:
       run: |
           echo $DB_PWD > ./config/pg_password.txt
           echo $ADMIN_DB_PWD > ./config/admin_password.txt
-      
-    - name: Database
-      run: docker compose -f ./docker-compose.dev.yml -p webapp up -d
-
+          ls ./config
+          
     - name: Configuer db and app
       run: ./config/seed.sh "webapp-db-1"
 
