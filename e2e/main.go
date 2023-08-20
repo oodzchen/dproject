@@ -21,7 +21,7 @@ import (
 // 	}
 // }
 
-const TIMEOUT_DURATION int = 6
+const TimeoutDuration int = 6
 
 var showHead bool
 var timeoutDuration int
@@ -30,7 +30,7 @@ func init() {
 	const defaultSowHead = false
 	flag.BoolVar(&showHead, "h", defaultSowHead, "Show browser head")
 
-	flag.IntVar(&timeoutDuration, "t", TIMEOUT_DURATION, "Timeout duration")
+	flag.IntVar(&timeoutDuration, "t", TimeoutDuration, "Timeout duration")
 }
 
 func main() {
@@ -42,7 +42,7 @@ func main() {
 	flag.Parse()
 
 	fmt.Printf("Show browser head: %t\n", showHead)
-	fmt.Printf("Timeout duration: %ds\n", timeoutDuration*int(time.Second))
+	fmt.Printf("Timeout duration: %ds\n", timeoutDuration)
 
 	opts := append(chp.DefaultExecAllocatorOptions[:],
 		chp.DisableGPU,

@@ -1,8 +1,29 @@
 version: "3.8"
 services:
+  webapp:
+    build:
+      context: .
+      args:
+        HTTPS_PROXY: http://192.168.31.130:1089
+    environment:
+      DB_CONTAINER_NAME: "webapp-db-1"
+      DB_HOST: "db"
+      DB_PORT: 5432
+    container_name: "webapp-app-1"
+    ports:
+      - 3000:3000
+    depends_on:
+      db:
+        condition: service_healthy
+    links:
+      - db
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker
+      - .:/usr/src/app
   db:
     image: postgres:15.4
-    container_name: "webapp-local-db"
+    container_name: "webapp-db-1"
     user: postgres
     secrets:
       - db-password

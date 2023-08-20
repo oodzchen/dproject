@@ -10,39 +10,48 @@ on:
     branches: [ "main" ]
 
 jobs:
-
-  build:
+  Testing:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
+    - name: Setup Golang with cache
+      uses: magnetikonline/action-golang-cache@v4
       with:
-        go-version: '1.20'
+        go-version-file: go.mod
 
     - name: Build
-      run: go build -o app -v .
+      run: go build -o /usr/local/bin/app -v .
 
     - name: Test
       run: go test -v ./...
-      
-    - name: Database
-      run: docker compose -f ./docker-compose.dev.yml -p webapp up -d
 
     - name: Password files
       env:
           DB_PWD: ${{ secrets.DB_PASSWORD }}
           ADMIN_DB_PWD: ${{ secrets.ADMIN_DB_PASSWORD }}
       run: |
-          echo $DB_PWD > ./config/pg_password.txt
-          echo $ADMIN_DB_PWD > ./config/admin_password.txt
-          ls ./config
-          
-    - name: Configuer db and app
-      run: ./config/seed.sh "webapp-db-1"
+        echo $DB_PWD > ./config/pg_password.txt
+        echo $ADMIN_DB_PWD > ./config/admin_password.txt
+        ls ./config
 
-    - name: Run app and e2e test
+    - name: Docker Layer Caching2
+      uses: jpribyl/action-docker-layer-caching@v0.1.0
+
+    - name: DB docker
       run: |
-          ./app
-          go run ./e2e
+        docker compose -f ./docker-compose.dev.yml -p webapp up --build -d
+        docker ps
+
+    - name: Run app
+      run: |
+        export DB_CONTAINER_NAME=$(docker ps --format "{{.Names}}" | grep db)
+        echo "DB_CONTAINER_NAME: $DB_CONTAINER_NAME"
+        ./config/wait-pg.sh
+        ./config/endpoint.sh
+      env:
+        DB_HOST: "0.0.0.0"
+        DB_PORT: 8088
+
+    - name: E2E test
+      run: go run ./e2e -t 180
