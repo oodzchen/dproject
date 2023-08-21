@@ -3,8 +3,7 @@ services:
   webapp:
     build:
       context: .
-      args:
-        HTTPS_PROXY: http://192.168.31.130:1089
+      network: host
     environment:
       DB_CONTAINER_NAME: "webapp-db-1"
       DB_HOST: "db"
@@ -21,6 +20,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - /usr/bin/docker:/usr/bin/docker
       - .:/usr/src/app
+
+    
   db:
     image: postgres:15.4
     container_name: "webapp-db-1"
