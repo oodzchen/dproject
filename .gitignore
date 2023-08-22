@@ -18,7 +18,7 @@ tmp
 
 #*#
 *~
-.env.local
+.env.local*
 .env.act
 *_password.txt
 .secrets*
