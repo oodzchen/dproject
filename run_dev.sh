@@ -3,13 +3,14 @@
 env_file=${1:-./.env.local.docker.dev}   
 
 echo "env file: $env_file"
-echo "env file content: $(cat $env_file)"
+# echo "env file content: $(cat $env_file)"
 
 echo "is ci: $2"
 
-if [ "$2" == "ci" ];then
 docker compose -f ./docker-compose.dev.yml pull
 docker compose -f ./docker-compose.dev.yml rm -f
+
+if [ "$2" == "ci" ];then
 docker compose --env-file "$env_file" -f ./docker-compose.dev.yml build --no-cache
 fi
 

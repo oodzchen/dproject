@@ -10,14 +10,11 @@ services:
         - ADMIN_PASSWORD=$ADMIN_PASSWORD
     container_name: "local-webapp-db"
     user: postgres
-    secrets:
-      - db-password
     volumes:
       - db-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=postgres
-      - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
-    # env_file: ./config/db/.env.local
+      - POSTGRES_PASSWORD=$PG_PASSWORD
     expose:
       - 5432
     ports:
@@ -30,7 +27,3 @@ services:
 
 volumes:
   db-data:
-
-secrets:
-  db-password:
-    file: ./config/db/pg_password.txt

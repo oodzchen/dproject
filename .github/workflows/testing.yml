@@ -28,15 +28,15 @@ jobs:
 
     - name: ENV vars
       env:
-          DB_PWD: ${{ secrets.DB_PASSWORD }}
+          PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_USER: ${{ secrets.DB_USER }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_PORT: ${{ secrets.DB_PORT }}
       run: |
-        echo $DB_PWD > ./config/db/pg_password.txt
-        echo "DB_NAME=$DB_NAME" > ./.env.testing
+        echo "PG_PASSWORD=$PG_PASSWORD" > ./.env.testing
+        echo "DB_NAME=$DB_NAME" >> ./.env.testing
         echo "DB_USER=$DB_USER" >> ./.env.testing
         echo "ADMIN_PASSWORD=$ADMIN_PASSWORD" >> ./.env.testing
         echo "DB_HOST=$DB_HOST" >> ./.env.testing
