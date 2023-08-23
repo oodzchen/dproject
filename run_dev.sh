@@ -1,39 +1,50 @@
 #!/usr/bin/env bash
 
-docker compose --env-file ./.env.local.docker.dev -f ./docker-compose.dev.yml up -d
+env_file=${1:-./.env.local.docker.dev}   
+
+echo "env file: $env_file"
+echo "env file content: $(cat $env_file)"
+
+echo "is ci: $2"
+
+if [ "$2" == "ci" ];then
+docker compose -f ./docker-compose.dev.yml pull
+docker compose -f ./docker-compose.dev.yml rm -f
+docker compose --env-file "$env_file" -f ./docker-compose.dev.yml build --no-cache
+fi
+
+docker compose --env-file "$env_file" -f ./docker-compose.dev.yml up -d
 
 if [ $? -ne 0 ];then
-   echo "Docker compose up failed"
-   exit 1
+    echo "Docker compose up failed"
+    exit 1
 fi
 
 set -o allexport
-source .env.local.docker.dev
+source $env_file
 set +o allexport
 
-echo "DB_NAME: $DB_NAME"
-echo "DB_USER: $DB_USER"
-echo "ADMIN_PASSWORD: $ADMIN_PASSWORD"
-echo "DB_HOST: $DB_HOST"
-echo "DB_PORT: $DB_PORT"
-
 export SESSION_SECRET=$(uuidgen)
+
 export CSRF_SECRET=$(uuidgen)
 
 cat ./.env.example | envsubst > ./.env.local
 
 if [ $? -ne 0 ];then
-   echo "Init env file failed"
-   exit 1
+    echo "Init env file failed"
+    exit 1
 fi
 
 cleanup() {
     echo "Ctrl+C pressed. Cleaning up..."
-    # Add your cleanup code here
+
     docker compose -f ./docker-compose.dev.yml down
-    exit 1  # Exit the script
+    exit 1
 }
 
-trap cleanup SIGINT
-
-fresh
+if [ "$2" == "ci" ];then
+    app &
+else
+    trap cleanup SIGINT
+    fresh
+fi

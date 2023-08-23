@@ -26,32 +26,30 @@ jobs:
     - name: Test
       run: go test -v ./...
 
-    - name: Password files
+    - name: ENV vars
       env:
           DB_PWD: ${{ secrets.DB_PASSWORD }}
-          ADMIN_DB_PWD: ${{ secrets.ADMIN_DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
       run: |
-        echo $DB_PWD > ./config/pg_password.txt
-        echo $ADMIN_DB_PWD > ./config/admin_password.txt
-        ls ./config
+        echo $DB_PWD > ./config/db/pg_password.txt
+        echo "DB_NAME=$DB_NAME" > ./.env.testing
+        echo "DB_USER=$DB_USER" >> ./.env.testing
+        echo "ADMIN_PASSWORD=$ADMIN_PASSWORD" >> ./.env.testing
+        echo "DB_HOST=$DB_HOST" >> ./.env.testing
+        echo "DB_PORT=$DB_PORT" >> ./.env.testing
+        echo "env file len $(expr length "$(cat ./.env.testing)")"
 
     - name: Docker Layer Caching2
       uses: jpribyl/action-docker-layer-caching@v0.1.0
 
-    - name: DB docker
+    - name: Run docker and app
       run: |
-        docker compose -f ./docker-compose.dev.yml -p webapp up --build -d
+        ./run_dev.sh ./.env.testing ci
         docker ps
-
-    - name: Run app
-      run: |
-        export DB_CONTAINER_NAME=$(docker ps --format "{{.Names}}" | grep db)
-        echo "DB_CONTAINER_NAME: $DB_CONTAINER_NAME"
-        ./config/wait-pg.sh
-        ./config/endpoint.sh
-      env:
-        DB_HOST: "0.0.0.0"
-        DB_PORT: 8088
-
+        
     - name: E2E test
       run: go run ./e2e -t 180
