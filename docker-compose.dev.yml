@@ -1,22 +1,18 @@
 version: "3.8"
 services:
   db:
-    build:
-      context: ./config/db
-      dockerfile: Dockerfile
-      args:
-        - DB_NAME=$DB_NAME
-        - DB_USER=$DB_USER
-        - ADMIN_PASSWORD=$ADMIN_PASSWORD
+    image: postgres:15.4
     container_name: "local-webapp-db"
     user: postgres
     volumes:
       - db-data:/var/lib/postgresql/data
+      - ./config/db/initdb:/docker-entrypoint-initdb.d/
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_PASSWORD=$PG_PASSWORD
-    expose:
-      - 5432
+      - DB_NAME=$DB_NAME
+      - DB_USER=$DB_USER
+      - ADMIN_PASSWORD=$ADMIN_PASSWORD
     ports:
       - $DB_PORT:5432
     healthcheck:
