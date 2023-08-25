@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 
 	"github.com/gorilla/sessions"
@@ -47,4 +48,8 @@ func HttpError(msg string, err error, w http.ResponseWriter, code int) {
 	}
 	fmt.Printf("%+v\n", err)
 	http.Error(w, errText, code)
+}
+
+func CeilInt(a, b int) int {
+	return int(math.Ceil(float64(a) / float64(b)))
 }

@@ -42,6 +42,15 @@ func (u *User) List() ([]*model.User, error) {
 	return list, nil
 }
 
+func (u *User) Count() (int, error) {
+	var count int
+	err := u.dbPool.QueryRow(context.Background(), `SELECT COUNT(*) FROM users;`).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
 func (u *User) Create(item *model.User) (int, error) {
 	// fmt.Printf("user.create item: %+v\n", item)
 	var id int

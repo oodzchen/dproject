@@ -29,6 +29,7 @@ var AuthRequiredPathes map[string]Methods = map[string]Methods{
 	`^/articles/\d+/delete($|/)`: {"GET", "POST"},
 	`^/articles/\d+/edit($|/)`:   {"GET", "POST"},
 	`^/articles/\d+/reply($|/)`:  {"GET", "POST"},
+	`^/users($|/)`:               {"GET"},
 }
 
 func FileServer(r chi.Router, path string, root http.FileSystem) {
@@ -75,15 +76,18 @@ func Service(c *ServiceConfig) http.Handler {
 	sessStore.Options.SameSite = http.SameSiteLaxMode
 
 	articleResource := web.NewArticleResource(baseTmpl, c.store, sessStore)
+	mainResource := web.NewMainResource(baseTmpl, articleResource, c.store, sessStore)
 
+	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		mainResource.Error("", nil, w, r, http.StatusNotFound)
+	})
 	r.Use(CreateCheckAuthMiddleware(AuthRequiredPathes, sessStore))
-
 	r.Mount("/debug", middleware.Profiler())
 	FileServer(r, "/static", http.Dir("./static"))
 	r.Get("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/static/favicon.ico", http.StatusFound)
 	})
-	r.Mount("/", web.NewMainResource(baseTmpl, articleResource, c.store, sessStore).Routes())
+	r.Mount("/", mainResource.Routes())
 	r.Mount("/articles", articleResource.Routes())
 	r.Mount("/users", web.NewUserResource(baseTmpl, c.store, sessStore).Routes())
 

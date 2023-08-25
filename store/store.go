@@ -33,6 +33,7 @@ type UserStore interface {
 	Ban(int) error
 	Login(email string, pwd string) (int, error)
 	GetPosts(int) ([]*model.Article, error)
+	Count() (int, error)
 }
 
 func New(dbStore DBStore) (*Store, error) {

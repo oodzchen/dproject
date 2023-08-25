@@ -2,7 +2,6 @@ package web
 
 import (
 	"fmt"
-	"math"
 	"net/http"
 	"strconv"
 	"text/template"
@@ -85,11 +84,16 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		TotalPage    int
 	}
 
-	pageData := &PageData{Title: "Home", Data: &ListData{list, total, page, pageSize, int(math.Ceil(float64(total) / float64(pageSize)))}}
-
-	// if r.URL.Path == "/settings" {
-	// 	pageData.Type = PageTypeSettings
-	// }
+	pageData := &PageData{
+		Title: "Home",
+		Data: &ListData{
+			list,
+			total,
+			page,
+			pageSize,
+			CeilInt(total, pageSize),
+		},
+	}
 
 	ar.Render(w, r, "article_list", pageData)
 }
@@ -185,26 +189,6 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 		Content:  r.Form.Get("content"),
 		ReplyTo:  replyTo,
 	}
-
-	// if isReply {
-	// 	toArticle, err := ar.store.Article.Item(replyTo)
-	// 	if err != nil {
-	// 		ar.Error("", err, w, r, http.StatusInternalServerError)
-	// 		return
-	// 	}
-	// 	// utils.PrintJSONf("toArticle: ", toArticle)
-
-	// 	article.ReplyDepth = toArticle.ReplyDepth + 1
-
-	// 	if toArticle.ReplyDepth == 0 {
-	// 		article.ReplyRootArticleId = toArticle.Id
-	// 	} else {
-	// 		article.ReplyRootArticleId = toArticle.ReplyRootArticleId
-	// 	}
-	// }
-
-	// fmt.Printf("article: %+v\n", article)
-	// utils.PrintJSONf("create article: ", article)
 
 	article.Sanitize()
 

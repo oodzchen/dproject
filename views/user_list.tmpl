@@ -1,0 +1,25 @@
+{{define "user_list"}}
+
+    {{template "head" .}}
+    <style>
+     .user-list li{
+	 margin-bottom: 0.5rem;
+     }
+    </style>
+    <h1>User List</h1>
+    <ul class="user-list">
+	{{- range .Data.List -}}
+	    <li>
+		<a href="/users/{{.Id}}">{{.Name}}</a>
+		<div>{{.Email}}</div>
+		<div style="color: #999">regitered at {{ timeAgo .RegisteredAt }}</div>
+	    </li>
+	{{- end -}}
+    </ul>
+
+    {{ $pagiData := dict "currPage" .Data.CurrPage "totalPage" .Data.TotalPage "pathPrefix" "/users"  }}
+    {{ template "pagination" $pagiData }}    
+
+    {{template "foot" .}}
+
+{{- end -}}

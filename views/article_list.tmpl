@@ -13,29 +13,8 @@
 	{{end -}}
     </ol>
 
-    <div>
-	{{- if gt .Data.CurrPage 1 -}}
-	    <a href="/articles">First</a>&nbsp;
-	    <a href="/articles?page={{add .Data.CurrPage -1}}">Prev Page</a>&nbsp;&nbsp;
-	{{- end -}}
-
-	{{- if gt .Data.TotalPage 1 -}}
-	    {{$currPage := .Data.CurrPage}}
-	    {{- range $page := intRange 1 .Data.TotalPage -}}
-		{{- if eq $currPage $page -}}
-		    &nbsp;{{$page}}&nbsp;&nbsp;
-		{{- else -}}
-		    &nbsp;<a href="/articles?page={{$page}}">{{$page}}</a>&nbsp;&nbsp;
-		{{- end -}}
-	    {{- end -}}
-	{{- end -}}
-
-	{{- if lt .Data.CurrPage .Data.TotalPage -}}
-	    <a href="/articles?page={{add .Data.CurrPage 1}}">Next Page</a>&nbsp;
-	    <a href="/articles?page={{.Data.TotalPage}}">Last</a>&nbsp;
-	{{- end -}}
-    </div>
-    
+    {{ $pagiData := dict "currPage" .Data.CurrPage "totalPage" .Data.TotalPage "pathPrefix" "/articles"  }}
+    {{ template "pagination" $pagiData }}    
 
     {{template "foot" -}}
 {{end -}}

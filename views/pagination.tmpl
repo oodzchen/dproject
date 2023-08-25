@@ -1,0 +1,25 @@
+{{ define "pagination" }}
+    <div>
+	{{- if gt .currPage 1 -}}
+	    <a href="{{.pathPrefix}}">First</a>&nbsp;
+	    <a href="{{.pathPrefix}}?page={{add .currPage -1}}">Prev Page</a>&nbsp;&nbsp;
+	{{- end -}}
+	
+	{{- if gt .totalPage 1 -}}
+	    {{$currPage := .currPage}}
+	    {{$pathPrefix := .pathPrefix}}
+	    {{- range $page := intRange 1 .totalPage -}}
+		{{- if eq $currPage $page -}}
+		    &nbsp;{{$page}}&nbsp;&nbsp;
+		{{- else -}}
+		    &nbsp;<a href="{{$pathPrefix}}?page={{$page}}">{{$page}}</a>&nbsp;&nbsp;
+		{{- end -}}
+	    {{- end -}}
+	{{- end -}}
+
+	{{- if lt .currPage .totalPage -}}
+	    <a href="{{.pathPrefix}}?page={{add .currPage 1}}">Next Page</a>&nbsp;
+	    <a href="{{.pathPrefix}}?page={{.totalPage}}">Last</a>&nbsp;
+	{{- end -}}
+    </div>
+{{- end -}}

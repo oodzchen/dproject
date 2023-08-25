@@ -32,9 +32,57 @@ func NewUserResource(tmpl *template.Template, store *store.Store, sessStore *ses
 func (ur *UserResource) Routes() http.Handler {
 	rt := chi.NewRouter()
 
+	rt.Get("/", ur.List)
 	rt.Get("/{userId}", ur.ItemPage)
 
 	return rt
+}
+
+func (ur *UserResource) List(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+
+	paramPage := r.Form.Get("page")
+	// fmt.Println("paramPage:", paramPage)
+	page, err := strconv.Atoi(paramPage)
+	if err != nil {
+		// fmt.Printf("page err %v\n", err)
+		page = 1
+	}
+
+	pageSize, err := strconv.Atoi(r.Form.Get("page_size"))
+	if err != nil {
+		pageSize = 100
+	}
+
+	list, err := ur.store.User.List()
+	if err != nil {
+		ur.Error("", err, w, r, http.StatusInternalServerError)
+	}
+
+	total, err := ur.store.User.Count()
+	if err != nil {
+		ur.Error("", err, w, r, http.StatusInternalServerError)
+		return
+	}
+
+	type UserListPage struct {
+		List      []*model.User
+		Total     int
+		CurrPage  int
+		TotalPage int
+		PageSize  int
+	}
+
+	ur.Render(w, r, "user_list", &PageData{
+		Title: "User List",
+		Data: &UserListPage{
+			list,
+			total,
+			page,
+			CeilInt(total, pageSize),
+			pageSize,
+		},
+	})
 }
 
 func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {

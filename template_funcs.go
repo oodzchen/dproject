@@ -19,6 +19,7 @@ func formatTimeAgo(t time.Time) string {
 }
 
 func intRange(start, end int) []int {
+	// fmt.Println("start: ", start, "end", end)
 	n := end - start + 1
 	result := make([]int, n)
 	for i := 0; i < n; i++ {
