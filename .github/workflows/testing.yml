@@ -32,6 +32,7 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_USER: ${{ secrets.DB_USER }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          USER_DEFAULT_PASSWORD: ${{ secrets.USER_DEFAULT_PASSWORD }}
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_PORT: ${{ secrets.DB_PORT }}
       run: |
