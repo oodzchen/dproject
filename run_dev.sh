@@ -7,11 +7,10 @@ echo "env file: $env_file"
 echo "is ci: $2"
 
 run_docker(){
-    docker compose --env-file "$1" -f ./docker-compose.dev.yml pull
-    docker compose --env-file "$1" -f ./docker-compose.dev.yml rm -f
-    
-    if [ "$2" == "ci" ];then
-    docker compose --env-file "$1" -f ./docker-compose.dev.yml build --no-cache
+    if [ "$2" == "build" ];then
+       docker compose --env-file "$1" -f ./docker-compose.dev.yml pull
+       docker compose --env-file "$1" -f ./docker-compose.dev.yml rm -f
+       docker compose --env-file "$1" -f ./docker-compose.dev.yml build --no-cache
     fi
     
     docker compose --env-file "$1" -f ./docker-compose.dev.yml up -d
