@@ -54,7 +54,7 @@ func (ur *UserResource) List(w http.ResponseWriter, r *http.Request) {
 		pageSize = 100
 	}
 
-	list, err := ur.store.User.List()
+	list, err := ur.store.User.List(page, pageSize)
 	if err != nil {
 		ur.Error("", err, w, r, http.StatusInternalServerError)
 	}

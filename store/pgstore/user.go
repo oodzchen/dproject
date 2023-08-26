@@ -13,8 +13,21 @@ type User struct {
 	dbPool *pgxpool.Pool
 }
 
-func (u *User) List() ([]*model.User, error) {
-	rows, err := u.dbPool.Query(context.Background(), "SELECT id, name, email, created_at FROM users ORDER BY created_at desc")
+func (u *User) List(page int, pageSize int) ([]*model.User, error) {
+	if page < 1 {
+		page = defaultPage
+	}
+
+	if pageSize < 1 {
+		pageSize = defaultPage
+	}
+	
+	rows, err := u.dbPool.Query(
+		context.Background(),
+		"SELECT id, name, email, created_at FROM users ORDER BY created_at desc OFFSET $1 LIMIT $2",
+		pageSize * (page -1),
+		pageSize,
+	)
 
 	if err != nil {
 		return nil, err

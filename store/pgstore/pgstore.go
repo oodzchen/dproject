@@ -10,6 +10,9 @@ type DBConfig struct {
 
 var pgDB *DB
 
+const defaultPage = 1
+const defaultPageSize = 10
+
 func New(config *DBConfig) *PGStore {
 	pgDB = &DB{config.DSN, nil}
 	return &PGStore{}

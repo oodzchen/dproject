@@ -13,9 +13,6 @@ type Article struct {
 	dbPool *pgxpool.Pool
 }
 
-const defaultPage = 1
-const defaultPageSize = 10
-
 func (a *Article) List(page int, pageSize int) ([]*model.Article, error) {
 	sqlStr := `
 SELECT tp.id, tp.title, u.name as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, (
