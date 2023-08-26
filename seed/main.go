@@ -10,32 +10,51 @@ import (
 	"time"
 
 	chp "github.com/chromedp/chromedp"
+	"github.com/oodzchen/dproject/config"
 	"github.com/oodzchen/dproject/mocktool"
 )
 
 const timeoutDuration int = 300
 
 var articleNum int
-var parallelNum int
+var userNum int
+var envFile string
+var showHead bool
+
+var mock *mocktool.Mock
 
 func init() {
 	const defaultArticleNum int = 16
-	const defaultParallel int = 30
-	flag.IntVar(&articleNum, "article-num", defaultArticleNum, "Create article with specific number")
+	const defaultUserNum int = 30
+	const defaultEnvFile string = ".env.local"
+	
 	flag.IntVar(&articleNum, "an", defaultArticleNum, "Create article with specific number")
-	flag.IntVar(&parallelNum, "parallel", defaultParallel, "Goroutine number")
-	flag.IntVar(&parallelNum, "p", defaultParallel, "Goroutine number")
+	flag.IntVar(&userNum, "un", defaultUserNum, "User(goroutine) number")
+	flag.StringVar(&envFile, "e", defaultEnvFile, "ENV file path, default to .env.local")
+	flag.BoolVar(&showHead, "h", false, "Show browser head")
 }
 
 func main() {
 	flag.Parse()
 
 	fmt.Printf("Creating article number: %d\n", articleNum)
-	fmt.Printf("Parallel number: %d\n", parallelNum)
+	fmt.Printf("User(goroutine) number: %d\n", userNum)
+	fmt.Printf("ENV file path: %s\n", envFile)
+
+	cfg, err := config.Parse(envFile)
+	if err != nil{
+		log.Fatal(err)
+	}
+
+	// fmt.Println("App config: ", cfg)
+	
+	mock = mocktool.NewMock(cfg)
+
+	// fmt.Println("Mock: ", mock)
 
 	startTime := time.Now()
 
-	dir, err := os.MkdirTemp("", "chromedp-example")
+	dir, err := os.MkdirTemp("", "chromedp-temp")
 	defer os.RemoveAll(dir)
 	if err != nil {
 		log.Fatal(err)
@@ -44,16 +63,15 @@ func main() {
 	opts := append(chp.DefaultExecAllocatorOptions[:],
 		chp.DisableGPU,
 		chp.UserDataDir(dir),
-		chp.Flag("headless", true),
+		chp.Flag("headless", !showHead),
 	)
 
 	allocCtx, cancel := chp.NewExecAllocator(context.Background(), opts...)
 	defer cancel()
 
-	userNum := parallelNum
 	var userPool []*userCtx
 	var wg sync.WaitGroup
-	userResults := make(chan *userCtx)
+	userResults := make(chan *userCtx, userNum)
 
 	for i := 0; i < userNum; i++ {
 		wg.Add(1)
@@ -86,8 +104,6 @@ func main() {
 	for i := 0; i < len(userPool); i++ {
 		aWg.Add(1)
 		uCtx := userPool[i]
-		// uCtx := userPool[i]
-		// article := mocktool.GenArticle()
 		go createSampleArticle(&aWg, uCtx.ctx, uCtx.user, articleQueue, articleResult)
 	}
 
@@ -106,6 +122,7 @@ func main() {
 	}()
 
 	for i := 0; i < articleNum; i++ {
+		// fmt.Println("article queue: ", i)
 		articleQueue <- mocktool.GenArticle()
 	}
 	close(articleQueue)
@@ -122,35 +139,27 @@ type userCtx struct {
 }
 
 func registerUser(ctx context.Context, u *mocktool.TestUser, wg *sync.WaitGroup, results chan<- *userCtx) {
-	uCtx := new(userCtx)
-	uCtx.user = u
-
+	defer wg.Done()
+	
 	ctx, cancel := chp.NewContext(ctx, chp.WithLogf(log.Printf))
 
-	uCtx.cancel = cancel
-	// defer cancel()
-
 	ctx, tcancel := context.WithTimeout(ctx, time.Duration(timeoutDuration*int(time.Second)))
-	uCtx.tcancel = tcancel
-	// defer tcancel()
-
-	uCtx.ctx = ctx
-
-	defer wg.Done()
 
 	fmt.Println("register user: ", u)
 	err := chp.Run(ctx,
-		chp.Navigate(mocktool.ServerURL),
+		chp.Navigate(mock.ServerURL),
 		chp.WaitVisible(`body > footer`),
-		mocktool.MustLogout(),
-		mocktool.Register(u),
+		mock.MustLogout(),
+		mock.Register(u),
 	)
+	
 	if err != nil {
-		results <- nil
 		fmt.Printf("register user failed: \n\tuser:%v\n\terror:%v\n", u, err)
+		results <- nil
+		tcancel()
 		return
 	}
-	results <- uCtx
+	results <- &userCtx{ ctx, cancel, tcancel, u }
 }
 
 func createSampleArticle(wg *sync.WaitGroup, ctx context.Context, u *mocktool.TestUser, ach <-chan *mocktool.TestArticle, results chan<- error) {
@@ -159,10 +168,10 @@ func createSampleArticle(wg *sync.WaitGroup, ctx context.Context, u *mocktool.Te
 	for a := range ach {
 		fmt.Printf("user %v create article \"%s\"\n", u, a.Title)
 		err := chp.Run(ctx,
-			mocktool.MustLogout(),
-			mocktool.Login(u),
-			mocktool.CreateArticle(a),
-			mocktool.Logout(),
+			mock.MustLogout(),
+			mock.Login(u),
+			mock.CreateArticle(a),
+			mock.Logout(),
 		)
 
 		results <- err

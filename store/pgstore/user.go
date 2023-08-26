@@ -14,7 +14,7 @@ type User struct {
 }
 
 func (u *User) List() ([]*model.User, error) {
-	rows, err := u.dbPool.Query(context.Background(), "SELECT id, name, email, created_at FROM users WHERE deleted = false")
+	rows, err := u.dbPool.Query(context.Background(), "SELECT id, name, email, created_at FROM users ORDER BY created_at desc")
 
 	if err != nil {
 		return nil, err

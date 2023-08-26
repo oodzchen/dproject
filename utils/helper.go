@@ -5,16 +5,21 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+
+	"github.com/oodzchen/dproject/config"
 )
 
 const DEFAULT_REPLY_DEPTH_SIZE int = 10
 
 func GetSiteHost() string {
-	domain := os.Getenv("DOMAIN_NAME")
-	port := os.Getenv("PORT")
+	// domain := os.Getenv("DOMAIN_NAME")
+	domain := config.Config.DomainName
+	// port := os.Getenv("PORT")
+	port := config.Config.Port
 
-	if port != ":80" && port != "443" {
-		return domain + port
+	if port != 80 && port != 443 {
+		// return domain + ":" + port
+		return fmt.Sprintf("%s:%d", domain, port)
 	} else {
 		return domain
 	}

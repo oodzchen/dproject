@@ -11,6 +11,7 @@ import (
 
 	"github.com/brianvoe/gofakeit/v6"
 	chp "github.com/chromedp/chromedp"
+	"github.com/oodzchen/dproject/config"
 	"github.com/oodzchen/dproject/mocktool"
 	"github.com/pkg/errors"
 )
@@ -21,16 +22,22 @@ import (
 // 	}
 // }
 
-const TimeoutDuration int = 6
+
 
 var showHead bool
 var timeoutDuration int
 
-func init() {
-	const defaultSowHead = false
-	flag.BoolVar(&showHead, "h", defaultSowHead, "Show browser head")
+var envFile string
+var mock *mocktool.Mock
 
-	flag.IntVar(&timeoutDuration, "t", TimeoutDuration, "Timeout duration")
+func init() {
+	const defaultTimeoutDuration int = 6
+	const defaultSowHead = false
+	const defaultEnvFile = ".env.local"
+	
+	flag.BoolVar(&showHead, "h", defaultSowHead, "Show browser head")
+	flag.IntVar(&timeoutDuration, "t", defaultTimeoutDuration, "Timeout duration")
+	flag.StringVar(&envFile, "e", defaultEnvFile, "App env file")
 }
 
 func main() {
@@ -43,6 +50,14 @@ func main() {
 
 	fmt.Printf("Show browser head: %t\n", showHead)
 	fmt.Printf("Timeout duration: %ds\n", timeoutDuration)
+	fmt.Printf("ENV file: %s\n", envFile)
+
+	cfg, err := config.Parse(envFile)
+	if err != nil{
+		log.Fatal(err)
+	}
+	
+	mock = mocktool.NewMock(cfg)
 
 	opts := append(chp.DefaultExecAllocatorOptions[:],
 		chp.DisableGPU,
@@ -61,7 +76,7 @@ func main() {
 
 	var content string
 	err = runTasks("visit article and get content", ctx,
-		chp.Navigate(mocktool.ServerURL),
+		chp.Navigate(mock.ServerURL),
 		chp.WaitVisible(`body>footer`),
 		chp.Click(`ol>li:first-child>a`, chp.NodeVisible),
 		chp.WaitVisible(`body>footer`),
@@ -76,7 +91,7 @@ func main() {
 	mocktool.LogFailed(err)
 
 	err = runTasks("add new as anonymous", ctx,
-		chp.Navigate(mocktool.ServerURL),
+		chp.Navigate(mock.ServerURL),
 		chp.WaitVisible(`body>footer`),
 		chp.Click(`ul.nav-menu:nth-child(2) > li:nth-child(1) > a:nth-child(1)`, chp.NodeVisible),
 		chp.WaitVisible(`body>footer`),
@@ -87,7 +102,7 @@ func main() {
 	newUser := mocktool.GenUser()
 	var resultText string
 	err = runTasks("register new user", ctx,
-		mocktool.Register(newUser),
+		mock.Register(newUser),
 		chp.TextContent(`#page-tip>span`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
 			mocktool.Logln("new user: ", newUser)
@@ -104,7 +119,7 @@ func main() {
 	// }
 
 	err = runTasks("register duplicate user", ctx,
-		mocktool.Register(newUser),
+		mock.Register(newUser),
 		chp.TextContent(`#err-msg`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
 			if len(resultText) == 0 {
@@ -116,7 +131,7 @@ func main() {
 	mocktool.LogFailed(err)
 
 	err = runTasks("login", ctx,
-		mocktool.Login(newUser),
+		mock.Login(newUser),
 		chp.TextContent(`ul.nav-menu:nth-child(2) > li:nth-child(2) > a:nth-child(1)`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
 			if len(resultText) == 0 || resultText != newUser.Name {
@@ -128,7 +143,7 @@ func main() {
 	mocktool.LogFailed(err)
 
 	err = runTasks("logout", ctx,
-		mocktool.Logout(),
+		mock.Logout(),
 		chp.TextContent(`ul.nav-menu:nth-child(2) > li:nth-child(3) > a:nth-child(1)`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
 			if resultText != "Login" {
@@ -140,7 +155,7 @@ func main() {
 	mocktool.LogFailed(err)
 
 	err = runTasks("user profile", ctx,
-		mocktool.Login(newUser),
+		mock.Login(newUser),
 		chp.Click(`ul.nav-menu:nth-child(2) > li:nth-child(2) > a:nth-child(1)`),
 		chp.WaitVisible(`body>footer`),
 		chp.TextContent(`body > table:nth-child(6) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(1)`, &resultText),
@@ -154,7 +169,7 @@ func main() {
 	mocktool.LogFailed(err)
 
 	err = runTasks("create article as anonymous", ctx,
-		mocktool.Logout(),
+		mock.Logout(),
 		chp.Click(`ul.nav-menu:nth-child(2) > li:nth-child(1) > a:nth-child(1)`),
 		chp.WaitVisible(`body>footer`),
 		chp.TextContent(`button[type=submit]`, &resultText),
@@ -169,8 +184,8 @@ func main() {
 
 	newArticle := mocktool.GenArticle()
 	err = runTasks("create article as logined user", ctx,
-		mocktool.Login(newUser),
-		mocktool.CreateArticle(newArticle),
+		mock.Login(newUser),
+		mock.CreateArticle(newArticle),
 	)
 	mocktool.LogFailed(err)
 

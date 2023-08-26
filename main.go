@@ -10,34 +10,28 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/joho/godotenv"
+	"github.com/oodzchen/dproject/config"
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/store/pgstore"
+	"github.com/oodzchen/dproject/utils"
 )
 
-// var clearCookie bool
-
-// func init() {
-// 	flag.BoolVar(&clearCookie, "clear-cookie", false, "Clear cookie")
-// 	flag.BoolVar(&clearCookie, "cc", false, "Clear cookie")
-// }
-
 func main() {
-	// flag.Parse()
-
-	// if utils.IsDebug() {
-	// 	fmt.Println("Clear cookie: ", clearCookie)
-	// }
-
-	err := godotenv.Load(".env.local")
+	err := config.Init(".env.local")
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	appCfg := config.Config
+
+	// fmt.Printf("App config: %#v\n", appCfg)
+	if appCfg.Debug {
+		utils.PrintJSONf("App config:\n", appCfg)
+	}
 	// fmt.Println("DSN: ", os.Getenv("DB_DSN"))
 
 	pg := pgstore.New(&pgstore.DBConfig{
-		DSN: os.Getenv("DB_DSN"),
+		DSN: appCfg.DB.GetDSN(),
 	})
 
 	err = pg.ConnectDB()
@@ -51,11 +45,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	port := os.Getenv("PORT")
+	port := appCfg.Port
 	server := &http.Server{
-		Addr: fmt.Sprintf("0.0.0.0%s", port),
+		Addr: fmt.Sprintf("0.0.0.0:%d", port),
 		Handler: (Service(&ServiceConfig{
-			sessSecret: os.Getenv("SESSION_SECRET"),
+			sessSecret: appCfg.SessionSecret,
 			store:      dataStore,
 		})),
 	}
@@ -84,7 +78,7 @@ func main() {
 		serverStopCtx()
 	}()
 
-	fmt.Printf("Listening at http://localhost%s\n", port)
+	fmt.Printf("Listening at http://localhost%d\n", port)
 	err = server.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
 		log.Fatal(err)
