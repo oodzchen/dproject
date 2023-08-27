@@ -271,20 +271,10 @@ func (mr *MainResource) SaveUISettings(w http.ResponseWriter, r *http.Request) {
 	oneSess.Raw.AddFlash("UI settings successfully saved")
 	oneSess.Raw.Save(r, w)
 
-	// if nextUrl, ok := mr.Session("one-cookie", w, r).GetValue("next_url").(string); ok && len(nextUrl) > 0{
-	// 	http.Redirect(w, r, nextUrl, http.StatusFound)
-	// } else {
-	// 	http.Redirect(w, r, "/", http.StatusFound)
-	// }
 	http.Redirect(w, r, "/settings/ui", http.StatusFound)
 }
 
 func (mr *MainResource) SettingsPage(w http.ResponseWriter, r *http.Request) {
-	// mr.Session("one-cookie", w, r).SetValue("next_url", r.Referer())
-	// mr.Render(w, r, "settings", &PageData{
-	// 	Title: "Settings",
-	// })
-
 	if IsLogin(mr.sessStore, w, r){
 		http.Redirect(w, r, "/settings/account", http.StatusFound)
 	}else{

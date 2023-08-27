@@ -44,7 +44,7 @@
 	     body{
 		 margin: 0 auto;
 		 padding: 10px 20px;
-		 {{- if eq .UISettings.ContentLayout "centered" -}}
+		 {{- if and .UISettings (eq .UISettings.ContentLayout "centered") -}}
 		 max-width: 1000px;
 		 {{- end -}}
 	     }
