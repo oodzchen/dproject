@@ -64,12 +64,6 @@ func Service(c *ServiceConfig) http.Handler {
 	r.Use(middleware.GetHead)
 	r.Use(middleware.RedirectSlashes)
 
-	rateLimit := 100
-	if utils.IsDebug() {
-		rateLimit = 10000
-	}
-	r.Use(httprate.LimitByIP(rateLimit, 1*time.Minute))
-
 	sessStore := sessions.NewCookieStore([]byte(c.sessSecret))
 	sessStore.Options.HttpOnly = true
 	sessStore.Options.Secure = !utils.IsDebug()
@@ -77,6 +71,20 @@ func Service(c *ServiceConfig) http.Handler {
 
 	articleResource := web.NewArticleResource(baseTmpl, c.store, sessStore)
 	mainResource := web.NewMainResource(baseTmpl, articleResource, c.store, sessStore)
+
+	rateLimit := 100
+	if utils.IsDebug() {
+		rateLimit = 10000
+	}
+	
+	r.Use(httprate.Limit(
+		rateLimit,
+		1*time.Minute,
+		httprate.WithKeyByIP(),
+		httprate.WithLimitHandler(func(w http.ResponseWriter, r *http.Request) {
+			mainResource.Error("", nil, w, r, http.StatusTooManyRequests)
+		}),
+	))
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		mainResource.Error("", nil, w, r, http.StatusNotFound)
