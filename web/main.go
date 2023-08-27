@@ -40,13 +40,17 @@ func (mr *MainResource) Routes() http.Handler {
 	rt := chi.NewRouter()
 
 	rt.Get("/", mr.articleRs.List)
-	rt.Get("/settings", mr.SettingsPage)
-	rt.Post("/settings", mr.SaveSettings)
 	rt.Get("/register", mr.RegisterPage)
 	rt.Post("/register", mr.Register)
 	rt.Get("/login", mr.LoginPage)
 	rt.Post("/login", mr.Login)
 	rt.Get("/logout", mr.Logout)
+	rt.Route("/settings", func(r chi.Router){
+		r.Get("/", mr.SettingsPage)
+		r.Get("/account", mr.SettingsAccountPage)
+		r.Get("/ui", mr.SettingsUIPage)
+		r.Post("/ui", mr.SaveUISettings)
+	})
 
 	return rt
 }
@@ -238,31 +242,86 @@ func (mr *MainResource) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (mr *MainResource) SaveSettings(w http.ResponseWriter, r *http.Request) {
+func (mr *MainResource) SaveUISettings(w http.ResponseWriter, r *http.Request) {
 	theme := r.PostForm.Get("theme")
+	contentLayout := r.PostForm.Get("content_layout")
 
 	// fmt.Printf("post theme: %s\n", theme)
 
+	localSess := mr.Session("local", w, r)
 	if regexp.MustCompile(`^light|dark|system$`).Match([]byte(theme)) {
-		sess := mr.Session("local", w, r)
-		sess.Raw.Options.HttpOnly = false
-		sess.Raw.Options.Path = "/"
-		sess.Raw.Options.SameSite = http.SameSiteLaxMode
-		sess.Raw.Options.Secure = !utils.IsDebug()
-		sess.Raw.Options.MaxAge = 0
-		sess.SetValue("page_theme", theme)
+		localSess.Raw.Options.HttpOnly = false
+		localSess.Raw.Options.Path = "/"
+		localSess.Raw.Options.SameSite = http.SameSiteLaxMode
+		localSess.Raw.Options.Secure = !utils.IsDebug()
+		localSess.Raw.Options.MaxAge = 0
+		localSess.SetValue("page_theme", theme)
 	}
 
-	if nextUrl, ok := mr.Session("one-cookie", w, r).GetValue("next_url").(string); ok && len(nextUrl) > 0{
-		http.Redirect(w, r, nextUrl, http.StatusFound)
-	} else {
-		http.Redirect(w, r, "/", http.StatusFound)
+	if regexp.MustCompile(`^full|centered$`).Match([]byte(contentLayout)) {
+		localSess.Raw.Options.HttpOnly = false
+		localSess.Raw.Options.Path = "/"
+		localSess.Raw.Options.SameSite = http.SameSiteLaxMode
+		localSess.Raw.Options.Secure = !utils.IsDebug()
+		localSess.Raw.Options.MaxAge = 0
+		localSess.SetValue("page_content_layout", contentLayout)
 	}
+
+	oneSess := mr.Session("one", w, r)
+	oneSess.Raw.AddFlash("UI settings successfully saved")
+	oneSess.Raw.Save(r, w)
+
+	// if nextUrl, ok := mr.Session("one-cookie", w, r).GetValue("next_url").(string); ok && len(nextUrl) > 0{
+	// 	http.Redirect(w, r, nextUrl, http.StatusFound)
+	// } else {
+	// 	http.Redirect(w, r, "/", http.StatusFound)
+	// }
+	http.Redirect(w, r, "/settings/ui", http.StatusFound)
 }
 
 func (mr *MainResource) SettingsPage(w http.ResponseWriter, r *http.Request) {
-	mr.Session("one-cookie", w, r).SetValue("next_url", r.Referer())
+	// mr.Session("one-cookie", w, r).SetValue("next_url", r.Referer())
+	// mr.Render(w, r, "settings", &PageData{
+	// 	Title: "Settings",
+	// })
+
+	if IsLogin(mr.sessStore, w, r){
+		http.Redirect(w, r, "/settings/account", http.StatusFound)
+	}else{
+		http.Redirect(w, r, "/settings/ui", http.StatusFound)
+	}
+}
+
+type SettingsPageKey string
+
+const (
+	SettingsPageKeyUI SettingsPageKey = "ui"
+	SettingsPageKeyAccount = "account"
+)
+
+type SettingsPageData struct{
+	PageKey SettingsPageKey
+}
+
+func (mr *MainResource) handleSettingsPage(w http.ResponseWriter, r *http.Request, pageKey SettingsPageKey) {
+	settingsTitleMap := map[SettingsPageKey]string{
+		SettingsPageKeyUI: "UI",
+		SettingsPageKeyAccount: "Account",
+	}
+	
+	// mr.Session("one-cookie", w, r).SetValue("next_url", r.Referer())
 	mr.Render(w, r, "settings", &PageData{
-		Title: "Settings",
+		Title: settingsTitleMap[pageKey] + " Settings",
+		Data: &SettingsPageData{
+			PageKey: pageKey,
+		},
 	})
+}
+
+func (mr *MainResource) SettingsAccountPage(w http.ResponseWriter, r *http.Request) {
+	mr.handleSettingsPage(w, r, SettingsPageKeyAccount)
+}
+
+func (mr *MainResource) SettingsUIPage(w http.ResponseWriter, r *http.Request) {
+	mr.handleSettingsPage(w, r, SettingsPageKeyUI)
 }

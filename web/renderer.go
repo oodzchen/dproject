@@ -15,14 +15,14 @@ import (
 )
 
 const (
-	PageTypeDefault  string = "default"
-	PageTypeSettings        = "settings"
-)
-
-const (
 	PageThemeLight  string = "light"
 	PageThemeDark          = "dark"
 	PageThemeSystem        = "system"
+)
+
+const (
+	PageContentLayoutFull string = "full"
+	PageContentLayoutCentered = "centered"
 )
 
 type UserInfo struct {
@@ -30,8 +30,9 @@ type UserInfo struct {
 	Name string
 }
 
-type PageSettings struct {
+type UISettings struct {
 	Theme string
+	ContentLayout string
 }
 
 type PageData struct {
@@ -41,8 +42,7 @@ type PageData struct {
 	LoginedUser *UserInfo
 	JSONStr     string
 	CSRFField   string
-	Type        string
-	Settings    *PageSettings
+	UISettings    *UISettings
 }
 
 type Renderer struct {
@@ -87,11 +87,32 @@ func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, 
 	}
 
 	localSess := rd.Session("local", w, r)
-
-	if theme, ok := localSess.GetValue("page_theme").(string); ok {
-		// fmt.Printf("assert PageTheme ok: %s\n", theme)
-		data.Settings = &PageSettings{theme}
+	uiSettings := &UISettings{}
+	uiSettingsKeys := []string{"page_theme", "page_content_layout"}
+	for _, key := range uiSettingsKeys{
+		sessVal := localSess.GetValue(key)
+		switch(key){
+			case "page_theme":
+			if theme, ok := sessVal.(string); ok{
+				uiSettings.Theme = theme
+			} else {
+				uiSettings.Theme = PageThemeLight
+			}
+			case "page_content_layout":
+			if layout, ok := sessVal.(string); ok{
+				uiSettings.ContentLayout = layout
+			} else {
+				uiSettings.ContentLayout = PageContentLayoutCentered
+			}
+		}
 	}
+
+	// if theme, ok := localSess.GetValue("page_theme").(string); ok {
+	// 	// fmt.Printf("assert PageTheme ok: %s\n", theme)
+	// 	data.UISettings = &UISettings{theme, ""}
+	// }
+
+	data.UISettings = uiSettings
 
 	data.CSRFField = string(csrf.TemplateField(r))
 

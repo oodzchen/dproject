@@ -1,6 +1,6 @@
 {{define "head" -}}
     <!DOCTYPE html>
-    <html lang="en" {{if .Settings}}data-theme="{{.Settings.Theme}}"{{end}}>
+    <html lang="en" {{if .UISettings}}data-theme="{{.UISettings.Theme}}"{{end}}>
 	<head>
 	    <meta charset="UTF-8">
 	    <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -15,11 +15,21 @@
 		 color-scheme: light;
 		 --text: black;
 		 --background: white;
+
+		 --tip-text: black;
 	     }
 	     :root[data-theme="dark"] {
 		 color-scheme: dark;
 		 --text: white;
 		 --background: #282A36;
+
+		 --tip-text: black;
+	     }
+	     a {
+		 text-decoration: none;
+	     }
+	     a:hover{
+		 text-decoration: underline;
 	     }
 	     nav {
 		 display: flex;
@@ -34,8 +44,17 @@
 	     body{
 		 margin: 0 auto;
 		 padding: 10px 20px;
+		 {{- if eq .UISettings.ContentLayout "centered" -}}
 		 max-width: 1000px;
-
+		 {{- end -}}
+	     }
+	     .page-tip{
+		 display:flex;
+		 padding: 10px;
+		 margin-bottom: 10px;
+		 justify-content:space-between;
+		 background-color:yellow;
+		 color: var(--tip-text)
 	     }
 	     .article-list li a:active,
 	     .article-list li a:focus{
@@ -84,12 +103,6 @@
 	     const DEBUG_DATA = {{.JSONStr -}};
 	     console.dir(DEBUG_DATA);
 	    </script>
-	    {{range .TipMsg -}}
-		<div id="page-tip" style="display:flex;justify-content:space-between;background-color:yellow">
-		    <span>{{.}}</span>
-		    <a href="#" onclick="javascript:this.parentNode.remove();return false;">&nbsp;&times;&nbsp;</a>
-		</div>
-	    {{end -}}
 	    <style>
 	     .nav-menu{
 		 display: flex;
@@ -127,4 +140,10 @@
 		</ul>
 	    </nav>
 	    <hr/>
+	    {{range .TipMsg -}}
+		<div id="page-tip" class="page-tip">
+		    <span>{{.}}</span>
+		    <a href="" onclick="javascript:this.parentNode.remove();return false;">&nbsp;&times;&nbsp;</a>
+		</div>
+	    {{end -}}  
 {{- end -}}
