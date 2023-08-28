@@ -67,7 +67,7 @@
     {{if .currUser -}}
 	<div>
 	    {{if eq .currUser.Id .article.AuthorId -}}
-		<small><a href="/articles/{{.article.Id}}/edit">Edit</a>&nbsp;&nbsp;<a class="btn-del" href="/articles/{{.article.Id}}/delete" style="color:red">Delete</a>&nbsp;</small>
+		<small><a href="/articles/{{.article.Id}}/edit" class="btn-edit">Edit</a>&nbsp;&nbsp;<a class="btn-del" href="/articles/{{.article.Id}}/delete" style="color:red">Delete</a>&nbsp;</small>
 	    {{- end -}}
 	    {{if gt .pageDepth 1 -}}
 		<small><a href="/articles/{{.article.Id}}/reply">Reply</a></small>

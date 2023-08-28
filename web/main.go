@@ -13,7 +13,6 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/oodzchen/dproject/config"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
@@ -131,12 +130,11 @@ func (mr *MainResource) LoginPage(w http.ResponseWriter, r *http.Request) {
 	}
 	targetUrl := ""
 	refererUrl, _ := url.Parse(r.Referer())
-	currHost := config.Config.GetHost()
 
 	// fmt.Println("referUrl: ", r.Referer())
 	// fmt.Println("referUrl host: ", refererUrl.Host)
 	// fmt.Println("current host: ", config.Config.GetHost())
-	if currHost == refererUrl.Host && mr.router.Match(chi.NewRouteContext(), "GET", refererUrl.Path) {
+	if IsRegisterdPage(refererUrl, mr.router) {
 		fmt.Println("Matched!")
 		targetUrl = r.Referer()
 	}

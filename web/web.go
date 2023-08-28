@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"net/url"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/sessions"
+	"github.com/oodzchen/dproject/config"
 	"github.com/pkg/errors"
 )
 
@@ -52,4 +55,9 @@ func HttpError(msg string, err error, w http.ResponseWriter, code int) {
 
 func CeilInt(a, b int) int {
 	return int(math.Ceil(float64(a) / float64(b)))
+}
+
+func IsRegisterdPage(url *url.URL, r *chi.Mux) bool {
+	currHost := config.Config.GetHost()
+	return currHost == url.Host && r.Match(chi.NewRouteContext(), "GET", url.Path)
 }

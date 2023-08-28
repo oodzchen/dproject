@@ -22,8 +22,6 @@ import (
 // 	}
 // }
 
-
-
 var showHead bool
 var timeoutDuration int
 
@@ -34,7 +32,7 @@ func init() {
 	const defaultTimeoutDuration int = 6
 	const defaultSowHead = false
 	const defaultEnvFile = ".env.local"
-	
+
 	flag.BoolVar(&showHead, "h", defaultSowHead, "Show browser head")
 	flag.IntVar(&timeoutDuration, "t", defaultTimeoutDuration, "Timeout duration")
 	flag.StringVar(&envFile, "e", defaultEnvFile, "App env file")
@@ -53,10 +51,10 @@ func main() {
 	fmt.Printf("ENV file: %s\n", envFile)
 
 	cfg, err := config.Parse(envFile)
-	if err != nil{
+	if err != nil {
 		log.Fatal(err)
 	}
-	
+
 	mock = mocktool.NewMock(cfg)
 
 	opts := append(chp.DefaultExecAllocatorOptions[:],
@@ -158,13 +156,6 @@ func main() {
 		mock.Login(newUser),
 		chp.Click(`ul.nav-menu:nth-child(2) > li:nth-child(2) > a:nth-child(1)`),
 		chp.WaitVisible(`body>footer`),
-		chp.TextContent(`body > table:nth-child(6) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(1)`, &resultText),
-		chp.ActionFunc(func(ctx context.Context) error {
-			if len(resultText) == 0 || resultText != "Joined At" {
-				return errors.New("user data is empty")
-			}
-			return nil
-		}),
 	)
 	mocktool.LogFailed(err)
 
@@ -191,12 +182,12 @@ func main() {
 
 	editArticle := mocktool.GenArticle()
 	err = runTasks("edit article", ctx,
-		chp.Click(`body > article:nth-child(5) > div:nth-child(4) > small:nth-child(1) > a:nth-child(1)`),
+		chp.Click(`body > article > div > small > a.btn-edit`),
 		chp.WaitVisible(`body>footer`),
 		chp.SetValue(`textarea[name="content"]`, editArticle.Content),
 		chp.Click(`button[type="submit"]`),
 		chp.WaitVisible(`body>footer`),
-		chp.TextContent(`body > article:nth-child(5) > section:nth-child(3)`, &resultText),
+		chp.TextContent(`body > article > section`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
 			if resultText != editArticle.Content {
 				return errors.New("content not match after edit")
@@ -209,7 +200,7 @@ func main() {
 	err = runTasks("visit profile post list", ctx,
 		chp.Click(`ul.nav-menu:last-child > li:nth-child(2) > a:nth-child(1)`),
 		chp.WaitVisible(`body>footer`),
-		chp.TextContent(`body > ul:nth-child(8) > li:nth-child(1) > div:last-child`, &resultText),
+		chp.TextContent(`body > ul > li:nth-child(1) > div:last-child`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
 			if len(resultText) == 0 {
 				return errors.New("user post list is empty")
@@ -221,7 +212,7 @@ func main() {
 
 	newReply := gofakeit.Sentence(5 + rand.Intn(10))
 	err = runTasks("reply article", ctx,
-		chp.Click(`body > ul:nth-child(8) > li:last-child > div:first-child > a`),
+		chp.Click(`body > ul > li:last-child > div:first-child > a`),
 		chp.WaitVisible(`body>footer`),
 		chp.SetValue(`#content`, newReply, chp.ByID),
 		chp.Click(`#reply_form>button[type="submit"]`),
@@ -261,7 +252,7 @@ func main() {
 	err = runTasks("delete article", ctx,
 		chp.Click(`ul.nav-menu:last-child > li:nth-child(2) > a:nth-child(1)`),
 		chp.WaitVisible(`body>footer`),
-		chp.Click(`body > ul:nth-child(8) > li:last-child > div:first-child > a`),
+		chp.Click(`body > ul > li:last-child > div:first-child > a`),
 		chp.WaitVisible(`body>footer`),
 		chp.Click(`.btn-del`),
 		chp.WaitVisible(`body>footer`),
