@@ -142,7 +142,7 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 			if layout, ok := sessVal.(string); ok {
 				uiSettings.ContentLayout = layout
 			} else {
-				uiSettings.ContentLayout = PageContentLayoutCentered
+				uiSettings.ContentLayout = PageContentLayoutFull
 			}
 		}
 	}

@@ -2,7 +2,10 @@ package pgstore
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"reflect"
+	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/oodzchen/dproject/model"
@@ -21,11 +24,11 @@ func (u *User) List(page int, pageSize int) ([]*model.User, error) {
 	if pageSize < 1 {
 		pageSize = defaultPage
 	}
-	
+
 	rows, err := u.dbPool.Query(
 		context.Background(),
 		"SELECT id, name, email, created_at FROM users ORDER BY created_at desc OFFSET $1 LIMIT $2",
-		pageSize * (page -1),
+		pageSize*(page-1),
 		pageSize,
 	)
 
@@ -77,12 +80,44 @@ func (u *User) Create(item *model.User) (int, error) {
 	return id, nil
 }
 
-func (u *User) Update(item *model.User) (int, error) {
+func isAllowedUserFields(key string) bool {
+	allowedFields := []string{"Introduction", "Banned"}
+	for _, field := range allowedFields {
+		if key == field {
+			return true
+		}
+	}
+	return false
+}
+
+func (u *User) Update(item *model.User, fieldNames []string) (int, error) {
+	for _, field := range fieldNames {
+		if !isAllowedUserFields(field) {
+			return 0, errors.New(fmt.Sprintf("'%s' is not allowed to update", field))
+		}
+	}
+
+	var updateStr []string
+	var updateVals []any
+	itemVal := reflect.ValueOf(*item)
+
+	dbFieldNameMap := map[string]string{
+		"Introduction": "introduction",
+		"Banned":       "banned",
+	}
+	for idx, field := range fieldNames {
+		updateStr = append(updateStr, fmt.Sprintf("%s = $%d", dbFieldNameMap[field], idx+1))
+		updateVals = append(updateVals, itemVal.FieldByName(field))
+	}
+
+	sqlStr := "UPDATE users SET " + strings.Join(updateStr, ", ") + fmt.Sprintf(" WHERE id = $%d RETURNING(id)", len(updateStr)+1)
+	updateVals = append(updateVals, item.Id)
+
+	fmt.Println("update sql string: ", sqlStr)
+	fmt.Println("update vals: ", updateVals)
+
 	var id int
-	err := u.dbPool.QueryRow(context.Background(), "UPDATE users SET introduction = $1, password = $2 WHERE id = $3",
-		item.Introduction,
-		item.Password,
-		item.Id).Scan(&id)
+	err := u.dbPool.QueryRow(context.Background(), sqlStr, updateVals...).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -92,16 +127,18 @@ func (u *User) Update(item *model.User) (int, error) {
 
 func (u *User) Item(id int) (*model.User, error) {
 	var item model.User
-	err := u.dbPool.QueryRow(context.Background(), "SELECT id, email, name, created_at FROM users WHERE id = $1", id).Scan(
+	err := u.dbPool.QueryRow(context.Background(), "SELECT id, email, name, introduction, created_at FROM users WHERE id = $1", id).Scan(
 		&item.Id,
 		&item.Email,
 		&item.Name,
+		&item.NullIntroduction,
 		&item.RegisteredAt)
 	if err != nil {
 		return nil, err
 	}
 
 	item.FormatTimeStr()
+	item.FormatNullVals()
 
 	return &item, nil
 }

@@ -57,6 +57,9 @@
 		 background-color:aqua;
 		 color: var(--tip-text)
 	     }
+	     .page-tip a{
+		 color: var(--tip-text)
+	     }
 	     .article-list li a:active,
 	     .article-list li a:focus{
 		 border: 1px dashed #ccc;
@@ -76,6 +79,18 @@
 		 height: auto;
 		 outline: 1px solid blue;
 		 text-decoration: underline;
+	     }
+	     .settings-tab{
+		 margin-bottom: 10px
+	     }
+	     .table-info tr>td{
+		 vertical-align: top
+	     }
+	     .table-info tr>td:nth-child(odd){
+		 text-align: right
+	     }
+	     .table-info tr>td:nth-child(even){
+		 text-align: left
 	     }
 	    </style>
 	    <script>
@@ -165,5 +180,5 @@
 		    <span>{{.}}</span>
 		    <a href="" onclick="javascript:this.parentNode.remove();return false;">&nbsp;&times;&nbsp;</a>
 		</div>
-	    {{end -}}  
+	    {{end -}}
 {{- end -}}

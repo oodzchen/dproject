@@ -91,6 +91,9 @@ func Service(c *ServiceConfig) http.Handler {
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		mainResource.Error("", nil, w, r, http.StatusNotFound)
 	})
+	r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
+		mainResource.Error("", nil, w, r, http.StatusMethodNotAllowed)
+	})
 	r.Use(CreateCheckAuthMiddleware(AuthRequiredPathes, sessStore))
 	r.Mount("/debug", middleware.Profiler())
 	FileServer(r, "/static", http.Dir("./static"))

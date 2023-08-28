@@ -1,14 +1,14 @@
 {{define "user_basic_info" -}}
-    <table>
+    <table class="table-info">
 	<tbody>
 	    <tr>
-		<td align="right">Joined At</td>
-		<td align="left">{{timeFormat .RegisteredAt "YYYY/MM/DD"}}</td>
+		<td>Joined At:</td>
+		<td>{{timeFormat .RegisteredAt "YYYY/MM/DD"}}</td>
 	    </tr>
 	    {{if .Introduction -}}
 		<tr>
-		    <td align="right">Introduction</td>
-		    <td align="left">{{.Introduction}}</td>
+		    <td>Introduction:</td>
+		    <td style="white-space:break-spaces">{{.Introduction}}</td>
 		</tr>
 	    {{end -}}
 	</tbody>

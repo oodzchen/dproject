@@ -48,6 +48,7 @@ func (mr *MainResource) Routes() http.Handler {
 	rt.Route("/settings", func(r chi.Router) {
 		r.Get("/", mr.SettingsPage)
 		r.Get("/account", mr.SettingsAccountPage)
+		r.Post("/account", mr.SaveAccountSettings)
 		r.Get("/ui", mr.SettingsUIPage)
 		r.Post("/ui", mr.SaveUISettings)
 	})
@@ -302,7 +303,8 @@ const (
 )
 
 type SettingsPageData struct {
-	PageKey SettingsPageKey
+	PageKey     SettingsPageKey
+	AccountData *model.User
 }
 
 func (mr *MainResource) handleSettingsPage(w http.ResponseWriter, r *http.Request, pageKey SettingsPageKey) {
@@ -311,12 +313,27 @@ func (mr *MainResource) handleSettingsPage(w http.ResponseWriter, r *http.Reques
 		SettingsPageKeyAccount: "Account",
 	}
 
+	pageData := &SettingsPageData{
+		PageKey: pageKey,
+	}
+	if pageKey == SettingsPageKeyAccount {
+		userId := mr.Session("one", w, r).GetValue("user_id")
+		// fmt.Println("user id: ", userId)
+		if userId, ok := userId.(int); ok {
+			user, err := mr.store.User.Item(userId)
+			if err != nil {
+				mr.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
+			}
+			pageData.AccountData = user
+		} else {
+			http.Redirect(w, r, "/login", http.StatusFound)
+		}
+	}
+
 	// mr.Session("one-cookie", w, r).SetValue("next_url", r.Referer())
 	mr.Render(w, r, "settings", &PageData{
 		Title: settingsTitleMap[pageKey] + " Settings",
-		Data: &SettingsPageData{
-			PageKey: pageKey,
-		},
+		Data:  pageData,
 	})
 }
 
@@ -326,4 +343,28 @@ func (mr *MainResource) SettingsAccountPage(w http.ResponseWriter, r *http.Reque
 
 func (mr *MainResource) SettingsUIPage(w http.ResponseWriter, r *http.Request) {
 	mr.handleSettingsPage(w, r, SettingsPageKeyUI)
+}
+
+func (mr *MainResource) SaveAccountSettings(w http.ResponseWriter, r *http.Request) {
+	introduction := r.FormValue("introduction")
+
+	if userId, ok := mr.Session("one", w, r).GetValue("user_id").(int); ok {
+		user := &model.User{
+			Id:           userId,
+			Introduction: introduction,
+		}
+		user.Sanitize()
+		_, err := mr.store.User.Update(user, []string{"Introduction"})
+		if err != nil {
+			mr.Error("Update account failed", errors.WithStack(err), w, r, http.StatusInternalServerError)
+		}
+
+		oneSess := mr.Session("one", w, r)
+		oneSess.Raw.AddFlash("Account settings successfully saved")
+		oneSess.Raw.Save(r, w)
+
+		http.Redirect(w, r, "/settings/account", http.StatusFound)
+	} else {
+		http.Redirect(w, r, "/login", http.StatusFound)
+	}
 }

@@ -27,7 +27,7 @@ type ArticleStore interface {
 type UserStore interface {
 	List(page, pageSize int) ([]*model.User, error)
 	Create(*model.User) (int, error)
-	Update(*model.User) (int, error)
+	Update(u *model.User, fields []string) (int, error)
 	Item(int) (*model.User, error)
 	Delete(int) error
 	Ban(int) error

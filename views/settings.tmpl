@@ -1,11 +1,5 @@
 {{ define "settings" -}}
     {{template "head" . -}}
-
-    <style>
-     .settings-tab{
-	 margin-bottom: 10px
-     }
-    </style>
     <div class="settings-tab">
 	{{- $data := .Data -}}
 	{{- $tabs := list "account" "ui" -}}
@@ -23,6 +17,27 @@
 	{{- end -}}
     </div>
 
+    {{- if and .Data.AccountData (eq .Data.PageKey "account") -}}
+	<form method="POST" action="/settings/account">
+	    {{.CSRFField}}
+	    <table class="table-info">
+		<tbody>
+		    <tr>
+			<td>Name:</td>
+			<td>{{.Data.AccountData.Name}}</td>
+		    </tr>
+		    <tr>
+			<td>Introduction:</td>
+			<td>
+			    <textarea cols="60" name="introduction" rows="10">{{.Data.AccountData.Introduction}}</textarea>
+			</td>
+		    </tr>
+		</tbody>
+	    </table>
+	    <button type="submit">Save</button>
+	</form>
+    {{- end -}}
+    
     {{- if eq .Data.PageKey "ui" -}}
 	<form method="POST" action="/settings/ui">
 	    {{$themeDict := dict "light" "Light" "dark" "Dark" "system" "OS Default (Must enable JavaScript)"}}
@@ -31,11 +46,11 @@
 	    {{$contentLayouts := list "centered" "full"}}
 	    {{$settings := .UISettings}}
 	    {{.CSRFField}}
-	    <table>
+	    <table class="table-info">
 		<tbody>
 		    <tr>
-			<td align="right">Theme</td>
-			<td align="left">
+			<td>Theme:</td>
+			<td>
 			    {{range $themes -}}
 				<span {{if eq . "system"}}style="display:none"{{- end -}}>
 				    <label><input name="theme" required autocomplete="off" id="{{.}}" {{if eq . "system"}}disabled{{- end -}} {{if and $settings (eq $settings.Theme .)}}checked{{end}} type="radio" value="{{.}}"/> {{get $themeDict .}}</label>
@@ -44,7 +59,7 @@
 			</td>
 		    </tr>
 		    <tr>
-			<td>Page Layout</td>
+			<td>Page Layout:</td>
 			<td>
 			    {{range $contentLayouts -}}
 				<span>
@@ -58,5 +73,6 @@
 	    <button type="submit">Save</button>
 	</form>
     {{- end -}}
+
     {{template "foot" . -}}
 {{end}}
