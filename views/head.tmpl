@@ -28,7 +28,8 @@
 	     a {
 		 text-decoration: none;
 	     }
-	     a:hover{
+	     a:hover,
+	     a:focus-visible{
 		 text-decoration: underline;
 	     }
 	     nav {
@@ -59,6 +60,22 @@
 	     .article-list li a:active,
 	     .article-list li a:focus{
 		 border: 1px dashed #ccc;
+	     }
+	     .skip-button{
+		 position: fixed;
+		 left: 0;
+		 top: 0;
+		 width: 100%;
+		 height: 0;
+		 line-height: 2.4rem;
+		 background: var(--background);
+		 text-align: center;
+		 overflow: hidden;
+	     }
+	     .skip-button:focus-visible{
+		 height: auto;
+		 outline: 1px solid blue;
+		 text-decoration: underline;
 	     }
 	    </style>
 	    <script>
@@ -99,6 +116,7 @@
 	    </script>
 	</head>
 	<body>
+	    <a id="skip-button" class="skip-button" tab-index="0" href="#article-list-head">Skip To Content</a>
 	    <script>
 	     const DEBUG_DATA = {{.JSONStr -}};
 	     console.dir(DEBUG_DATA);
