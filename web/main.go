@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/oodzchen/dproject/config"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
@@ -24,13 +25,15 @@ const PGErrUniqueViolation = "23505"
 
 type MainResource struct {
 	*Renderer
+	*AppState
 	articleRs *ArticleResource
 	store     *store.Store
 }
 
-func NewMainResource(tmpl *template.Template, ar *ArticleResource, store *store.Store, sessStore *sessions.CookieStore) *MainResource {
+func NewMainResource(tmpl *template.Template, store *store.Store, sessStore *sessions.CookieStore, ar *ArticleResource, router *chi.Mux) *MainResource {
 	return &MainResource{
 		&Renderer{tmpl, sessStore},
+		&AppState{router},
 		ar,
 		store,
 	}
@@ -45,7 +48,7 @@ func (mr *MainResource) Routes() http.Handler {
 	rt.Get("/login", mr.LoginPage)
 	rt.Post("/login", mr.Login)
 	rt.Get("/logout", mr.Logout)
-	rt.Route("/settings", func(r chi.Router){
+	rt.Route("/settings", func(r chi.Router) {
 		r.Get("/", mr.SettingsPage)
 		r.Get("/account", mr.SettingsAccountPage)
 		r.Get("/ui", mr.SettingsUIPage)
@@ -126,6 +129,19 @@ func (mr *MainResource) LoginPage(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
+	targetUrl := ""
+	refererUrl, _ := url.Parse(r.Referer())
+	currHost := config.Config.GetHost()
+
+	// fmt.Println("referUrl: ", r.Referer())
+	// fmt.Println("referUrl host: ", refererUrl.Host)
+	// fmt.Println("current host: ", config.Config.GetHost())
+	if currHost == refererUrl.Host && mr.router.Match(chi.NewRouteContext(), "GET", refererUrl.Path) {
+		fmt.Println("Matched!")
+		targetUrl = r.Referer()
+	}
+
+	mr.Session("one", w, r).SetValue("target_url", targetUrl)
 	mr.Render(w, r, "login", &PageData{Title: "Login", Data: ""})
 }
 
@@ -275,9 +291,9 @@ func (mr *MainResource) SaveUISettings(w http.ResponseWriter, r *http.Request) {
 }
 
 func (mr *MainResource) SettingsPage(w http.ResponseWriter, r *http.Request) {
-	if IsLogin(mr.sessStore, w, r){
+	if IsLogin(mr.sessStore, w, r) {
 		http.Redirect(w, r, "/settings/account", http.StatusFound)
-	}else{
+	} else {
 		http.Redirect(w, r, "/settings/ui", http.StatusFound)
 	}
 }
@@ -285,20 +301,20 @@ func (mr *MainResource) SettingsPage(w http.ResponseWriter, r *http.Request) {
 type SettingsPageKey string
 
 const (
-	SettingsPageKeyUI SettingsPageKey = "ui"
-	SettingsPageKeyAccount = "account"
+	SettingsPageKeyUI      SettingsPageKey = "ui"
+	SettingsPageKeyAccount                 = "account"
 )
 
-type SettingsPageData struct{
+type SettingsPageData struct {
 	PageKey SettingsPageKey
 }
 
 func (mr *MainResource) handleSettingsPage(w http.ResponseWriter, r *http.Request, pageKey SettingsPageKey) {
 	settingsTitleMap := map[SettingsPageKey]string{
-		SettingsPageKeyUI: "UI",
+		SettingsPageKeyUI:      "UI",
 		SettingsPageKeyAccount: "Account",
 	}
-	
+
 	// mr.Session("one-cookie", w, r).SetValue("next_url", r.Referer())
 	mr.Render(w, r, "settings", &PageData{
 		Title: settingsTitleMap[pageKey] + " Settings",

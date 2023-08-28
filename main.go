@@ -46,8 +46,13 @@ func main() {
 	}
 
 	port := appCfg.Port
+	domain := appCfg.DomainName
+	if utils.IsDebug() {
+		domain = "0.0.0.0"
+	}
+	addr := fmt.Sprintf("%s:%d", domain, port)
 	server := &http.Server{
-		Addr: fmt.Sprintf("0.0.0.0:%d", port),
+		Addr: addr,
 		Handler: (Service(&ServiceConfig{
 			sessSecret: appCfg.SessionSecret,
 			store:      dataStore,
