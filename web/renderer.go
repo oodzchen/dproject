@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"text/template"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
 	"github.com/oodzchen/dproject/utils"
@@ -21,8 +23,8 @@ const (
 )
 
 const (
-	PageContentLayoutFull string = "full"
-	PageContentLayoutCentered = "centered"
+	PageContentLayoutFull     string = "full"
+	PageContentLayoutCentered        = "centered"
 )
 
 type UserInfo struct {
@@ -31,7 +33,7 @@ type UserInfo struct {
 }
 
 type UISettings struct {
-	Theme string
+	Theme         string
 	ContentLayout string
 }
 
@@ -42,17 +44,55 @@ type PageData struct {
 	LoginedUser *UserInfo
 	JSONStr     string
 	CSRFField   string
-	UISettings    *UISettings
+	UISettings  *UISettings
+	RoutePath   string
 }
 
 type Renderer struct {
 	tmpl      *template.Template
 	sessStore *sessions.CookieStore
+	router    *chi.Mux
 }
 
 func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, data *PageData) {
-	sess, err := rd.sessStore.Get(r, "one")
-	HandleGetSessionErr(err)
+	rd.doRender(w, r, name, data, http.StatusOK)
+}
+
+func (rd *Renderer) Error(msg string, err error, w http.ResponseWriter, r *http.Request, code int) {
+	fmt.Printf("%+v\n", err)
+
+	referer := r.Referer()
+	refererUrl, _ := url.Parse(referer)
+	prevUrl := ""
+
+	if IsRegisterdPage(refererUrl, rd.router) {
+		prevUrl = referer
+	}
+
+	errText := http.StatusText(code)
+
+	type errPageData struct {
+		ErrText string
+		PrevUrl string
+	}
+	data := &PageData{
+		Title: errText,
+		Data:  &errPageData{errText, prevUrl},
+	}
+
+	if len(msg) > 0 {
+		errText += " - " + strings.ToUpper(msg[:1]) + msg[1:]
+		data.Data = &errPageData{errText, prevUrl}
+	}
+
+	rd.doRender(w, r, "error", data, code)
+}
+
+func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string, data *PageData, code int) {
+	// sess, err := rd.sessStore.Get(r, "one")
+	// HandleGetSessionErr(err)
+
+	sess := rd.Session("one", w, r).Raw
 
 	if flashes := sess.Flashes(); len(flashes) > 0 {
 		for _, item := range flashes {
@@ -81,7 +121,7 @@ func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, 
 		data.LoginedUser = userInfo
 	}
 
-	err = sess.Save(r, w)
+	err := sess.Save(r, w)
 	if err != nil {
 		HandleSaveSessionErr(errors.WithStack(err))
 	}
@@ -89,17 +129,17 @@ func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, 
 	localSess := rd.Session("local", w, r)
 	uiSettings := &UISettings{}
 	uiSettingsKeys := []string{"page_theme", "page_content_layout"}
-	for _, key := range uiSettingsKeys{
+	for _, key := range uiSettingsKeys {
 		sessVal := localSess.GetValue(key)
-		switch(key){
-			case "page_theme":
-			if theme, ok := sessVal.(string); ok{
+		switch key {
+		case "page_theme":
+			if theme, ok := sessVal.(string); ok {
 				uiSettings.Theme = theme
 			} else {
 				uiSettings.Theme = PageThemeLight
 			}
-			case "page_content_layout":
-			if layout, ok := sessVal.(string); ok{
+		case "page_content_layout":
+			if layout, ok := sessVal.(string); ok {
 				uiSettings.ContentLayout = layout
 			} else {
 				uiSettings.ContentLayout = PageContentLayoutCentered
@@ -107,43 +147,10 @@ func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, 
 		}
 	}
 
-	// if theme, ok := localSess.GetValue("page_theme").(string); ok {
-	// 	// fmt.Printf("assert PageTheme ok: %s\n", theme)
-	// 	data.UISettings = &UISettings{theme, ""}
-	// }
-
 	data.UISettings = uiSettings
-
 	data.CSRFField = string(csrf.TemplateField(r))
+	data.RoutePath = r.URL.Path
 
-	rd.doRender(w, name, data, http.StatusOK)
-}
-
-func (rd *Renderer) Error(msg string, err error, w http.ResponseWriter, r *http.Request, code int) {
-	fmt.Printf("%+v\n", err)
-
-	refererUrl := r.Referer()
-
-	errText := http.StatusText(code)
-
-	type errPageData struct {
-		ErrText string
-		PrevUrl string
-	}
-	data := &PageData{
-		Title: errText,
-		Data:  &errPageData{errText, refererUrl},
-	}
-
-	if len(msg) > 0 {
-		errText += " - " + strings.ToUpper(msg[:1]) + msg[1:]
-		data.Data = &errPageData{errText, refererUrl}
-	}
-
-	rd.doRender(w, "error", data, code)
-}
-
-func (rd *Renderer) doRender(w http.ResponseWriter, name string, data *PageData, code int) {
 	data.Title += fmt.Sprintf(" - %s", os.Getenv("SITE_NAME"))
 
 	if utils.IsDebug() {
@@ -158,7 +165,8 @@ func (rd *Renderer) doRender(w http.ResponseWriter, name string, data *PageData,
 
 	w.WriteHeader(code)
 	w.Header().Set("Content-Type", "text/html")
-	err := rd.tmpl.ExecuteTemplate(w, name, data)
+
+	err = rd.tmpl.ExecuteTemplate(w, name, data)
 	if err != nil {
 		HttpError("", errors.WithStack(err), w, http.StatusInternalServerError)
 	}

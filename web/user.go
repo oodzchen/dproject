@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/sessions"
+	"github.com/jackc/pgx/v5"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/store"
 	"github.com/pkg/errors"
@@ -22,9 +23,9 @@ type userProfile struct {
 	Posts    []*model.Article
 }
 
-func NewUserResource(tmpl *template.Template, store *store.Store, sessStore *sessions.CookieStore) *UserResource {
+func NewUserResource(tmpl *template.Template, store *store.Store, sessStore *sessions.CookieStore, router *chi.Mux) *UserResource {
 	return &UserResource{
-		&Renderer{tmpl, sessStore},
+		&Renderer{tmpl, sessStore, router},
 		store,
 	}
 }
@@ -94,13 +95,17 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 
 	userId, err := strconv.Atoi(chi.URLParam(r, "userId"))
 	if err != nil {
-		ur.Error("user id is required", errors.WithStack(err), w, r, http.StatusBadRequest)
+		ur.Error("", errors.WithStack(err), w, r, http.StatusBadRequest)
 		return
 	}
 
 	user, err := ur.store.User.Item(userId)
 	if err != nil {
-		ur.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
+		if errors.Is(err, pgx.ErrNoRows) {
+			ur.Error("", nil, w, r, http.StatusNotFound)
+		} else {
+			ur.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
+		}
 		return
 	}
 

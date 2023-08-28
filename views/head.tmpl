@@ -54,7 +54,7 @@
 		 padding: 10px;
 		 margin-bottom: 10px;
 		 justify-content:space-between;
-		 background-color:yellow;
+		 background-color:aqua;
 		 color: var(--tip-text)
 	     }
 	     .article-list li a:active,
@@ -116,7 +116,9 @@
 	    </script>
 	</head>
 	<body>
-	    <a id="skip-button" class="skip-button" tab-index="0" href="#article-list-head">Skip To Content</a>
+	    {{- if eq .RoutePath "/" -}}
+		<a id="skip-button" class="skip-button" tab-index="0" href="#article-list-head">Skip To Content</a>
+	    {{- end -}}
 	    <script>
 	     const DEBUG_DATA = {{.JSONStr -}};
 	     console.dir(DEBUG_DATA);

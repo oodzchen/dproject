@@ -24,15 +24,13 @@ const PGErrUniqueViolation = "23505"
 
 type MainResource struct {
 	*Renderer
-	*AppState
 	articleRs *ArticleResource
 	store     *store.Store
 }
 
 func NewMainResource(tmpl *template.Template, store *store.Store, sessStore *sessions.CookieStore, ar *ArticleResource, router *chi.Mux) *MainResource {
 	return &MainResource{
-		&Renderer{tmpl, sessStore},
-		&AppState{router},
+		&Renderer{tmpl, sessStore, router},
 		ar,
 		store,
 	}

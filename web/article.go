@@ -22,9 +22,9 @@ type ArticleResource struct {
 	store *store.Store
 }
 
-func NewArticleResource(tmpl *template.Template, store *store.Store, sessStore *sessions.CookieStore) *ArticleResource {
+func NewArticleResource(tmpl *template.Template, store *store.Store, sessStore *sessions.CookieStore, router *chi.Mux) *ArticleResource {
 	return &ArticleResource{
-		&Renderer{tmpl, sessStore},
+		&Renderer{tmpl, sessStore, router},
 		store,
 	}
 }
@@ -275,7 +275,8 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 	articleTreeList, err := ar.store.Article.ItemTree(articleId)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			ar.Error("the article is gone", err, w, r, http.StatusGone)
+			// http.Redirect(w, r, "/404", http.StatusNotFound)
+			ar.Error("", nil, w, r, http.StatusNotFound)
 		} else {
 			ar.Error("", err, w, r, http.StatusInternalServerError)
 		}
@@ -283,7 +284,8 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 	}
 
 	if len(articleTreeList) == 0 {
-		ar.Error("the article is gone", err, w, r, http.StatusGone)
+		// http.Redirect(w, r, "/404", http.StatusNotFound)
+		ar.Error("", nil, w, r, http.StatusNotFound)
 	}
 
 	var rootArticle *model.Article
@@ -293,9 +295,9 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 		}
 	}
 
-	if rootArticle.Id == 0 {
-		ar.Error("the article is gone", err, w, r, http.StatusGone)
-	}
+	// if rootArticle.Id == 0 {
+	// 	ar.Error("the article is gone", err, w, r, http.StatusGone)
+	// }
 
 	if delPage {
 		currUserId, err := GetLoginUserId(ar.sessStore, w, r)

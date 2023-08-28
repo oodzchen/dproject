@@ -70,7 +70,8 @@ func Service(c *ServiceConfig) http.Handler {
 	sessStore.Options.Secure = !utils.IsDebug()
 	sessStore.Options.SameSite = http.SameSiteLaxMode
 
-	articleResource := web.NewArticleResource(baseTmpl, c.store, sessStore)
+	articleResource := web.NewArticleResource(baseTmpl, c.store, sessStore, r)
+	userResource := web.NewUserResource(baseTmpl, c.store, sessStore, r)
 	mainResource := web.NewMainResource(baseTmpl, c.store, sessStore, articleResource, r)
 
 	rateLimit := 100
@@ -98,7 +99,7 @@ func Service(c *ServiceConfig) http.Handler {
 	})
 	r.Mount("/", mainResource.Routes())
 	r.Mount("/articles", articleResource.Routes())
-	r.Mount("/users", web.NewUserResource(baseTmpl, c.store, sessStore).Routes())
+	r.Mount("/users", userResource.Routes())
 
 	// chi.Walk(r, func(method, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
 	// 	////
