@@ -208,7 +208,7 @@
 	    </script>
 	</head>
 	<body>
-	    {{- if eq .RoutePath "/" -}}
+	    {{- if or (eq .RoutePath "/") (eq .RoutePath "/articles") -}}
 		<a id="skip-button" class="skip-button" tab-index="0" href="#article-list-head">Skip To Content</a>
 	    {{- end -}}
 	    {{- if and .Debug .JSONStr -}}
