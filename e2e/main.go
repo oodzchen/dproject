@@ -91,7 +91,7 @@ func main() {
 	err = runTasks("add new as anonymous", ctx,
 		chp.Navigate(mock.ServerURL),
 		chp.WaitVisible(`body>footer`),
-		chp.Click(`ul.nav-menu:nth-child(2) > li:nth-child(1) > a:nth-child(1)`, chp.NodeVisible),
+		chp.Click(`ul.nav-menu:nth-child(2) > li > a[href^="/articles/new"]`, chp.NodeVisible),
 		chp.WaitVisible(`body>footer`),
 		chp.WaitVisible(`#password`, chp.ByID),
 	)
@@ -130,7 +130,7 @@ func main() {
 
 	err = runTasks("login", ctx,
 		mock.Login(newUser),
-		chp.TextContent(`ul.nav-menu:nth-child(2) > li:nth-child(2) > a:nth-child(1)`, &resultText),
+		chp.TextContent(`ul.nav-menu:nth-child(2) > li > a[href^="/users/"]`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
 			if len(resultText) == 0 || resultText != newUser.Name {
 				return errors.New("user name incorrect")
@@ -142,7 +142,7 @@ func main() {
 
 	err = runTasks("logout", ctx,
 		mock.Logout(),
-		chp.TextContent(`ul.nav-menu:nth-child(2) > li:nth-child(3) > a:nth-child(1)`, &resultText),
+		chp.TextContent(`ul.nav-menu:nth-child(2) > li > a[href^="/login"]`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
 			if resultText != "Login" {
 				return errors.New("No login button")
@@ -154,14 +154,14 @@ func main() {
 
 	err = runTasks("user profile", ctx,
 		mock.Login(newUser),
-		chp.Click(`ul.nav-menu:nth-child(2) > li:nth-child(2) > a:nth-child(1)`),
+		chp.Click(`ul.nav-menu:nth-child(2) > li > a[href^="/users/"]`),
 		chp.WaitVisible(`body>footer`),
 	)
 	mocktool.LogFailed(err)
 
 	err = runTasks("create article as anonymous", ctx,
 		mock.Logout(),
-		chp.Click(`ul.nav-menu:nth-child(2) > li:nth-child(1) > a:nth-child(1)`),
+		chp.Click(`ul.nav-menu:nth-child(2) > li > a[href^="/articles/new"]`),
 		chp.WaitVisible(`body>footer`),
 		chp.TextContent(`button[type=submit]`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
@@ -198,7 +198,7 @@ func main() {
 	mocktool.LogFailed(err)
 
 	err = runTasks("visit profile post list", ctx,
-		chp.Click(`ul.nav-menu:last-child > li:nth-child(2) > a:nth-child(1)`),
+		chp.Click(`ul.nav-menu:nth-child(2) > li > a[href^="/users/"]`),
 		chp.WaitVisible(`body>footer`),
 		chp.TextContent(`body > ul > li:nth-child(1) > div:last-child`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
@@ -232,12 +232,12 @@ func main() {
 	newReply = gofakeit.Sentence(5 + rand.Intn(10))
 	err = runTasks("reply comment", ctx,
 		chp.WaitVisible(`body>footer`),
-		chp.Click(`ul.replies > li:nth-child(1) > article > section+div > small:last-child > a`),
+		chp.Click(`ul.replies > li:nth-child(1) > article > section+div > small > a[href$="/reply"]`),
 		chp.WaitVisible(`body>footer`),
 		chp.SetValue(`#reply_form>textarea[name="content"]`, newReply),
 		chp.Click(`#reply_form>button[type="submit"]`),
 		chp.WaitVisible(`body>footer`),
-		chp.TextContent(`ul.replies > li:last-child > article:nth-child(1) > section:nth-child(2)`, &resultText),
+		chp.TextContent(`ul.replies > li:last-child > article > section`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
 			mocktool.Logln("new reply: ", newReply)
 			mocktool.Logln("resultText: ", resultText)
@@ -250,13 +250,12 @@ func main() {
 	mocktool.LogFailed(err)
 
 	err = runTasks("delete article", ctx,
-		chp.Click(`ul.nav-menu:last-child > li:nth-child(2) > a:nth-child(1)`),
+		chp.Click(`ul.nav-menu:nth-child(2) > li > a[href^="/users/"]`),
 		chp.WaitVisible(`body>footer`),
 		chp.Click(`body > ul > li:last-child > div:first-child > a`),
 		chp.WaitVisible(`body>footer`),
 		chp.Click(`.btn-del`),
 		chp.WaitVisible(`body>footer`),
-		chp.SetValue(`body>form>input[name="confirm_del"]`, "yes"),
 		chp.Click(`body>form>button[type=submit]`),
 		chp.WaitVisible(`body>footer`),
 		chp.TextContent(`body>article>i`, &resultText),

@@ -1,25 +1,28 @@
 {{define "create" -}}
-
     {{template "head" . -}}
-    {{if .Data.Id -}}
-	<form method="post" action="/articles/{{.Data.Id}}/edit">
-    {{else -}}
-	    <form method="post" action="/articles">
-    {{end -}}
-    {{.CSRFField -}}
-    {{if .Data.Id -}}
-	<input type="hidden" name="id" value="{{.Data.Id}}">
-	<input name="reply_depth" type="hidden" value="{{.Data.ReplyDepth}}"/>
-    {{end -}}
+    
+    <form class="form" method="post" action="/articles{{- if .Data.Id -}}/{{.Data.Id}}/edit{{- end -}}">
+	{{.CSRFField -}}
+	{{if .Data.Id -}}
+	    <input type="hidden" name="id" value="{{.Data.Id}}">
+	    <input name="reply_depth" type="hidden" value="{{.Data.ReplyDepth}}"/>
+	{{end -}}
 
-    {{if and .Data.Id (gt .Data.ReplyDepth 0) -}}
-	<h1>Re{{if gt .Data.ReplyDepth 1}} &times; {{.Data.ReplyDepth}}{{end}}: <a href="/articles/{{.Data.ReplyRootArticleId}}">{{.Data.ReplyRootArticleTitle}}</a></h1>
-    {{else -}}
-	<input required type="text" name="title" value="{{.Data.Title}}" placeholder="Title" style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box">
-    {{end -}}
+	{{if and .Data.Id (gt .Data.ReplyDepth 0) -}}
+	    <h1>Re{{if gt .Data.ReplyDepth 1}} &times; {{.Data.ReplyDepth}}{{end}}: <a href="/articles/{{.Data.ReplyRootArticleId}}">{{.Data.ReplyRootArticleTitle}}</a></h1>
+	{{else -}}
+	    <div class="form__row">
+		<label for="title">Title:</label>
+		<input required type="text" id="title" name="title" value="{{.Data.Title}}"  style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box">
+	    </div>
+	{{end -}}
 
-    <textarea name="content" cols="30" rows="10" placeholder="Content" style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box;">{{.Data.Content}}</textarea>
-    <button type="submit">Submit</button>
-	    </form>
-	    {{template "foot" -}}
+	<div class="form__row">
+	    <label for="content">Content:</label>
+	    <textarea id="content" name="content" cols="30" rows="10" style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box;">{{.Data.Content}}</textarea>
+	</div>
+	<br/>
+	<button type="submit">Submit</button>
+    </form>
+    {{template "foot" -}}
 {{end -}}

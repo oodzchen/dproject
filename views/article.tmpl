@@ -1,79 +1,89 @@
 {{define "article_content" -}}
     {{$isRoot := eq .article.ReplyDepth 0 -}}
     {{$pageDepth := add .pageDepth 1 -}}
-    {{$data := dict "currUser" .currUser "article" .article "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth -}}
-    {{if .article.Deleted -}}
-	<article style="color:#666"><i>&lt;Deleted&gt;</i></article>
-    {{else -}}
-	<article>
-	    {{if $isRoot -}}
-		<h1>{{.article.Title}}</h1>
-	    {{else -}}
-		{{if eq $pageDepth 1 -}}
-		    <h1>Re{{if gt .article.ReplyDepth 1}} &times; {{.article.ReplyDepth}}{{- end -}}: <a href="/articles/{{.article.ReplyRootArticleId}}">{{.article.ReplyRootArticleTitle}}</a></h1>
+    {{$data := dict "currUser" .currUser "article" .article "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "isRootArticle" $isRoot "debug" .debug -}}
+    <article>
+	{{if $isRoot -}}
+	    <h1>{{.article.Title}}</h1>
+	{{else -}}
+	    {{if eq $pageDepth 1 -}}
+		<h1>Re{{if gt .article.ReplyDepth 1}} &times; {{.article.ReplyDepth}}{{- end -}}: <a href="/articles/{{.article.ReplyRootArticleId}}">{{.article.ReplyRootArticleTitle}}</a></h1>
+	    {{- end -}}
+	{{- end -}}
+
+	<div style="margin-top:6px;margin-bottom:0px;color:#999;">
+	    <small>
+		{{- if .article.Deleted -}}
+		    <span>deleted</span>&nbsp;
+		{{- else -}}
+		    <a style="color:#999;" href="/users/{{.article.AuthorId}}">{{.article.AuthorName}}</a>&nbsp;
 		{{- end -}}
-	    {{- end -}}
+		published <time title="{{.article.CreatedAt}}">{{timeAgo .article.CreatedAt}}</time> |&nbsp;
+		{{- if ne .article.CreatedAt .article.UpdatedAt -}}
+		    modified <time title="{{.article.UpdatedAt}}">{{timeAgo .article.UpdatedAt}}</time> |&nbsp;
+		{{- end -}}
+		<a style="color:#999;" href="/articles/{{.article.Id}}">link</a> |&nbsp;
+		{{- .article.TotalReplyCount}} comments&nbsp;
+		{{- if .debug -}}
+		    |&nbsp;{{- .article.ReplyDepth}} depth
+		{{- end -}}
+	    </small>
+	</div>
+	{{if .article.Deleted -}}
+	    <i style="color:#666">&lt;Deleted&gt;</i>
+	{{- else -}}
+	    <section style="white-space: break-spaces">{{- .article.Content -}}</section>
+	{{- end -}}
 
-	    <div style="margin-top:6px;margin-bottom:0px;color:#999;">
-		<small>
-		    <a style="color:#999;" href="/users/{{.article.AuthorId}}">{{.article.AuthorName}}</a> published <time title="{{.article.CreatedAt}}">{{timeAgo .article.CreatedAt}}</time> |{{if ne .article.CreatedAt .article.UpdatedAt}} modified <time title="{{.article.UpdatedAt}}">{{timeAgo .article.UpdatedAt}}</time> |{{- end -}}
-		    <a style="color:#999;" href="/articles/{{.article.Id}}">link</a> | {{.article.TotalReplyCount}} comments | {{.article.ReplyDepth}} depth
-		</small>
-	    </div>
-	    <section style="white-space: break-spaces">{{.article.Content}}</section>
-
-	    {{if not .delPage -}}
-		{{template "article_operation_bar" $data -}}
-	    {{- end -}}
-	</article>
-    {{- end -}}
+	{{if not .delPage -}}
+	    {{template "article_operation_bar" $data -}}
+	{{- end -}}
+    </article>
 
     {{if and .delPage .currUser -}}
 	<form method="post" action="/articles/{{.article.Id}}/delete{{if gt .pageDepth 1}}?from=reply{{- end}}" id="del_form_{{.article.Id}}" style="margin:12px 0 12px;padding:10px;border:1px solid #ccc;">
 	    {{.CSRFField -}}
 	    <input type="hidden" name="id" value="{{.article.Id}}">
-	    <label for="confirm_del">Confirm to delete? (yes/no)</label>&nbsp;&nbsp;<input required name="confirm_del" type="text"/>
+	    <label for="confirm_del">Confirm to delete?</label>
 	    <br/>
 	    <br/>
-	    <button type="submit" style="background:red;color:white;">Delete</button>
+	    <button type="submit">Delete</button>
 	</form>
     {{- else -}}
 	{{if .currUser -}}
 	    {{if eq .pageDepth 0 -}}
-		{{if not $isRoot -}}
-		    <div><small><a href="/articles/{{.article.ReplyTo}}">Parent</a></small></div>
-		{{- end -}}
 		{{if not .article.Deleted -}}
 		    {{template "article_reply_form" $data -}}
 		{{- end -}}
 	    {{- end -}}
-	{{else -}}
-	    <div>
-		{{if .article.Deleted -}}
-		    <small>{{if eq .pageDepth 0}}<a href="/articles/{{.article.ReplyTo}}">Parent</a>{{- end}}</small>
-		{{else -}}
-		    <small><a href="/articles/{{.article.Id}}/reply">Reply</a>{{if and (eq .pageDepth 0) (not $isRoot)}}&nbsp;&nbsp;<a href="/articles/{{.article.ReplyTo}}">Parent</a>{{- end}}</small>
-		{{- end -}}
-	    </div>
 	{{- end -}}
 
-	{{$replyData := dict "currUser" .currUser "replies" .article.Replies "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth -}}
+	{{$replyData := dict "currUser" .currUser "replies" .article.Replies "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "debug" .debug -}}
 	{{template "article_replies" $replyData -}}
     {{- end -}}
 
 {{- end -}}
 
 {{define "article_operation_bar" -}}
-    {{if .currUser -}}
-	<div>
-	    {{if eq .currUser.Id .article.AuthorId -}}
-		<small><a href="/articles/{{.article.Id}}/edit" class="btn-edit">Edit</a>&nbsp;&nbsp;<a class="btn-del" href="/articles/{{.article.Id}}/delete" style="color:red">Delete</a>&nbsp;</small>
+    <div>
+	<small>
+	    {{- if not .article.Deleted -}}
+		{{- if .currUser -}}
+		    {{if eq .currUser.Id .article.AuthorId -}}
+			<a href="/articles/{{.article.Id}}/edit" class="btn-edit">Edit</a>&nbsp;&nbsp;<a class="btn-del" href="/articles/{{.article.Id}}/delete">Delete</a>&nbsp;
+		    {{- end -}}
+		    {{if gt .pageDepth 1 -}}
+			<a href="/articles/{{.article.Id}}/reply">Reply</a>
+		    {{- end -}}
+		{{- else -}}
+		    <a href="/articles/{{.article.Id}}/reply">Reply</a>
+		{{- end -}}
 	    {{- end -}}
-	    {{if gt .pageDepth 1 -}}
-		<small><a href="/articles/{{.article.Id}}/reply">Reply</a></small>
-	    {{- end -}}
-	</div>
-    {{- end -}}
+	    {{if and (eq .pageDepth 1) (not .isRootArticle)}}
+		<a href="/articles/{{.article.ReplyTo}}">Parent</a>
+	    {{- end}}
+	</small>
+    </div>
 {{- end -}}
 
 {{define "article_reply_form" -}}
@@ -81,10 +91,11 @@
     {{if not .article -}}
 	{{$inputName = "reply_to_tpl" -}}
     {{- end -}}
-    <form id="reply_form{{if not .article}}_tpl{{- end}}" class="reply_form" method="post" action="/articles" style="{{if not .article}}display:none;{{- end}}margin-top: 10px">
+    <form id="reply_form{{if not .article}}_tpl{{- end}}" class="reply_form" method="post" action="/articles" style="{{if not .article}}display:none;{{- end}}margin-top: 20px">
 	{{.CSRFField -}}
 	<input id="{{$inputName}}" name="{{$inputName}}" type="hidden" value="{{if .article}}{{.article.Id}}{{- end}}"/>
-	<textarea required cols="30" id="content" name="content" rows="10" style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box;max-width:100%;"></textarea>
+	<textarea required cols="30" id="content" name="content" rows="10" style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box;"></textarea>
+	<br/>
 	<button type="submit">Submit</button>
     </form>
 {{- end -}}
@@ -94,9 +105,10 @@
     {{$pageDepth := .pageDepth -}}
     {{$CSRFField := .CSRFField -}}
     {{$maxDepth := .maxDepth}}
-    <ul class="replies" style="list-style:none;margin-left:0;{{if eq $pageDepth 1}}padding-left:0;{{else}}padding-left:14px;{{- end}}">
+    {{$debug := .debug}}
+    <ul class="replies" style="list-style:none;margin-left:0;{{if eq $pageDepth 1}}padding-left:0;{{else}}padding-left:2rem;{{- end}}">
 	{{range .replies -}}
-	    {{$subData := dict "currUser" $currUser "article" . "pageDepth" $pageDepth "CSRFField" $CSRFField "maxDepth" $maxDepth -}}
+	    {{$subData := dict "currUser" $currUser "article" . "pageDepth" $pageDepth "CSRFField" $CSRFField "maxDepth" $maxDepth "debug" $debug -}}
 	    <li style="padding-top:6px">
 		{{template "article_content" $subData -}}
 	    </li>
@@ -108,8 +120,8 @@
 {{- end -}}
 
 {{define "article" -}}
-    {{$pageDepth := 0 -}}
-    {{$data := dict "currUser" .LoginedUser "article" .Data.Article "delPage" .Data.DelPage "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .Data.MaxDepth -}}
+    {{- $pageDepth := 0 -}}
+    {{- $data := dict "currUser" .LoginedUser "article" .Data.Article "delPage" .Data.DelPage "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .Data.MaxDepth "debug" .Debug -}}
 
     {{template "head" . -}}
 

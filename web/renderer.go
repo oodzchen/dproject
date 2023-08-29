@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
+	"github.com/oodzchen/dproject/config"
 	"github.com/oodzchen/dproject/utils"
 	"github.com/pkg/errors"
 )
@@ -46,6 +47,7 @@ type PageData struct {
 	CSRFField   string
 	UISettings  *UISettings
 	RoutePath   string
+	Debug       bool
 }
 
 type Renderer struct {
@@ -150,6 +152,7 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	data.UISettings = uiSettings
 	data.CSRFField = string(csrf.TemplateField(r))
 	data.RoutePath = r.URL.Path
+	data.Debug = config.Config.Debug
 
 	data.Title += fmt.Sprintf(" - %s", os.Getenv("SITE_NAME"))
 

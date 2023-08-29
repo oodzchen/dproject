@@ -1,18 +1,20 @@
 {{define "user_basic_info" -}}
-    <table class="table-info">
-	<tbody>
-	    <tr>
-		<td>Joined At:</td>
-		<td>{{timeFormat .RegisteredAt "YYYY/MM/DD"}}</td>
-	    </tr>
-	    {{if .Introduction -}}
-		<tr>
-		    <td>Introduction:</td>
-		    <td style="white-space:break-spaces">{{.Introduction}}</td>
-		</tr>
-	    {{end -}}
-	</tbody>
-    </table>
+    <div class="data-list">
+	<div class="data-list__row">
+            <div class="data-list__label">Joined At:</div>
+            <div class="data-list__content">
+		{{timeFormat .RegisteredAt "YYYY/MM/DD"}}
+	    </div>
+	</div>
+	{{if .Introduction -}}
+	    <div class="data-list__row">
+		<div class="data-list__label">Introduction:</div>
+		<div class="data-list__content" style="white-space:break-spaces;">
+		    {{- .Introduction -}}
+		</div>
+	    </div>
+	{{- end -}}
+    </div>
 {{end -}}
 
 {{define "post_list" -}}

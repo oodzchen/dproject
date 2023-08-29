@@ -11,19 +11,27 @@
 	    <link rel="manifest" href="/static/site.webmanifest">
 	    <title>{{.Title}}</title>
 	    <style>
+	     :root{
+		 --font-size: 16px;
+		 --colored-bg: #BED3E5;
+		 --tip-bg: #E5E4BE;
+	     }
 	     :root[data-theme="light"] {
 		 color-scheme: light;
 		 --text: black;
 		 --background: white;
 
-		 --tip-text: black;
+		 --text-with-background: black;
 	     }
 	     :root[data-theme="dark"] {
 		 color-scheme: dark;
 		 --text: white;
 		 --background: #282A36;
 
-		 --tip-text: black;
+		 --text-with-background: black;
+	     }
+	     h1{
+		 margin-bottom: 0.6rem;
 	     }
 	     a {
 		 text-decoration: none;
@@ -37,14 +45,27 @@
 		 justify-content: space-between;
 		 flex-wrap: wrap;
 	     }
+	     input,
+	     textarea,
+	     button{
+		 font-size: var(--font-size)
+	     }
 
+	     input[type="text"],
+	     textarea{
+		 max-width: 1000px;
+	     }
+
+	     html{
+		 font-size: var(--font-size)
+	     }
 	     html,body{
 		 background: var(--background);
 		 color: var(--text);
 	     }
 	     body{
 		 margin: 0 auto;
-		 padding: 10px 20px;
+		 padding: 10px 12px;
 		 {{- if and .UISettings (eq .UISettings.ContentLayout "centered") -}}
 		 max-width: 1000px;
 		 {{- end -}}
@@ -54,11 +75,11 @@
 		 padding: 10px;
 		 margin-bottom: 10px;
 		 justify-content:space-between;
-		 background-color:aqua;
-		 color: var(--tip-text)
+		 background-color: var(--tip-bg);
+		 color: var(--text-with-background)
 	     }
 	     .page-tip a{
-		 color: var(--tip-text)
+		 color: var(--text-with-background)
 	     }
 	     .article-list li a:active,
 	     .article-list li a:focus{
@@ -80,17 +101,52 @@
 		 outline: 1px solid blue;
 		 text-decoration: underline;
 	     }
-	     .settings-tab{
+	     .tabs{
+		 padding: 4px 10px 0;
+		 background: var(--colored-bg);
 		 margin-bottom: 10px
 	     }
-	     .table-info tr>td{
-		 vertical-align: top
+	     .tabs .tab{
+		 display: inline-block;
+		 padding: 0 6px 4px;
+		 color: var(--text-with-background)
 	     }
-	     .table-info tr>td:nth-child(odd){
-		 text-align: right
+	     .tabs .tab.active{
+		 background: var(--background);
+		 color: var(--text)
 	     }
-	     .table-info tr>td:nth-child(even){
-		 text-align: left
+	     .data-list{
+		 display: table;
+		 width: 100%;
+	     }
+	     .data-list .data-list__row{
+		 display: table-row;
+	     }
+	     .data-list .data-list__label,
+	     .data-list .data-list__content{
+		 display: table-cell;
+		 padding-bottom: 10px;
+		 vertical-align: top;
+	     }
+	     .data-list .data-list__label{
+		 width: 7rem;
+		 text-align: right;
+		 padding-right: 6px;
+		 box-sizing: border-box;
+	     }
+	     .data-list .data-list__content{
+		 text-align: left;
+	     }
+	     .form .form__row{
+		 margin-bottom: 12px;
+	     }
+	     .form .form__row > label{
+		 display: block;
+		 margin-bottom: 6px;
+		 font-weight: bold;
+	     }
+	     .form .form__row:last-child{
+		 margin-bottom: 0;
 	     }
 	    </style>
 	    <script>
@@ -134,10 +190,12 @@
 	    {{- if eq .RoutePath "/" -}}
 		<a id="skip-button" class="skip-button" tab-index="0" href="#article-list-head">Skip To Content</a>
 	    {{- end -}}
+	    {{- if and .Debug .JSONStr -}}
 	    <script>
 	     const DEBUG_DATA = {{.JSONStr -}};
 	     console.dir(DEBUG_DATA);
 	    </script>
+	    {{- end -}}
 	    <style>
 	     .nav-menu{
 		 display: flex;
@@ -158,11 +216,11 @@
 	    <nav>
 		<ul class="nav-menu">
 		    <li><a href="/">Home</a></li>
-		    {{if .LoginedUser}}<li><a href="/users">Users</a></li>{{- end -}}
 		</ul>
 		<ul class="nav-menu">
 		    <li><a href="/articles/new">&plus;New</a></li>
 		    {{if .LoginedUser -}}
+			<li><a href="/users">Users</a></li>
 			<li><a href="/users/{{.LoginedUser.Id}}">{{.LoginedUser.Name}}</a></li>
 			<li><a href="/logout">Logout</a></li>
 		    {{else -}}

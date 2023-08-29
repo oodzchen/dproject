@@ -393,15 +393,15 @@ func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	confirmText := r.Form.Get("confirm_del")
-	if confirmText != "yes" {
-		if confirmText == "no" {
-			http.Redirect(w, r, fmt.Sprintf("/articles/%d", rId), http.StatusFound)
-		} else {
-			ar.Error("Delete failed", err, w, r, http.StatusBadRequest)
-		}
-		return
-	}
+	// confirmText := r.Form.Get("confirm_del")
+	// if confirmText != "yes" {
+	// 	if confirmText == "no" {
+	// 		http.Redirect(w, r, fmt.Sprintf("/articles/%d", rId), http.StatusFound)
+	// 	} else {
+	// 		ar.Error("Delete failed", err, w, r, http.StatusBadRequest)
+	// 	}
+	// 	return
+	// }
 
 	currUserId, err := GetLoginUserId(ar.sessStore, w, r)
 	if err != nil {

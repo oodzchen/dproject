@@ -1,75 +1,63 @@
 {{ define "settings" -}}
     {{template "head" . -}}
-    <div class="settings-tab">
+    <div class="tabs">
 	{{- $data := .Data -}}
-	{{- $tabs := list "account" "ui" -}}
+	{{- $tabs := list "ui" -}}
 
-	{{- $tabNameMap := dict "ui" "UI" -}}
+	{{- $tabNameMap := dict "account" "Account" "ui" "UI" -}}
 	{{- if .LoginedUser -}}
-	    {{- $tabNameMap = dict "account" "Account" "ui" "UI" -}}
+	    {{- $tabs = list "account" "ui" -}}
 	{{- end -}}
 	{{- range $tabs -}}
 	    {{- if eq $data.PageKey . -}}
-		<span>{{get $tabNameMap .}}<span>&nbsp;&nbsp;
+		<span class="tab active">{{get $tabNameMap .}}</span>
 	    {{- else -}}
-		    <a href="/settings/{{.}}">{{get $tabNameMap .}}</a>&nbsp;&nbsp;
+		<a class="tab" href="/settings/{{.}}">{{get $tabNameMap .}}</a>
 	    {{- end -}}
 	{{- end -}}
     </div>
 
     {{- if and .Data.AccountData (eq .Data.PageKey "account") -}}
-	<form method="POST" action="/settings/account">
+	<form class="form" method="POST" action="/settings/account">
 	    {{.CSRFField}}
-	    <table class="table-info">
-		<tbody>
-		    <tr>
-			<td>Name:</td>
-			<td>{{.Data.AccountData.Name}}</td>
-		    </tr>
-		    <tr>
-			<td>Introduction:</td>
-			<td>
-			    <textarea cols="60" name="introduction" rows="10">{{.Data.AccountData.Introduction}}</textarea>
-			</td>
-		    </tr>
-		</tbody>
-	    </table>
+	    <div class="form__row">
+		<label for="name">Name:</label>
+		<div id="name">{{.Data.AccountData.Name}}</div>
+	    </div>
+	    <div class="form__row">
+		<label for="introduction">Introduction:</label>
+		<textarea id="introduction" style="width:100%;box-sizing:border-box;" name="introduction" rows="10">{{.Data.AccountData.Introduction}}</textarea>
+	    </div>
+	    <br/>
 	    <button type="submit">Save</button>
 	</form>
     {{- end -}}
-    
+
     {{- if eq .Data.PageKey "ui" -}}
-	<form method="POST" action="/settings/ui">
+	<form class="form" method="POST" action="/settings/ui">
 	    {{$themeDict := dict "light" "Light" "dark" "Dark" "system" "OS Default (Must enable JavaScript)"}}
 	    {{$themes := list "light" "dark" "system"}}
 	    {{$contentLayoutDict := dict "full" "Full" "centered" "Centered"}}
 	    {{$contentLayouts := list "centered" "full"}}
 	    {{$settings := .UISettings}}
 	    {{.CSRFField}}
-	    <table class="table-info">
-		<tbody>
-		    <tr>
-			<td>Theme:</td>
-			<td>
-			    {{range $themes -}}
-				<span {{if eq . "system"}}style="display:none"{{- end -}}>
-				    <label><input name="theme" required autocomplete="off" id="{{.}}" {{if eq . "system"}}disabled{{- end -}} {{if and $settings (eq $settings.Theme .)}}checked{{end}} type="radio" value="{{.}}"/> {{get $themeDict .}}</label>
-				</span>&nbsp;&nbsp;
-			    {{- end -}}
-			</td>
-		    </tr>
-		    <tr>
-			<td>Page Layout:</td>
-			<td>
-			    {{range $contentLayouts -}}
-				<span>
-				    <label><input name="content_layout" required autocomplete="off" id="{{.}}" {{if and $settings (eq $settings.ContentLayout .)}}checked{{end}} type="radio" value="{{.}}"/> {{get $contentLayoutDict .}}</label>
-				</span>&nbsp;&nbsp;
-			    {{- end -}}
-			</td>
-		    </tr>
-		</tbody>
-	    </table>
+	    <div class="form__row">
+		<label for="theme-options">Theme:</label>
+		<div id="theme-options">
+		    {{range $themes -}}
+			<span {{if eq . "system"}}style="display:none"{{- end -}}><label><input name="theme" required autocomplete="off" id="{{.}}" {{if eq . "system"}}disabled{{- end -}} {{if and $settings (eq $settings.Theme .)}}checked{{end}} type="radio" value="{{.}}"/> {{get $themeDict .}}</label></span>&nbsp;&nbsp;
+		    {{- end -}}
+		</div>
+	    </div>
+	    <div class="form__row">
+		<label for="content-layout-options">Page Layout:</label>
+		<div id="content-layout-options">
+		    {{range $contentLayouts -}}
+			<span><label><input name="content_layout" required autocomplete="off" id="{{.}}" {{if and $settings (eq $settings.ContentLayout .)}}checked{{end}} type="radio" value="{{.}}"/> {{get $contentLayoutDict .}}</label></span>&nbsp;&nbsp;
+		    {{- end -}}
+		</div>
+	    </div>
+	    <br/>
 	    <button type="submit">Save</button>
 	</form>
     {{- end -}}
