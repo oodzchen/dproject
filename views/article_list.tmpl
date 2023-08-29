@@ -4,12 +4,13 @@
 
     {{$data := .Data -}}
     {{$startIndex := add (mul (add $data.CurrPage -1) $data.PageSize) 1}}
-    <ol class="article-list" style="padding-left:0rem;list-style-position:inside;" start="{{$startIndex}}">
+    <ol class="article-list" start="{{$startIndex}}">
 	{{range $idx, $item := .Data.Articles -}}
 	    <li>
-		<a {{if eq $idx 0}}id="article-list-head"{{end}} href="/articles/{{$item.Id}}">{{$item.Title}}</a>
+		<a {{if eq $idx 0}}id="article-list-head"{{end}} href="/articles/{{$item.Id}}">{{$item.DisplayTitle}}</a>
 		<br/>
-		<small style="color:#999">By <a style="color:#999" href="/users/{{$item.AuthorId}}">{{$item.AuthorName}}</a> <time title="{{$item.CreatedAt}}">{{timeAgo $item.CreatedAt}}</time> <a href="/articles/{{$item.Id}}" style="color:#999">{{$item.TotalReplyCount}} comment{{if ne $item.TotalReplyCount 1}}s{{end}}</a></small>
+		<small class="text-lighten-3">By <a class="text-lighten-3" href="/users/{{$item.AuthorId}}">{{$item.AuthorName}}</a> <time title="{{$item.CreatedAt}}">{{timeAgo $item.CreatedAt}}</time> | <a href="/articles/{{$item.Id}}" class="text-lighten-3">{{$item.TotalReplyCount}} comment{{if ne $item.TotalReplyCount 1}}s{{end}}</a></small>
+		<div class="text-lighten-2">{{$item.Summary}} ...</div>
 	    </li>
 	{{end -}}
     </ol>

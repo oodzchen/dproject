@@ -11,18 +11,18 @@
 	    {{- end -}}
 	{{- end -}}
 
-	<div style="margin-top:6px;margin-bottom:0px;color:#999;">
+	<div class="text-lighten-3" style="margin-top:6px;margin-bottom:0px;">
 	    <small>
 		{{- if .article.Deleted -}}
 		    <span>deleted</span>&nbsp;
 		{{- else -}}
-		    <a style="color:#999;" href="/users/{{.article.AuthorId}}">{{.article.AuthorName}}</a>&nbsp;
+		    <a class="text-lighten-3" href="/users/{{.article.AuthorId}}">{{.article.AuthorName}}</a>&nbsp;
 		{{- end -}}
 		published <time title="{{.article.CreatedAt}}">{{timeAgo .article.CreatedAt}}</time> |&nbsp;
 		{{- if ne .article.CreatedAt .article.UpdatedAt -}}
 		    modified <time title="{{.article.UpdatedAt}}">{{timeAgo .article.UpdatedAt}}</time> |&nbsp;
 		{{- end -}}
-		<a style="color:#999;" href="/articles/{{.article.Id}}">link</a> |&nbsp;
+		<a class="text-lighten-3" href="/articles/{{.article.Id}}">link</a> |&nbsp;
 		{{- .article.TotalReplyCount}} comments&nbsp;
 		{{- if .debug -}}
 		    |&nbsp;{{- .article.ReplyDepth}} depth
@@ -30,7 +30,7 @@
 	    </small>
 	</div>
 	{{if .article.Deleted -}}
-	    <i style="color:#666">&lt;Deleted&gt;</i>
+	    <i class="text-lighten-2">&lt;Deleted&gt;</i>
 	{{- else -}}
 	    <section style="white-space: break-spaces">{{- .article.Content -}}</section>
 	{{- end -}}

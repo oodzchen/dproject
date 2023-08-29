@@ -12,7 +12,7 @@
 	    <li>
 		<a href="/users/{{.Id}}">{{.Name}}</a>
 		<div>{{.Email}}</div>
-		<div style="color: #999">regitered at {{ timeAgo .RegisteredAt }}</div>
+		<div class="text-lighten-3">regitered at {{ timeAgo .RegisteredAt }}</div>
 	    </li>
 	{{- end -}}
     </ul>

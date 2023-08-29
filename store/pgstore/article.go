@@ -15,7 +15,7 @@ type Article struct {
 
 func (a *Article) List(page int, pageSize int) ([]*model.Article, error) {
 	sqlStr := `
-SELECT tp.id, tp.title, u.name as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, (
+SELECT tp.id, tp.title, u.name as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, tp.depth, p2.title as root_article_title, (
 	WITH RECURSIVE replies AS (
 	   SELECT id
 	   FROM posts
@@ -31,9 +31,9 @@ SELECT tp.id, tp.title, u.name as author_name, tp.author_id, tp.content, tp.crea
 	FROM replies
 ) AS total_reply_count
 FROM posts tp
-LEFT JOIN users u
-ON u.id = tp.author_id
-WHERE tp.reply_to = 0 AND tp.deleted = false
+LEFT JOIN posts p2 ON tp.root_article_id = p2.id
+LEFT JOIN users u ON u.id = tp.author_id
+WHERE tp.deleted = false
 ORDER BY tp.created_at DESC
 OFFSET $1
 LIMIT $2;`
@@ -43,7 +43,7 @@ LIMIT $2;`
 	}
 
 	if pageSize < 1 {
-		pageSize = defaultPage
+		pageSize = defaultPageSize
 	}
 
 	// fmt.Println("page", page)
@@ -69,6 +69,8 @@ LIMIT $2;`
 			&item.Content,
 			&item.CreatedAt,
 			&item.UpdatedAt,
+			&item.ReplyDepth,
+			&item.NullReplyRootArticleTitle,
 			&item.TotalReplyCount,
 		)
 		if err != nil {
@@ -77,6 +79,9 @@ LIMIT $2;`
 		}
 
 		item.FormatTimeStr()
+		item.FormatNullValues()
+		item.UpdateDisplayTitle()
+		item.GenSummary(200)
 		list = append(list, &item)
 	}
 

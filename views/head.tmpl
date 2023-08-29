@@ -22,6 +22,9 @@
 		 --background: white;
 
 		 --text-with-background: black;
+		 --text-lighten: #333;
+		 --text-lighten-2: #666;
+		 --text-lighten-3: #999;
 	     }
 	     :root[data-theme="dark"] {
 		 color-scheme: dark;
@@ -29,6 +32,9 @@
 		 --background: #282A36;
 
 		 --text-with-background: black;
+		 --text-lighten: #ddd;
+		 --text-lighten-2: #ccc;
+		 --text-lighten-3: #aaa;
 	     }
 	     h1{
 		 margin-bottom: 0.6rem;
@@ -70,6 +76,15 @@
 		 max-width: 1000px;
 		 {{- end -}}
 	     }
+	     .text-lighten{
+		 color: var(--text-lighten)
+	     }
+	     .text-lighten-2{
+		 color: var(--text-lighten-2)
+	     }
+	     .text-lighten-3{
+		 color: var(--text-lighten-3)
+	     }
 	     .page-tip{
 		 display:flex;
 		 padding: 10px;
@@ -80,6 +95,12 @@
 	     }
 	     .page-tip a{
 		 color: var(--text-with-background)
+	     }
+	     .article-list{
+		 padding-left: 2rem;
+	     }
+	     .article-list li{
+		 margin-bottom: 10px;
 	     }
 	     .article-list li a:active,
 	     .article-list li a:focus{

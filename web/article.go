@@ -61,7 +61,7 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 
 	pageSize, err := strconv.Atoi(r.Form.Get("page_size"))
 	if err != nil {
-		pageSize = 100
+		pageSize = 50
 	}
 
 	list, err := ar.store.Article.List(page, pageSize)
