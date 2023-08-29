@@ -25,7 +25,7 @@
 		    <a href="/articles/{{.Id}}">{{.DisplayTitle}}</a>
 		    <small><time title="{{.CreatedAt}}">{{timeAgo .CreatedAt}}</time></small>
 		</div>
-		<div style="margin: 6px 0 12px;">{{substr 0 500 .Content}}{{if gt (len .Content) 500}} ...{{end}}</div>
+		<div style="margin: 6px 0 12px;white-space: break-spaces;">{{.Summary}} ...</div>
 	    </li>
 	{{end -}}
     </ul>

@@ -117,6 +117,7 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 
 	for _, article := range postList {
 		article.UpdateDisplayTitle()
+		article.GenSummary(200)
 	}
 
 	ur.Render(w, r, "user_item", &PageData{Title: user.Name, Data: &userProfile{

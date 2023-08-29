@@ -24,6 +24,7 @@ type Article struct {
 	AuthorName   string
 	AuthorId     int
 	Content      string
+	Summary      string
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 	CreatedAtStr string
@@ -71,6 +72,14 @@ func (a *Article) UpdateDisplayTitle() {
 func (a *Article) FormatDeleted() {
 	if a.Deleted {
 		a.Content = ""
+	}
+}
+
+func (a *Article) GenSummary(strLen int) {
+	if utf8.RuneCountInString(a.Content) > strLen {
+		a.Summary = string([]rune(a.Content)[:strLen])
+	} else {
+		a.Summary = a.Content
 	}
 }
 

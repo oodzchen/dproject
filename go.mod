@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/brianvoe/gofakeit/v6 v6.23.1
+	github.com/caarlos0/env/v9 v9.0.0
 	github.com/chromedp/chromedp v0.9.2
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-chi/httprate v0.7.4
@@ -22,7 +23,6 @@ require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.0 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
-	github.com/caarlos0/env/v9 v9.0.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/chromedp/cdproto v0.0.0-20230808232040-5d0fb3432de3 // indirect
 	github.com/chromedp/sysutil v1.0.0 // indirect
