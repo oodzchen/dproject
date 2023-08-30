@@ -334,6 +334,12 @@ func (mr *MainResource) handleSettingsPage(w http.ResponseWriter, r *http.Reques
 	mr.Render(w, r, "settings", &PageData{
 		Title: settingsTitleMap[pageKey] + " Settings",
 		Data:  pageData,
+		BreadCrumbs: []*BreadCrumb{
+			{
+				"/settings",
+				"Settings",
+			},
+		},
 	})
 }
 

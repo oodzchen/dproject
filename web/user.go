@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"text/template"
@@ -83,6 +84,12 @@ func (ur *UserResource) List(w http.ResponseWriter, r *http.Request) {
 			CeilInt(total, pageSize),
 			pageSize,
 		},
+		BreadCrumbs: []*BreadCrumb{
+			{
+				"/users",
+				"User List",
+			},
+		},
 	})
 }
 
@@ -120,8 +127,17 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 		article.GenSummary(200)
 	}
 
-	ur.Render(w, r, "user_item", &PageData{Title: user.Name, Data: &userProfile{
-		UserInfo: user,
-		Posts:    postList,
-	}})
+	ur.Render(w, r, "user_item", &PageData{
+		Title: user.Name,
+		Data: &userProfile{
+			UserInfo: user,
+			Posts:    postList,
+		},
+		BreadCrumbs: []*BreadCrumb{
+			{
+				fmt.Sprintf("/users/%d", user.Id),
+				user.Name,
+			},
+		},
+	})
 }

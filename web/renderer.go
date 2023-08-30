@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"text/template"
 
@@ -38,6 +37,11 @@ type UISettings struct {
 	ContentLayout string
 }
 
+type BreadCrumb struct {
+	Path string
+	Name string
+}
+
 type PageData struct {
 	Title       string
 	Data        any
@@ -48,6 +52,7 @@ type PageData struct {
 	UISettings  *UISettings
 	RoutePath   string
 	Debug       bool
+	BreadCrumbs []*BreadCrumb
 }
 
 type Renderer struct {
@@ -153,8 +158,7 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	data.CSRFField = string(csrf.TemplateField(r))
 	data.RoutePath = r.URL.Path
 	data.Debug = config.Config.Debug
-
-	data.Title += fmt.Sprintf(" - %s", os.Getenv("SITE_NAME"))
+	data.Title += fmt.Sprintf(" - %s", config.Config.SiteName)
 
 	if utils.IsDebug() {
 		jsonData, err := json.MarshalIndent(data, "", "  ")

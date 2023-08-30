@@ -2,11 +2,16 @@
 
     {{template "head" .}}
     <style>
+     .user-list{
+	 display: flex;
+	 flex-wrap: wrap;
+	 list-style: none;
+	 padding: 0;
+     }
      .user-list li{
-	 margin-bottom: 0.5rem;
+	 margin: 0 26px 16px 0;
      }
     </style>
-    <h1>User List</h1>
     <ul class="user-list">
 	{{- range .Data.List -}}
 	    <li>
