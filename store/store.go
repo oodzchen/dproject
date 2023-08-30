@@ -20,7 +20,7 @@ type ArticleStore interface {
 	Update(a *model.Article, fields []string) (int, error)
 	Item(int) (*model.Article, error)
 	Delete(id int, authorId int) (int, error)
-	ItemTree(int) ([]*model.Article, error)
+	ItemTree(ariticleId, userId int) ([]*model.Article, error)
 	Count() (int, error)
 	VoteCheck(id, userId int) (error, string)
 	Vote(id, userId int, voteType string) error

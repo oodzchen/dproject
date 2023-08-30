@@ -274,7 +274,9 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 		return
 	}
 
-	articleTreeList, err := ar.store.Article.ItemTree(articleId)
+	currUserId := ar.GetLoginedUserId(w, r)
+
+	articleTreeList, err := ar.store.Article.ItemTree(articleId, currUserId)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			// http.Redirect(w, r, "/404", http.StatusNotFound)
@@ -302,7 +304,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 	// }
 
 	if delPage {
-		currUserId, err := GetLoginUserId(ar.sessStore, w, r)
+		// currUserId, err := GetLoginUserId(ar.sessStore, w, r)
 		if err != nil {
 			ar.Error("Please login", err, w, r, http.StatusUnauthorized)
 			return
@@ -457,8 +459,8 @@ func (ar *ArticleResource) Vote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userId := ar.Session("one", w, r).GetValue("user_id")
-	if userId, ok := userId.(int); ok {
+	userId := ar.GetLoginedUserId(w, r)
+	if userId != 0 {
 		err = ar.store.Article.Vote(articleId, userId, voteType)
 		if err != nil {
 			ar.ServerError("", err, w, r)

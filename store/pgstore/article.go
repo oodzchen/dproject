@@ -233,7 +233,7 @@ WHERE p.id = $1;`
 	return &item, nil
 }
 
-func (a *Article) ItemTree(id int) ([]*model.Article, error) {
+func (a *Article) ItemTree(id, userId int) ([]*model.Article, error) {
 	sqlStr := `
 WITH RECURSIVE articleTree AS (
      SELECT id, title, author_id, content, created_at, updated_at, deleted, reply_to, depth, 0 AS cur_depth, root_article_id
@@ -260,20 +260,31 @@ SELECT ar.id, ar.title, u.name as author_name, ar.author_id, ar.content, ar.crea
 	)
 	SELECT COUNT(*)
 	FROM replies
-) AS total_reply_count
+) AS total_reply_count,
+(
+SELECT type FROM post_votes WHERE post_id = ar.id AND user_id = $3
+) AS user_vote_type,
+(
+SELECT (COUNT(CASE WHEN type = 'up' THEN 1 END) -
+COUNT(CASE WHEN type = 'down' THEN 1 END)) FROM post_votes WHERE post_id = ar.id
+) AS vote_score
 FROM articleTree ar
 JOIN users u ON ar.author_id = u.id
 LEFT JOIN posts p2 ON ar.root_article_id = p2.id
 ORDER BY ar.created_at;`
 
-	rows, err := a.dbPool.Query(context.Background(), sqlStr, id, utils.GetReplyDepthSize())
+	rows, err := a.dbPool.Query(context.Background(), sqlStr, id, utils.GetReplyDepthSize(), userId)
 	if err != nil {
 		return nil, err
 	}
 
 	var list []*model.Article
 	for rows.Next() {
-		var item model.Article
+		var userState model.CurrUserState
+		item := model.Article{
+			CurrUserState: &userState,
+		}
+
 		err = rows.Scan(
 			&item.Id,
 			&item.Title,
@@ -288,6 +299,8 @@ ORDER BY ar.created_at;`
 			&item.ReplyRootArticleId,
 			&item.NullReplyRootArticleTitle,
 			&item.TotalReplyCount,
+			&item.CurrUserState.NullVoteType,
+			&item.VoteScore,
 		)
 
 		if err != nil {

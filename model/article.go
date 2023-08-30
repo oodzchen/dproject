@@ -34,7 +34,14 @@ func IsValidVoteType(t VoteType) bool {
 }
 
 type CurrUserState struct {
-	VoteType VoteType
+	VoteType     VoteType
+	NullVoteType pgtype.Text
+}
+
+func (cus *CurrUserState) FormatNullValues() {
+	if cus.VoteType == "" && cus.NullVoteType.Valid {
+		cus.VoteType = VoteType(cus.NullVoteType.String)
+	}
 }
 
 type Article struct {
@@ -76,6 +83,10 @@ func (a *Article) FormatNullValues() {
 
 	if a.ReplyRootArticleTitle == "" && a.NullReplyRootArticleTitle.Valid {
 		a.ReplyRootArticleTitle = a.NullReplyRootArticleTitle.String
+	}
+
+	if a.CurrUserState != nil {
+		a.CurrUserState.FormatNullValues()
 	}
 }
 

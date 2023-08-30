@@ -77,6 +77,14 @@ func (rd *Renderer) NotFound(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/404", http.StatusNotFound)
 }
 
+func (rd *Renderer) GetLoginedUserId(w http.ResponseWriter, r *http.Request) int {
+	userId := rd.Session("one", w, r).GetValue("user_id")
+	if userId, ok := userId.(int); ok {
+		return userId
+	}
+	return 0
+}
+
 func (rd *Renderer) Error(msg string, err error, w http.ResponseWriter, r *http.Request, code int) {
 	fmt.Printf("%+v\n", err)
 

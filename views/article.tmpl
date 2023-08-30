@@ -13,7 +13,7 @@
      .article-operation form{
 	 display: inline-block;
 	 padding: 0;
-	 margin: 0 4px 0 0;
+	 margin: 0;
 	 vertical-align: text-top;
 	 line-height: 0;
      }
@@ -21,7 +21,7 @@
 	 display: inline-block;
 	 padding: 0;
 	 border: none;
-	 line-height: 0.8rem;
+	 line-height: 0.8;
 	 vertical-align: text-top;
 	 font-size: 1.4rem;
 	 cursor: pointer;
@@ -31,10 +31,13 @@
      .article-operation button[type="submit"]:hover{
 	 color: var(--text-lighten-3);
      }
-	 /* .article-operation button[type="submit"].article-operation__down{
-	    position: relative;
-	    top: -1px;
-	    } */
+     .article-operation .voted button[type="submit"]{
+	 color: var(--theme-color);
+     }
+     /* .article-operation button[type="submit"].article-operation__down{
+	position: relative;
+	top: -1px;
+	} */
     </style>
 
     {{template "article_content" $data -}}
@@ -112,15 +115,19 @@
     <div class="article-operation">
 	<small>
 	    {{- if not .article.Deleted -}}
-		<form action="/articles/{{.article.Id}}/vote" method="POST">
+		<form action="/articles/{{.article.Id}}/vote" method="POST" {{if eq .article.CurrUserState.VoteType "up"}}class="voted"{{end}}>
 		    {{.CSRFField}}
 		    <input name="type" type="hidden" value="up"/>
 		    <button type="submit">&#9650;</button>
-		</form><form action="/articles/{{.article.Id}}/vote" method="POST">
+		</form>
+		{{- if gt .article.VoteScore 0 -}}
+		    <span>({{.article.VoteScore}})<span>&nbsp;
+		{{- end -}}
+		<form action="/articles/{{.article.Id}}/vote" method="POST" {{if eq .article.CurrUserState.VoteType "down"}}class="voted"{{end}}>
 		    {{.CSRFField}}
 		    <input name="type" type="hidden" value="down"/>
 		    <button class="article-operation__down" type="submit">&#9660;</button>
-		</form>
+		</form>&nbsp;
 		{{- if .currUser -}}
 		    {{- if eq .currUser.Id .article.AuthorId -}}
 			<a href="/articles/{{.article.Id}}/edit" class="btn-edit">Edit</a>&nbsp;&nbsp;<a class="btn-del" href="/articles/{{.article.Id}}/delete">Delete</a>&nbsp;&nbsp;
