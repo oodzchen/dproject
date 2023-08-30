@@ -92,7 +92,7 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// fmt.Printf("Password value: %s\n", user.Password)
-	id, err := mr.store.User.Create(user)
+	id, err := mr.store.User.Create(user.Email, user.Password, user.Name)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == PGErrUniqueViolation {

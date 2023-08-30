@@ -17,6 +17,26 @@ const (
 	MAX_ARTICLE_TITLE_LEN, MAX_ARTICLE_CONTENT_LEN int = 80, 24000
 )
 
+type VoteType string
+
+const (
+	VoteTypeUp   VoteType = "up"
+	VoteTypeDown          = "down"
+)
+
+var validVoteType = map[VoteType]bool{
+	VoteTypeUp:   true,
+	VoteTypeDown: true,
+}
+
+func IsValidVoteType(t VoteType) bool {
+	return validVoteType[t]
+}
+
+type CurrUserState struct {
+	VoteType VoteType
+}
+
 type Article struct {
 	Id           int
 	Title        string
@@ -40,6 +60,9 @@ type Article struct {
 	ReplyRootArticleTitle     string
 	DisplayTitle              string // only for display
 	TotalReplyCount           int
+	VoteScore                 int
+	Weight                    int
+	CurrUserState             *CurrUserState
 }
 
 func (a *Article) FormatNullValues() {

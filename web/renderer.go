@@ -65,6 +65,18 @@ func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, 
 	rd.doRender(w, r, name, data, http.StatusOK)
 }
 
+func (rd *Renderer) ServerError(msg string, err error, w http.ResponseWriter, r *http.Request) {
+	rd.Error(msg, err, w, r, http.StatusInternalServerError)
+}
+
+func (rd *Renderer) ToLogin(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/login", http.StatusFound)
+}
+
+func (rd *Renderer) NotFound(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/404", http.StatusNotFound)
+}
+
 func (rd *Renderer) Error(msg string, err error, w http.ResponseWriter, r *http.Request, code int) {
 	fmt.Printf("%+v\n", err)
 

@@ -2,8 +2,12 @@ package pgstore
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"reflect"
+	"strings"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/utils"
@@ -29,7 +33,11 @@ SELECT tp.id, tp.title, u.name as author_name, tp.author_id, tp.content, tp.crea
 	)
 	SELECT COUNT(*)
 	FROM replies
-) AS total_reply_count
+) AS total_reply_count,
+(
+SELECT (COUNT(CASE WHEN type = 'up' THEN 1 END) -
+COUNT(CASE WHEN type = 'down' THEN 1 END)) FROM post_votes
+) AS vote_score
 FROM posts tp
 LEFT JOIN posts p2 ON tp.root_article_id = p2.id
 LEFT JOIN users u ON u.id = tp.author_id
@@ -72,6 +80,7 @@ LIMIT $2;`
 			&item.ReplyDepth,
 			&item.NullReplyRootArticleTitle,
 			&item.TotalReplyCount,
+			&item.VoteScore,
 		)
 		if err != nil {
 			fmt.Printf("Collect rows error: %v\n", err)
@@ -97,7 +106,7 @@ func (a *Article) Count() (int, error) {
 	return count, nil
 }
 
-func (a *Article) Create(item *model.Article) (int, error) {
+func (a *Article) Create(title, content string, authorId, replyTo int) (int, error) {
 	var id int
 	sqlStr := `
 INSERT INTO posts (title, author_id, content, reply_to, root_article_id, depth)
@@ -121,10 +130,10 @@ VALUES (
 )
 RETURNING (id);`
 	err := a.dbPool.QueryRow(context.Background(), sqlStr,
-		item.Title,
-		item.AuthorId,
-		item.Content,
-		item.ReplyTo,
+		title,
+		authorId,
+		content,
+		replyTo,
 	).Scan(&id)
 	if err != nil {
 		return 0, err
@@ -132,16 +141,49 @@ RETURNING (id);`
 	return id, nil
 }
 
-func (a *Article) Update(item *model.Article) (int, error) {
-	sqlStr := `UPDATE posts SET title = $1, content = $2, updated_at = current_timestamp WHERE id = $3 RETURNING (id)`
+func validArticleUpdateField(key string) bool {
+	allowedFields := []string{"Title", "Content", "Weight"}
+	for _, field := range allowedFields {
+		if key == field {
+			return true
+		}
+	}
+	return false
+}
+
+func (a *Article) Update(item *model.Article, fieldNames []string) (int, error) {
+	for _, field := range fieldNames {
+		if !validArticleUpdateField(field) {
+			return 0, errors.New(fmt.Sprintf("'%s' is not allowed to update", field))
+		}
+	}
+
+	var updateStr []string
+	var updateVals []any
+	itemVal := reflect.ValueOf(*item)
+
+	dbFieldNameMap := map[string]string{
+		"Title":   "title",
+		"Content": "content",
+		"Weight":  "weight",
+	}
+	for idx, field := range fieldNames {
+		updateStr = append(updateStr, fmt.Sprintf("%s = $%d", dbFieldNameMap[field], idx+1))
+		updateVals = append(updateVals, itemVal.FieldByName(field))
+	}
+
+	sqlStr := "UPDATE posts SET " + strings.Join(updateStr, ", ") + fmt.Sprintf(" WHERE id = $%d RETURNING(id)", len(updateStr)+1)
+	updateVals = append(updateVals, item.Id)
+
+	// fmt.Println("update sql string: ", sqlStr)
+	// fmt.Println("update vals: ", updateVals)
+
 	var id int
-	err := a.dbPool.QueryRow(context.Background(), sqlStr,
-		item.Title,
-		item.Content,
-		item.Id).Scan(&id)
+	err := a.dbPool.QueryRow(context.Background(), sqlStr, updateVals...).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
+
 	return id, nil
 }
 
@@ -272,4 +314,75 @@ func (a *Article) Delete(id int, authorId int) (rootArticleId int, err error) {
 		rootArticleId = id
 	}
 	return
+}
+
+func (a *Article) Vote(id, userId int, voteType string) error {
+	err, vt := a.VoteCheck(id, userId)
+	// fmt.Println("check error: ", err)
+	// fmt.Println("check vote type: ", vt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			// var aId int
+			err = a.dbPool.QueryRow(
+				context.Background(),
+				`INSERT INTO post_votes (post_id, user_id, type) VALUES ($1, $2, $3) RETURNING (post_id, user_id)`,
+				id,
+				userId,
+				voteType,
+			).Scan(nil)
+
+			// fmt.Println("after insert, aId: ", aId)
+			// fmt.Println("after insert: ", err)
+
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
+		if vt == voteType {
+			err = a.dbPool.QueryRow(
+				context.Background(),
+				`DELETE FROM post_votes WHERE post_id = $1 AND user_id = $2 RETURNING (post_id, user_id)`,
+				id,
+				userId,
+			).Scan(nil)
+			if err != nil {
+				return err
+			}
+		} else {
+			// fmt.Println("change vote type to: ", voteType)
+			err = a.dbPool.QueryRow(
+				context.Background(),
+				`UPDATE post_votes SET type = $1 WHERE post_id = $2 AND user_id = $3 RETURNING (post_id, user_id)`,
+				voteType,
+				id,
+				userId,
+			).Scan(nil)
+
+			// fmt.Println("after change vote type: ", err)
+
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (a *Article) VoteCheck(id, userId int) (error, string) {
+	var vt string
+	err := a.dbPool.QueryRow(
+		context.Background(),
+		`SELECT type FROM post_votes WHERE post_id = $1 AND user_id = $2`,
+		id,
+		userId,
+	).Scan(&vt)
+	if err != nil {
+		return err, ""
+	}
+
+	return nil, vt
 }

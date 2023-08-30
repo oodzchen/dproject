@@ -67,20 +67,20 @@ func (u *User) Count() (int, error) {
 	return count, nil
 }
 
-func (u *User) Create(item *model.User) (int, error) {
+func (u *User) Create(email, password, name string) (int, error) {
 	// fmt.Printf("user.create item: %+v\n", item)
 	var id int
 	err := u.dbPool.QueryRow(context.Background(), "INSERT INTO users (email, password, name) VALUES ($1, $2, $3) RETURNING (id)",
-		item.Email,
-		item.Password,
-		item.Name).Scan(&id)
+		email,
+		password,
+		name).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
 	return id, nil
 }
 
-func isAllowedUserFields(key string) bool {
+func validUserUpdateField(key string) bool {
 	allowedFields := []string{"Introduction", "Banned"}
 	for _, field := range allowedFields {
 		if key == field {
@@ -92,7 +92,7 @@ func isAllowedUserFields(key string) bool {
 
 func (u *User) Update(item *model.User, fieldNames []string) (int, error) {
 	for _, field := range fieldNames {
-		if !isAllowedUserFields(field) {
+		if !validUserUpdateField(field) {
 			return 0, errors.New(fmt.Sprintf("'%s' is not allowed to update", field))
 		}
 	}

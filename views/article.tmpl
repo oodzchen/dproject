@@ -1,3 +1,47 @@
+{{define "article" -}}
+    {{- $pageDepth := 0 -}}
+    {{- $data := dict "currUser" .LoginedUser "article" .Data.Article "delPage" .Data.DelPage "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .Data.MaxDepth "debug" .Debug -}}
+
+    {{template "head" . -}}
+
+    <style>
+     .article-operation,
+     .article-operation a{
+	 color: var(--text-lighten-2);
+	 vertical-align: baseline;
+     }
+     .article-operation form{
+	 display: inline-block;
+	 padding: 0;
+	 margin: 0 4px 0 0;
+	 vertical-align: text-top;
+	 line-height: 0;
+     }
+     .article-operation button[type="submit"]{
+	 display: inline-block;
+	 padding: 0;
+	 border: none;
+	 line-height: 0.8rem;
+	 vertical-align: text-top;
+	 font-size: 1.4rem;
+	 cursor: pointer;
+	 background: transparent;
+	 color: var(--text-lighten-2);
+     }
+     .article-operation button[type="submit"]:hover{
+	 color: var(--text-lighten-3);
+     }
+	 /* .article-operation button[type="submit"].article-operation__down{
+	    position: relative;
+	    top: -1px;
+	    } */
+    </style>
+
+    {{template "article_content" $data -}}
+
+    {{template "foot" -}}
+{{- end -}}
+
 {{define "article_content" -}}
     {{$isRoot := eq .article.ReplyDepth 0 -}}
     {{$pageDepth := add .pageDepth 1 -}}
@@ -65,9 +109,18 @@
 {{- end -}}
 
 {{define "article_operation_bar" -}}
-    <div>
+    <div class="article-operation">
 	<small>
 	    {{- if not .article.Deleted -}}
+		<form action="/articles/{{.article.Id}}/vote" method="POST">
+		    {{.CSRFField}}
+		    <input name="type" type="hidden" value="up"/>
+		    <button type="submit">&#9650;</button>
+		</form><form action="/articles/{{.article.Id}}/vote" method="POST">
+		    {{.CSRFField}}
+		    <input name="type" type="hidden" value="down"/>
+		    <button class="article-operation__down" type="submit">&#9660;</button>
+		</form>
 		{{- if .currUser -}}
 		    {{- if eq .currUser.Id .article.AuthorId -}}
 			<a href="/articles/{{.article.Id}}/edit" class="btn-edit">Edit</a>&nbsp;&nbsp;<a class="btn-del" href="/articles/{{.article.Id}}/delete">Delete</a>&nbsp;&nbsp;
@@ -119,13 +172,3 @@
     </ul>
 {{- end -}}
 
-{{define "article" -}}
-    {{- $pageDepth := 0 -}}
-    {{- $data := dict "currUser" .LoginedUser "article" .Data.Article "delPage" .Data.DelPage "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .Data.MaxDepth "debug" .Debug -}}
-
-    {{template "head" . -}}
-
-    {{template "article_content" $data -}}
-
-    {{template "foot" -}}
-{{- end -}}

@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"text/template"
 
@@ -43,6 +44,7 @@ func (ar *ArticleResource) Routes() http.Handler {
 		r.Get("/delete", ar.DeletePage)
 		r.Post("/delete", ar.Delete)
 		r.Get("/reply", ar.ReplyPage)
+		r.Post("/vote", ar.Vote)
 	})
 
 	return rt
@@ -198,7 +200,7 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := ar.store.Article.Create(article)
+	id, err := ar.store.Article.Create(article.Title, article.Content, authorId, replyTo)
 
 	if err != nil {
 		ar.Error("", err, w, r, http.StatusInternalServerError)
@@ -247,7 +249,7 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := ar.store.Article.Update(article)
+	id, err := ar.store.Article.Update(article, []string{"Content"})
 
 	if err != nil {
 		ar.Error("", err, w, r, http.StatusInternalServerError)
@@ -437,4 +439,41 @@ func (ar *ArticleResource) DeletePage(w http.ResponseWriter, r *http.Request) {
 func (ar *ArticleResource) ReplyPage(w http.ResponseWriter, r *http.Request) {
 	// ar.handleItem(w, r, false)
 	http.Redirect(w, r, fmt.Sprintf("/articles/%s", chi.URLParam(r, "id")), http.StatusFound)
+}
+
+func (ar *ArticleResource) Vote(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+
+	voteType := r.Form.Get("type")
+	if !model.IsValidVoteType(model.VoteType(voteType)) {
+		ar.Error("", errors.New("vote type not valid: "+voteType), w, r, http.StatusBadRequest)
+		return
+	}
+
+	articleIdS := chi.URLParam(r, "id")
+	articleId, err := strconv.Atoi(articleIdS)
+	if err != nil {
+		ar.Error("", errors.New("get article id failed"), w, r, http.StatusBadRequest)
+		return
+	}
+
+	userId := ar.Session("one", w, r).GetValue("user_id")
+	if userId, ok := userId.(int); ok {
+		err = ar.store.Article.Vote(articleId, userId, voteType)
+		if err != nil {
+			ar.ServerError("", err, w, r)
+			return
+		}
+	} else {
+		ar.ToLogin(w, r)
+		return
+	}
+
+	referer := r.Referer()
+	refererUrl, _ := url.Parse(r.Referer())
+	if IsRegisterdPage(refererUrl, ar.router) {
+		http.Redirect(w, r, referer, http.StatusFound)
+	} else {
+		http.Redirect(w, r, "/article/"+articleIdS, http.StatusFound)
+	}
 }
