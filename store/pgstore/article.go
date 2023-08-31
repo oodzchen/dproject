@@ -187,8 +187,11 @@ func (a *Article) Update(item *model.Article, fieldNames []string) (int, error) 
 	return id, nil
 }
 
-func (a *Article) Item(id int, userId int) (*model.Article, error) {
-	var item model.Article
+func (a *Article) Item(id, userId int) (*model.Article, error) {
+	var currUserState model.CurrUserState
+	item := model.Article{
+		CurrUserState: &currUserState,
+	}
 	sqlStr := `
 SELECT p.id, p.title, u.name AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title as root_article_title, (
 	WITH RECURSIVE replies AS (
@@ -206,7 +209,7 @@ SELECT p.id, p.title, u.name AS author_name, p.author_id, p.content, p.created_a
 	FROM replies
 ) AS total_reply_count,
 (
-SELECT type FROM post_votes WHERE post_id = p.id AND user_id = $3
+SELECT type FROM post_votes WHERE post_id = p.id AND user_id = $2
 ) AS user_vote_type,
 (
 SELECT (COUNT(CASE WHEN type = 'up' THEN 1 END) -
