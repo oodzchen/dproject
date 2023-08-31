@@ -20,12 +20,6 @@ jobs:
       with:
         go-version-file: go.mod
 
-    - name: Build
-      run: go build -o /usr/local/bin/app -v .
-
-    - name: Test
-      run: go test -v ./...
-
     - name: ENV vars
       env:
           PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
@@ -51,10 +45,19 @@ jobs:
       uses: jpribyl/action-docker-layer-caching@v0.1.0
       continue-on-error: true
 
-    - name: Run docker and app
+    - name: Run docker
       run: |
-        ./run_dev.sh ./.env.testing ci
+        ./run_docker.sh ./.env.testing
         docker ps
+
+    - name: Build
+      run: go build -o /usr/local/bin/app -v .
+
+    - name: Test
+      run: go test -v ./...
+
+    - name: Run app
+      run: app &
         
     - name: E2E test
       run: go run ./e2e -t 180
