@@ -41,7 +41,7 @@ COUNT(CASE WHEN type = 'down' THEN 1 END)) FROM post_votes
 FROM posts tp
 LEFT JOIN posts p2 ON tp.root_article_id = p2.id
 LEFT JOIN users u ON u.id = tp.author_id
-WHERE tp.deleted = false
+WHERE tp.deleted = false AND tp.reply_to = 0
 ORDER BY tp.created_at DESC
 OFFSET $1
 LIMIT $2;`

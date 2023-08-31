@@ -5,6 +5,11 @@
     {{template "head" . -}}
 
     <style>
+     .replies{
+	 list-style:none;
+	 margin-left:0;
+	 padding-left: var(--reply-indent-size)
+     }
      .article-operation,
      .article-operation a{
 	 color: var(--text-lighten-2);
@@ -21,9 +26,9 @@
 	 display: inline-block;
 	 padding: 0;
 	 border: none;
-	 line-height: 0.8;
+	 line-height: 1;
 	 vertical-align: text-top;
-	 font-size: 1.4rem;
+	 font-size: 1rem;
 	 cursor: pointer;
 	 background: transparent;
 	 color: var(--text-lighten-2);
@@ -34,10 +39,17 @@
      .article-operation .voted button[type="submit"]{
 	 color: var(--theme-color);
      }
-     /* .article-operation button[type="submit"].article-operation__down{
-	position: relative;
-	top: -1px;
-	} */
+     .btn-vote--up,
+     .btn-vote--down{
+	 position: relative;
+     }
+     .btn-vote--up{
+	 top: 1px;
+     }
+     .btn-vote--down{
+	 margin-left: 0.5rem;
+	 margin-right: 0.5rem;
+     }
     </style>
 
     {{template "article_content" $data -}}
@@ -118,15 +130,15 @@
 		<form action="/articles/{{.article.Id}}/vote" method="POST" {{if eq .article.CurrUserState.VoteType "up"}}class="voted"{{end}}>
 		    {{.CSRFField}}
 		    <input name="type" type="hidden" value="up"/>
-		    <button type="submit">&#9650;</button>
+		    <button class="btn-vote--up" type="submit">&#9650;</button>
 		</form>
 		{{- if gt .article.VoteScore 0 -}}
-		    <span>({{.article.VoteScore}})<span>&nbsp;
+		    <span>({{.article.VoteScore}})<span>
 		{{- end -}}
 		<form action="/articles/{{.article.Id}}/vote" method="POST" {{if eq .article.CurrUserState.VoteType "down"}}class="voted"{{end}}>
 		    {{.CSRFField}}
 		    <input name="type" type="hidden" value="down"/>
-		    <button class="article-operation__down" type="submit">&#9660;</button>
+		    <button class="btn-vote--down" type="submit">&#9660;</button>
 		</form>&nbsp;
 		{{- if .currUser -}}
 		    {{- if eq .currUser.Id .article.AuthorId -}}
@@ -166,7 +178,7 @@
     {{$CSRFField := .CSRFField -}}
     {{$maxDepth := .maxDepth}}
     {{$debug := .debug}}
-    <ul class="replies" style="list-style:none;margin-left:0;{{if eq $pageDepth 1}}padding-left:0;{{else}}padding-left:2rem;{{- end}}">
+    <ul class="replies" style="{{if eq $pageDepth 1}}padding-left:0;{{- end}}">
 	{{range .replies -}}
 	    {{$subData := dict "currUser" $currUser "article" . "pageDepth" $pageDepth "CSRFField" $CSRFField "maxDepth" $maxDepth "debug" $debug -}}
 	    <li style="padding-top:6px">
