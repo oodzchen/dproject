@@ -50,6 +50,20 @@
 	 margin-left: 0.5rem;
 	 margin-right: 0.5rem;
      }
+     .reply-tab{
+	 display: flex;
+	 margin-top: 16px;
+	 flex-wrap: wrap;
+	 justify-content: space-between;
+	 border-bottom: 1px solid var(--border-color)
+     }
+     .reply-tab .reply-tab__title{
+	 font-weight: bold;
+     }
+
+     .reply-tab .tabs{
+	 margin-bottom: -1px;
+     }
     </style>
 
     {{template "article_content" $data -}}
@@ -82,7 +96,7 @@
 		    modified <time title="{{.article.UpdatedAt}}">{{timeAgo .article.UpdatedAt}}</time> |&nbsp;
 		{{- end -}}
 		<a class="text-lighten-3" href="/articles/{{.article.Id}}">link</a> |&nbsp;
-		{{- .article.TotalReplyCount}} comments&nbsp;
+		{{- local "ReplyNum" "Count" .article.TotalReplyCount -}}&nbsp;
 		{{- if .debug -}}
 		    |&nbsp;{{- .article.ReplyDepth}} depth
 		{{- end -}}
@@ -109,14 +123,22 @@
 	    <button type="submit">Delete</button>
 	</form>
     {{- else -}}
-	{{if .currUser -}}
-	    {{if eq .pageDepth 0 -}}
+	
+	{{if eq .pageDepth 0 -}}
+	    {{if .currUser -}}
 		{{if not .article.Deleted -}}
 		    {{template "article_reply_form" $data -}}
 		{{- end -}}
 	    {{- end -}}
+	    <div class="reply-tab">
+		<div class="reply-tab__title">{{local "ReplyNum" "Count" .article.TotalReplyCount}}</div>
+		<div class="tabs">
+		    <!-- <a href="/articles/{{.article.Id}}?sort=best">Best</a> -->
+		    <span class="tab active">Best</span>
+		    <a class="tab" href="/articles/{{.article.Id}}?srot=latest">Latest</a>
+		</div>
+	    </div>
 	{{- end -}}
-
 	{{$replyData := dict "currUser" .currUser "replies" .article.Replies "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "debug" .debug -}}
 	{{template "article_replies" $replyData -}}
     {{- end -}}
@@ -133,7 +155,7 @@
 		    <button class="btn-vote--up" type="submit">&#9650;</button>
 		</form>
 		{{- if gt .article.VoteScore 0 -}}
-		    <span>({{.article.VoteScore}})<span>
+		    <span>{{.article.VoteScore}}<span>
 		{{- end -}}
 		<form action="/articles/{{.article.Id}}/vote" method="POST" {{if eq .article.CurrUserState.VoteType "down"}}class="voted"{{end}}>
 		    {{.CSRFField}}

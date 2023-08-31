@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/httprate"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
+	"github.com/oodzchen/dproject/config"
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
 	"github.com/oodzchen/dproject/web"
@@ -96,7 +97,11 @@ func Service(c *ServiceConfig) http.Handler {
 		mainResource.Error("", nil, w, r, http.StatusMethodNotAllowed)
 	})
 	r.Use(CreateCheckAuthMiddleware(AuthRequiredPathes, sessStore))
-	r.Mount("/debug", middleware.Profiler())
+
+	if config.Config.Debug {
+		r.Mount("/debug", middleware.Profiler())
+	}
+
 	FileServer(r, "/static", http.Dir("./static"))
 	r.Get("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/static/favicon.ico", http.StatusFound)

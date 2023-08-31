@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/oodzchen/dproject/config"
+	i18nc "github.com/oodzchen/dproject/i18n"
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/store/pgstore"
 	"github.com/oodzchen/dproject/utils"
@@ -29,6 +30,8 @@ func main() {
 		utils.PrintJSONf("App config:\n", appCfg)
 	}
 	// fmt.Println("DSN: ", os.Getenv("DB_DSN"))
+
+	i18nc.Init()
 
 	pg := pgstore.New(&pgstore.DBConfig{
 		DSN: appCfg.DB.GetDSN(),

@@ -12,7 +12,8 @@ import (
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
 	"github.com/oodzchen/dproject/config"
-	"github.com/oodzchen/dproject/utils"
+	"github.com/oodzchen/dproject/model"
+	"github.com/oodzchen/dproject/store"
 	"github.com/pkg/errors"
 )
 
@@ -27,10 +28,10 @@ const (
 	PageContentLayoutCentered        = "centered"
 )
 
-type UserInfo struct {
-	Id   int
-	Name string
-}
+// type UserInfo struct {
+// 	Id   int
+// 	Name string
+// }
 
 type UISettings struct {
 	Theme         string
@@ -46,19 +47,32 @@ type PageData struct {
 	Title       string
 	Data        any
 	TipMsg      []string
-	LoginedUser *UserInfo
+	LoginedUser *model.User
 	JSONStr     string
 	CSRFField   string
 	UISettings  *UISettings
 	RoutePath   string
 	Debug       bool
+	DebugUsers  []*model.User
 	BreadCrumbs []*BreadCrumb
+	I18nData    map[string]any
+}
+
+func (pd *PageData) AddI18nData(data map[string]any) {
+	if pd.I18nData != nil {
+		for k, v := range data {
+			pd.I18nData[k] = v
+		}
+	} else {
+		pd.I18nData = data
+	}
 }
 
 type Renderer struct {
 	tmpl      *template.Template
 	sessStore *sessions.CookieStore
 	router    *chi.Mux
+	store     *store.Store
 }
 
 func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, data *PageData) {
@@ -129,23 +143,15 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 		}
 	}
 
-	userInfo := &UserInfo{}
 	if userId, ok := sess.Values["user_id"].(int); ok {
 		// fmt.Printf("logined user id: %d\n", userId)
-		userInfo.Id = userId
-	}
+		// userInfo.Id = userId
+		loginedUser, err := rd.store.User.Item(userId)
+		if err != nil {
+			fmt.Println("get logined user info failed: ", err)
+		}
 
-	if userName, ok := sess.Values["user_name"].(string); ok {
-		// fmt.Printf("logined user name: %s\n", userName)
-		userInfo.Name = userName
-	}
-
-	// fmt.Printf("*userInfo == (UserInfo{}): %+v\n", *userInfo == (UserInfo{}))
-	// fmt.Printf("&UserInfo{}: %+v\n", &UserInfo{})
-
-	if (UserInfo{}) != *userInfo {
-		// fmt.Println("userInfo not empty")
-		data.LoginedUser = userInfo
+		data.LoginedUser = loginedUser
 	}
 
 	err := sess.Save(r, w)
@@ -180,7 +186,29 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	data.Debug = config.Config.Debug
 	data.Title += fmt.Sprintf(" - %s", config.Config.SiteName)
 
-	if utils.IsDebug() {
+	// data.AddI18nData(map[string]any{
+	// 	"ReplyNum": i18nc.Localizer.MustLocalize(&i18n.LocalizeConfig{
+	// 		DefaultMessage: &i18n.Message{
+	// 			ID:          "ReplyNum",
+	// 			Description: "Reply number",
+	// 			One:         "{{.Count}} reply",
+	// 			Other:       "{{.Count}} replies",
+	// 		},
+	// 		PluralCount: 0,
+	// 	}),
+	// })
+
+	// rd.tmpl = rd.tmpl.Funcs(template.FuncMap{
+
+	// })
+
+	if data.Debug {
+		users, err := rd.store.User.List(1, 50, true)
+		if err != nil {
+			fmt.Println("get debug user data error: ", err)
+		}
+		data.DebugUsers = users
+
 		jsonData, err := json.MarshalIndent(data, "", "  ")
 		if err != nil {
 			HttpError("", errors.WithStack(err), w, http.StatusInternalServerError)
@@ -203,6 +231,22 @@ func (rd *Renderer) Session(name string, w http.ResponseWriter, r *http.Request)
 	sess, err := rd.sessStore.Get(r, name)
 	HandleGetSessionErr(err)
 	return &Session{rd, sess, w, r}
+}
+
+func (rd *Renderer) ToRefererUrl(w http.ResponseWriter, r *http.Request) {
+	targetUrl := "/"
+	refererUrl, err := url.Parse(r.Referer())
+	if err != nil {
+		http.Redirect(w, r, targetUrl, http.StatusFound)
+		return
+	}
+
+	if IsRegisterdPage(refererUrl, rd.router) {
+		// fmt.Println("Matched!")
+		targetUrl = r.Referer()
+	}
+
+	http.Redirect(w, r, targetUrl, http.StatusFound)
 }
 
 type Session struct {

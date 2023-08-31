@@ -251,6 +251,19 @@
 		    {{if .LoginedUser -}}
 			<li><a href="/users">Users</a></li>
 			<li><a href="/users/{{.LoginedUser.Id}}">{{.LoginedUser.Name}}</a></li>
+			{{- if .Debug }}
+			    <li>
+				<form action="/login_debug" method="post">
+				    {{.CSRFField}}
+				    <select id="debug-user" name="debug-user-email" onchange="this.parentNode.submit()">
+					{{- $loginedUser := .LoginedUser -}}
+					{{- range .DebugUsers -}}
+					    <option value="{{.Email}}" {{if eq $loginedUser.Email .Email}}selected{{end}}>{{.Name}}</option>
+					{{- end -}}
+				    </select>
+				</form>
+			    </li>
+			{{- end -}}
 			<li><a href="/logout">Logout</a></li>
 		    {{else -}}
 			<li><a href="/register">Register</a></li>

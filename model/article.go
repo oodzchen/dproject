@@ -162,3 +162,22 @@ func (a *Article) Valid(isUpdate bool) error {
 	}
 	return nil
 }
+
+func (a *Article) CalcWeight() {
+	weight := 0
+	weight += a.VoteScore
+
+	a.Weight = weight
+}
+
+func (a *Article) Len() int {
+	return len(a.Replies)
+}
+
+func (a *Article) Less(i, j int) bool {
+	return a.Replies[i].Weight > a.Replies[j].Weight
+}
+
+func (a *Article) Swap(i, j int) {
+	a.Replies[i], a.Replies[j] = a.Replies[j], a.Replies[i]
+}

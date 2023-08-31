@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"sort"
 	"strconv"
 	"text/template"
 
@@ -20,13 +21,12 @@ type ArticleResource struct {
 	*Renderer
 	// DBConn *pgx.Conn
 	// DBPool *pgxpool.Pool
-	store *store.Store
+	// store *store.Store
 }
 
 func NewArticleResource(tmpl *template.Template, store *store.Store, sessStore *sessions.CookieStore, router *chi.Mux) *ArticleResource {
 	return &ArticleResource{
-		&Renderer{tmpl, sessStore, router},
-		store,
+		&Renderer{tmpl, sessStore, router, store},
 	}
 }
 
@@ -131,7 +131,7 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		article, err := ar.store.Article.Item(rId)
+		article, err := ar.store.Article.Item(rId, currUserId)
 		if err != nil {
 			ar.Error("", err, w, r, http.StatusInternalServerError)
 			return
@@ -339,6 +339,8 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 			// ar.Error("", err, w, r, http.StatusInternalServerError)
 			fmt.Printf("generate article tree error: %v", err)
 		}
+
+		rootArticle = sortArticleTree(rootArticle)
 	}
 
 	rootArticle.UpdateDisplayTitle()
@@ -382,6 +384,17 @@ func genArticleTree(root *model.Article, list []*model.Article) (*model.Article,
 	return root, nil
 }
 
+func sortArticleTree(root *model.Article) *model.Article {
+	if len(root.Replies) > 1 {
+		// root.Replies = sort.Sort(data sort.Interface)
+		sort.Sort(root)
+		for idx, item := range root.Replies {
+			root.Replies[idx] = sortArticleTree(item)
+		}
+	}
+	return root
+}
+
 func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -413,7 +426,7 @@ func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	article, err := ar.store.Article.Item(rId)
+	article, err := ar.store.Article.Item(rId, currUserId)
 	if err != nil {
 		ar.Error("", err, w, r, http.StatusInternalServerError)
 		return

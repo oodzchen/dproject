@@ -16,7 +16,7 @@ type User struct {
 	dbPool *pgxpool.Pool
 }
 
-func (u *User) List(page int, pageSize int) ([]*model.User, error) {
+func (u *User) List(page, pageSize int, oldest bool) ([]*model.User, error) {
 	if page < 1 {
 		page = defaultPage
 	}
@@ -27,9 +27,14 @@ func (u *User) List(page int, pageSize int) ([]*model.User, error) {
 
 	rows, err := u.dbPool.Query(
 		context.Background(),
-		"SELECT id, name, email, created_at FROM users ORDER BY created_at desc OFFSET $1 LIMIT $2",
+		`SELECT id, name, email, created_at FROM users
+ORDER BY 
+    CASE WHEN $3 = true THEN created_at END ASC,
+    CASE WHEN $3 = false THEN created_at END DESC
+OFFSET $1 LIMIT $2;`,
 		pageSize*(page-1),
 		pageSize,
+		oldest,
 	)
 
 	if err != nil {

@@ -18,16 +18,16 @@ type ArticleStore interface {
 	List(page, pageSize int) ([]*model.Article, error)
 	Create(title, content string, authorId, replyTo int) (int, error)
 	Update(a *model.Article, fields []string) (int, error)
-	Item(int) (*model.Article, error)
+	Item(id, loginedUserId int) (*model.Article, error)
 	Delete(id int, authorId int) (int, error)
 	ItemTree(ariticleId, userId int) ([]*model.Article, error)
 	Count() (int, error)
 	VoteCheck(id, userId int) (error, string)
-	Vote(id, userId int, voteType string) error
+	Vote(id, loginedUserId int, voteType string) error
 }
 
 type UserStore interface {
-	List(page, pageSize int) ([]*model.User, error)
+	List(page, pageSize int, oldest bool) ([]*model.User, error)
 	Create(email, password, name string) (int, error)
 	Update(u *model.User, fields []string) (int, error)
 	Item(int) (*model.User, error)

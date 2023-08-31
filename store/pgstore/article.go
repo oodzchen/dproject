@@ -187,7 +187,7 @@ func (a *Article) Update(item *model.Article, fieldNames []string) (int, error) 
 	return id, nil
 }
 
-func (a *Article) Item(id int) (*model.Article, error) {
+func (a *Article) Item(id int, userId int) (*model.Article, error) {
 	var item model.Article
 	sqlStr := `
 SELECT p.id, p.title, u.name AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title as root_article_title, (
@@ -204,12 +204,19 @@ SELECT p.id, p.title, u.name AS author_name, p.author_id, p.content, p.created_a
 	)
 	SELECT COUNT(*)
 	FROM replies
-) AS total_reply_count
+) AS total_reply_count,
+(
+SELECT type FROM post_votes WHERE post_id = p.id AND user_id = $3
+) AS user_vote_type,
+(
+SELECT (COUNT(CASE WHEN type = 'up' THEN 1 END) -
+COUNT(CASE WHEN type = 'down' THEN 1 END)) FROM post_votes WHERE post_id = p.id
+) AS vote_score
 FROM posts p
 LEFT JOIN users u ON p.author_id = u.id
 LEFT JOIN posts p2 ON p.root_article_id = p2.id
 WHERE p.id = $1;`
-	err := a.dbPool.QueryRow(context.Background(), sqlStr, id).Scan(
+	err := a.dbPool.QueryRow(context.Background(), sqlStr, id, userId).Scan(
 		&item.Id,
 		&item.Title,
 		&item.AuthorName,
@@ -223,6 +230,8 @@ WHERE p.id = $1;`
 		&item.ReplyRootArticleId,
 		&item.NullReplyRootArticleTitle,
 		&item.TotalReplyCount,
+		&item.CurrUserState.NullVoteType,
+		&item.VoteScore,
 	)
 	if err != nil {
 		return nil, err
@@ -230,6 +239,7 @@ WHERE p.id = $1;`
 
 	item.FormatNullValues()
 	item.FormatTimeStr()
+	item.CalcWeight()
 	return &item, nil
 }
 
@@ -311,6 +321,7 @@ ORDER BY ar.created_at;`
 
 		item.FormatNullValues()
 		item.FormatTimeStr()
+		item.CalcWeight()
 		list = append(list, &item)
 	}
 

@@ -16,7 +16,7 @@ import (
 
 type UserResource struct {
 	*Renderer
-	store *store.Store
+	// store *store.Store
 }
 
 type userProfile struct {
@@ -26,8 +26,7 @@ type userProfile struct {
 
 func NewUserResource(tmpl *template.Template, store *store.Store, sessStore *sessions.CookieStore, router *chi.Mux) *UserResource {
 	return &UserResource{
-		&Renderer{tmpl, sessStore, router},
-		store,
+		&Renderer{tmpl, sessStore, router, store},
 	}
 }
 
@@ -56,7 +55,7 @@ func (ur *UserResource) List(w http.ResponseWriter, r *http.Request) {
 		pageSize = 100
 	}
 
-	list, err := ur.store.User.List(page, pageSize)
+	list, err := ur.store.User.List(page, pageSize, false)
 	if err != nil {
 		ur.Error("", err, w, r, http.StatusInternalServerError)
 	}

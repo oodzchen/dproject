@@ -9,7 +9,7 @@
 	    <li>
 		<a {{if eq $idx 0}}id="article-list-head"{{end}} href="/articles/{{$item.Id}}">{{$item.DisplayTitle}}</a>
 		<br/>
-		<small class="text-lighten-3">By <a class="text-lighten-3" href="/users/{{$item.AuthorId}}">{{$item.AuthorName}}</a> <time title="{{$item.CreatedAt}}">{{timeAgo $item.CreatedAt}}</time> | <a href="/articles/{{$item.Id}}" class="text-lighten-3">{{$item.TotalReplyCount}} comment{{if ne $item.TotalReplyCount 1}}s{{end}}</a></small>
+		<small class="text-lighten-3">By <a class="text-lighten-3" href="/users/{{$item.AuthorId}}">{{$item.AuthorName}}</a> <time title="{{$item.CreatedAt}}">{{timeAgo $item.CreatedAt}}</time> | <a href="/articles/{{$item.Id}}" class="text-lighten-3">{{local "ReplyNum" "Count" $item.TotalReplyCount}}</a></small>
 		<div class="text-lighten-2">{{$item.Summary}} ...</div>
 	    </li>
 	{{end -}}

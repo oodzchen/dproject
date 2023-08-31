@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/oodzchen/dproject/config"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
@@ -25,14 +26,13 @@ const PGErrUniqueViolation = "23505"
 type MainResource struct {
 	*Renderer
 	articleRs *ArticleResource
-	store     *store.Store
+	// store     *store.Store
 }
 
 func NewMainResource(tmpl *template.Template, store *store.Store, sessStore *sessions.CookieStore, ar *ArticleResource, router *chi.Mux) *MainResource {
 	return &MainResource{
-		&Renderer{tmpl, sessStore, router},
+		&Renderer{tmpl, sessStore, router, store},
 		ar,
-		store,
 	}
 }
 
@@ -52,6 +52,10 @@ func (mr *MainResource) Routes() http.Handler {
 		r.Get("/ui", mr.SettingsUIPage)
 		r.Post("/ui", mr.SaveUISettings)
 	})
+
+	if config.Config.Debug {
+		rt.Post("/login_debug", mr.LoginDebug)
+	}
 
 	return rt
 }
@@ -146,6 +150,21 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 	email := r.PostFormValue("email")
 	password := r.PostFormValue("password")
 
+	mr.doLogin(w, r, email, password)
+
+	//TODO: replace with session cookie
+	// refererUrl, err := url.Parse(r.Referer())
+
+	// targetUrl, _ := sess.Values["target_url"].(string)
+	target := mr.Session("one", w, r).GetValue("target_url")
+	if targetUrl, ok := target.(string); ok && len(targetUrl) > 0 {
+		http.Redirect(w, r, targetUrl, http.StatusFound)
+	} else {
+		http.Redirect(w, r, "/", http.StatusFound)
+	}
+}
+
+func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, email, password string) {
 	if email == "" {
 		mr.Error("email is required", nil, w, r, http.StatusBadRequest)
 		return
@@ -178,7 +197,7 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 		mr.Error("internal server error", err, w, r, http.StatusInternalServerError)
 	}
 
-	fmt.Printf("user %d login success!\n", user.Id)
+	// fmt.Printf("user %d login success!\n", user.Id)
 
 	sess, err := mr.sessStore.Get(r, "one")
 	if err != nil {
@@ -189,8 +208,6 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 
 	sess.Values["user_id"] = user.Id
 	sess.Values["user_name"] = user.Name
-
-	targetUrl, _ := sess.Values["target_url"].(string)
 	sess.Values["target_url"] = ""
 
 	sess.Options.HttpOnly = true
@@ -203,27 +220,32 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 		mr.Error("", err, w, r, http.StatusInternalServerError)
 		return
 	}
+}
 
-	//TODO: replace with session cookie
-	// refererUrl, err := url.Parse(r.Referer())
+func (mr *MainResource) LoginDebug(w http.ResponseWriter, r *http.Request) {
+	// mr.doLogout(w, r)
 
-	if len(targetUrl) > 0 {
-		http.Redirect(w, r, targetUrl, http.StatusFound)
-	} else {
-		http.Redirect(w, r, "/", http.StatusFound)
-	}
+	email := r.PostForm.Get("debug-user-email")
+	password := config.Config.DB.UserDefaultPassword
+	fmt.Println("debug-user-email: ", email)
+
+	mr.doLogin(w, r, email, password)
+	mr.ToRefererUrl(w, r)
 }
 
 func (mr *MainResource) Logout(w http.ResponseWriter, r *http.Request) {
-	// if IsLogin(mr.sessStore, w, r) {
-	// 	sess, _ := mr.sessStore.Get(r, "one")
-	// 	sess.Options.MaxAge = -1
-	// 	err := sess.Save(r, w)
-	// 	if err != nil {
-	// 		HandleSaveSessionErr(errors.WithStack(err))
-	// 	}
-	// }
+	mr.doLogout(w, r)
 
+	refererUrl, err := url.Parse(r.Referer())
+
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusFound)
+	} else {
+		http.Redirect(w, r, refererUrl.String(), http.StatusFound)
+	}
+}
+
+func (mr *MainResource) doLogout(w http.ResponseWriter, r *http.Request) {
 	sess, err := mr.sessStore.Get(r, "one")
 	if err != nil {
 		mr.Error("", err, w, r, http.StatusInternalServerError)
@@ -245,14 +267,6 @@ func (mr *MainResource) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, csrfExpiredCookie)
-
-	refererUrl, err := url.Parse(r.Referer())
-
-	if err != nil {
-		http.Redirect(w, r, "/", http.StatusFound)
-	} else {
-		http.Redirect(w, r, refererUrl.String(), http.StatusFound)
-	}
 }
 
 func (mr *MainResource) SaveUISettings(w http.ResponseWriter, r *http.Request) {
