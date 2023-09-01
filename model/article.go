@@ -44,6 +44,22 @@ func (cus *CurrUserState) FormatNullValues() {
 	}
 }
 
+type ReplySortType string
+
+const (
+	ReplySortBest   ReplySortType = "best"
+	ReplySortLatest               = "latest"
+)
+
+var replySortMap = map[ReplySortType]bool{
+	ReplySortBest:   true,
+	ReplySortLatest: true,
+}
+
+func ValidReplySort(sortType string) bool {
+	return replySortMap[ReplySortType(sortType)]
+}
+
 type Article struct {
 	Id           int
 	Title        string
@@ -70,6 +86,7 @@ type Article struct {
 	VoteScore                 int
 	Weight                    int
 	CurrUserState             *CurrUserState
+	SortType                  ReplySortType
 }
 
 func (a *Article) FormatNullValues() {
@@ -175,7 +192,14 @@ func (a *Article) Len() int {
 }
 
 func (a *Article) Less(i, j int) bool {
-	return a.Replies[i].Weight > a.Replies[j].Weight
+	switch a.SortType {
+	case ReplySortLatest:
+		compare := a.Replies[i].CreatedAt.Compare(a.Replies[j].CreatedAt)
+		return compare > 0
+	default:
+		return a.Replies[i].Weight > a.Replies[j].Weight
+	}
+
 }
 
 func (a *Article) Swap(i, j int) {

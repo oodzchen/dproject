@@ -59,6 +59,7 @@
      }
      .reply-tab .reply-tab__title{
 	 font-weight: bold;
+	 line-height: 32px;
      }
 
      .reply-tab .tabs{
@@ -132,11 +133,20 @@
 	    {{- end -}}
 	    <div class="reply-tab">
 		<div class="reply-tab__title">{{local "ReplyNum" "Count" .article.TotalReplyCount}}</div>
-		<div class="tabs">
-		    <!-- <a href="/articles/{{.article.Id}}?sort=best">Best</a> -->
-		    <span class="tab active">Best</span>
-		    <a class="tab" href="/articles/{{.article.Id}}?srot=latest">Latest</a>
-		</div>
+		{{- if gt .article.TotalReplyCount 0 -}}
+		    {{- $article := .article -}}
+		    {{- $sortTabs := list "best" "latest" -}}
+		    {{- $sortTabMap := dict "best" "Best" "latest" "Latest" -}}
+		    <div class="tabs">
+			{{- range $sortTabs -}}
+			    {{- if eq $article.SortType . -}}
+				<span class="tab active">{{get $sortTabMap .}}</span>
+			    {{- else -}}	
+				<a class="tab" href="/articles/{{$article.Id}}{{if ne . "best"}}?sort={{.}}{{end}}">{{get $sortTabMap .}}</a>
+			    {{- end -}}
+			{{- end -}}
+		    </div>
+		{{- end -}}
 	    </div>
 	{{- end -}}
 	{{$replyData := dict "currUser" .currUser "replies" .article.Replies "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "debug" .debug -}}

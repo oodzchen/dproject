@@ -265,6 +265,9 @@ func (ar *ArticleResource) Item(w http.ResponseWriter, r *http.Request) {
 
 func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, delPage bool) {
 	idParam := chi.URLParam(r, "id")
+	sortType := r.URL.Query().Get("sort")
+
+	fmt.Println("sort type", sortType)
 	// fmt.Printf("idParam: %v\n", idParam)
 
 	articleId, err := strconv.Atoi(idParam)
@@ -340,7 +343,11 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 			fmt.Printf("generate article tree error: %v", err)
 		}
 
-		rootArticle = sortArticleTree(rootArticle)
+		replySort := model.ReplySortBest
+		if model.ValidReplySort(sortType) {
+			replySort = model.ReplySortType(sortType)
+		}
+		rootArticle = sortArticleTree(rootArticle, replySort)
 	}
 
 	rootArticle.UpdateDisplayTitle()
@@ -384,12 +391,13 @@ func genArticleTree(root *model.Article, list []*model.Article) (*model.Article,
 	return root, nil
 }
 
-func sortArticleTree(root *model.Article) *model.Article {
+func sortArticleTree(root *model.Article, sortType model.ReplySortType) *model.Article {
 	if len(root.Replies) > 1 {
 		// root.Replies = sort.Sort(data sort.Interface)
+		root.SortType = sortType
 		sort.Sort(root)
 		for idx, item := range root.Replies {
-			root.Replies[idx] = sortArticleTree(item)
+			root.Replies[idx] = sortArticleTree(item, sortType)
 		}
 	}
 	return root
