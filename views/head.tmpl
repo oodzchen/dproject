@@ -16,8 +16,8 @@
 		 --colored-bg: #BED3E5;
 		 --tip-bg: #E5E4BE;
 		 --border-color: #ccc;
-		 --theme-color: #0087FF;
-		 --border-color-active: #0087FF;
+		 --theme-color: #2F71AC;
+		 --border-color-active: var(--theme-color);
 		 --reply-indent-size: 1rem;
 	     }
 	     :root[data-theme="light"] {
@@ -32,6 +32,7 @@
 	     }
 	     :root[data-theme="dark"] {
 		 color-scheme: dark;
+		 --theme-color: #74BCFB;
 		 --text: white;
 		 --background: #282A36;
 
@@ -137,6 +138,7 @@
 		 padding: 0 10px 4px;
 		 margin-bottom: -1px;
 		 line-height: 28px;
+		 color: var(--text-color);
 	     }
 	     .tabs .tab.active{
 		 border-bottom: 2px solid var(--border-color-active);
@@ -239,10 +241,13 @@
 	     .nav-menu li:last-child{
 		 margin-right: 0;
 	     }
+	     .nav-menu li a{
+		 color: var(--text-color)
+	     }
 	    </style>
 	    <nav>
 		<ul class="nav-menu">
-		    <li><a href="/">Home</a></li>
+		    <li><a href="/">DizKaz</a></li>
 		    {{- range .BreadCrumbs -}}
 			<li><b><a href="{{.Path}}">{{.Name}}</a></b></li>
 		    {{- end -}}

@@ -131,15 +131,17 @@ func (mr *MainResource) LoginPage(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	targetUrl := ""
-	refererUrl, _ := url.Parse(r.Referer())
 
-	// fmt.Println("referUrl: ", r.Referer())
-	// fmt.Println("referUrl host: ", refererUrl.Host)
-	// fmt.Println("current host: ", config.Config.GetHost())
-	if IsRegisterdPage(refererUrl, mr.router) {
-		fmt.Println("Matched!")
-		targetUrl = r.Referer()
+	targetUrl := mr.Session("one", w, r).GetValue("target_url")
+	referer := r.Referer()
+	refererUrl, _ := url.Parse(referer)
+
+	fmt.Println("exist target_url: ", targetUrl)
+	fmt.Println("target_url is empty string: ", targetUrl == "")
+
+	if (targetUrl == nil || targetUrl == "") && IsRegisterdPage(refererUrl, mr.router) {
+		// fmt.Println("Matched!", "target:", referer)
+		targetUrl = referer
 	}
 
 	mr.Session("one", w, r).SetValue("target_url", targetUrl)
@@ -152,11 +154,11 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 
 	mr.doLogin(w, r, email, password)
 
-	//TODO: replace with session cookie
-	// refererUrl, err := url.Parse(r.Referer())
-
 	// targetUrl, _ := sess.Values["target_url"].(string)
 	target := mr.Session("one", w, r).GetValue("target_url")
+
+	mr.Session("one", w, r).SetValue("target_url", "")
+	// fmt.Println("target: ", target)
 	if targetUrl, ok := target.(string); ok && len(targetUrl) > 0 {
 		http.Redirect(w, r, targetUrl, http.StatusFound)
 	} else {
@@ -208,7 +210,6 @@ func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, email, p
 
 	sess.Values["user_id"] = user.Id
 	sess.Values["user_name"] = user.Name
-	sess.Values["target_url"] = ""
 
 	sess.Options.HttpOnly = true
 	sess.Options.Secure = !utils.IsDebug()
