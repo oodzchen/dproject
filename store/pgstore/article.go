@@ -36,7 +36,8 @@ SELECT tp.id, tp.title, u.name as author_name, tp.author_id, tp.content, tp.crea
 ) AS total_reply_count,
 (
 SELECT (COUNT(CASE WHEN type = 'up' THEN 1 END) -
-COUNT(CASE WHEN type = 'down' THEN 1 END)) FROM post_votes
+COUNT(CASE WHEN type = 'down' THEN 1 END) - 1) FROM post_votes
+WHERE post_id = tp.id
 ) AS vote_score
 FROM posts tp
 LEFT JOIN posts p2 ON tp.root_article_id = p2.id
@@ -87,10 +88,6 @@ LIMIT $2;`
 			return nil, err
 		}
 
-		item.FormatTimeStr()
-		item.FormatNullValues()
-		item.UpdateDisplayTitle()
-		item.GenSummary(200)
 		list = append(list, &item)
 	}
 
@@ -213,7 +210,7 @@ SELECT type FROM post_votes WHERE post_id = p.id AND user_id = $2
 ) AS user_vote_type,
 (
 SELECT (COUNT(CASE WHEN type = 'up' THEN 1 END) -
-COUNT(CASE WHEN type = 'down' THEN 1 END)) FROM post_votes WHERE post_id = p.id
+COUNT(CASE WHEN type = 'down' THEN 1 END) - 1) FROM post_votes WHERE post_id = p.id
 ) AS vote_score
 FROM posts p
 LEFT JOIN users u ON p.author_id = u.id
@@ -279,7 +276,7 @@ SELECT type FROM post_votes WHERE post_id = ar.id AND user_id = $3
 ) AS user_vote_type,
 (
 SELECT (COUNT(CASE WHEN type = 'up' THEN 1 END) -
-COUNT(CASE WHEN type = 'down' THEN 1 END)) FROM post_votes WHERE post_id = ar.id
+COUNT(CASE WHEN type = 'down' THEN 1 END) - 1) FROM post_votes WHERE post_id = ar.id
 ) AS vote_score
 FROM articleTree ar
 JOIN users u ON ar.author_id = u.id

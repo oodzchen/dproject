@@ -138,7 +138,7 @@
 		 padding: 0 10px 4px;
 		 margin-bottom: -1px;
 		 line-height: 28px;
-		 color: var(--text-color);
+		 /* color: var(--text-color); */
 	     }
 	     .tabs .tab.active{
 		 border-bottom: 2px solid var(--border-color-active);
@@ -242,12 +242,12 @@
 		 margin-right: 0;
 	     }
 	     .nav-menu li a{
-		 color: var(--text-color)
+		 /* color: var(--text-color) */
 	     }
 	    </style>
 	    <nav>
 		<ul class="nav-menu">
-		    <li><a href="/">DizKaz</a></li>
+		    <li><a href="/">{{.BrandName}}</a></li>
 		    {{- range .BreadCrumbs -}}
 			<li><b><a href="{{.Path}}">{{.Name}}</a></b></li>
 		    {{- end -}}

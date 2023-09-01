@@ -17,6 +17,7 @@ type AppConfig struct {
 	Port               int    `env:"PORT" envDefault:"3000"`
 	ReplyDepthPageSize int    `env:"REPLY_DEPTH_PAGE_SIZE" envDefault:"10"`
 	Debug              bool   `env:"DEBUG" envDefault:"false"`
+	BrandName          string `env:"BRAND_NAME"`
 	DB                 *DBConfig
 }
 
@@ -49,6 +50,7 @@ func (dbCfg *DBConfig) GetDSN() string {
 }
 
 var Config *AppConfig
+var BrandName = "DizKaz"
 
 func Init(envFile string) error {
 	cfg, err := Parse(envFile)
@@ -70,7 +72,10 @@ func Parse(envFile string) (*AppConfig, error) {
 		return nil, err
 	}
 
-	cfg := &AppConfig{DB: dbCfg}
+	cfg := &AppConfig{
+		DB:        dbCfg,
+		BrandName: BrandName,
+	}
 	if err := env.Parse(cfg); err != nil {
 		return nil, err
 	}

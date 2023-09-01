@@ -3,6 +3,7 @@ package model
 import (
 	"errors"
 	"fmt"
+	"math"
 	"regexp"
 	"strings"
 	"time"
@@ -44,20 +45,20 @@ func (cus *CurrUserState) FormatNullValues() {
 	}
 }
 
-type ReplySortType string
+type ArticleSortType string
 
 const (
-	ReplySortBest   ReplySortType = "best"
-	ReplySortLatest               = "latest"
+	ReplySortBest   ArticleSortType = "best"
+	ReplySortLatest                 = "latest"
 )
 
-var replySortMap = map[ReplySortType]bool{
+var replySortMap = map[ArticleSortType]bool{
 	ReplySortBest:   true,
 	ReplySortLatest: true,
 }
 
 func ValidReplySort(sortType string) bool {
-	return replySortMap[ReplySortType(sortType)]
+	return replySortMap[ArticleSortType(sortType)]
 }
 
 type Article struct {
@@ -84,9 +85,10 @@ type Article struct {
 	DisplayTitle              string // only for display
 	TotalReplyCount           int
 	VoteScore                 int
-	Weight                    int
+	Weight                    int     // weight in replise
+	ListWeight                float64 // weight in list page
 	CurrUserState             *CurrUserState
-	SortType                  ReplySortType
+	SortType                  ArticleSortType
 }
 
 func (a *Article) FormatNullValues() {
@@ -180,11 +182,16 @@ func (a *Article) Valid(isUpdate bool) error {
 	return nil
 }
 
+const gravity float64 = 1.8
+
 func (a *Article) CalcWeight() {
 	weight := 0
 	weight += a.VoteScore
 
 	a.Weight = weight
+
+	lifeTime := time.Now().Sub(a.CreatedAt).Hours()
+	a.ListWeight = float64(a.VoteScore) / math.Pow(lifeTime, gravity)
 }
 
 func (a *Article) Len() int {

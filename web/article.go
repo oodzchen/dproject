@@ -50,6 +50,22 @@ func (ar *ArticleResource) Routes() http.Handler {
 	return rt
 }
 
+type ArticleList struct {
+	List []*model.Article
+}
+
+func (al *ArticleList) Len() int {
+	return len(al.List)
+}
+
+func (al *ArticleList) Less(i, j int) bool {
+	return al.List[i].ListWeight > al.List[j].ListWeight
+}
+
+func (al *ArticleList) Swap(i, j int) {
+	al.List[i], al.List[j] = al.List[j], al.List[i]
+}
+
 func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
@@ -71,6 +87,19 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		ar.Error("", err, w, r, http.StatusInternalServerError)
 		return
 	}
+
+	for _, item := range list {
+		// fmt.Println("item.VoteScore: ", item.VoteScore)
+		item.FormatTimeStr()
+		item.FormatNullValues()
+		item.UpdateDisplayTitle()
+		item.GenSummary(200)
+		item.CalcWeight()
+	}
+
+	articleList := &ArticleList{List: list}
+	sort.Sort(articleList)
+	list = articleList.List
 
 	total, err := ar.store.Article.Count()
 	if err != nil {
@@ -201,7 +230,12 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id, err := ar.store.Article.Create(article.Title, article.Content, authorId, replyTo)
+	if err != nil {
+		ar.Error("", err, w, r, http.StatusInternalServerError)
+		return
+	}
 
+	err = ar.store.Article.Vote(id, authorId, "up")
 	if err != nil {
 		ar.Error("", err, w, r, http.StatusInternalServerError)
 		return
@@ -319,19 +353,6 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 		}
 	}
 
-	// if article.Deleted {
-	// 	ar.Error("the article is gone", err, w, r, http.StatusGone)
-	// 	return
-	// }
-
-	// replyData, err := ar.store.Article.ItemTree(articleId)
-	// if err != nil {
-	// 	ar.Error("", err, w, r, http.StatusInternalServerError)
-	// 	return
-	// }
-
-	// utils.PrintJSONf("article: ", article)
-	// utils.PrintJSONf("replyData: ", replyData)
 	if len(articleTreeList) > 1 {
 		for _, item := range articleTreeList {
 			item.FormatDeleted()
@@ -345,7 +366,8 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 
 		replySort := model.ReplySortBest
 		if model.ValidReplySort(sortType) {
-			replySort = model.ReplySortType(sortType)
+			replySort = model.ArticleSortType(sortType)
+			// fmt.Println("replySort: ", replySort)
 		}
 		rootArticle = sortArticleTree(rootArticle, replySort)
 	}
@@ -391,10 +413,9 @@ func genArticleTree(root *model.Article, list []*model.Article) (*model.Article,
 	return root, nil
 }
 
-func sortArticleTree(root *model.Article, sortType model.ReplySortType) *model.Article {
+func sortArticleTree(root *model.Article, sortType model.ArticleSortType) *model.Article {
+	root.SortType = sortType
 	if len(root.Replies) > 1 {
-		// root.Replies = sort.Sort(data sort.Interface)
-		root.SortType = sortType
 		sort.Sort(root)
 		for idx, item := range root.Replies {
 			root.Replies[idx] = sortArticleTree(item, sortType)
