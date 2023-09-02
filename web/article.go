@@ -81,7 +81,7 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	// sort.Sort(articleList)
 	articleList.Sort(model.ListSortBest)
 
-	list := articleList.Paging(1, pageSize)
+	list := articleList.Paging(page, pageSize)
 
 	for _, item := range list {
 		// fmt.Println("item.VoteScore: ", item.VoteScore)

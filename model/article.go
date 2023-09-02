@@ -251,6 +251,8 @@ func hot(ups, downs int, date time.Time) float64 {
 	s := float64(ups - downs)
 	order := math.Log10(math.Max(math.Abs(s), 1))
 
+	fmt.Println("order: ", order)
+
 	var sign float64
 	if s > 0 {
 		sign = 1
@@ -261,7 +263,8 @@ func hot(ups, downs int, date time.Time) float64 {
 	}
 
 	seconds := date.Sub(projectStartDate).Seconds()
-	return math.Round(sign*order + seconds/45000)
+	// fmt.Println("seconds/45000: ", seconds/45000)
+	return math.Round((sign*order+seconds/45000)*1e7) / 1e7
 }
 
 // cpdef double _confidence(int ups, int downs):
