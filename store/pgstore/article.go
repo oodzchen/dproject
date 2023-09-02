@@ -35,10 +35,13 @@ SELECT tp.id, tp.title, u.name as author_name, tp.author_id, tp.content, tp.crea
 	FROM replies
 ) AS total_reply_count,
 (
-SELECT (COUNT(CASE WHEN type = 'up' THEN 1 END) -
-COUNT(CASE WHEN type = 'down' THEN 1 END) - 1) FROM post_votes
-WHERE post_id = tp.id
-) AS vote_score
+SELECT COUNT(*) FROM post_votes
+WHERE post_id = tp.id AND type = 'up'
+) AS vote_up,
+(
+SELECT COUNT(*) FROM post_votes
+WHERE post_id = tp.id AND type = 'down'
+) AS vote_down
 FROM posts tp
 LEFT JOIN posts p2 ON tp.root_article_id = p2.id
 LEFT JOIN users u ON u.id = tp.author_id
@@ -47,18 +50,25 @@ ORDER BY tp.created_at DESC
 OFFSET $1
 LIMIT $2;`
 
+	var args []any
 	if page < 1 {
 		page = defaultPage
 	}
 
-	if pageSize < 1 {
-		pageSize = defaultPageSize
+	if pageSize < 0 {
+		args = []any{0, nil}
+	} else {
+		if pageSize < 1 {
+			pageSize = defaultPageSize
+		}
+		args = []any{pageSize * (page - 1), pageSize}
 	}
 
 	// fmt.Println("page", page)
 	// fmt.Println("pageSize", pageSize)
+	fmt.Println("args: ", args)
 
-	rows, err := a.dbPool.Query(context.Background(), sqlStr, pageSize*(page-1), pageSize)
+	rows, err := a.dbPool.Query(context.Background(), sqlStr, args...)
 
 	if err != nil {
 		fmt.Printf("Query database error: %v\n", err)
@@ -81,7 +91,8 @@ LIMIT $2;`
 			&item.ReplyDepth,
 			&item.NullReplyRootArticleTitle,
 			&item.TotalReplyCount,
-			&item.VoteScore,
+			&item.VoteUp,
+			&item.VoteDown,
 		)
 		if err != nil {
 			fmt.Printf("Collect rows error: %v\n", err)
@@ -209,9 +220,13 @@ SELECT p.id, p.title, u.name AS author_name, p.author_id, p.content, p.created_a
 SELECT type FROM post_votes WHERE post_id = p.id AND user_id = $2
 ) AS user_vote_type,
 (
-SELECT (COUNT(CASE WHEN type = 'up' THEN 1 END) -
-COUNT(CASE WHEN type = 'down' THEN 1 END) - 1) FROM post_votes WHERE post_id = p.id
-) AS vote_score
+SELECT COUNT(*) FROM post_votes
+WHERE post_id = p.id AND type = 'up'
+) AS vote_up,
+(
+SELECT COUNT(*) FROM post_votes
+WHERE post_id = p.id AND type = 'down'
+) AS vote_down
 FROM posts p
 LEFT JOIN users u ON p.author_id = u.id
 LEFT JOIN posts p2 ON p.root_article_id = p2.id
@@ -231,7 +246,8 @@ WHERE p.id = $1;`
 		&item.NullReplyRootArticleTitle,
 		&item.TotalReplyCount,
 		&item.CurrUserState.NullVoteType,
-		&item.VoteScore,
+		&item.VoteUp,
+		&item.VoteDown,
 	)
 	if err != nil {
 		return nil, err
@@ -239,6 +255,7 @@ WHERE p.id = $1;`
 
 	item.FormatNullValues()
 	item.FormatTimeStr()
+	item.CalcScore()
 	item.CalcWeight()
 	return &item, nil
 }
@@ -275,9 +292,13 @@ SELECT ar.id, ar.title, u.name as author_name, ar.author_id, ar.content, ar.crea
 SELECT type FROM post_votes WHERE post_id = ar.id AND user_id = $3
 ) AS user_vote_type,
 (
-SELECT (COUNT(CASE WHEN type = 'up' THEN 1 END) -
-COUNT(CASE WHEN type = 'down' THEN 1 END) - 1) FROM post_votes WHERE post_id = ar.id
-) AS vote_score
+SELECT COUNT(*) FROM post_votes
+WHERE post_id = ar.id AND type = 'up'
+) AS vote_up,
+(
+SELECT COUNT(*) FROM post_votes
+WHERE post_id = ar.id AND type = 'down'
+) AS vote_down
 FROM articleTree ar
 JOIN users u ON ar.author_id = u.id
 LEFT JOIN posts p2 ON ar.root_article_id = p2.id
@@ -310,7 +331,8 @@ ORDER BY ar.created_at;`
 			&item.NullReplyRootArticleTitle,
 			&item.TotalReplyCount,
 			&item.CurrUserState.NullVoteType,
-			&item.VoteScore,
+			&item.VoteUp,
+			&item.VoteDown,
 		)
 
 		if err != nil {
@@ -318,10 +340,6 @@ ORDER BY ar.created_at;`
 		}
 
 		// fmt.Printf("row item: %+v\n", &item)
-
-		item.FormatNullValues()
-		item.FormatTimeStr()
-		item.CalcWeight()
 		list = append(list, &item)
 	}
 

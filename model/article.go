@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -48,47 +49,92 @@ func (cus *CurrUserState) FormatNullValues() {
 type ArticleSortType string
 
 const (
-	ReplySortBest   ArticleSortType = "best"
-	ReplySortLatest                 = "latest"
+	ReplySortBest  ArticleSortType = "best"
+	ListSortLatest                 = "latest"
+	ListSortBest                   = "list_best"
 )
 
 var replySortMap = map[ArticleSortType]bool{
-	ReplySortBest:   true,
-	ReplySortLatest: true,
+	ReplySortBest:  true,
+	ListSortLatest: true,
+	ListSortBest:   true,
 }
 
 func ValidReplySort(sortType string) bool {
 	return replySortMap[ArticleSortType(sortType)]
 }
 
+type ArticleList struct {
+	List     []*Article
+	SortType ArticleSortType
+}
+
+func (al *ArticleList) Sort(sortType ArticleSortType) []*Article {
+	al.SortType = sortType
+	sort.Sort(al)
+	return al.List
+}
+
+func (al *ArticleList) Paging(page, pageSize int) []*Article {
+	start := pageSize * (page - 1)
+	end := start + pageSize
+	if end > len(al.List) {
+		end = len(al.List)
+	}
+	return al.List[start:end]
+}
+
+func (al *ArticleList) Len() int {
+	if al != nil && al.List != nil {
+		return len(al.List)
+	}
+	return 0
+}
+
+func (al *ArticleList) Less(i, j int) bool {
+	switch al.SortType {
+	case ListSortLatest:
+		compare := al.List[i].CreatedAt.Compare(al.List[j].CreatedAt)
+		return compare > 0
+	case ListSortBest:
+		return al.List[i].ListWeight > al.List[j].ListWeight
+	default:
+		return al.List[i].Weight > al.List[j].Weight
+	}
+}
+
+func (al *ArticleList) Swap(i, j int) {
+	al.List[i], al.List[j] = al.List[j], al.List[i]
+}
+
 type Article struct {
-	Id           int
-	Title        string
-	NullTitle    pgtype.Text
-	AuthorName   string
-	AuthorId     int
-	Content      string
-	Summary      string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	CreatedAtStr string
-	UpdatedAtStr string
-	ReplyTo      int
-	// ReplyToTitle              string
-	// NullReplyToTitle          pgtype.Text
+	Id                        int
+	Title                     string
+	NullTitle                 pgtype.Text
+	AuthorName                string
+	AuthorId                  int
+	Content                   string
+	Summary                   string
+	CreatedAt                 time.Time
+	UpdatedAt                 time.Time
+	CreatedAtStr              string
+	UpdatedAtStr              string
+	ReplyTo                   int
 	Deleted                   bool
-	Replies                   []*Article
+	Replies                   *ArticleList
 	ReplyDepth                int
 	ReplyRootArticleId        int
 	NullReplyRootArticleTitle pgtype.Text
 	ReplyRootArticleTitle     string
 	DisplayTitle              string // only for display
 	TotalReplyCount           int
+	VoteUp                    int
+	VoteDown                  int
 	VoteScore                 int
-	Weight                    int     // weight in replise
+	Weight                    float64 // weight in replise
 	ListWeight                float64 // weight in list page
 	CurrUserState             *CurrUserState
-	SortType                  ArticleSortType
+	// SortType                  ArticleSortType
 }
 
 func (a *Article) FormatNullValues() {
@@ -182,33 +228,109 @@ func (a *Article) Valid(isUpdate bool) error {
 	return nil
 }
 
-const gravity float64 = 1.8
+func (a *Article) CalcScore() {
+	a.VoteScore = a.VoteUp - a.VoteDown - 1
+}
+
+const gravity float64 = 1.6
 
 func (a *Article) CalcWeight() {
-	weight := 0
-	weight += a.VoteScore
+	cf := confidence(a.VoteUp, a.VoteDown)
+	// fmt.Println("confidence array: ", confidences)
+	// fmt.Println("confidence: ", cf)
+	a.Weight = cf
 
-	a.Weight = weight
-
-	lifeTime := time.Now().Sub(a.CreatedAt).Hours()
-	a.ListWeight = float64(a.VoteScore) / math.Pow(lifeTime, gravity)
+	a.ListWeight = hot(a.VoteUp, a.VoteDown, a.CreatedAt)
 }
 
-func (a *Article) Len() int {
-	return len(a.Replies)
-}
+// First commit  Mon Feb 13 00:11:53 2023 +0800
+var projectStartDate = time.Date(2023, time.Month(2), 13, 0, 11, 53, 0, time.Local)
 
-func (a *Article) Less(i, j int) bool {
-	switch a.SortType {
-	case ReplySortLatest:
-		compare := a.Replies[i].CreatedAt.Compare(a.Replies[j].CreatedAt)
-		return compare > 0
-	default:
-		return a.Replies[i].Weight > a.Replies[j].Weight
+// https://github.com/reddit-archive/reddit/blob/master/r2/r2/lib/db/_sorts.pyx
+func hot(ups, downs int, date time.Time) float64 {
+	s := float64(ups - downs)
+	order := math.Log10(math.Max(math.Abs(s), 1))
+
+	var sign float64
+	if s > 0 {
+		sign = 1
+	} else if s < 0 {
+		sign = -1
+	} else {
+		sign = 0
 	}
 
+	seconds := date.Sub(projectStartDate).Seconds()
+	return math.Round(sign*order + seconds/45000)
 }
 
-func (a *Article) Swap(i, j int) {
-	a.Replies[i], a.Replies[j] = a.Replies[j], a.Replies[i]
+// cpdef double _confidence(int ups, int downs):
+//     """The confidence sort.
+//        http://www.evanmiller.org/how-not-to-sort-by-average-rating.html"""
+//     cdef float n = ups + downs
+
+//     if n == 0:
+//         return 0
+
+//     cdef float z = 1.281551565545 # 80% confidence
+//     cdef float p = float(ups) / n
+
+//     left = p + 1/(2*n)*z*z
+//     right = z*sqrt(p*(1-p)/n + z*z/(4*n*n))
+//     under = 1+1/n*z*z
+
+//     return (left - right) / under
+
+// cdef int up_range = 400
+// cdef int down_range = 100
+// cdef list _confidences = []
+// for ups in xrange(up_range):
+//     for downs in xrange(down_range):
+//         _confidences.append(_confidence(ups, downs))
+// def confidence(int ups, int downs):
+//     if ups + downs == 0:
+//         return 0
+//     elif ups < up_range and downs < down_range:
+//         return _confidences[downs + ups * down_range]
+//     else:
+//         return _confidence(ups, downs)
+
+func doConfidence(ups, downs int) float64 {
+	n := float64(ups + downs)
+
+	if n == 0 {
+		return 0
+	}
+
+	z := 1.281551565545 // 80% confidence
+	p := float64(ups) / n
+
+	left := p + 1/(2*n)*z*z
+	right := z * math.Sqrt(p*(1-p)/n+z*z/(4*n*n))
+	under := 1 + 1/n*z*z
+
+	return (left - right) / under
+}
+
+const upRange = 400
+const downRange = 100
+
+var confidences []float64
+
+func InitConfidences() {
+	for i := 0; i < upRange; i++ {
+		for j := 0; j < downRange; j++ {
+			confidences = append(confidences, doConfidence(i, j))
+		}
+	}
+}
+
+func confidence(ups, downs int) float64 {
+	if (ups + downs) == 0 {
+		return 0
+	} else if (ups < upRange) && (downs < downRange) {
+		return confidences[downs+ups*downRange]
+	} else {
+		return doConfidence(ups, downs)
+	}
 }

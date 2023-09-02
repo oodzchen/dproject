@@ -31,8 +31,8 @@ var AuthRequiredPathes map[string]Methods = map[string]Methods{
 	`^/articles/\d+/edit($|/)`:   {"GET", "POST"},
 	`^/articles/\d+/reply($|/)`:  {"GET", "POST"},
 	`^/articles/\d+/vote($|/)`:   {"GET", "POST"},
-	`^/users/?$`:                 {"GET"},
-	`^/settings/account/?$`:      {"GET", "POST"},
+	// `^/users/?$`:                 {"GET"},
+	`^/settings/account/?$`: {"GET", "POST"},
 }
 
 func FileServer(r chi.Router, path string, root http.FileSystem) {

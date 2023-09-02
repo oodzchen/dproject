@@ -81,7 +81,9 @@
 		 max-width: 1000px;
 		 {{- end -}}
 	     }
-	     
+	     .brand{
+		 font-weight: bold;
+	     }
 	     .text-lighten{
 		 color: var(--text-lighten)
 	     }
@@ -247,15 +249,17 @@
 	    </style>
 	    <nav>
 		<ul class="nav-menu">
-		    <li><a href="/">{{.BrandName}}</a></li>
+		    <li><a class="brand logo" href="/">{{.BrandName}}</a></li>
 		    {{- range .BreadCrumbs -}}
 			<li><b><a href="{{.Path}}">{{.Name}}</a></b></li>
 		    {{- end -}}
 		</ul>
 		<ul class="nav-menu">
 		    <li><a href="/articles/new">&plus;New</a></li>
-		    {{if .LoginedUser -}}
+		    {{- if .Debug -}}
 			<li><a href="/users">Users</a></li>
+		    {{- end -}}
+		    {{if .LoginedUser -}}
 			<li><a href="/users/{{.LoginedUser.Id}}">{{.LoginedUser.Name}}</a></li>
 			{{- if .Debug }}
 			    <li>

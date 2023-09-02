@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"sort"
 	"strconv"
 	"text/template"
 
@@ -50,22 +49,6 @@ func (ar *ArticleResource) Routes() http.Handler {
 	return rt
 }
 
-type ArticleList struct {
-	List []*model.Article
-}
-
-func (al *ArticleList) Len() int {
-	return len(al.List)
-}
-
-func (al *ArticleList) Less(i, j int) bool {
-	return al.List[i].ListWeight > al.List[j].ListWeight
-}
-
-func (al *ArticleList) Swap(i, j int) {
-	al.List[i], al.List[j] = al.List[j], al.List[i]
-}
-
 func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
@@ -82,11 +65,23 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		pageSize = 50
 	}
 
-	list, err := ar.store.Article.List(page, pageSize)
+	wholeList, err := ar.store.Article.List(0, -1)
+	// list, err := ar.store.Article.List(page, pageSize)
 	if err != nil {
 		ar.Error("", err, w, r, http.StatusInternalServerError)
 		return
 	}
+
+	for _, item := range wholeList {
+		item.CalcScore()
+		item.CalcWeight()
+	}
+
+	articleList := &model.ArticleList{List: wholeList}
+	// sort.Sort(articleList)
+	articleList.Sort(model.ListSortBest)
+
+	list := articleList.Paging(1, pageSize)
 
 	for _, item := range list {
 		// fmt.Println("item.VoteScore: ", item.VoteScore)
@@ -94,12 +89,7 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		item.FormatNullValues()
 		item.UpdateDisplayTitle()
 		item.GenSummary(200)
-		item.CalcWeight()
 	}
-
-	articleList := &ArticleList{List: list}
-	sort.Sort(articleList)
-	list = articleList.List
 
 	total, err := ar.store.Article.Count()
 	if err != nil {
@@ -331,6 +321,11 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 
 	var rootArticle *model.Article
 	for _, item := range articleTreeList {
+		item.FormatNullValues()
+		item.FormatTimeStr()
+		item.CalcScore()
+		item.CalcWeight()
+
 		if item.Id == articleId {
 			rootArticle = item
 		}
@@ -398,7 +393,7 @@ func genArticleTree(root *model.Article, list []*model.Article) (*model.Article,
 	}
 
 	if replies, ok := nodeMap[root.Id]; ok {
-		root.Replies = replies
+		root.Replies = &model.ArticleList{List: replies}
 	} else {
 		if len(list) > 0 {
 			return root, errors.New("no reply to the root in the list")
@@ -407,18 +402,17 @@ func genArticleTree(root *model.Article, list []*model.Article) (*model.Article,
 
 	for _, item := range list {
 		if replies, ok := nodeMap[item.Id]; ok {
-			item.Replies = replies
+			item.Replies = &model.ArticleList{List: replies}
 		}
 	}
 	return root, nil
 }
 
 func sortArticleTree(root *model.Article, sortType model.ArticleSortType) *model.Article {
-	root.SortType = sortType
-	if len(root.Replies) > 1 {
-		sort.Sort(root)
-		for idx, item := range root.Replies {
-			root.Replies[idx] = sortArticleTree(item, sortType)
+	if root.Replies.Len() > 1 {
+		root.Replies.Sort(sortType)
+		for idx, item := range root.Replies.List {
+			root.Replies.List[idx] = sortArticleTree(item, sortType)
 		}
 	}
 	return root

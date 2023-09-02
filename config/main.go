@@ -50,7 +50,9 @@ func (dbCfg *DBConfig) GetDSN() string {
 }
 
 var Config *AppConfig
-var BrandName = "DizKaz"
+
+// var BrandName = "DizKaz"
+var BrandName = "笛子卡子"
 
 func Init(envFile string) error {
 	cfg, err := Parse(envFile)

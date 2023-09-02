@@ -13,11 +13,17 @@
      }
     </style>
     <ul class="user-list">
+	{{- $csrfField := .CSRFField -}}
 	{{- range .Data.List -}}
 	    <li>
 		<a href="/users/{{.Id}}">{{.Name}}</a>
 		<div>{{.Email}}</div>
 		<div class="text-lighten-3">regitered at {{ timeAgo .RegisteredAt }}</div>
+		<form action="/login_debug" method="POST">
+		    {{$csrfField}}
+		    <input name="debug-user-email" type="hidden" value="{{.Email}}"/>
+		    <button type="submit">Login</button>
+		</form>
 	    </li>
 	{{- end -}}
     </ul>

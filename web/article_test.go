@@ -41,22 +41,28 @@ func TestGenArticleTree(t *testing.T) {
 			&model.Article{
 				Id:      1,
 				ReplyTo: 0,
-				Replies: []*model.Article{
-					{
-						Id:      2,
-						ReplyTo: 1,
-						Replies: []*model.Article{
-							{
-								Id:      3,
-								ReplyTo: 2,
-							},
-							{
-								Id:      4,
-								ReplyTo: 2,
-								Replies: []*model.Article{
+				Replies: &model.ArticleList{
+					List: []*model.Article{
+						{
+							Id:      2,
+							ReplyTo: 1,
+							Replies: &model.ArticleList{
+								List: []*model.Article{
 									{
-										Id:      5,
-										ReplyTo: 4,
+										Id:      3,
+										ReplyTo: 2,
+									},
+									{
+										Id:      4,
+										ReplyTo: 2,
+										Replies: &model.ArticleList{
+											List: []*model.Article{
+												{
+													Id:      5,
+													ReplyTo: 4,
+												},
+											},
+										},
 									},
 								},
 							},

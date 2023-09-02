@@ -65,6 +65,7 @@
 
      .reply-tab .tabs{
 	 margin-bottom: -1px;
+	 border-bottom-color: transparent;
      }
     </style>
 
@@ -101,6 +102,7 @@
 		{{- local "ReplyNum" "Count" .article.TotalReplyCount -}}&nbsp;
 		{{- if .debug -}}
 		    |&nbsp;{{- .article.ReplyDepth}} depth
+		    |&nbsp;{{- .article.Weight}} weight
 		{{- end -}}
 	    </small>
 	</div>
@@ -140,7 +142,7 @@
 		    {{- $sortTabMap := dict "best" "Best" "latest" "Latest" -}}
 		    <div class="tabs">
 			{{- range $sortTabs -}}
-			    {{- if eq $article.SortType . -}}
+			    {{- if eq $article.Replies.SortType . -}}
 				<span class="tab active">{{get $sortTabMap .}}</span>
 			    {{- else -}}	
 				<a class="tab" href="/articles/{{$article.Id}}{{if ne . "best"}}?sort={{.}}{{end}}">{{get $sortTabMap .}}</a>
@@ -151,8 +153,11 @@
 		</div>
 	    {{- end -}}
 	{{- end -}}
-	{{$replyData := dict "currUser" .currUser "replies" .article.Replies "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "debug" .debug -}}
-	{{template "article_replies" $replyData -}}
+
+	{{- if .article.Replies -}}
+	    {{$replyData := dict "currUser" .currUser "replies" .article.Replies "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "debug" .debug -}}
+	    {{template "article_replies" $replyData -}}
+	{{- end -}}
     {{- end -}}
 
 {{- end -}}
@@ -213,7 +218,7 @@
     {{$maxDepth := .maxDepth}}
     {{$debug := .debug}}
     <ul class="replies" style="{{if eq $pageDepth 1}}padding-left:0;{{- end}}">
-	{{range .replies -}}
+	{{range .replies.List -}}
 	    {{$subData := dict "currUser" $currUser "article" . "pageDepth" $pageDepth "CSRFField" $CSRFField "maxDepth" $maxDepth "debug" $debug -}}
 	    <li style="padding-top:6px">
 		{{template "article_content" $subData -}}

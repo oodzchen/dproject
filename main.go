@@ -12,6 +12,7 @@ import (
 
 	"github.com/oodzchen/dproject/config"
 	i18nc "github.com/oodzchen/dproject/i18n"
+	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/store/pgstore"
 	"github.com/oodzchen/dproject/utils"
@@ -54,6 +55,8 @@ func main() {
 		domain = "0.0.0.0"
 	}
 	addr := fmt.Sprintf("%s:%d", domain, port)
+
+	model.InitConfidences()
 	server := &http.Server{
 		Addr: addr,
 		Handler: (Service(&ServiceConfig{
