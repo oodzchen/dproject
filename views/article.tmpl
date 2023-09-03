@@ -11,6 +11,20 @@
 	 margin-left:0;
 	 padding-left: var(--reply-indent-size)
      }
+
+     .replies li>.replies{
+	 border-left: 1px solid var(--border-color);
+     }
+     .replies li>article{
+	 border: 1px solid transparent;
+     }
+     .replies li>article:hover{
+	 background: var(--background-hover);
+     }
+     .replies li>article:focus,
+     .replies li>article.active{
+	 border: 1px dashed var(--border-color);
+     }
      .article-operation,
      .article-operation a{
 	 color: var(--text-lighten-2);
@@ -71,6 +85,76 @@
 
     {{template "article_content" $data -}}
 
+    <script>
+     document.body.addEventListener('mouseup', function(ev){
+	 /* console.log(ev) */
+	 removeAllActive('article', document.getElementById('replies-box'))
+     })
+
+     function removeAllActive(tagName, parentNode){
+	 var parent = parentNode || document
+	 var els = parent.getElementsByTagName(tagName)
+	 for (var i = 0; i < els.length; i++){
+	     removeClass(els[i], 'active')
+	 }
+     }
+     
+     function toggleDisplayChild(event, el){
+	 var child = el.nextElementSibling
+	 if (child && child.tagName.toLowerCase() == 'ul'){
+	     if (child.style.display == 'none'){
+		 child.style.display = ''
+	     } else {
+		 child.style.display = 'none'
+	     }
+	 }
+     }
+
+     function toggleActive(el){
+	 removeAllActive('article', document.getElementById('replies-box'))
+	 addClass(el, 'active')
+	 /* var activeClass = 'active'
+	    if(el.className.split(" ").indexOf(activeClass) > -1){
+	    removeClass(el, activeClass)
+	    } else {
+	    addClass(el, activeClass)
+	    } */
+     }
+
+     function removeClass(el, className){
+	 var classes = el.className.split(" ")
+	 var idx = classes.indexOf(className)
+	 if(idx > -1){
+	     classes.splice(idx, 1)
+	 }
+	 el.className = classes.join(" ")
+     }
+
+     function addClass(el, className){
+	 var classes = el.className.split(" ")
+	 var idx = classes.indexOf(className)
+	 if(idx == -1){
+	     classes.push(className)
+	 }
+	 el.className = classes.join(" ")
+     }
+
+     function onArticleMouseDown(ev, el){
+	 function onArticleMouseUp(){
+	     /* console.log(ev, el) */
+	     event.preventDefault()
+	     event.stopPropagation()
+
+	     toggleActive(el)
+	     toggleDisplayChild(ev, el)
+	 }
+	 el.onmouseup = onArticleMouseUp
+	 setTimeout(function(){
+	     el.onmouseup = null
+	 }, 300)
+     }
+    </script>
+
     {{template "foot" -}}
 {{- end -}}
 
@@ -78,7 +162,7 @@
     {{$isRoot := eq .article.ReplyDepth 0 -}}
     {{$pageDepth := add .pageDepth 1 -}}
     {{$data := dict "currUser" .currUser "article" .article "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "isRootArticle" $isRoot "debug" .debug -}}
-    <article>
+    <article onmousedown="onArticleMouseDown(event, this)">
 	{{if $isRoot -}}
 	    <h1>{{.article.Title}}</h1>
 	{{else -}}
@@ -184,10 +268,10 @@
 			<a href="/articles/{{.article.Id}}/edit" class="btn-edit">Edit</a>&nbsp;&nbsp;<a class="btn-del" href="/articles/{{.article.Id}}/delete">Delete</a>&nbsp;&nbsp;
 		    {{- end -}}
 		    {{- if gt .pageDepth 1 -}}
-			<a href="/articles/{{.article.Id}}/reply">Reply</a>
+			<a href="/articles/{{.article.Id}}/reply">Reply</a>&nbsp;
 		    {{- end -}}
 		{{- else -}}
-		    <a href="/articles/{{.article.Id}}/reply">Reply</a>
+		    <a href="/articles/{{.article.Id}}/reply">Reply</a>&nbsp;
 		{{- end -}}
 	    {{- end -}}
 	    {{- if and (eq .pageDepth 1) (not .isRootArticle) -}}
@@ -217,7 +301,7 @@
     {{$CSRFField := .CSRFField -}}
     {{$maxDepth := .maxDepth}}
     {{$debug := .debug}}
-    <ul class="replies" style="{{if eq $pageDepth 1}}padding-left:0;{{- end}}">
+    <ul class="replies" {{if eq $pageDepth 1}}id="replies-box"{{end}} style="{{if eq $pageDepth 1}}padding-left:0;{{- end}}">
 	{{range .replies.List -}}
 	    {{$subData := dict "currUser" $currUser "article" . "pageDepth" $pageDepth "CSRFField" $CSRFField "maxDepth" $maxDepth "debug" $debug -}}
 	    <li style="padding-top:6px">

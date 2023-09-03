@@ -291,7 +291,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 	idParam := chi.URLParam(r, "id")
 	sortType := r.URL.Query().Get("sort")
 
-	fmt.Println("sort type", sortType)
+	// fmt.Println("sort type", sortType)
 	// fmt.Printf("idParam: %v\n", idParam)
 
 	articleId, err := strconv.Atoi(idParam)
@@ -348,24 +348,41 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 		}
 	}
 
-	if len(articleTreeList) > 1 {
-		for _, item := range articleTreeList {
-			item.FormatDeleted()
-		}
+	// if len(articleTreeList) > 1 {
+	// 	for _, item := range articleTreeList {
+	// 		item.FormatDeleted()
+	// 	}
 
-		rootArticle, err = genArticleTree(rootArticle, articleTreeList)
-		if err != nil {
-			// ar.Error("", err, w, r, http.StatusInternalServerError)
-			fmt.Printf("generate article tree error: %v", err)
-		}
+	// 	rootArticle, err = genArticleTree(rootArticle, articleTreeList)
+	// 	if err != nil {
+	// 		// ar.Error("", err, w, r, http.StatusInternalServerError)
+	// 		fmt.Printf("generate article tree error: %v", err)
+	// 	}
 
-		replySort := model.ReplySortBest
-		if model.ValidReplySort(sortType) {
-			replySort = model.ArticleSortType(sortType)
-			// fmt.Println("replySort: ", replySort)
-		}
-		rootArticle = sortArticleTree(rootArticle, replySort)
+	// 	replySort := model.ReplySortBest
+	// 	if model.ValidReplySort(sortType) {
+	// 		replySort = model.ArticleSortType(sortType)
+	// 		// fmt.Println("replySort: ", replySort)
+	// 	}
+	// 	rootArticle = sortArticleTree(rootArticle, replySort)
+	// }
+
+	for _, item := range articleTreeList {
+		item.FormatDeleted()
 	}
+
+	rootArticle, err = genArticleTree(rootArticle, articleTreeList)
+	if err != nil {
+		// ar.Error("", err, w, r, http.StatusInternalServerError)
+		fmt.Printf("generate article tree error: %v", err)
+	}
+
+	replySort := model.ReplySortBest
+	if model.ValidReplySort(sortType) {
+		replySort = model.ArticleSortType(sortType)
+	}
+	fmt.Println("replySort: ", replySort)
+	rootArticle = sortArticleTree(rootArticle, replySort)
 
 	rootArticle.UpdateDisplayTitle()
 
@@ -409,7 +426,7 @@ func genArticleTree(root *model.Article, list []*model.Article) (*model.Article,
 }
 
 func sortArticleTree(root *model.Article, sortType model.ArticleSortType) *model.Article {
-	if root.Replies.Len() > 1 {
+	if root.Replies != nil && root.Replies.Len() > 0 {
 		root.Replies.Sort(sortType)
 		for idx, item := range root.Replies.List {
 			root.Replies.List[idx] = sortArticleTree(item, sortType)
