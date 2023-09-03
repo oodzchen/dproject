@@ -10,7 +10,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5"
-	"github.com/oodzchen/dproject/config"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/service"
 	"github.com/oodzchen/dproject/store"
@@ -425,6 +424,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 }
 
 const DefaultTopReplyPageSize = 50
+const DefaultReplyPageSize = 10
 
 func genArticleTree(root *model.Article, list []*model.Article) (*model.Article, error) {
 	nodeMap := make(map[int][]*model.Article)
@@ -442,7 +442,7 @@ func genArticleTree(root *model.Article, list []*model.Article) (*model.Article,
 
 	for _, item := range list {
 		if replies, ok := nodeMap[item.Id]; ok && item.Id != root.Id {
-			item.Replies = model.NewArticleList(replies, model.ReplySortBest, 1, config.Config.ReplyDepthPageSize)
+			item.Replies = model.NewArticleList(replies, model.ReplySortBest, 1, DefaultReplyPageSize)
 		}
 	}
 	return root, nil

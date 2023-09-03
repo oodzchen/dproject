@@ -9,6 +9,10 @@ import (
 )
 
 func TestGenArticleTree(t *testing.T) {
+	root := &model.Article{
+		Id:      1,
+		ReplyTo: 0,
+	}
 	tests := []struct {
 		desc    string
 		root    *model.Article
@@ -17,11 +21,9 @@ func TestGenArticleTree(t *testing.T) {
 	}{
 		{
 			"normal article tree",
-			&model.Article{
-				Id:      1,
-				ReplyTo: 0,
-			},
+			root,
 			[]*model.Article{
+				root,
 				{
 					Id:      3,
 					ReplyTo: 2,
@@ -77,7 +79,7 @@ func TestGenArticleTree(t *testing.T) {
 					},
 					model.ReplySortBest,
 					1,
-					DefaultReplyPageSize,
+					DefaultTopReplyPageSize,
 				),
 			},
 		},

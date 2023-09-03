@@ -1,7 +1,7 @@
 package model
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 )
 
@@ -13,7 +13,7 @@ type articleData struct {
 }
 
 func TestArticleValid(t *testing.T) {
-	largeText, err := ioutil.ReadFile("testdata/rfc791.txt")
+	largeText, err := os.ReadFile("testdata/rfc791.txt")
 	if err != nil {
 		t.Errorf("read file content error: %v", err)
 	}
