@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"time"
@@ -41,6 +42,12 @@ func (u *User) Sanitize() {
 	u.Introduction = p.Sanitize(u.Introduction)
 }
 
+var ErrValidUserFailed = errors.New("valid user failed")
+
+func userValidErr(str string) error {
+	return errors.Join(ErrValidUserFailed, errors.New(str))
+}
+
 func (u *User) Valid() error {
 	lackField := ""
 
@@ -55,17 +62,17 @@ func (u *User) Valid() error {
 	}
 
 	if lackField != "" {
-		return utils.NewError(fmt.Sprintf("require field: %s", lackField))
+		return userValidErr(fmt.Sprintf("require field: %s", lackField))
 	}
 
 	ok := utils.ValidateEmail(u.Email)
 	if !ok {
-		return utils.NewError("email format error")
+		return userValidErr("email format error")
 	}
 
 	reUsername := regexp.MustCompile(`^[\p{L}\p{N}\s]+$`)
 	if !reUsername.Match([]byte(u.Name)) {
-		return utils.NewError("username format error")
+		return userValidErr("username format error")
 	}
 
 	rePassword := regexp.MustCompile(`[A-Za-z\d[:graph:]]{8,}`)
@@ -74,7 +81,7 @@ func (u *User) Valid() error {
 	reNotaion := regexp.MustCompile(`[[:graph:]]`)
 	originalPwd := []byte(u.Password)
 	if !rePassword.Match(originalPwd) || !reLetter.Match(originalPwd) || !reNum.Match(originalPwd) || !reNotaion.Match(originalPwd) {
-		return utils.NewError("password format error")
+		return userValidErr("password format error")
 	}
 
 	return nil

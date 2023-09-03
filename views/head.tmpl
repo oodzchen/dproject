@@ -9,7 +9,7 @@
 	    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
 	    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
 	    <link rel="manifest" href="/static/site.webmanifest">
-	    <title>{{.Title}}</title>
+	    <title>{{.Title}} - {{.Slogan}}</title>
 	    <style>
 	     :root{
 		 --font-size: 16px;
@@ -60,6 +60,7 @@
 		 display: flex;
 		 justify-content: space-between;
 		 flex-wrap: wrap;
+		 margin-bottom: 10px;
 	     }
 	     input,
 	     textarea,
@@ -87,7 +88,12 @@
 		 {{- end -}}
 	     }
 	     .brand{
+		 display: inline-block;
 		 font-weight: bold;
+		 font-size: 1.2rem;
+	     }
+	     .slogan{
+		 font-size: 0.8rem;
 	     }
 	     .text-lighten{
 		 color: var(--text-lighten)
@@ -251,6 +257,9 @@
 	     .nav-menu li a{
 		 /* color: var(--text-color) */
 	     }
+	     .nav-menu.nav-menu--right{
+		 justify-content: flex-end;
+	     }
 	    </style>
 	    <nav>
 		<ul class="nav-menu">
@@ -259,7 +268,7 @@
 			<li><b><a href="{{.Path}}">{{.Name}}</a></b></li>
 		    {{- end -}}
 		</ul>
-		<ul class="nav-menu">
+		<ul class="nav-menu nav-menu--right">
 		    <li><a href="/articles/new">&plus;New</a></li>
 		    {{- if .Debug -}}
 			<li><a href="/users">Users</a></li>
@@ -289,7 +298,7 @@
 		    </li>
 		</ul>
 	    </nav>
-	    <hr/>
+	    <!-- <hr/> -->
 	    {{range .TipMsg -}}
 		<div id="page-tip" class="page-tip">
 		    <span>{{.}}</span>

@@ -18,8 +18,8 @@
 	{{end -}}
     </ol>
 
-    {{ $pagiData := dict "currPage" .Data.CurrPage "totalPage" .Data.TotalPage "pathPrefix" "/articles"  }}
-    {{ template "pagination" $pagiData }}    
+    {{- $pagiData := dict "currPage" .Data.CurrPage "totalPage" .Data.TotalPage "pathPrefix" "/articles"  -}}
+    {{- template "pagination" $pagiData -}}
 
     {{template "foot" -}}
 {{end -}}

@@ -2,7 +2,6 @@ package web
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -15,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/oodzchen/dproject/config"
 	"github.com/oodzchen/dproject/model"
+	"github.com/oodzchen/dproject/service"
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
 	"github.com/pkg/errors"
@@ -27,12 +27,16 @@ type MainResource struct {
 	*Renderer
 	articleRs *ArticleResource
 	// store     *store.Store
+	userSrv *service.User
 }
 
 func NewMainResource(tmpl *template.Template, store *store.Store, sessStore *sessions.CookieStore, ar *ArticleResource, router *chi.Mux) *MainResource {
 	return &MainResource{
 		&Renderer{tmpl, sessStore, router, store},
 		ar,
+		&service.User{
+			Store: store,
+		},
 	}
 }
 
@@ -73,33 +77,12 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 	username := r.PostFormValue("username")
 	password := r.PostFormValue("password")
 
-	user := &model.User{
-		Email:    email,
-		Name:     username,
-		Password: password,
-	}
-
-	user.Sanitize()
-
-	err := user.Valid()
-	if err != nil {
-		mr.Error(err.Error(), errors.WithStack(err), w, r, http.StatusBadRequest)
-		return
-	}
-
-	log.Printf("user model is %v", user)
-
-	err = user.EncryptPassword()
-	if err != nil {
-		mr.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
-		return
-	}
-
-	// fmt.Printf("Password value: %s\n", user.Password)
-	id, err := mr.store.User.Create(user.Email, user.Password, user.Name)
+	_, err := mr.userSrv.Register(email, password, username)
 	if err != nil {
 		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == PGErrUniqueViolation {
+		if errors.Is(err, model.ErrValidUserFailed) {
+			mr.Error(err.Error(), err, w, r, http.StatusBadRequest)
+		} else if errors.As(err, &pgErr) && pgErr.Code == PGErrUniqueViolation {
 			// fmt.Println(pgErr.Code)
 			// fmt.Println(pgErr.Message)
 			mr.Error("the eamil already been registered", errors.WithStack(err), w, r, http.StatusBadRequest)
@@ -110,7 +93,7 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("create user success, user id: %d", id)
+	// log.Printf("create user success, user id: %d", id)
 
 	sess, err := mr.sessStore.Get(r, "one")
 	if err != nil {

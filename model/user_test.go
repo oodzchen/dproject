@@ -76,6 +76,10 @@ func TestUserValid(t *testing.T) {
 				Password: tt.in.Password,
 			}
 			err := u.Valid()
+			// if err != nil {
+			// 	fmt.Println("err: ", err)
+			// 	fmt.Println("err is ErrValidUserFailed: ", errors.Is(err, ErrValidUserFailed))
+			// }
 			got := err == nil
 			want := tt.valid
 

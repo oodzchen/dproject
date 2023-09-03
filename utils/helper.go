@@ -27,11 +27,17 @@ func GetSiteHost() string {
 
 // Print data as JSON string with prefix
 func PrintJSONf(prefix string, data any) {
+	str := SprintJSONf(data)
+	fmt.Printf("%s%s\n", prefix, str)
+}
+
+func SprintJSONf(data any) string {
 	jsonStr, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		fmt.Printf("utils.PrintJSONf error: %v", err)
+		return ""
 	}
-	fmt.Printf("%s%s\n", prefix, jsonStr)
+	return string(jsonStr)
 }
 
 func GetReplyDepthSize() int {

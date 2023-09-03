@@ -39,7 +39,7 @@ func GenUser() *TestUser {
 
 func GenArticle() *TestArticle {
 	title := gofakeit.Sentence(3 + rand.Intn(9))
-	content := gofakeit.Paragraph(2+rand.Intn(5), 1+rand.Intn(6), 100, "\n\n")
+	content := gofakeit.Paragraph(1+rand.Intn(3), 1+rand.Intn(3), 30, "\n\n")
 	if len(title) > 80 {
 		title = title[:80]
 	}

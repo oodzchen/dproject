@@ -65,8 +65,27 @@ func ValidReplySort(sortType string) bool {
 }
 
 type ArticleList struct {
-	List     []*Article
-	SortType ArticleSortType
+	List      []*Article
+	SortType  ArticleSortType
+	CurrPage  int
+	PageSize  int
+	Total     int
+	TotalPage int
+}
+
+func CeilInt(a, b int) int {
+	return int(math.Ceil(float64(a) / float64(b)))
+}
+
+func NewArticleList(list []*Article, sortType ArticleSortType, currPage, pageSize int) *ArticleList {
+	return &ArticleList{
+		List:      list,
+		SortType:  sortType,
+		CurrPage:  currPage,
+		PageSize:  pageSize,
+		Total:     len(list),
+		TotalPage: CeilInt(len(list), pageSize),
+	}
 }
 
 func (al *ArticleList) Sort(sortType ArticleSortType) []*Article {
@@ -75,12 +94,14 @@ func (al *ArticleList) Sort(sortType ArticleSortType) []*Article {
 	return al.List
 }
 
-func (al *ArticleList) Paging(page, pageSize int) []*Article {
+func (al *ArticleList) PagingList(page, pageSize int) []*Article {
 	start := pageSize * (page - 1)
 	end := start + pageSize
 	if end > len(al.List) {
 		end = len(al.List)
 	}
+	al.CurrPage = page
+	al.PageSize = pageSize
 	return al.List[start:end]
 }
 
@@ -198,6 +219,12 @@ func (a *Article) Sanitize() {
 	a.Content = p.Sanitize(a.Content)
 }
 
+var ErrValidArticleFailed = errors.New("valid article failed")
+
+func articleValidErr(str string) error {
+	return errors.Join(ErrValidArticleFailed, errors.New(str))
+}
+
 func (a *Article) Valid(isUpdate bool) error {
 	isReply := a.ReplyDepth > 0 || a.ReplyTo != 0
 	authorId := a.AuthorId
@@ -205,25 +232,25 @@ func (a *Article) Valid(isUpdate bool) error {
 	content := strings.TrimSpace(a.Content)
 
 	if !isUpdate && authorId == 0 {
-		return errors.New("author id is required")
+		return articleValidErr("author id is required")
 	}
 
 	if !isReply {
 		if title == "" {
-			return errors.New("article title is required")
+			return articleValidErr("article title is required")
 		}
 
 		if utf8.RuneCountInString(title) > MAX_ARTICLE_TITLE_LEN {
-			return errors.New(fmt.Sprintf("article title limit to %d characters", MAX_ARTICLE_TITLE_LEN))
+			return articleValidErr(fmt.Sprintf("article title limit to %d characters", MAX_ARTICLE_TITLE_LEN))
 		}
 	}
 
 	if content == "" {
-		return errors.New("article content is required")
+		return articleValidErr("article content is required")
 	}
 
 	if utf8.RuneCountInString(content) > MAX_ARTICLE_CONTENT_LEN {
-		return errors.New(fmt.Sprintf("article content limit to %d characters", MAX_ARTICLE_CONTENT_LEN))
+		return articleValidErr(fmt.Sprintf("article content limit to %d characters", MAX_ARTICLE_CONTENT_LEN))
 	}
 	return nil
 }
@@ -251,7 +278,7 @@ func hot(ups, downs int, date time.Time) float64 {
 	s := float64(ups - downs)
 	order := math.Log10(math.Max(math.Abs(s), 1))
 
-	fmt.Println("order: ", order)
+	// fmt.Println("order: ", order)
 
 	var sign float64
 	if s > 0 {

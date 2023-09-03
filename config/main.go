@@ -18,6 +18,7 @@ type AppConfig struct {
 	ReplyDepthPageSize int    `env:"REPLY_DEPTH_PAGE_SIZE" envDefault:"10"`
 	Debug              bool   `env:"DEBUG" envDefault:"false"`
 	BrandName          string `env:"BRAND_NAME"`
+	Slogan             string `env:"SLOGAN"`
 	DB                 *DBConfig
 }
 
@@ -52,7 +53,8 @@ func (dbCfg *DBConfig) GetDSN() string {
 var Config *AppConfig
 
 // var BrandName = "DizKaz"
-var BrandName = "笛子卡子"
+var BrandName = "笛卡"
+var Slogan = "知无不言, 言无不尽"
 
 func Init(envFile string) error {
 	cfg, err := Parse(envFile)
@@ -77,6 +79,7 @@ func Parse(envFile string) (*AppConfig, error) {
 	cfg := &AppConfig{
 		DB:        dbCfg,
 		BrandName: BrandName,
+		Slogan:    Slogan,
 	}
 	if err := env.Parse(cfg); err != nil {
 		return nil, err

@@ -10,7 +10,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5"
+	"github.com/oodzchen/dproject/config"
 	"github.com/oodzchen/dproject/model"
+	"github.com/oodzchen/dproject/service"
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
 	"github.com/pkg/errors"
@@ -18,6 +20,7 @@ import (
 
 type ArticleResource struct {
 	*Renderer
+	articleSrv *service.Article
 	// DBConn *pgx.Conn
 	// DBPool *pgxpool.Pool
 	// store *store.Store
@@ -26,6 +29,9 @@ type ArticleResource struct {
 func NewArticleResource(tmpl *template.Template, store *store.Store, sessStore *sessions.CookieStore, router *chi.Mux) *ArticleResource {
 	return &ArticleResource{
 		&Renderer{tmpl, sessStore, router, store},
+		&service.Article{
+			Store: store,
+		},
 	}
 }
 
@@ -77,11 +83,11 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		item.CalcWeight()
 	}
 
-	articleList := &model.ArticleList{List: wholeList}
-	// sort.Sort(articleList)
-	articleList.Sort(model.ListSortBest)
+	wholeArticleList := model.NewArticleList(wholeList, model.ListSortBest, page, pageSize)
+	// sort.Sort(wholeArticleList)
+	wholeArticleList.Sort(model.ListSortBest)
 
-	list := articleList.Paging(page, pageSize)
+	list := wholeArticleList.PagingList(page, pageSize)
 
 	for _, item := range list {
 		// fmt.Println("item.VoteScore: ", item.VoteScore)
@@ -91,11 +97,11 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		item.GenSummary(200)
 	}
 
-	total, err := ar.store.Article.Count()
-	if err != nil {
-		ar.Error("", err, w, r, http.StatusInternalServerError)
-		return
-	}
+	// total, err := ar.store.Article.Count()
+	// if err != nil {
+	// 	ar.Error("", err, w, r, http.StatusInternalServerError)
+	// 	return
+	// }
 
 	type ListData struct {
 		Articles     []*model.Article
@@ -109,10 +115,10 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		Title: "Home",
 		Data: &ListData{
 			list,
-			total,
-			page,
-			pageSize,
-			CeilInt(total, pageSize),
+			wholeArticleList.Total,
+			wholeArticleList.CurrPage,
+			wholeArticleList.PageSize,
+			wholeArticleList.TotalPage,
 		},
 	}
 
@@ -176,6 +182,8 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 		ar.Error("", err, w, r, http.StatusBadRequest)
 	}
 
+	title := r.Form.Get("title")
+	content := r.Form.Get("content")
 	paramReplyTo := r.Form.Get("reply_to")
 
 	var isReply bool
@@ -204,24 +212,35 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	article := &model.Article{
-		Title:    r.Form.Get("title"),
-		AuthorId: authorId,
-		Content:  r.Form.Get("content"),
-		ReplyTo:  replyTo,
+	// article := &model.Article{
+	// 	Title:    r.Form.Get("title"),
+	// 	AuthorId: authorId,
+	// 	Content:  r.Form.Get("content"),
+	// 	ReplyTo:  replyTo,
+	// }
+
+	// article.Sanitize()
+
+	// err = article.Valid(false)
+	// if err != nil {
+	// 	ar.Error(err.Error(), err, w, r, http.StatusBadRequest)
+	// 	return
+	// }
+
+	// id, err := ar.store.Article.Create(article.Title, article.Content, authorId, replyTo)
+	var id int
+	if isReply {
+		id, err = ar.articleSrv.Reply(replyTo, content, authorId)
+	} else {
+		id, err = ar.articleSrv.Create(title, content, authorId, 0)
 	}
-
-	article.Sanitize()
-
-	err = article.Valid(false)
+	// id, err := ar.articleSrv.Create(title, content, authorId, replyTo)
 	if err != nil {
-		ar.Error(err.Error(), err, w, r, http.StatusBadRequest)
-		return
-	}
-
-	id, err := ar.store.Article.Create(article.Title, article.Content, authorId, replyTo)
-	if err != nil {
-		ar.Error("", err, w, r, http.StatusInternalServerError)
+		if errors.Is(err, model.ErrValidArticleFailed) {
+			ar.Error(err.Error(), err, w, r, http.StatusBadRequest)
+		} else {
+			ar.Error("", err, w, r, http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -290,12 +309,13 @@ func (ar *ArticleResource) Item(w http.ResponseWriter, r *http.Request) {
 func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, delPage bool) {
 	idParam := chi.URLParam(r, "id")
 	sortType := r.URL.Query().Get("sort")
+	pageQ := r.URL.Query().Get("page")
+	page, _ := strconv.Atoi(pageQ)
 
 	// fmt.Println("sort type", sortType)
 	// fmt.Printf("idParam: %v\n", idParam)
 
 	articleId, err := strconv.Atoi(idParam)
-
 	if err != nil {
 		ar.Error("", err, w, r, http.StatusBadRequest)
 		return
@@ -381,8 +401,9 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 	if model.ValidReplySort(sortType) {
 		replySort = model.ArticleSortType(sortType)
 	}
-	fmt.Println("replySort: ", replySort)
+	// fmt.Println("replySort: ", replySort)
 	rootArticle = sortArticleTree(rootArticle, replySort)
+	rootArticle = pagingArticleTree(rootArticle, page)
 
 	rootArticle.UpdateDisplayTitle()
 
@@ -403,6 +424,8 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 	}})
 }
 
+const DefaultTopReplyPageSize = 50
+
 func genArticleTree(root *model.Article, list []*model.Article) (*model.Article, error) {
 	nodeMap := make(map[int][]*model.Article)
 	for _, item := range list {
@@ -410,7 +433,7 @@ func genArticleTree(root *model.Article, list []*model.Article) (*model.Article,
 	}
 
 	if replies, ok := nodeMap[root.Id]; ok {
-		root.Replies = &model.ArticleList{List: replies}
+		root.Replies = model.NewArticleList(replies, model.ReplySortBest, 1, DefaultTopReplyPageSize)
 	} else {
 		if len(list) > 0 {
 			return root, errors.New("no reply to the root in the list")
@@ -418,8 +441,8 @@ func genArticleTree(root *model.Article, list []*model.Article) (*model.Article,
 	}
 
 	for _, item := range list {
-		if replies, ok := nodeMap[item.Id]; ok {
-			item.Replies = &model.ArticleList{List: replies}
+		if replies, ok := nodeMap[item.Id]; ok && item.Id != root.Id {
+			item.Replies = model.NewArticleList(replies, model.ReplySortBest, 1, config.Config.ReplyDepthPageSize)
 		}
 	}
 	return root, nil
@@ -430,6 +453,23 @@ func sortArticleTree(root *model.Article, sortType model.ArticleSortType) *model
 		root.Replies.Sort(sortType)
 		for idx, item := range root.Replies.List {
 			root.Replies.List[idx] = sortArticleTree(item, sortType)
+		}
+	}
+	return root
+}
+
+func pagingArticleTree(root *model.Article, page int) *model.Article {
+	if root.Replies != nil && root.Replies.Len() > 0 {
+		if page < 1 {
+			page = 1
+		}
+		if page > root.Replies.TotalPage {
+			page = root.Replies.TotalPage
+		}
+
+		root.Replies.List = root.Replies.PagingList(page, root.Replies.PageSize)
+		for idx, item := range root.Replies.List {
+			root.Replies.List[idx] = pagingArticleTree(item, 1)
 		}
 	}
 	return root

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/oodzchen/dproject/model"
+	"github.com/oodzchen/dproject/utils"
 )
 
 func TestGenArticleTree(t *testing.T) {
@@ -41,13 +42,13 @@ func TestGenArticleTree(t *testing.T) {
 			&model.Article{
 				Id:      1,
 				ReplyTo: 0,
-				Replies: &model.ArticleList{
-					List: []*model.Article{
+				Replies: model.NewArticleList(
+					[]*model.Article{
 						{
 							Id:      2,
 							ReplyTo: 1,
-							Replies: &model.ArticleList{
-								List: []*model.Article{
+							Replies: model.NewArticleList(
+								[]*model.Article{
 									{
 										Id:      3,
 										ReplyTo: 2,
@@ -55,20 +56,29 @@ func TestGenArticleTree(t *testing.T) {
 									{
 										Id:      4,
 										ReplyTo: 2,
-										Replies: &model.ArticleList{
-											List: []*model.Article{
+										Replies: model.NewArticleList(
+											[]*model.Article{
 												{
 													Id:      5,
 													ReplyTo: 4,
 												},
 											},
-										},
+											model.ReplySortBest,
+											1,
+											DefaultReplyPageSize,
+										),
 									},
 								},
-							},
+								model.ReplySortBest,
+								1,
+								DefaultReplyPageSize,
+							),
 						},
 					},
-				},
+					model.ReplySortBest,
+					1,
+					DefaultReplyPageSize,
+				),
 			},
 		},
 		{
@@ -106,7 +116,7 @@ func TestGenArticleTree(t *testing.T) {
 		t.Run(tt.desc, func(t *testing.T) {
 			got, _ := genArticleTree(tt.root, tt.replies)
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("want\n%+v, but got\n%+v", tt.want, got)
+				t.Errorf("want\n%+v, \nbut got\n%+v", utils.SprintJSONf(tt.want), utils.SprintJSONf(got))
 			}
 		})
 	}

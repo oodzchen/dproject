@@ -9,21 +9,35 @@
 	 margin-top: 0;
 	 list-style:none;
 	 margin-left:0;
-	 padding-left: var(--reply-indent-size)
+	 padding-left: 0;
      }
 
      .replies li>.replies{
-	 border-left: 1px solid var(--border-color);
+	 padding-left: var(--reply-indent-size);
+	 border-left: 1px dashed var(--border-color);
+     }
+     .replies li{
+	 border: 1px solid transparent;
      }
      .replies li>article{
-	 border: 1px solid transparent;
+	 border-bottom: 1px dashed transparent;
      }
      .replies li>article:hover{
 	 background: var(--background-hover);
      }
-     .replies li>article:focus,
-     .replies li>article.active{
-	 border: 1px dashed var(--border-color);
+     
+     .replies li:focus,
+     .replies li.active,
+     .replies li:target{
+	 border: 1px solid var(--border-color);
+     }
+     .replies li.active>.replies,
+     .replies li:target>.replies{
+	 border-left-color: transparent;
+     }
+     .replies li.active>article,
+     .replies li:target>article{
+	 border-bottom: 1px dashed var(--border-color)
      }
      .article-operation,
      .article-operation a{
@@ -85,10 +99,16 @@
 
     {{template "article_content" $data -}}
 
+    {{- if and $data.article.Replies (gt $data.article.Replies.TotalPage 1) -}}
+	{{- $prefix := printf "/articles/%d" $data.article.Id -}}
+	{{- $pagiData := dict "currPage" $data.article.Replies.CurrPage "totalPage" $data.article.Replies.TotalPage "pathPrefix" $prefix -}}
+	{{- template "pagination" $pagiData -}}
+    {{- end -}}
+
     <script>
-     document.body.addEventListener('mouseup', function(ev){
+     document.documentElement.addEventListener('mouseup', function(ev){
 	 /* console.log(ev) */
-	 removeAllActive('article', document.getElementById('replies-box'))
+	 removeAllActive('li', document.getElementById('replies-box'))
      })
 
      function removeAllActive(tagName, parentNode){
@@ -99,26 +119,26 @@
 	 }
      }
      
-     function toggleDisplayChild(event, el){
-	 var child = el.nextElementSibling
-	 if (child && child.tagName.toLowerCase() == 'ul'){
+     function toggleDisplayChild(event, el, id){
+	 var currRow = document.getElementById(id)
+	 var child = el.getElementsByTagName('ul')[0]
+	 if (child){
 	     if (child.style.display == 'none'){
 		 child.style.display = ''
 	     } else {
 		 child.style.display = 'none'
 	     }
 	 }
+	 
+	 window.scrollTo({
+	     top: currRow.getBoundingClientRect().top + document.documentElement.scrollTop,
+	     behavior: "smooth",
+	 })
      }
 
      function toggleActive(el){
-	 removeAllActive('article', document.getElementById('replies-box'))
+	 removeAllActive('li', document.getElementById('replies-box'))
 	 addClass(el, 'active')
-	 /* var activeClass = 'active'
-	    if(el.className.split(" ").indexOf(activeClass) > -1){
-	    removeClass(el, activeClass)
-	    } else {
-	    addClass(el, activeClass)
-	    } */
      }
 
      function removeClass(el, className){
@@ -139,15 +159,19 @@
 	 el.className = classes.join(" ")
      }
 
-     function onArticleMouseDown(ev, el){
+     function onArticleMouseDown(ev, el, id){
 	 function onArticleMouseUp(){
 	     /* console.log(ev, el) */
 	     event.preventDefault()
 	     event.stopPropagation()
 
-	     toggleActive(el)
-	     toggleDisplayChild(ev, el)
+	     if (el.className.split(" ").indexOf('active') > -1){
+		 toggleDisplayChild(ev, el, id)
+	     } else {
+		 toggleActive(el) 
+	     }
 	 }
+	 
 	 el.onmouseup = onArticleMouseUp
 	 setTimeout(function(){
 	     el.onmouseup = null
@@ -162,7 +186,7 @@
     {{$isRoot := eq .article.ReplyDepth 0 -}}
     {{$pageDepth := add .pageDepth 1 -}}
     {{$data := dict "currUser" .currUser "article" .article "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "isRootArticle" $isRoot "debug" .debug -}}
-    <article onmousedown="onArticleMouseDown(event, this)">
+    <article>
 	{{if $isRoot -}}
 	    <h1>{{.article.Title}}</h1>
 	{{else -}}
@@ -171,7 +195,7 @@
 	    {{- end -}}
 	{{- end -}}
 
-	<div class="text-lighten-3" style="margin-top:6px;margin-bottom:0px;">
+	<div class="text-lighten-3" style="margin-bottom:0px;">
 	    <small>
 		{{- if .article.Deleted -}}
 		    <span>deleted</span>&nbsp;
@@ -183,7 +207,11 @@
 		    modified <time title="{{.article.UpdatedAt}}">{{timeAgo .article.UpdatedAt}}</time> |&nbsp;
 		{{- end -}}
 		<a class="text-lighten-3" href="/articles/{{.article.Id}}">link</a> |&nbsp;
+		<a class="text-lighten-3" href="#reply_{{.article.Id}}">anchor</a> |&nbsp;
 		{{- local "ReplyNum" "Count" .article.TotalReplyCount -}}&nbsp;
+		{{- if .article.Replies -}}
+		    |&nbsp;{{.article.Replies.Total}} children&nbsp;
+		{{- end -}}
 		{{- if .debug -}}
 		    |&nbsp;{{- .article.ReplyDepth}} depth
 		    |&nbsp;{{- .article.Weight}} weight
@@ -268,10 +296,10 @@
 			<a href="/articles/{{.article.Id}}/edit" class="btn-edit">Edit</a>&nbsp;&nbsp;<a class="btn-del" href="/articles/{{.article.Id}}/delete">Delete</a>&nbsp;&nbsp;
 		    {{- end -}}
 		    {{- if gt .pageDepth 1 -}}
-			<a href="/articles/{{.article.Id}}/reply">Reply</a>&nbsp;
+			<a href="/articles/{{.article.Id}}/reply">Reply</a>&nbsp;&nbsp;
 		    {{- end -}}
 		{{- else -}}
-		    <a href="/articles/{{.article.Id}}/reply">Reply</a>&nbsp;
+		    <a href="/articles/{{.article.Id}}/reply">Reply</a>&nbsp;&nbsp;
 		{{- end -}}
 	    {{- end -}}
 	    {{- if and (eq .pageDepth 1) (not .isRootArticle) -}}
@@ -304,7 +332,7 @@
     <ul class="replies" {{if eq $pageDepth 1}}id="replies-box"{{end}} style="{{if eq $pageDepth 1}}padding-left:0;{{- end}}">
 	{{range .replies.List -}}
 	    {{$subData := dict "currUser" $currUser "article" . "pageDepth" $pageDepth "CSRFField" $CSRFField "maxDepth" $maxDepth "debug" $debug -}}
-	    <li style="padding-top:6px">
+	    <li id="reply_{{.Id}}" onmousedown="onArticleMouseDown(event, this, 'reply_{{.Id}}')">
 		{{template "article_content" $subData -}}
 	    </li>
 	    {{if and (gt .TotalReplyCount 0) (eq $pageDepth $maxDepth) -}}

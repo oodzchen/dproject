@@ -57,6 +57,7 @@ type PageData struct {
 	BreadCrumbs []*BreadCrumb
 	I18nData    map[string]any
 	BrandName   string
+	Slogan      string
 }
 
 func (pd *PageData) AddI18nData(data map[string]any) {
@@ -186,6 +187,7 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	data.RoutePath = r.URL.Path
 	data.Debug = config.Config.Debug
 	data.BrandName = config.Config.BrandName
+	data.Slogan = config.Config.Slogan
 	data.Title += fmt.Sprintf(" - %s", config.Config.SiteName)
 
 	// data.AddI18nData(map[string]any{
