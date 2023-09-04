@@ -118,7 +118,7 @@ func main() {
 
 	err = runTasks("register duplicate user", ctx,
 		mock.Register(newUser),
-		chp.TextContent(`#err-msg`, &resultText),
+		chp.TextContent(`#err-msg`, &resultText, chp.ByID),
 		chp.ActionFunc(func(ctx context.Context) error {
 			if len(resultText) == 0 {
 				return errors.New("empty register duplicate message")
@@ -185,7 +185,7 @@ func main() {
 		chp.Click(`body > article > div > small > a.btn-edit`),
 		chp.WaitVisible(`body>footer`),
 		chp.SetValue(`textarea[name="content"]`, editArticle.Content),
-		chp.Click(`button[type="submit"]`),
+		chp.Click(`body>form>button[type="submit"]`),
 		chp.WaitVisible(`body>footer`),
 		chp.TextContent(`body > article > section`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {

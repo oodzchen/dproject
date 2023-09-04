@@ -30,7 +30,7 @@ func (mc *Mock) Register(data *TestUser) chp.Tasks {
 		chp.SetValue(`input[name="email"]`, data.Email),
 		chp.SetValue(`input[name="password"]`, mc.TestingPWD),
 		chp.SetValue(`input[name="username"]`, data.Name),
-		chp.Click(`button[type="submit"]`, chp.NodeVisible),
+		chp.Click(`body>form>button[type="submit"]`),
 		chp.WaitVisible(`body>footer`),
 	}
 }
@@ -43,7 +43,7 @@ func (mc *Mock) Login(data *TestUser) chp.Tasks {
 		chp.Click(`ul.nav-menu:nth-child(2) > li > a[href^="/login"]`),
 		chp.SetValue(`input[name="email"]`, data.Email),
 		chp.SetValue(`input[name="password"]`, mc.TestingPWD),
-		chp.Click(`button[type="submit"]`),
+		chp.Click(`body>form>button[type="submit"]`),
 		chp.WaitVisible(`body>footer`),
 	}
 }
@@ -77,7 +77,7 @@ func (mc *Mock) CreateArticle(a *TestArticle) chp.Tasks {
 		chp.WaitVisible(`body>footer`),
 		chp.SetValue(`#title`, a.Title),
 		chp.SetValue(`#content`, a.Content),
-		chp.Click(`button[type="submit"]`),
+		chp.Click(`body>form>button[type="submit"]`),
 		chp.WaitVisible(`body>footer`),
 		chp.TextContent(`body>article>h1`, &result),
 		chp.ActionFunc(func(ctx context.Context) error {
