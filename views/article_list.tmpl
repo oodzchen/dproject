@@ -45,7 +45,7 @@
 		    <form class="vote-form{{if and $currUser (eq $item.CurrUserState.VoteType "up")}} voted{{end}}" action="/articles/{{$item.Id}}/vote" method="POST">
 			{{$csrfField}}
 			<input name="type" type="hidden" value="up"/>
-			<button class="btn-vote--up" type="submit">&#9650;</button>
+			<button class="btn-vote--up" type="submit" title="Upvote">&#9650;</button>
 		    </form>
 		    {{- if gt $item.VoteScore 0 -}}
 			<span class="article-list__vote-score">{{$item.VoteScore}}</span>

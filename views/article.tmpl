@@ -335,7 +335,7 @@
 		<form class="vote-form{{if eq .article.CurrUserState.VoteType "up"}} voted{{end}}" action="/articles/{{.article.Id}}/vote" method="POST">
 		    {{.CSRFField}}
 		    <input name="type" type="hidden" value="up"/>
-		    <button class="btn-vote--up" type="submit">&#9650;</button>
+		    <button class="btn-vote--up" type="submit" title="Upvote">&#9650;</button>
 		</form>
 		{{- if gt .article.VoteScore 0 -}}
 		    <span>{{.article.VoteScore}}<span>
@@ -343,7 +343,7 @@
 		<form class="vote-form{{if eq .article.CurrUserState.VoteType "down"}} voted{{end}}" action="/articles/{{.article.Id}}/vote" method="POST">
 		    {{.CSRFField}}
 		    <input name="type" type="hidden" value="down"/>
-		    <button class="btn-vote--down" type="submit">&#9660;</button>
+		    <button class="btn-vote--down" type="submit" title="Downvote">&#9660;</button>
 		</form>&nbsp;
 		{{- if .currUser -}}
 		    {{- if eq .currUser.Id .article.AuthorId -}}
@@ -352,6 +352,9 @@
 		    {{- if gt .pageDepth 1 -}}
 			<a href="/articles/{{.article.Id}}/reply">Reply</a>&nbsp;&nbsp;
 		    {{- end -}}
+		    <a href="/articles/{{.article.Id}}/save">Save</a>&nbsp;&nbsp;
+		    <a href="/articles/{{.article.Id}}/thanks">&hearts; Thanks</a>&nbsp;&nbsp;
+		    <a href="/articles/{{.article.Id}}/emo">&#9786;</a>&nbsp;&nbsp;
 		{{- else -}}
 		    <a href="/articles/{{.article.Id}}/reply">Reply</a>&nbsp;&nbsp;
 		{{- end -}}
