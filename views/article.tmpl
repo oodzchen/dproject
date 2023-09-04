@@ -108,8 +108,22 @@
     <script>
      document.documentElement.addEventListener('mouseup', function(ev){
 	 /* console.log(ev) */
-	 removeAllActive('li', document.getElementById('replies-box'))
+	 var replyBox = document.getElementById('replies-box')
+	 if (replyBox && !replyBox.contains(ev.target)) {
+	     removeAllActive('li', replyBox)
+	 }
      })
+
+     var replyBox = document.getElementById('replies-box')
+     if (replyBox){
+	 replyBox.addEventListener('mousedown', function(ev){
+	     /* console.log('ev', ev) */
+	     var row = ev.target.closest('li')
+	     if (row) {
+		 onArticleMouseDown(ev, row)
+	     }
+	 })
+     }
 
      function removeAllActive(tagName, parentNode){
 	 var parent = parentNode || document
@@ -118,22 +132,48 @@
 	     removeClass(els[i], 'active')
 	 }
      }
+
+     // return previous display or not
+     function toggleDisplayEl(el){
+	 if (el.style.display == 'none'){
+	     el.style.display = ''
+	     return false
+	 } else {
+	     el.style.display = 'none'
+	     return true
+	 }
+     }
      
      function toggleDisplayChild(event, el, id){
 	 var currRow = document.getElementById(id)
+	 var content = el.getElementsByTagName('section')[0]
+	 if (content){
+	     var isDisplay = toggleDisplayEl(content)
+	     var placeholderId = 'article_placeholder_' + id
+	     var placeholder
+	     if (isDisplay){
+		 placeholder = document.createElement('div')
+		 placeholder.setAttribute('id', placeholderId)
+		 placeholder.className='text-lighten-2'
+		 placeholder.innerHTML = '&nbsp;&nbsp;<i>...</i>'
+		 content.parentNode.insertBefore(placeholder, content)
+	     } else {
+		 placeholder = document.getElementById(placeholderId)
+		 if (placeholder) placeholder.remove()
+	     }
+	     
+	 }
 	 var child = el.getElementsByTagName('ul')[0]
 	 if (child){
-	     if (child.style.display == 'none'){
-		 child.style.display = ''
-	     } else {
-		 child.style.display = 'none'
+	     var childDisplay = toggleDisplayEl(child)
+	     /* console.log('childDisplay', childDisplay) */
+	     if (!childDisplay){
+		 window.scrollTo({
+		     top: currRow.getBoundingClientRect().top + document.documentElement.scrollTop,
+		     behavior: "smooth",
+		 })
 	     }
 	 }
-	 
-	 window.scrollTo({
-	     top: currRow.getBoundingClientRect().top + document.documentElement.scrollTop,
-	     behavior: "smooth",
-	 })
      }
 
      function toggleActive(el){
@@ -159,7 +199,8 @@
 	 el.className = classes.join(" ")
      }
 
-     function onArticleMouseDown(ev, el, id){
+     function onArticleMouseDown(ev, el){
+	 var id = el.id
 	 function onArticleMouseUp(){
 	     /* console.log(ev, el) */
 	     event.preventDefault()
@@ -176,6 +217,22 @@
 	 setTimeout(function(){
 	     el.onmouseup = null
 	 }, 300)
+     }
+
+     function scrollToElementById(ev, id){
+	 ev.preventDefault()
+	 ev.stopPropagation()
+	 var el = document.getElementById(id)
+	 /* console.log(ev, el) */
+	 if (el){
+	     setTimeout(function(){
+		 location.hash = id
+	     }, 500)
+	     window.scrollTo({
+		 top: el.getBoundingClientRect().top + document.documentElement.scrollTop,
+		 behavior: 'smooth',
+	     })
+     }
      }
     </script>
 
@@ -301,6 +358,7 @@
 		{{- else -}}
 		    <a href="/articles/{{.article.Id}}/reply">Reply</a>&nbsp;&nbsp;
 		{{- end -}}
+		<a href="#reply_{{.article.ReplyTo}}" onclick="scrollToElementById(event, 'reply_{{.article.ReplyTo}}')">Parent</a>
 	    {{- end -}}
 	    {{- if and (eq .pageDepth 1) (not .isRootArticle) -}}
 		<a href="/articles/{{.article.ReplyTo}}">Parent</a>
@@ -332,7 +390,8 @@
     <ul class="replies" {{if eq $pageDepth 1}}id="replies-box"{{end}} style="{{if eq $pageDepth 1}}padding-left:0;{{- end}}">
 	{{range .replies.List -}}
 	    {{$subData := dict "currUser" $currUser "article" . "pageDepth" $pageDepth "CSRFField" $CSRFField "maxDepth" $maxDepth "debug" $debug -}}
-	    <li id="reply_{{.Id}}" onmousedown="onArticleMouseDown(event, this, 'reply_{{.Id}}')">
+	    <!-- onmousedown="onArticleMouseDown(event, this, 'reply_{{.Id}}')" -->
+	    <li id="reply_{{.Id}}">
 		{{template "article_content" $subData -}}
 	    </li>
 	    {{if and (gt .TotalReplyCount 0) (eq $pageDepth $maxDepth) -}}
