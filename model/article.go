@@ -95,6 +95,13 @@ func (al *ArticleList) Sort(sortType ArticleSortType) []*Article {
 }
 
 func (al *ArticleList) PagingList(page, pageSize int) []*Article {
+	if page < 1 {
+		page = 1
+	}
+	if page > al.TotalPage {
+		page = al.TotalPage
+	}
+
 	start := pageSize * (page - 1)
 	end := start + pageSize
 	if end > len(al.List) {

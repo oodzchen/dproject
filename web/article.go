@@ -367,25 +367,6 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 		}
 	}
 
-	// if len(articleTreeList) > 1 {
-	// 	for _, item := range articleTreeList {
-	// 		item.FormatDeleted()
-	// 	}
-
-	// 	rootArticle, err = genArticleTree(rootArticle, articleTreeList)
-	// 	if err != nil {
-	// 		// ar.Error("", err, w, r, http.StatusInternalServerError)
-	// 		fmt.Printf("generate article tree error: %v", err)
-	// 	}
-
-	// 	replySort := model.ReplySortBest
-	// 	if model.ValidReplySort(sortType) {
-	// 		replySort = model.ArticleSortType(sortType)
-	// 		// fmt.Println("replySort: ", replySort)
-	// 	}
-	// 	rootArticle = sortArticleTree(rootArticle, replySort)
-	// }
-
 	for _, item := range articleTreeList {
 		item.FormatDeleted()
 	}
