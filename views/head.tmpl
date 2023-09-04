@@ -17,7 +17,7 @@
 		 --tip-bg: #E5E4BE;
 		 --theme-color: #2F71AC;
 		 --border-color-active: var(--theme-color);
-		 --reply-indent-size: 1rem;
+		 --reply-indent-size: 2rem;
 	     }
 	     :root[data-theme="light"] {
 		 color-scheme: light;
@@ -56,12 +56,7 @@
 	     a:focus-visible{
 		 text-decoration: underline;
 	     }
-	     nav {
-		 display: flex;
-		 justify-content: space-between;
-		 flex-wrap: wrap;
-		 margin-bottom: 10px;
-	     }
+	     
 	     input,
 	     textarea,
 	     button{
@@ -91,6 +86,7 @@
 		 display: inline-block;
 		 font-weight: bold;
 		 font-size: 1.2rem;
+		 color: var(--theme-color);
 	     }
 	     .slogan{
 		 font-size: 0.8rem;
@@ -189,6 +185,47 @@
 	     .form .form__row:last-child{
 		 margin-bottom: 0;
 	     }
+	     .vote-form{
+		 display: inline-block;
+		 padding: 0;
+		 margin: 0;
+		 vertical-align: text-top;
+		 line-height: 0;
+	     }
+	     .vote-form button[type="submit"]{
+		 display: inline-block;
+		 padding: 0;
+		 border: none;
+		 line-height: 1;
+		 vertical-align: text-top;
+		 font-size: 1rem;
+		 cursor: pointer;
+		 background: transparent;
+		 color: var(--text-lighten-2);
+	     }
+	     .vote-form button[type="submit"]:hover{
+		 color: var(--text-lighten-3);
+	     }
+	     .vote-form.voted button[type="submit"]{
+		 color: var(--theme-color);
+	     }
+	     .btn-vote--up,
+	     .btn-vote--down{
+		 position: relative;
+	     }
+	     .btn-vote--up{
+		 top: 1px;
+	     }
+	     .btn-vote--down{
+		 margin-left: 0.5rem;
+		 margin-right: 0.5rem;
+	     }
+
+	     @media (max-width: 750px){
+		 :root{
+		     --reply-indent-size: 1rem;
+		 }
+	     }
 	    </style>
 	    <script>
 	     /* document.addEventListener("DOMContentLoaded", function(){
@@ -238,6 +275,12 @@
 	    </script>
 	    {{- end -}}
 	    <style>
+	     .top-nav {
+		 display: flex;
+		 justify-content: space-between;
+		 /* flex-wrap: wrap; */
+		 margin-bottom: 10px;
+	     }
 	     .nav-menu{
 		 display: flex;
 		 flex-wrap: wrap;
@@ -257,12 +300,15 @@
 	     .nav-menu li a{
 		 /* color: var(--text-color) */
 	     }
+	     .nav-menu.nav-menu--left{
+		 flex: 1 0 auto;
+	     }
 	     .nav-menu.nav-menu--right{
 		 justify-content: flex-end;
 	     }
 	    </style>
-	    <nav>
-		<ul class="nav-menu">
+	    <nav class="top-nav">
+		<ul class="nav-menu nav-menu--left">
 		    <li><a class="brand logo" href="/">{{.BrandName}}</a></li>
 		    {{- range .BreadCrumbs -}}
 			<li><b><a href="{{.Path}}">{{.Name}}</a></b></li>

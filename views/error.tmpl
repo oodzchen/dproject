@@ -2,13 +2,19 @@
 
     {{template "head" . -}}
 
-    <p id="err-msg">{{.Data.ErrText -}}</p>
-
-    <p>
-	{{if .Data.PrevUrl -}}
-	    <a href="{{.Data.PrevUrl}}">Go Back</a>&nbsp;&nbsp;
+    <p id="err-msg">
+	{{- .Data.ErrText -}}
+	{{- if eq .Data.ErrCode 1000 -}}
+	    <a href="/login">, go to login</a>.
+	{{- else if eq .Data.ErrCode 1001 -}}
+	    <a href="/register">, go to register</a>.
 	{{- end -}}
-	<a href="/">Go Home</a>
+    </p>
+    <p>
+	{{- if .Data.PrevUrl -}}
+	    <a href="{{.Data.PrevUrl}}" onclick="history.go(-1);return false;">Go back</a>&nbsp;&nbsp;
+	{{- end -}}
+	<a href="/">Go home</a>
     </p>
 
     {{template "foot" . -}}

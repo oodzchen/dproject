@@ -20,6 +20,7 @@
 	 border: 1px solid transparent;
      }
      .replies li>article{
+	 padding: 5px 0;
 	 border-bottom: 1px dashed transparent;
      }
      .replies li>article:hover{
@@ -44,41 +45,30 @@
 	 color: var(--text-lighten-2);
 	 vertical-align: baseline;
      }
-     .article-operation form{
-	 display: inline-block;
-	 padding: 0;
-	 margin: 0;
-	 vertical-align: text-top;
-	 line-height: 0;
-     }
-     .article-operation button[type="submit"]{
-	 display: inline-block;
-	 padding: 0;
-	 border: none;
-	 line-height: 1;
-	 vertical-align: text-top;
-	 font-size: 1rem;
-	 cursor: pointer;
-	 background: transparent;
-	 color: var(--text-lighten-2);
-     }
-     .article-operation button[type="submit"]:hover{
-	 color: var(--text-lighten-3);
-     }
-     .article-operation .voted button[type="submit"]{
-	 color: var(--theme-color);
-     }
-     .btn-vote--up,
-     .btn-vote--down{
-	 position: relative;
-     }
-     .btn-vote--up{
-	 top: 1px;
-     }
-     .btn-vote--down{
-	 margin-left: 0.5rem;
-	 margin-right: 0.5rem;
-     }
+     /* .article-operation form{
+	display: inline-block;
+	padding: 0;
+	margin: 0;
+	vertical-align: text-top;
+	line-height: 0;
+	}
+	.article-operation button[type="submit"]{
+	display: inline-block;
+	padding: 0;
+	border: none;
+	line-height: 1;
+	vertical-align: text-top;
+	font-size: 1rem;
+	cursor: pointer;
+	background: transparent;
+	color: var(--text-lighten-2);
+	}
+	.article-operation button[type="submit"]:hover{
+	color: var(--text-lighten-3);
+	}
+	.article-operation .voted button[type="submit"]{
+	color: var(--theme-color);
+	} */
      .reply-tab{
 	 display: flex;
 	 margin-top: 16px;
@@ -232,7 +222,14 @@
 		 top: el.getBoundingClientRect().top + document.documentElement.scrollTop,
 		 behavior: 'smooth',
 	     })
+	 }
      }
+
+     function onReplyFormKeyUp(ev, form) {
+	 console.log(ev)
+	 if (ev.isTrusted && ev.ctrlKey && ev.code == 'Enter'){
+	     form.submit()
+	 }
      }
     </script>
 
@@ -304,7 +301,7 @@
 		{{- end -}}
 	    {{- end -}}
 	    {{- if gt .article.TotalReplyCount 0 -}}
-		<div class="reply-tab">
+		<div id="replies" class="reply-tab">
 		    <div class="reply-tab__title">{{local "ReplyNum" "Count" .article.TotalReplyCount}}</div>
 		    {{- $article := .article -}}
 		    {{- $sortTabs := list "best" "latest" -}}
@@ -314,7 +311,7 @@
 			    {{- if eq $article.Replies.SortType . -}}
 				<span class="tab active">{{get $sortTabMap .}}</span>
 			    {{- else -}}	
-				<a class="tab" href="/articles/{{$article.Id}}{{if ne . "best"}}?sort={{.}}{{end}}">{{get $sortTabMap .}}</a>
+				<a class="tab" href="/articles/{{$article.Id}}{{if ne . "best"}}?sort={{.}}#replies{{end}}">{{get $sortTabMap .}}</a>
 			    {{- end -}}
 			    
 			{{- end -}}
@@ -335,7 +332,7 @@
     <div class="article-operation">
 	<small>
 	    {{- if not .article.Deleted -}}
-		<form action="/articles/{{.article.Id}}/vote" method="POST" {{if eq .article.CurrUserState.VoteType "up"}}class="voted"{{end}}>
+		<form class="vote-form{{if eq .article.CurrUserState.VoteType "up"}} voted{{end}}" action="/articles/{{.article.Id}}/vote" method="POST">
 		    {{.CSRFField}}
 		    <input name="type" type="hidden" value="up"/>
 		    <button class="btn-vote--up" type="submit">&#9650;</button>
@@ -343,7 +340,7 @@
 		{{- if gt .article.VoteScore 0 -}}
 		    <span>{{.article.VoteScore}}<span>
 		{{- end -}}
-		<form action="/articles/{{.article.Id}}/vote" method="POST" {{if eq .article.CurrUserState.VoteType "down"}}class="voted"{{end}}>
+		<form class="vote-form{{if eq .article.CurrUserState.VoteType "down"}} voted{{end}}" action="/articles/{{.article.Id}}/vote" method="POST">
 		    {{.CSRFField}}
 		    <input name="type" type="hidden" value="down"/>
 		    <button class="btn-vote--down" type="submit">&#9660;</button>
@@ -358,10 +355,10 @@
 		{{- else -}}
 		    <a href="/articles/{{.article.Id}}/reply">Reply</a>&nbsp;&nbsp;
 		{{- end -}}
-		<a href="#reply_{{.article.ReplyTo}}" onclick="scrollToElementById(event, 'reply_{{.article.ReplyTo}}')">Parent</a>
+		<a href="#reply_{{.article.ReplyTo}}" onclick="scrollToElementById(event, 'reply_{{.article.ReplyTo}}')">Parent</a>&nbsp;&nbsp;
 	    {{- end -}}
 	    {{- if and (eq .pageDepth 1) (not .isRootArticle) -}}
-		<a href="/articles/{{.article.ReplyTo}}">Parent</a>
+		<a href="/articles/{{.article.ReplyTo}}">Parent</a>&nbsp;&nbsp;
 	    {{- end -}}
 	</small>
     </div>
@@ -372,7 +369,7 @@
     {{if not .article -}}
 	{{$inputName = "reply_to_tpl" -}}
     {{- end -}}
-    <form id="reply_form{{if not .article}}_tpl{{- end}}" class="reply_form" method="post" action="/articles" style="{{if not .article}}display:none;{{- end}}margin-top: 20px">
+    <form id="reply_form{{if not .article}}_tpl{{- end}}" class="reply_form" method="post" action="/articles" style="{{if not .article}}display:none;{{- end}}margin-top: 20px" onkeyup="onReplyFormKeyUp(event, this)">
 	{{.CSRFField -}}
 	<input id="{{$inputName}}" name="{{$inputName}}" type="hidden" value="{{if .article}}{{.article.Id}}{{- end}}"/>
 	<textarea required cols="30" id="content" name="content" rows="10" style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box;"></textarea>

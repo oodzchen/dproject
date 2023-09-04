@@ -99,10 +99,7 @@ func main() {
 	articleSrv := &service.Article{Store: dataStore}
 
 	fmt.Println("os.Args", os.Args)
-	if len(os.Args) < 2 {
-		seedArticles(userSrv, articleSrv, startTime)
-		return
-	} else {
+	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		case "reply":
 			replyCmd.Parse(os.Args[2:])
@@ -114,7 +111,9 @@ func main() {
 			}
 			replyArticle(userSrv, articleSrv)
 		default:
-			//
+			seedArticles(userSrv, articleSrv, startTime)
 		}
+	} else {
+		seedArticles(userSrv, articleSrv, startTime)
 	}
 }

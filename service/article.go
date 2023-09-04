@@ -26,7 +26,12 @@ func (a *Article) Create(title, content string, authorId, replyTo int) (int, err
 		return 0, err
 	}
 
-	return a.Store.Article.Create(article.Title, article.Content, authorId, replyTo)
+	id, err := a.Store.Article.Create(article.Title, article.Content, authorId, replyTo)
+	if err != nil {
+		return 0, err
+	}
+	err = a.Store.Article.Vote(id, authorId, "up")
+	return id, nil
 }
 
 func (a *Article) Reply(target int, content string, authorId int) (int, error) {

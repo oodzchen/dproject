@@ -58,6 +58,14 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	paramPage := r.Form.Get("page")
+	sort := r.Form.Get("sort")
+
+	var sortType model.ArticleSortType
+	if sort == "" {
+		sortType = model.ListSortBest
+	} else {
+		sortType = model.ArticleSortType(sort)
+	}
 	// fmt.Println("paramPage:", paramPage)
 	page, err := strconv.Atoi(paramPage)
 	if err != nil {
@@ -70,7 +78,9 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		pageSize = 50
 	}
 
-	wholeList, err := ar.store.Article.List(0, -1)
+	currUserId := ar.GetLoginedUserId(w, r)
+
+	wholeList, err := ar.store.Article.List(0, -1, currUserId)
 	// list, err := ar.store.Article.List(page, pageSize)
 	if err != nil {
 		ar.Error("", err, w, r, http.StatusInternalServerError)
@@ -82,9 +92,11 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		item.CalcWeight()
 	}
 
-	wholeArticleList := model.NewArticleList(wholeList, model.ListSortBest, page, pageSize)
+	// fmt.Println("sortType: ", sortType)
+
+	wholeArticleList := model.NewArticleList(wholeList, sortType, page, pageSize)
 	// sort.Sort(wholeArticleList)
-	wholeArticleList.Sort(model.ListSortBest)
+	wholeArticleList.Sort(sortType)
 
 	list := wholeArticleList.PagingList(page, pageSize)
 
@@ -108,16 +120,17 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		CurrPage     int
 		PageSize     int
 		TotalPage    int
+		SortType     model.ArticleSortType
 	}
 
 	pageData := &PageData{
-		Title: "Home",
 		Data: &ListData{
 			list,
 			wholeArticleList.Total,
 			wholeArticleList.CurrPage,
 			wholeArticleList.PageSize,
 			wholeArticleList.TotalPage,
+			wholeArticleList.SortType,
 		},
 	}
 
@@ -240,12 +253,6 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 		} else {
 			ar.Error("", err, w, r, http.StatusInternalServerError)
 		}
-		return
-	}
-
-	err = ar.store.Article.Vote(id, authorId, "up")
-	if err != nil {
-		ar.Error("", err, w, r, http.StatusInternalServerError)
 		return
 	}
 
@@ -504,6 +511,8 @@ func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 		ar.Error("", err, w, r, http.StatusBadRequest)
 		return
 	}
+
+	ar.Session("one", w, r).Flash("Delete article successfully")
 
 	http.Redirect(w, r, fmt.Sprintf("/articles/%d", rootArticleId), http.StatusFound)
 }

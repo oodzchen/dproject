@@ -69,7 +69,16 @@ func (mr *MainResource) RegisterPage(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	mr.Render(w, r, "register", &PageData{Title: "Register", Data: ""})
+	mr.Render(w, r, "register", &PageData{
+		Title: "Register",
+		Data:  "",
+		BreadCrumbs: []*BreadCrumb{
+			{
+				"/register",
+				"Register",
+			},
+		},
+	})
 }
 
 func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
@@ -85,7 +94,7 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 		} else if errors.As(err, &pgErr) && pgErr.Code == PGErrUniqueViolation {
 			// fmt.Println(pgErr.Code)
 			// fmt.Println(pgErr.Message)
-			mr.Error("the eamil already been registered", errors.WithStack(err), w, r, http.StatusBadRequest)
+			mr.Error("the eamil already been registered", model.NewAppError(err, model.ErrAlreadyRegistered), w, r, http.StatusBadRequest)
 		} else {
 			mr.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
 		}
@@ -128,7 +137,16 @@ func (mr *MainResource) LoginPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mr.Session("one", w, r).SetValue("target_url", targetUrl)
-	mr.Render(w, r, "login", &PageData{Title: "Login", Data: ""})
+	mr.Render(w, r, "login", &PageData{
+		Title: "Login",
+		Data:  "",
+		BreadCrumbs: []*BreadCrumb{
+			{
+				"/login",
+				"Login",
+			},
+		},
+	})
 }
 
 func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
@@ -169,7 +187,7 @@ func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, email, p
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			mr.Error("the email has not been registered", errors.WithStack(err), w, r, http.StatusBadRequest)
+			mr.Error("the email has not been registered", model.NewAppError(err, model.ErrNotRegistered), w, r, http.StatusBadRequest)
 		} else {
 			mr.Error("email or password is incorrect", errors.WithStack(err), w, r, http.StatusBadRequest)
 		}

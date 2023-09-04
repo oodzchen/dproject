@@ -17,7 +17,7 @@ type Article struct {
 	dbPool *pgxpool.Pool
 }
 
-func (a *Article) List(page int, pageSize int) ([]*model.Article, error) {
+func (a *Article) List(page, pageSize, userId int) ([]*model.Article, error) {
 	sqlStr := `
 SELECT tp.id, tp.title, u.name as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, tp.depth, p2.title as root_article_title, (
 	WITH RECURSIVE replies AS (
@@ -34,6 +34,9 @@ SELECT tp.id, tp.title, u.name as author_name, tp.author_id, tp.content, tp.crea
 	SELECT COUNT(*)
 	FROM replies
 ) AS total_reply_count,
+(
+SELECT type FROM post_votes WHERE post_id = tp.id AND user_id = $3
+) AS user_vote_type,
 (
 SELECT COUNT(*) FROM post_votes
 WHERE post_id = tp.id AND type = 'up'
@@ -56,12 +59,12 @@ LIMIT $2;`
 	}
 
 	if pageSize < 0 {
-		args = []any{0, nil}
+		args = []any{0, nil, userId}
 	} else {
 		if pageSize < 1 {
 			pageSize = defaultPageSize
 		}
-		args = []any{pageSize * (page - 1), pageSize}
+		args = []any{pageSize * (page - 1), pageSize, userId}
 	}
 
 	// fmt.Println("page", page)
@@ -79,7 +82,11 @@ LIMIT $2;`
 
 	var list []*model.Article
 	for rows.Next() {
-		var item model.Article
+		var currUserState model.CurrUserState
+		item := model.Article{
+			CurrUserState: &currUserState,
+		}
+		// var item model.Article
 		err := rows.Scan(
 			&item.Id,
 			&item.Title,
@@ -91,6 +98,7 @@ LIMIT $2;`
 			&item.ReplyDepth,
 			&item.NullReplyRootArticleTitle,
 			&item.TotalReplyCount,
+			&item.CurrUserState.NullVoteType,
 			&item.VoteUp,
 			&item.VoteDown,
 		)

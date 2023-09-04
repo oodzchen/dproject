@@ -115,17 +115,24 @@ func (rd *Renderer) Error(msg string, err error, w http.ResponseWriter, r *http.
 	errText := http.StatusText(code)
 
 	type errPageData struct {
+		ErrCode model.AppErrCode
 		ErrText string
 		PrevUrl string
 	}
+	var pageData errPageData
+	pageData = errPageData{0, errText, prevUrl}
 	data := &PageData{
 		Title: errText,
-		Data:  &errPageData{errText, prevUrl},
+		Data:  &pageData,
 	}
 
 	if len(msg) > 0 {
 		errText += " - " + strings.ToUpper(msg[:1]) + msg[1:]
-		data.Data = &errPageData{errText, prevUrl}
+		pageData.ErrText = errText
+	}
+
+	if err, ok := err.(*model.AppError); ok {
+		pageData.ErrCode = err.ErrCode
 	}
 
 	rd.doRender(w, r, "error", data, code)
@@ -177,7 +184,7 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 			if layout, ok := sessVal.(string); ok {
 				uiSettings.ContentLayout = layout
 			} else {
-				uiSettings.ContentLayout = PageContentLayoutFull
+				uiSettings.ContentLayout = PageContentLayoutCentered
 			}
 		}
 	}
@@ -188,7 +195,11 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	data.Debug = config.Config.Debug
 	data.BrandName = config.Config.BrandName
 	data.Slogan = config.Config.Slogan
-	data.Title += fmt.Sprintf(" - %s", config.Config.SiteName)
+	if data.Title != "" {
+		data.Title += fmt.Sprintf(" - %s", config.Config.BrandName)
+	} else {
+		data.Title = fmt.Sprintf("%s", config.Config.BrandName)
+	}
 
 	// data.AddI18nData(map[string]any{
 	// 	"ReplyNum": i18nc.Localizer.MustLocalize(&i18n.LocalizeConfig{
@@ -272,4 +283,9 @@ func (ss *Session) SetValue(key string, val any) {
 	if err != nil {
 		ss.rd.Error("", errors.WithStack(err), ss.w, ss.r, http.StatusInternalServerError)
 	}
+}
+
+func (ss *Session) Flash(data any, vars ...string) {
+	ss.Raw.AddFlash(data, vars...)
+	ss.Raw.Save(ss.r, ss.w)
 }
