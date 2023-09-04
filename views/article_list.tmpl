@@ -3,12 +3,6 @@
     {{template "head" . -}}
 
     <style>
-     .article-list .article-list__operation a,
-     .article-list .article-list__operation span{
-	 /* color: var(--theme-color); */
-	 font-size: 0.8rem;
-     }
-     
      .article-list .article-list__summary{
 	 font-size: 0.8rem;
      }
@@ -40,24 +34,25 @@
 		    {{- if $debug -}} | weight {{$item.ListWeight}}{{- end -}}
 		</small>
 		<div class="article-list__summary" class="text-lighten-2">{{$item.Summary}}{{if ne $item.Summary $item.Content}} ...{{end}}</div>
-		<div class="article-list__operation">
-		    <!-- <span class="article-list__vote-mark">&#9650;</span> -->
-		    <form class="vote-form{{if and $currUser (eq $item.CurrUserState.VoteType "up")}} voted{{end}}" action="/articles/{{$item.Id}}/vote" method="POST">
-			{{$csrfField}}
-			<input name="type" type="hidden" value="up"/>
-			<button class="btn-vote--up" type="submit" title="Upvote">&#9650;</button>
-		    </form>
-		    {{- if gt $item.VoteScore 0 -}}
-			<span class="article-list__vote-score">{{$item.VoteScore}}</span>
-		    {{- else -}}
-			<span class="article-list__vote-score">0</span>
-		    {{- end -}}
-		    &nbsp;&nbsp;
-		    {{- if eq $item.TotalReplyCount 0 -}}
-			<a href="/articles/{{$item.Id}}">Discuss</a>
-		    {{- else -}}
-			<a href="/articles/{{$item.Id}}#replies">{{local "ReplyNum" "Count" $item.TotalReplyCount}}</a>
-		    {{- end -}}
+		<div class="article-operation">
+		    <small>
+			<form class="vote-form{{if and $currUser (eq $item.CurrUserState.VoteType "up")}} voted{{end}}" action="/articles/{{$item.Id}}/vote" method="POST">
+			    {{$csrfField}}
+			    <input name="type" type="hidden" value="up"/>
+			    <button class="btn-vote--up" type="submit" title="Upvote"><svg width="14" viewBox="0 1 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1 21h22L12 2"/></svg></button>
+			</form>
+			{{- if gt $item.VoteScore 0 -}}
+			    <span class="article-list__vote-score">{{$item.VoteScore}}</span>
+			{{- else -}}
+			    <span class="article-list__vote-score">0</span>
+			{{- end -}}
+			&nbsp;&nbsp;
+			{{- if eq $item.TotalReplyCount 0 -}}
+			    <a href="/articles/{{$item.Id}}">Discuss</a>
+			{{- else -}}
+			    <a href="/articles/{{$item.Id}}#replies">{{local "ReplyNum" "Count" $item.TotalReplyCount}}</a>
+			{{- end -}}
+		    </small>
 		</div>
 	    </li>
 	{{end -}}

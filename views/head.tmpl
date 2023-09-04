@@ -203,10 +203,12 @@
 		 background: transparent;
 		 color: var(--text-lighten-2);
 	     }
-	     .vote-form button[type="submit"]:hover{
+	     .vote-form button[type="submit"]:hover,
+	     .vote-form button[type="submit"]:hover svg{
 		 color: var(--text-lighten-3);
 	     }
-	     .vote-form.voted button[type="submit"]{
+	     .vote-form.voted button[type="submit"],
+	     .vote-form.voted button[type="submit"] svg{
 		 color: var(--theme-color);
 	     }
 	     .btn-vote--up,
@@ -219,6 +221,25 @@
 	     .btn-vote--down{
 		 margin-left: 0.5rem;
 		 margin-right: 0.5rem;
+	     }
+
+	     .article-operation{
+		 display: flex;
+		 justify-content: space-between;
+	     }
+	     .article-operation,
+	     .article-operation a,
+	     .article-operation svg{
+		 color: var(--text-lighten-2);
+		 
+	     }
+	     .article-operation svg,
+	     .article-operation a{
+		 display: inline-block;
+		 vertical-align: baseline;
+	     }
+	     .article-operation svg{
+		 vertical-align: -1px;
 	     }
 
 	     @media (max-width: 750px){
