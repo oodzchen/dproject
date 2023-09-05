@@ -199,6 +199,7 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 	title := r.Form.Get("title")
 	content := r.Form.Get("content")
 	paramReplyTo := r.Form.Get("reply_to")
+	rootId := r.Form.Get("root")
 
 	var isReply bool
 	var replyTo int
@@ -226,21 +227,6 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// article := &model.Article{
-	// 	Title:    r.Form.Get("title"),
-	// 	AuthorId: authorId,
-	// 	Content:  r.Form.Get("content"),
-	// 	ReplyTo:  replyTo,
-	// }
-
-	// article.Sanitize()
-
-	// err = article.Valid(false)
-	// if err != nil {
-	// 	ar.Error(err.Error(), err, w, r, http.StatusBadRequest)
-	// 	return
-	// }
-
 	// id, err := ar.store.Article.Create(article.Title, article.Content, authorId, replyTo)
 	var id int
 	if isReply {
@@ -261,7 +247,15 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 	refererUrl := r.Referer()
 
 	if isReply && refererUrl != "" {
-		http.Redirect(w, r, refererUrl, http.StatusFound)
+		if rootId != "" {
+			targetId := rootId
+			if rootId == "0" {
+				targetId = paramReplyTo
+			}
+			http.Redirect(w, r, fmt.Sprintf("/articles/%s#ar_%d", targetId, id), http.StatusFound)
+		} else {
+			http.Redirect(w, r, refererUrl, http.StatusFound)
+		}
 	} else {
 		http.Redirect(w, r, fmt.Sprintf("/articles/%d", id), http.StatusFound)
 	}
@@ -311,10 +305,18 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ar *ArticleResource) Item(w http.ResponseWriter, r *http.Request) {
-	ar.handleItem(w, r, false)
+	ar.handleItem(w, r, ArticlePageDetail)
 }
 
-func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, delPage bool) {
+type ArticlePageType string
+
+const (
+	ArticlePageDel    ArticlePageType = "del"
+	ArticlePageReply                  = "reply"
+	ArticlePageDetail                 = "detail"
+)
+
+func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pageType ArticlePageType) {
 	idParam := chi.URLParam(r, "id")
 	sortType := r.URL.Query().Get("sort")
 	pageQ := r.URL.Query().Get("page")
@@ -363,7 +365,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 	// 	ar.Error("the article is gone", err, w, r, http.StatusGone)
 	// }
 
-	if delPage {
+	if pageType == ArticlePageDel {
 		// currUserId, err := GetLoginUserId(ar.sessStore, w, r)
 		if err != nil {
 			ar.Error("Please login", err, w, r, http.StatusUnauthorized)
@@ -401,15 +403,17 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, de
 	}
 
 	type itemPageData struct {
-		Article  *model.Article
-		DelPage  bool
+		Article *model.Article
+		// DelPage  bool
 		MaxDepth int
+		PageType ArticlePageType
 	}
 
 	ar.Render(w, r, "article", &PageData{Title: rootArticle.DisplayTitle, Data: &itemPageData{
 		rootArticle,
-		delPage,
+		// delPage,
 		utils.GetReplyDepthSize(),
+		pageType,
 	}})
 }
 
@@ -520,12 +524,12 @@ func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ar *ArticleResource) DeletePage(w http.ResponseWriter, r *http.Request) {
-	ar.handleItem(w, r, true)
+	ar.handleItem(w, r, ArticlePageDel)
 }
 
 func (ar *ArticleResource) ReplyPage(w http.ResponseWriter, r *http.Request) {
-	// ar.handleItem(w, r, false)
-	http.Redirect(w, r, fmt.Sprintf("/articles/%s", chi.URLParam(r, "id")), http.StatusFound)
+	ar.handleItem(w, r, ArticlePageReply)
+	// http.Redirect(w, r, fmt.Sprintf("/articles/%s", chi.URLParam(r, "id")), http.StatusFound)
 }
 
 func (ar *ArticleResource) Vote(w http.ResponseWriter, r *http.Request) {

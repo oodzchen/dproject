@@ -1,6 +1,6 @@
 {{define "article" -}}
     {{- $pageDepth := 0 -}}
-    {{- $data := dict "currUser" .LoginedUser "article" .Data.Article "delPage" .Data.DelPage "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .Data.MaxDepth "debug" .Debug -}}
+    {{- $data := dict "currUser" .LoginedUser "article" .Data.Article "pageType" .Data.PageType "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .Data.MaxDepth "debug" .Debug -}}
 
     {{template "head" . -}}
 
@@ -136,9 +136,9 @@
 	 }
      }
      
-     function toggleDisplayChild(event, el, id){
-	 var currRow = document.getElementById(id)
-	 var content = el.getElementsByTagName('section')[0]
+     function toggleDisplayContent(rowEl){
+	 var content = rowEl.getElementsByTagName('section')[0]
+	 var id = rowEl.getAttribute('data-id')
 	 if (content){
 	     var isDisplay = toggleDisplayEl(content)
 	     var placeholderId = 'article_placeholder_' + id
@@ -149,65 +149,74 @@
 		 placeholder.className='text-lighten-2'
 		 placeholder.innerHTML = '&nbsp;&nbsp;<i>...</i>'
 		 content.parentNode.insertBefore(placeholder, content)
+
+		 rowEl.setAttribute('data-hidden', 1)
 	     } else {
 		 placeholder = document.getElementById(placeholderId)
 		 if (placeholder) placeholder.remove()
+
+		 rowEl.removeAttribute('data-hidden')
 	     }
-	     
 	 }
-	 var child = el.getElementsByTagName('ul')[0]
+	 var child = rowEl.getElementsByTagName('ul')[0]
 	 if (child){
 	     var childDisplay = toggleDisplayEl(child)
 	     /* console.log('childDisplay', childDisplay) */
-	     if (!childDisplay){
-		 window.scrollTo({
-		     top: currRow.getBoundingClientRect().top + document.documentElement.scrollTop,
-		     behavior: "smooth",
-		 })
-	     }
+	     /* if (!childDisplay){
+		window.scrollTo({
+		top: rowEl.getBoundingClientRect().top + document.documentElement.scrollTop,
+		behavior: "smooth",
+		})
+		} */
 	 }
      }
 
      function toggleActive(el){
+	 var isActive = hasClass(el, 'active')
+	 var isHidden = !!el.getAttribute("data-hidden")
+	 
 	 removeAllActive('li', document.getElementById('replies-box'))
 	 addClass(el, 'active')
+	 
+	 if (isHidden){
+	     toggleDisplayContent(el)
+	 }
      }
 
+
+     function hasClass(el, className){
+	 return el.className.split(" ").indexOf(className) > -1
+     }
+     
      function removeClass(el, className){
-	 var classes = el.className.split(" ")
-	 var idx = classes.indexOf(className)
-	 if(idx > -1){
-	     classes.splice(idx, 1)
+	 if(hasClass(el, className)){
+	     el.className = el.className.replace(className, '')
 	 }
-	 el.className = classes.join(" ")
      }
 
      function addClass(el, className){
-	 var classes = el.className.split(" ")
-	 var idx = classes.indexOf(className)
-	 if(idx == -1){
-	     classes.push(className)
+	 if(!hasClass(el, className)){
+	     el.className += " " + className
 	 }
-	 el.className = classes.join(" ")
+	 
      }
 
-     function onArticleMouseDown(ev, el){
-	 var id = el.id
+     function onArticleMouseDown(ev, rowEl){
 	 function onArticleMouseUp(){
 	     /* console.log(ev, el) */
 	     event.preventDefault()
 	     event.stopPropagation()
 
-	     if (el.className.split(" ").indexOf('active') > -1){
-		 toggleDisplayChild(ev, el, id)
+	     if (hasClass(rowEl, 'active')){
+		 toggleDisplayContent(rowEl)
 	     } else {
-		 toggleActive(el) 
+		 toggleActive(rowEl)
 	     }
 	 }
 	 
-	 el.onmouseup = onArticleMouseUp
+	 rowEl.onmouseup = onArticleMouseUp
 	 setTimeout(function(){
-	     el.onmouseup = null
+	     rowEl.onmouseup = null
 	 }, 300)
      }
 
@@ -228,7 +237,7 @@
      }
 
      function onReplyFormKeyUp(ev, form) {
-	 console.log(ev)
+	 /* console.log(ev) */
 	 if (ev.isTrusted && ev.ctrlKey && ev.code == 'Enter'){
 	     form.submit()
 	 }
@@ -241,6 +250,8 @@
 {{define "article_content" -}}
     {{$isRoot := eq .article.ReplyDepth 0 -}}
     {{$pageDepth := add .pageDepth 1 -}}
+    {{$delPage := eq .pageType "del"}}
+    {{$replyPage := eq .pageType "reply"}}
     {{$data := dict "currUser" .currUser "article" .article "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "isRootArticle" $isRoot "debug" .debug -}}
     <article {{if $isRoot}}id="ar_{{.article.Id}}"{{end}}>
 	{{if $isRoot -}}
@@ -280,12 +291,12 @@
 	    <section style="white-space: break-spaces">{{- .article.Content -}}</section>
 	{{- end -}}
 
-	{{if not .delPage -}}
+	{{if not $delPage -}}
 	    {{template "article_operation_bar" $data -}}
 	{{- end -}}
     </article>
 
-    {{if and .delPage .currUser -}}
+    {{if and $delPage .currUser -}}
 	<form method="post" action="/articles/{{.article.Id}}/delete{{if gt .pageDepth 1}}?from=reply{{- end}}" id="del_form_{{.article.Id}}" style="margin:12px 0 12px;padding:10px;border:1px solid #ccc;">
 	    {{.CSRFField -}}
 	    <input type="hidden" name="id" value="{{.article.Id}}">
@@ -295,14 +306,14 @@
 	    <button type="submit">Delete</button>
 	</form>
     {{- else -}}
-	
 	{{if eq .pageDepth 0 -}}
 	    {{if .currUser -}}
-		{{if not .article.Deleted -}}
+		{{if and (not .article.Deleted) $replyPage -}}
 		    {{template "article_reply_form" $data -}}
 		{{- end -}}
 	    {{- end -}}
-	    {{- if gt .article.TotalReplyCount 0 -}}
+	    
+	    {{- if and (gt .article.TotalReplyCount 0) (not $replyPage) -}}
 		<div id="replies" class="reply-tab">
 		    <div class="reply-tab__title">{{local "ReplyNum" "Count" .article.TotalReplyCount}}</div>
 		    {{- $article := .article -}}
@@ -315,14 +326,13 @@
 			    {{- else -}}	
 				<a class="tab" href="/articles/{{$article.Id}}{{if ne . "best"}}?sort={{.}}#replies{{end}}">{{get $sortTabMap .}}</a>
 			    {{- end -}}
-			    
 			{{- end -}}
 		    </div>
 		</div>
 	    {{- end -}}
 	{{- end -}}
 
-	{{- if .article.Replies -}}
+	{{- if and .article.Replies (not $replyPage) -}}
 	    {{$replyData := dict "currUser" .currUser "replies" .article.Replies "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "debug" .debug -}}
 	    {{template "article_replies" $replyData -}}
 	{{- end -}}
@@ -355,9 +365,6 @@
 		    {{- if eq .currUser.Id .article.AuthorId -}}
 			<a href="/articles/{{.article.Id}}/edit" class="btn-edit">Edit</a>&nbsp;&nbsp;<a class="btn-del" href="/articles/{{.article.Id}}/delete">Delete</a>&nbsp;&nbsp;
 		    {{- end -}}
-		    {{- if gt .pageDepth 1 -}}
-			<a href="/articles/{{.article.Id}}/reply">Reply</a>&nbsp;&nbsp;
-		    {{- end -}}
 		    <form class="btn-form" style="display:inline" action="/articles/{{.article.Id}}/save" method="POST" >
 			{{- .CSRFField -}}
 			<button type="submit"><small>{{- if and .article.CurrUserState .article.CurrUserState.Saved -}}
@@ -366,10 +373,8 @@
 			    Save
 			{{- end -}}</small></button>
 		    </form>&nbsp;&nbsp;
-		    
-		{{- else -}}
-		    <a href="/articles/{{.article.Id}}/reply">Reply</a>&nbsp;&nbsp;
 		{{- end -}}
+		<a href="/articles/{{.article.Id}}/reply">Reply</a>&nbsp;&nbsp;
 
 		{{- if ne .article.ReplyTo 0 -}}
 		    <a href="#ar_{{.article.ReplyTo}}" onclick="scrollToElementById(event, 'ar_{{.article.ReplyTo}}')">Parent</a>&nbsp;&nbsp;
@@ -400,10 +405,16 @@
     {{- end -}}
     <form id="reply_form{{if not .article}}_tpl{{- end}}" class="reply_form" method="post" action="/articles" style="{{if not .article}}display:none;{{- end}}margin-top: 20px" onkeyup="onReplyFormKeyUp(event, this)">
 	{{.CSRFField -}}
+	<input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
 	<input id="{{$inputName}}" name="{{$inputName}}" type="hidden" value="{{if .article}}{{.article.Id}}{{- end}}"/>
 	<textarea required cols="30" id="content" name="content" rows="10" style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box;"></textarea>
-	<br/>
-	<button type="submit">Submit</button>
+
+	<div class="reply-form-bottom">
+	    <div>
+		<button type="submit">Submit</button>
+	    </div>
+	    <div></div>
+	</div>
     </form>
 {{- end -}}
 
@@ -416,7 +427,7 @@
     <ul class="replies" {{if eq $pageDepth 1}}id="replies-box"{{end}} style="{{if eq $pageDepth 1}}padding-left:0;{{- end}}">
 	{{range .replies.List -}}
 	    {{$subData := dict "currUser" $currUser "article" . "pageDepth" $pageDepth "CSRFField" $CSRFField "maxDepth" $maxDepth "debug" $debug -}}
-	    <li id="ar_{{.Id}}">
+	    <li id="ar_{{.Id}}" data-id="{{.Id}}">
 		{{template "article_content" $subData -}}
 	    </li>
 	    {{if and (gt .TotalReplyCount 0) (eq $pageDepth $maxDepth) -}}
