@@ -35,10 +35,41 @@ func IsValidVoteType(t VoteType) bool {
 	return validVoteType[t]
 }
 
+type ArticleReact string
+
+const (
+	ArticleReactGrinning ArticleReact = "grinning"
+	ArticleReactConfused              = "confused"
+	ArticleReactEyes                  = "eyes"
+	ArticleReactParty                 = "party"
+	ArticleReactThanks                = "thanks"
+)
+
+func GetArticleReactOptions() []ArticleReact {
+	return []ArticleReact{
+		ArticleReactThanks,
+		ArticleReactGrinning,
+		ArticleReactConfused,
+		ArticleReactEyes,
+		ArticleReactParty,
+	}
+}
+
+func GetArticleReactEmojiMap() map[ArticleReact]string {
+	return map[ArticleReact]string{
+		ArticleReactThanks:   "❤",
+		ArticleReactGrinning: "😀",
+		ArticleReactConfused: "😕",
+		ArticleReactEyes:     "👀",
+		ArticleReactParty:    "🎉",
+	}
+}
+
 type CurrUserState struct {
 	VoteType     VoteType
 	NullVoteType pgtype.Text
 	Saved        bool
+	Reaction     ArticleReact
 }
 
 func (cus *CurrUserState) FormatNullValues() {

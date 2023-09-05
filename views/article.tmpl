@@ -1,6 +1,6 @@
 {{define "article" -}}
     {{- $pageDepth := 0 -}}
-    {{- $data := dict "currUser" .LoginedUser "article" .Data.Article "pageType" .Data.PageType "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .Data.MaxDepth "debug" .Debug -}}
+    {{- $data := dict "currUser" .LoginedUser "article" .Data.Article "pageType" .Data.PageType "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .Data.MaxDepth "debug" .Debug "reactOptions" .Data.ReactOptions "reactMap" .Data.ReactMap -}}
 
     {{template "head" . -}}
 
@@ -104,11 +104,12 @@
      })
 
      var replyBox = document.getElementById('replies-box')
+     var ignoreTags = ['a', 'button', 'select']
      if (replyBox){
 	 replyBox.addEventListener('mousedown', function(ev){
 	     /* console.log('ev', ev) */
 	     var targetTag = ev.target.tagName.toLowerCase()
-	     if (targetTag == 'a' || targetTag == 'button') return
+	     if (ignoreTags.indexOf(targetTag) > -1) return
 	     
 	     var row = ev.target.closest('li')
 	     if (row) {
@@ -208,7 +209,7 @@
 	     event.stopPropagation()
 
 	     if (hasClass(rowEl, 'active')){
-		 toggleDisplayContent(rowEl)
+		 /* toggleDisplayContent(rowEl) */
 	     } else {
 		 toggleActive(rowEl)
 	     }
@@ -242,6 +243,23 @@
 	     form.submit()
 	 }
      }
+
+     function onReactChange(ev, sel) {
+	 console.log(sel.value)
+	 /* sel.style.visibility = "hidden" */
+	 sel.value = ""
+     }
+
+     /* function triggerEmojiList(ev, iconEl) {
+	ev.preventDefault()
+	ev.stopPropagation()
+	
+	var nextEl = iconEl.nextElementSibling
+	console.log('nextEl', nextEl)
+	if (nextEl && nextEl.tagName.toLowerCase() == 'select'){
+	nextEl.click()
+	}
+      * } */
     </script>
 
     {{template "foot" -}}
@@ -252,7 +270,7 @@
     {{$pageDepth := add .pageDepth 1 -}}
     {{$delPage := eq .pageType "del"}}
     {{$replyPage := eq .pageType "reply"}}
-    {{$data := dict "currUser" .currUser "article" .article "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "isRootArticle" $isRoot "debug" .debug -}}
+    {{$data := dict "currUser" .currUser "article" .article "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "isRootArticle" $isRoot "debug" .debug "reactOptions" .reactOptions "reactMap" .reactMap -}}
     <article {{if $isRoot}}id="ar_{{.article.Id}}"{{end}}>
 	{{if $isRoot -}}
 	    <h1>{{.article.Title}}</h1>
@@ -333,7 +351,7 @@
 	{{- end -}}
 
 	{{- if and .article.Replies (not $replyPage) -}}
-	    {{$replyData := dict "currUser" .currUser "replies" .article.Replies "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "debug" .debug -}}
+	    {{$replyData := dict "currUser" .currUser "replies" .article.Replies "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "debug" .debug "reactOptions" .reactOptions "reactMap" .reactMap -}}
 	    {{template "article_replies" $replyData -}}
 	{{- end -}}
     {{- end -}}
@@ -365,33 +383,46 @@
 		    {{- if eq .currUser.Id .article.AuthorId -}}
 			<a href="/articles/{{.article.Id}}/edit" class="btn-edit">Edit</a>&nbsp;&nbsp;<a class="btn-del" href="/articles/{{.article.Id}}/delete">Delete</a>&nbsp;&nbsp;
 		    {{- end -}}
-		    <form class="btn-form" style="display:inline" action="/articles/{{.article.Id}}/save" method="POST" >
+		    <form class="btn-form" action="/articles/{{.article.Id}}/save" method="POST" >
 			{{- .CSRFField -}}
-			<button type="submit"><small>{{- if and .article.CurrUserState .article.CurrUserState.Saved -}}
+			<button title="Save" type="submit">{{- if and .article.CurrUserState .article.CurrUserState.Saved -}}
 			    Unsave
 			{{- else -}}
 			    Save
-			{{- end -}}</small></button>
+			{{- end -}}</button>
 		    </form>&nbsp;&nbsp;
 		{{- end -}}
-		<a href="/articles/{{.article.Id}}/reply">Reply</a>&nbsp;&nbsp;
+		<a title="Reply" href="/articles/{{.article.Id}}/reply">Reply</a>&nbsp;&nbsp;
 
 		{{- if ne .article.ReplyTo 0 -}}
-		    <a href="#ar_{{.article.ReplyTo}}" onclick="scrollToElementById(event, 'ar_{{.article.ReplyTo}}')">Parent</a>&nbsp;&nbsp;
+		    <a title="Parent" href="#ar_{{.article.ReplyTo}}" onclick="scrollToElementById(event, 'ar_{{.article.ReplyTo}}')">Parent</a>&nbsp;&nbsp;
 		{{- end -}}
 	    {{- end -}}
 	    {{- if and (eq .pageDepth 1) (not .isRootArticle) -}}
-		<a href="/articles/{{.article.ReplyTo}}">Parent</a>&nbsp;&nbsp;
+		<a title="Parent" href="/articles/{{.article.ReplyTo}}">Parent</a>&nbsp;&nbsp;
 	    {{- end -}}
 	</small>
 
 	<small>
 	    {{- if not .article.Deleted -}}
 		{{- if .currUser -}}
+		    {{- if gt .pageDepth 1 -}}
+			<a title="Toggle Fold" href="javascript:void(0);" onclick="toggleDisplayContent(this.closest('li'))" >Toggle Fold</a>&nbsp;&nbsp;
+		    {{- end -}}
 		    <!-- <a href="/articles/{{.article.Id}}/thanks" title="Thanks"><svg width="16" viewBox="0 -1 16 16" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" d="M1.352 4.905a3.547 3.547 0 0 1 3.541-3.553c1.365 0 1.968.571 2.607 1.583c.64-1.012 1.242-1.583 2.607-1.583a3.547 3.547 0 0 1 3.54 3.553c0 1.835-1.046 3.6-2.246 5.064c-1.137 1.387-2.48 2.582-3.395 3.397l-.173.155a.5.5 0 0 1-.666 0l-.173-.155c-.916-.815-2.258-2.01-3.395-3.397C2.4 8.505 1.352 6.74 1.352 4.905Z" clip-rule="evenodd"/>
 			 </svg></a>&nbsp;&nbsp; -->
-		    <a href="/articles/{{.article.Id}}/emo" title="Emoji"><svg width="16" viewBox="0 -1 16 16" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" d="M7.5.877a6.623 6.623 0 1 0 0 13.246A6.623 6.623 0 0 0 7.5.877ZM1.827 7.5a5.673 5.673 0 1 1 11.346 0a5.673 5.673 0 0 1-11.346 0Zm3.21 1.714a.5.5 0 1 0-.82.572A3.996 3.996 0 0 0 7.5 11.5c1.36 0 2.56-.679 3.283-1.714a.5.5 0 0 0-.82-.572A2.996 2.996 0 0 1 7.5 10.5a2.996 2.996 0 0 1-2.463-1.286Zm.338-2.364a.875.875 0 1 0 0-1.75a.875.875 0 0 0 0 1.75Zm5.125-.875a.875.875 0 1 1-1.75 0a.875.875 0 0 1 1.75 0Z" clip-rule="evenodd"/>
-		    </svg></a>&nbsp;&nbsp;
+		    <form class="btn-form btn-react" action="/articles/{{.article.Id}}/react" method="POST">
+			<a href="/articles/{{.article.Id}}/react" onclick="return false;" title="Emoji"><svg width="16" viewBox="0 -1 16 16" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" d="M7.5.877a6.623 6.623 0 1 0 0 13.246A6.623 6.623 0 0 0 7.5.877ZM1.827 7.5a5.673 5.673 0 1 1 11.346 0a5.673 5.673 0 0 1-11.346 0Zm3.21 1.714a.5.5 0 1 0-.82.572A3.996 3.996 0 0 0 7.5 11.5c1.36 0 2.56-.679 3.283-1.714a.5.5 0 0 0-.82-.572A2.996 2.996 0 0 1 7.5 10.5a2.996 2.996 0 0 1-2.463-1.286Zm.338-2.364a.875.875 0 1 0 0-1.75a.875.875 0 0 0 0 1.75Zm5.125-.875a.875.875 0 1 1-1.75 0a.875.875 0 0 1 1.75 0Z" clip-rule="evenodd"/>
+			</svg></a>
+			{{- $reactMap := .reactMap -}}
+			{{- $article := .article -}}
+			<select title="React" id="react_{{$article.Id}}" name="react" autocomplete="off" onchange="onReactChange(event, this)">
+			    <option value="" selected hidden disabled></option>
+			    {{- range .reactOptions -}}
+				<option value="{{.}}">{{index $reactMap .}}</option>
+			    {{- end -}}
+			</select>
+		    </form>
 		{{- end -}}
 	    {{- end -}}
 	</small>
@@ -422,11 +453,13 @@
     {{$currUser := .currUser -}}
     {{$pageDepth := .pageDepth -}}
     {{$CSRFField := .CSRFField -}}
-    {{$maxDepth := .maxDepth}}
-    {{$debug := .debug}}
+    {{$maxDepth := .maxDepth -}}
+    {{$debug := .debug -}}
+    {{$reactOptions := .reactOptions -}}
+    {{$reactMap := .reactMap -}}
     <ul class="replies" {{if eq $pageDepth 1}}id="replies-box"{{end}} style="{{if eq $pageDepth 1}}padding-left:0;{{- end}}">
 	{{range .replies.List -}}
-	    {{$subData := dict "currUser" $currUser "article" . "pageDepth" $pageDepth "CSRFField" $CSRFField "maxDepth" $maxDepth "debug" $debug -}}
+	    {{$subData := dict "currUser" $currUser "article" . "pageDepth" $pageDepth "CSRFField" $CSRFField "maxDepth" $maxDepth "debug" $debug "reactOptions" $reactOptions "reactMap" $reactMap -}}
 	    <li id="ar_{{.Id}}" data-id="{{.Id}}">
 		{{template "article_content" $subData -}}
 	    </li>

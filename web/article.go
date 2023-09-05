@@ -405,8 +405,10 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	type itemPageData struct {
 		Article *model.Article
 		// DelPage  bool
-		MaxDepth int
-		PageType ArticlePageType
+		MaxDepth     int
+		PageType     ArticlePageType
+		ReactOptions []model.ArticleReact
+		ReactMap     map[model.ArticleReact]string
 	}
 
 	ar.Render(w, r, "article", &PageData{Title: rootArticle.DisplayTitle, Data: &itemPageData{
@@ -414,6 +416,8 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		// delPage,
 		utils.GetReplyDepthSize(),
 		pageType,
+		model.GetArticleReactOptions(),
+		model.GetArticleReactEmojiMap(),
 	}})
 }
 

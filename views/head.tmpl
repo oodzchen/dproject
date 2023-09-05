@@ -250,16 +250,44 @@
 		 padding: 0;
 	     }
 	     .article-operation .btn-form button[type="submit"]{
-		 display: inline;
+		 appearance: none;
+		 display: inline-block;
 		 margin: 0;
 		 padding: 0;
 		 border: none;
 		 background: transparent;
 		 cursor: pointer;
+		 font-family: inherit;
+		 font-size: inherit;
 	     }
 
 	     .article-operation .btn-form button[type="submit"]:hover{
 		 text-decoration: underline;
+	     }
+
+	     .article-operation .btn-react{
+		 position: relative;
+	     }
+	     .article-operation .btn-react > a,
+	     .article-operation .btn-react > label{
+		 position: relative;
+		 z-index: 2;
+	     }
+	     .article-operation .btn-react > select{
+		 position: absolute;
+		 right: 0;
+		 top: -2px;
+		 appearance: none;
+		 width: 1.4rem;
+		 height: 100%;
+		 padding: 0;
+		 margin: 0;
+		 border: none;
+		 /* border: 1px solid red; */
+		 z-index: 10;
+		 background: transparent;
+		 outline: none;
+		 cursor: pointer;
 	     }
 
 	     @media (max-width: 750px){
