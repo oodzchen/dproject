@@ -242,7 +242,7 @@
     {{$isRoot := eq .article.ReplyDepth 0 -}}
     {{$pageDepth := add .pageDepth 1 -}}
     {{$data := dict "currUser" .currUser "article" .article "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "isRootArticle" $isRoot "debug" .debug -}}
-    <article>
+    <article {{if $isRoot}}id="ar_{{.article.Id}}"{{end}}>
 	{{if $isRoot -}}
 	    <h1>{{.article.Title}}</h1>
 	{{else -}}
@@ -263,7 +263,7 @@
 		    modified <time title="{{.article.UpdatedAt}}">{{timeAgo .article.UpdatedAt}}</time> |&nbsp;
 		{{- end -}}
 		<a class="text-lighten-3" href="/articles/{{.article.Id}}">link</a> |&nbsp;
-		<a class="text-lighten-3" href="#reply_{{.article.Id}}">anchor</a> |&nbsp;
+		<a class="text-lighten-3" href="#ar_{{.article.Id}}">anchor</a> |&nbsp;
 		{{- local "ReplyNum" "Count" .article.TotalReplyCount -}}&nbsp;
 		{{- if .article.Replies -}}
 		    |&nbsp;{{.article.Replies.Total}} children&nbsp;
@@ -330,6 +330,10 @@
 
 {{- end -}}
 
+<!-- svg icon license -->
+<!-- https://github.com/Templarian/MaterialDesign/blob/master/LICENSE -->
+<!-- https://github.com/radix-ui/icons/blob/master/LICENSE -->
+
 {{define "article_operation_bar" -}}
     <div class="article-operation">
 	<small>
@@ -337,8 +341,6 @@
 		<form class="vote-form{{if eq .article.CurrUserState.VoteType "up"}} voted{{end}}" action="/articles/{{.article.Id}}/vote" method="POST">
 		    {{.CSRFField}}
 		    <input name="type" type="hidden" value="up"/>
-		    <!-- https://github.com/Templarian/MaterialDesign/blob/master/LICENSE -->
-		    <!-- https://github.com/radix-ui/icons/blob/master/LICENSE -->
 		    <button class="btn-vote--up" type="submit" title="Upvote"><svg width="14" viewBox="0 1 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1 21h22L12 2"/></svg></button>
 		</form>
 		{{- if gt .article.VoteScore 0 -}}
@@ -361,7 +363,7 @@
 		{{- else -}}
 		    <a href="/articles/{{.article.Id}}/reply">Reply</a>&nbsp;&nbsp;
 		{{- end -}}
-		<a href="#reply_{{.article.ReplyTo}}" onclick="scrollToElementById(event, 'reply_{{.article.ReplyTo}}')">Parent</a>&nbsp;&nbsp;
+		<a href="#ar_{{.article.ReplyTo}}" onclick="scrollToElementById(event, 'ar_{{.article.ReplyTo}}')">Parent</a>&nbsp;&nbsp;
 	    {{- end -}}
 	    {{- if and (eq .pageDepth 1) (not .isRootArticle) -}}
 		<a href="/articles/{{.article.ReplyTo}}">Parent</a>&nbsp;&nbsp;
@@ -404,8 +406,7 @@
     <ul class="replies" {{if eq $pageDepth 1}}id="replies-box"{{end}} style="{{if eq $pageDepth 1}}padding-left:0;{{- end}}">
 	{{range .replies.List -}}
 	    {{$subData := dict "currUser" $currUser "article" . "pageDepth" $pageDepth "CSRFField" $CSRFField "maxDepth" $maxDepth "debug" $debug -}}
-	    <!-- onmousedown="onArticleMouseDown(event, this, 'reply_{{.Id}}')" -->
-	    <li id="reply_{{.Id}}">
+	    <li id="ar_{{.Id}}">
 		{{template "article_content" $subData -}}
 	    </li>
 	    {{if and (gt .TotalReplyCount 0) (eq $pageDepth $maxDepth) -}}
