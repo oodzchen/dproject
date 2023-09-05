@@ -1,0 +1,15 @@
+-- CREATE TYPE save_type AS ENUM ('fav');
+-- CREATE TABLE post_saves (
+-- user_id INTEGER REFERENCES users(id),
+-- post_id INTEGER REFERENCES posts(id),
+-- created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+-- type save_type
+-- );
+
+-- CREATE TYPE react_type AS ENUM ('grinning', 'confused', 'eyes', 'party', 'thanks');
+-- CREATE TABLE post_reacts (
+-- user_id INTEGER REFERENCES users(id),
+-- post_id INTEGER REFERENCES posts(id),
+-- created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+-- type react_type
+-- );

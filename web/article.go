@@ -49,6 +49,8 @@ func (ar *ArticleResource) Routes() http.Handler {
 		r.Post("/delete", ar.Delete)
 		r.Get("/reply", ar.ReplyPage)
 		r.Post("/vote", ar.Vote)
+		r.Post("/save", ar.Save)
+		// r.Post("/thanks", ar.Thanks)
 	})
 
 	return rt
@@ -562,3 +564,65 @@ func (ar *ArticleResource) Vote(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/article/"+articleIdS, http.StatusFound)
 	}
 }
+
+func (ar *ArticleResource) Save(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+
+	articleIdS := chi.URLParam(r, "id")
+	articleId, err := strconv.Atoi(articleIdS)
+	if err != nil {
+		ar.Error("", errors.New("get article id failed"), w, r, http.StatusBadRequest)
+		return
+	}
+
+	userId := ar.GetLoginedUserId(w, r)
+	if userId != 0 {
+		err = ar.store.Article.Save(articleId, userId)
+		if err != nil {
+			ar.ServerError("", err, w, r)
+			return
+		}
+	} else {
+		ar.ToLogin(w, r)
+		return
+	}
+
+	referer := r.Referer()
+	refererUrl, _ := url.Parse(r.Referer())
+	if IsRegisterdPage(refererUrl, ar.router) {
+		http.Redirect(w, r, referer, http.StatusFound)
+	} else {
+		http.Redirect(w, r, "/article/"+articleIdS, http.StatusFound)
+	}
+}
+
+// func (ar *ArticleResource) Thanks(w http.ResponseWriter, r *http.Request) {
+// 	r.ParseForm()
+
+// 	articleIdS := chi.URLParam(r, "id")
+// 	articleId, err := strconv.Atoi(articleIdS)
+// 	if err != nil {
+// 		ar.Error("", errors.New("get article id failed"), w, r, http.StatusBadRequest)
+// 		return
+// 	}
+
+// 	userId := ar.GetLoginedUserId(w, r)
+// 	if userId != 0 {
+// 		err = ar.store.Article.Thanks(articleId, userId)
+// 		if err != nil {
+// 			ar.ServerError("", err, w, r)
+// 			return
+// 		}
+// 	} else {
+// 		ar.ToLogin(w, r)
+// 		return
+// 	}
+
+// 	referer := r.Referer()
+// 	refererUrl, _ := url.Parse(r.Referer())
+// 	if IsRegisterdPage(refererUrl, ar.router) {
+// 		http.Redirect(w, r, referer, http.StatusFound)
+// 	} else {
+// 		http.Redirect(w, r, "/article/"+articleIdS, http.StatusFound)
+// 	}
+// }

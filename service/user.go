@@ -5,6 +5,13 @@ import (
 	"github.com/oodzchen/dproject/store"
 )
 
+type UserListType string
+
+const (
+	UserListAll   UserListType = "all"
+	UserListSaved              = "saved"
+)
+
 type User struct {
 	Store *store.Store
 }
@@ -32,4 +39,13 @@ func (u *User) Register(email string, password string, name string) (int, error)
 
 	// fmt.Printf("Password value: %s\n", user.Password)
 	return u.Store.User.Create(user.Email, user.Password, user.Name)
+}
+
+func (u *User) GetPosts(userId int, listType UserListType) ([]*model.Article, error) {
+	switch listType {
+	case UserListSaved:
+		return u.Store.User.GetSavedPosts(userId)
+	default:
+		return u.Store.User.GetPosts(userId)
+	}
 }

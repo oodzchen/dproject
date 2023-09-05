@@ -25,6 +25,7 @@ type ArticleStore interface {
 	Count() (int, error)
 	VoteCheck(id, userId int) (error, string)
 	Vote(id, loginedUserId int, voteType string) error
+	Save(id, loginedUserId int) error
 }
 
 type UserStore interface {
@@ -36,6 +37,7 @@ type UserStore interface {
 	Ban(int) error
 	Login(email string, pwd string) (int, error)
 	GetPosts(int) ([]*model.Article, error)
+	GetSavedPosts(int) ([]*model.Article, error)
 	Count() (int, error)
 }
 

@@ -10,23 +10,34 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5"
 	"github.com/oodzchen/dproject/model"
+	"github.com/oodzchen/dproject/service"
 	"github.com/oodzchen/dproject/store"
 	"github.com/pkg/errors"
 )
 
 type UserResource struct {
 	*Renderer
+	userSrv *service.User
 	// store *store.Store
 }
 
 type userProfile struct {
 	UserInfo *model.User
 	Posts    []*model.Article
+	CurrTab  service.UserListType
 }
 
 func NewUserResource(tmpl *template.Template, store *store.Store, sessStore *sessions.CookieStore, router *chi.Mux) *UserResource {
 	return &UserResource{
-		&Renderer{tmpl, sessStore, router, store},
+		&Renderer{
+			tmpl,
+			sessStore,
+			router,
+			store,
+		},
+		&service.User{
+			Store: store,
+		},
 	}
 }
 
@@ -105,6 +116,11 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tab := r.URL.Query().Get("tab")
+	if tab == "" {
+		tab = string(service.UserListAll)
+	}
+
 	user, err := ur.store.User.Item(userId)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -115,7 +131,14 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postList, err := ur.store.User.GetPosts(userId)
+	// var listType service.UserListType
+	// if lt, ok := tab.(service.UserListType); ok {
+	// 	listType = lt
+	// } else {
+	// 	listType = service.UserListAll
+	// }
+	// postList, err := ur.store.User.GetPosts(userId)
+	postList, err := ur.userSrv.GetPosts(userId, service.UserListType(tab))
 	if err != nil {
 		ur.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
 		return
@@ -131,6 +154,7 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 		Data: &userProfile{
 			UserInfo: user,
 			Posts:    postList,
+			CurrTab:  service.UserListType(tab),
 		},
 		BreadCrumbs: []*BreadCrumb{
 			{

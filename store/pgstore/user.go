@@ -238,3 +238,57 @@ ORDER BY p.created_at DESC`
 
 	return posts, nil
 }
+
+func (u *User) GetSavedPosts(userId int) ([]*model.Article, error) {
+	sqlStr := `
+SELECT
+p.id,
+p.title,
+p.content,
+p.created_at,
+p.updated_at,
+p.reply_to,
+p.author_id,
+u.name AS author_name,
+p.depth,
+p3.title AS root_article_title
+FROM post_saves ps
+LEFT JOIN posts p ON p.id = ps.post_id
+LEFT JOIN users u ON p.author_id = u.id
+LEFT JOIN posts p3 ON p.root_article_id = p3.id
+WHERE ps.user_id = $1 AND p.deleted = false
+ORDER BY ps.created_at DESC`
+	rows, err := u.dbPool.Query(context.Background(), sqlStr, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	var posts []*model.Article
+	for rows.Next() {
+		var item model.Article
+		err = rows.Scan(
+			&item.Id,
+			&item.NullTitle,
+			&item.Content,
+			&item.CreatedAt,
+			&item.UpdatedAt,
+			&item.ReplyTo,
+			&item.AuthorId,
+			&item.AuthorName,
+			&item.ReplyDepth,
+			&item.NullReplyRootArticleTitle,
+		)
+
+		if err != nil {
+			fmt.Printf("query user's posts error: %v", err)
+			return nil, err
+		}
+
+		item.FormatNullValues()
+		item.FormatTimeStr()
+
+		posts = append(posts, &item)
+	}
+
+	return posts, nil
+}

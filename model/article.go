@@ -38,6 +38,7 @@ func IsValidVoteType(t VoteType) bool {
 type CurrUserState struct {
 	VoteType     VoteType
 	NullVoteType pgtype.Text
+	Saved        bool
 }
 
 func (cus *CurrUserState) FormatNullValues() {

@@ -229,10 +229,12 @@
 	     }
 	     .article-operation,
 	     .article-operation a,
-	     .article-operation svg{
+	     .article-operation svg,
+	     .article-operation button[type="submit"]{
 		 color: var(--text-lighten-2);
 		 
 	     }
+	     
 	     .article-operation svg,
 	     .article-operation a{
 		 display: inline-block;
@@ -240,6 +242,24 @@
 	     }
 	     .article-operation svg{
 		 vertical-align: -1px;
+	     }
+
+	     .article-operation .btn-form{
+		 display: inline;
+		 margin: 0;
+		 padding: 0;
+	     }
+	     .article-operation .btn-form button[type="submit"]{
+		 display: inline;
+		 margin: 0;
+		 padding: 0;
+		 border: none;
+		 background: transparent;
+		 cursor: pointer;
+	     }
+
+	     .article-operation .btn-form button[type="submit"]:hover{
+		 text-decoration: underline;
 	     }
 
 	     @media (max-width: 750px){

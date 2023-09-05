@@ -1,3 +1,41 @@
+{{define "user_item" -}}
+
+    {{template "head" . -}}
+
+    <h1>{{.Data.UserInfo.Name}}</h1>
+
+    {{template "user_basic_info" .Data.UserInfo -}}
+
+    {{- $data := .Data -}}
+    {{- $tabs := list "all" -}}
+    {{- $tabsMap := dict "all" "Posts" "saved" "Saved" -}}
+
+    {{- if and .LoginedUser (eq .LoginedUser.Id .Data.UserInfo.Id) -}}
+	{{- $tabs = list "all" "saved" -}}
+    {{- end -}}
+
+    <div class="tabs">
+	{{- range $tabs -}}
+	    {{- if eq $data.CurrTab . -}}
+		<span class="tab active">{{get $tabsMap .}}</span>
+	    {{- else -}}
+		<a class="tab" href="/users/{{$data.UserInfo.Id}}{{if ne . "all"}}?tab={{.}}{{end}}">{{get $tabsMap .}}</a>
+	    {{- end -}}
+	{{- end -}}
+    </div>
+
+    {{- if .Data.Posts -}}
+	{{template "post_list" .Data.Posts -}}
+    {{- else -}}
+	<div>
+	    <i class="text-lighten-2">No data</i>
+	</div>
+    {{- end -}}
+
+    {{template "foot" . -}}
+
+{{end -}}
+
 {{define "user_basic_info" -}}
     <div class="data-list">
 	<div class="data-list__row">
@@ -31,20 +69,3 @@
     </ul>
 {{end -}}
 
-{{define "user_item" -}}
-
-    {{template "head" . -}}
-
-    <h1>{{.Data.UserInfo.Name}}</h1>
-
-    {{template "user_basic_info" .Data.UserInfo -}}
-
-    {{if .Data.Posts -}}
-	<h2>Posts</h2>
-    {{end -}}
-
-    {{template "post_list" .Data.Posts -}}
-
-    {{template "foot" . -}}
-
-{{end -}}

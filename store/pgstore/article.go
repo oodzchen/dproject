@@ -306,7 +306,15 @@ WHERE post_id = ar.id AND type = 'up'
 (
 SELECT COUNT(*) FROM post_votes
 WHERE post_id = ar.id AND type = 'down'
-) AS vote_down
+) AS vote_down,
+(
+SELECT
+  CASE
+    WHEN COUNT(*) > 0 THEN TRUE
+    ELSE FALSE
+  END
+ FROM post_saves WHERE post_id = ar.id AND user_id = $3
+) AS saved
 FROM articleTree ar
 JOIN users u ON ar.author_id = u.id
 LEFT JOIN posts p2 ON ar.root_article_id = p2.id
@@ -341,6 +349,7 @@ ORDER BY ar.created_at;`
 			&item.CurrUserState.NullVoteType,
 			&item.VoteUp,
 			&item.VoteDown,
+			&item.CurrUserState.Saved,
 		)
 
 		if err != nil {
@@ -436,3 +445,97 @@ func (a *Article) VoteCheck(id, userId int) (error, string) {
 
 	return nil, vt
 }
+
+func (a *Article) Save(id, userId int) error {
+	err, saved := a.SaveCheck(id, userId)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return err
+	}
+
+	if !saved {
+		_, err = a.dbPool.Exec(
+			context.Background(),
+			`INSERT INTO post_saves (post_id, user_id) VALUES ($1, $2)`,
+			id,
+			userId,
+		)
+
+		if err != nil {
+			return err
+		}
+	} else {
+		_, err = a.dbPool.Exec(
+			context.Background(),
+			`DELETE FROM post_saves WHERE post_id = $1 AND user_id = $2`,
+			id,
+			userId,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (a *Article) SaveCheck(id, userId int) (error, bool) {
+	var count int
+	err := a.dbPool.QueryRow(
+		context.Background(),
+		`SELECT COUNT(*) FROM post_saves WHERE post_id = $1 AND user_id = $2`,
+		id,
+		userId,
+	).Scan(&count)
+	if err != nil {
+		return err, false
+	}
+
+	return nil, count > 0
+}
+
+// func (a *Article) Thanks(id, userId int) error {
+// 	err, saved := a.SaveCheck(id, userId)
+// 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+// 		return err
+// 	}
+
+// 	if !saved {
+// 		_, err = a.dbPool.Exec(
+// 			context.Background(),
+// 			`INSERT INTO post_thanks (post_id, user_id) VALUES ($1, $2)`,
+// 			id,
+// 			userId,
+// 		)
+
+// 		if err != nil {
+// 			return err
+// 		}
+// 	} else {
+// 		_, err = a.dbPool.Exec(
+// 			context.Background(),
+// 			`DELETE FROM post_thanks WHERE post_id = $1 AND user_id = $2`,
+// 			id,
+// 			userId,
+// 		)
+// 		if err != nil {
+// 			return err
+// 		}
+// 	}
+
+// 	return nil
+// }
+
+// func (a *Article) ThanksCheck(id, userId int) (error, bool) {
+// 	var count int
+// 	err := a.dbPool.QueryRow(
+// 		context.Background(),
+// 		`SELECT COUNT(*) FROM post_thanks WHERE post_id = $1 AND user_id = $2`,
+// 		id,
+// 		userId,
+// 	).Scan(&count)
+// 	if err != nil {
+// 		return err, false
+// 	}
+
+// 	return nil, count > 0
+// }
