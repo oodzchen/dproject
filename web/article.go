@@ -199,7 +199,7 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 	title := r.Form.Get("title")
 	content := r.Form.Get("content")
 	paramReplyTo := r.Form.Get("reply_to")
-	rootId := r.Form.Get("root")
+	// rootId := r.Form.Get("root")
 
 	var isReply bool
 	var replyTo int
@@ -245,17 +245,11 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	refererUrl := r.Referer()
+	referer, _ := url.Parse(refererUrl)
 
-	if isReply && refererUrl != "" {
-		if rootId != "" {
-			targetId := rootId
-			if rootId == "0" {
-				targetId = paramReplyTo
-			}
-			http.Redirect(w, r, fmt.Sprintf("/articles/%s#ar_%d", targetId, id), http.StatusFound)
-		} else {
-			http.Redirect(w, r, refererUrl, http.StatusFound)
-		}
+	if isReply && refererUrl != "" && IsRegisterdPage(referer, ar.router) {
+		// http.Redirect(w, r, refererUrl, http.StatusFound)
+		http.Redirect(w, r, fmt.Sprintf("/articles/%d?sort=latest#ar_%d", replyTo, id), http.StatusFound)
 	} else {
 		http.Redirect(w, r, fmt.Sprintf("/articles/%d", id), http.StatusFound)
 	}

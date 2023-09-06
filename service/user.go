@@ -12,6 +12,14 @@ const (
 	UserListSaved              = "saved"
 )
 
+var AuthRequiedUserTabMap = map[UserListType]bool{
+	UserListSaved: true,
+}
+
+func CheckUserTabAuthRequired(tab UserListType) bool {
+	return AuthRequiedUserTabMap[tab]
+}
+
 type User struct {
 	Store *store.Store
 }

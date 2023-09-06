@@ -121,6 +121,11 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 		tab = string(service.UserListAll)
 	}
 
+	if !IsLogin(ur.sessStore, w, r) && service.CheckUserTabAuthRequired(service.UserListType(tab)) {
+		http.Redirect(w, r, fmt.Sprintf("/users/%d", userId), http.StatusFound)
+		return
+	}
+
 	user, err := ur.store.User.Item(userId)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -131,13 +136,6 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// var listType service.UserListType
-	// if lt, ok := tab.(service.UserListType); ok {
-	// 	listType = lt
-	// } else {
-	// 	listType = service.UserListAll
-	// }
-	// postList, err := ur.store.User.GetPosts(userId)
 	postList, err := ur.userSrv.GetPosts(userId, service.UserListType(tab))
 	if err != nil {
 		ur.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
