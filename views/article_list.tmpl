@@ -10,8 +10,8 @@
     
     {{$debug := .Debug -}}
     {{$data := .Data -}}
-    {{- $sortTabs := list "list_best" "latest" -}}
-    {{- $sortTabMap := dict "list_best" "Best" "latest" "Latest" -}}
+    {{- $sortTabs := list "list_best" "latest" "list_hot" -}}
+    {{- $sortTabMap := dict "list_best" "Best" "latest" "Latest" "list_hot" "Hot" -}}
     <div class="tabs">
 	{{- range $sortTabs -}}
 	    {{- if eq $data.SortType . -}}
@@ -31,7 +31,10 @@
 		<a {{if eq $idx 0}}id="article-list-head"{{end}} href="/articles/{{$item.Id}}">{{$item.DisplayTitle}}</a>
 		<br/>
 		<small class="text-lighten-3">By <a class="text-lighten-3" href="/users/{{$item.AuthorId}}">{{$item.AuthorName}}</a> <time title="{{$item.CreatedAt}}">{{timeAgo $item.CreatedAt}}</time> | vote score {{$item.VoteScore}}&nbsp;
-		    {{- if $debug -}} | weight {{$item.ListWeight}}{{- end -}}
+		    {{- if $debug -}}
+			| weight {{$item.ListWeight}}
+			| participate {{$item.ParticipateCount}}
+		    {{- end -}}
 		</small>
 		<div class="article-list__summary" class="text-lighten-2">{{$item.Summary}}{{if ne $item.Summary $item.Content}} ...{{end}}</div>
 		<div class="article-operation">

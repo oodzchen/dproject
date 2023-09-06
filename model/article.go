@@ -84,12 +84,14 @@ const (
 	ReplySortBest  ArticleSortType = "best"
 	ListSortLatest                 = "latest"
 	ListSortBest                   = "list_best"
+	ListSortHot                    = "list_hot"
 )
 
 var replySortMap = map[ArticleSortType]bool{
 	ReplySortBest:  true,
 	ListSortLatest: true,
 	ListSortBest:   true,
+	ListSortHot:    true,
 }
 
 func ValidReplySort(sortType string) bool {
@@ -158,6 +160,8 @@ func (al *ArticleList) Less(i, j int) bool {
 		return compare > 0
 	case ListSortBest:
 		return al.List[i].ListWeight > al.List[j].ListWeight
+	case ListSortHot:
+		return al.List[i].ParticipateCount > al.List[j].ParticipateCount
 	default:
 		return al.List[i].Weight > al.List[j].Weight
 	}
@@ -193,6 +197,7 @@ type Article struct {
 	VoteScore                 int
 	Weight                    float64 // weight in replise
 	ListWeight                float64 // weight in list page
+	ParticipateCount          int
 	CurrUserState             *CurrUserState
 	// SortType                  ArticleSortType
 }
