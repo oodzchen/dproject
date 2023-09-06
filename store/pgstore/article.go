@@ -327,8 +327,29 @@ SELECT
     ELSE FALSE
   END
  FROM post_saves WHERE post_id = ar.id AND user_id = $3
-) AS saved
+) AS saved,
+(
+SELECT type FROM post_reacts WHERE post_id = ar.id AND user_id = $3
+) AS user_react_type,
+COALESCE(reacts.grinning, 0),
+COALESCE(reacts.confused, 0),
+COALESCE(reacts.eyes, 0),
+COALESCE(reacts.party, 0),
+COALESCE(reacts.thanks, 0)
 FROM articleTree ar
+LEFT OUTER JOIN(
+ SELECT post_id,
+   SUM(CASE WHEN type = 'grinning' THEN count ELSE 0 END) AS grinning,
+   SUM(CASE WHEN type = 'confused' THEN count ELSE 0 END) AS confused,
+   SUM(CASE WHEN type = 'eyes' THEN count ELSE 0 END) AS eyes,
+   SUM(CASE WHEN type = 'party' THEN count ELSE 0 END) AS party,
+   SUM(CASE WHEN type = 'thanks' THEN count ELSE 0 END) AS thanks
+   FROM
+   (
+     SELECT post_id, type, COUNT(*) AS count FROM post_reacts
+     GROUP BY type, post_id
+   ) AS react_types GROUP BY post_id
+) AS reacts ON reacts.post_id = ar.id
 JOIN users u ON ar.author_id = u.id
 LEFT JOIN posts p2 ON ar.root_article_id = p2.id
 ORDER BY ar.created_at;`
@@ -341,8 +362,11 @@ ORDER BY ar.created_at;`
 	var list []*model.Article
 	for rows.Next() {
 		var userState model.CurrUserState
+		var reactCounts model.ArticleReactCounts = make(model.ArticleReactCounts)
+		var grinning, confused, eyes, party, thanks int
 		item := model.Article{
 			CurrUserState: &userState,
+			ReactCounts:   &reactCounts,
 		}
 
 		err = rows.Scan(
@@ -363,11 +387,23 @@ ORDER BY ar.created_at;`
 			&item.VoteUp,
 			&item.VoteDown,
 			&item.CurrUserState.Saved,
+			&item.CurrUserState.NullReactType,
+			&grinning,
+			&confused,
+			&eyes,
+			&party,
+			&thanks,
 		)
 
 		if err != nil {
 			return nil, err
 		}
+
+		reactCounts[model.ArticleReactGrinning] = grinning
+		reactCounts[model.ArticleReactConfused] = confused
+		reactCounts[model.ArticleReactEyes] = eyes
+		reactCounts[model.ArticleReactParty] = party
+		reactCounts[model.ArticleReactThanks] = thanks
 
 		// fmt.Printf("row item: %+v\n", &item)
 		list = append(list, &item)
@@ -506,49 +542,73 @@ func (a *Article) SaveCheck(id, userId int) (error, bool) {
 	return nil, count > 0
 }
 
-// func (a *Article) Thanks(id, userId int) error {
-// 	err, saved := a.SaveCheck(id, userId)
-// 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-// 		return err
-// 	}
+func (a *Article) React(id, userId int, reactType string) error {
+	err, rt := a.ReactCheck(id, userId)
+	// fmt.Println("check error: ", err)
+	// fmt.Println("check vote type: ", rt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			// var aId int
+			err = a.dbPool.QueryRow(
+				context.Background(),
+				`INSERT INTO post_reacts (post_id, user_id, type) VALUES ($1, $2, $3) RETURNING (post_id, user_id)`,
+				id,
+				userId,
+				reactType,
+			).Scan(nil)
 
-// 	if !saved {
-// 		_, err = a.dbPool.Exec(
-// 			context.Background(),
-// 			`INSERT INTO post_thanks (post_id, user_id) VALUES ($1, $2)`,
-// 			id,
-// 			userId,
-// 		)
+			// fmt.Println("after insert, aId: ", aId)
+			// fmt.Println("after insert: ", err)
 
-// 		if err != nil {
-// 			return err
-// 		}
-// 	} else {
-// 		_, err = a.dbPool.Exec(
-// 			context.Background(),
-// 			`DELETE FROM post_thanks WHERE post_id = $1 AND user_id = $2`,
-// 			id,
-// 			userId,
-// 		)
-// 		if err != nil {
-// 			return err
-// 		}
-// 	}
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
+		if rt == reactType {
+			err = a.dbPool.QueryRow(
+				context.Background(),
+				`DELETE FROM post_reacts WHERE post_id = $1 AND user_id = $2 RETURNING (post_id, user_id)`,
+				id,
+				userId,
+			).Scan(nil)
+			if err != nil {
+				return err
+			}
+		} else {
+			// fmt.Println("change vote type to: ", reactType)
+			err = a.dbPool.QueryRow(
+				context.Background(),
+				`UPDATE post_reacts SET type = $1 WHERE post_id = $2 AND user_id = $3 RETURNING (post_id, user_id)`,
+				reactType,
+				id,
+				userId,
+			).Scan(nil)
 
-// 	return nil
-// }
+			// fmt.Println("after change vote type: ", err)
 
-// func (a *Article) ThanksCheck(id, userId int) (error, bool) {
-// 	var count int
-// 	err := a.dbPool.QueryRow(
-// 		context.Background(),
-// 		`SELECT COUNT(*) FROM post_thanks WHERE post_id = $1 AND user_id = $2`,
-// 		id,
-// 		userId,
-// 	).Scan(&count)
-// 	if err != nil {
-// 		return err, false
-// 	}
+			if err != nil {
+				return err
+			}
+		}
+	}
 
-// 	return nil, count > 0
-// }
+	return nil
+}
+
+func (a *Article) ReactCheck(id, userId int) (error, string) {
+	var rt string
+	err := a.dbPool.QueryRow(
+		context.Background(),
+		`SELECT type FROM post_reacts WHERE post_id = $1 AND user_id = $2`,
+		id,
+		userId,
+	).Scan(&rt)
+	if err != nil {
+		return err, ""
+	}
+
+	return nil, rt
+}

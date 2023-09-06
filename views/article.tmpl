@@ -253,21 +253,11 @@
      }
 
      function onReactChange(ev, sel) {
-	 console.log(sel.value)
+	 /* console.log(sel.value) */
 	 /* sel.style.visibility = "hidden" */
+	 sel.closest('form').submit()
 	 sel.value = ""
      }
-
-     /* function triggerEmojiList(ev, iconEl) {
-	ev.preventDefault()
-	ev.stopPropagation()
-	
-	var nextEl = iconEl.nextElementSibling
-	console.log('nextEl', nextEl)
-	if (nextEl && nextEl.tagName.toLowerCase() == 'select'){
-	nextEl.click()
-	}
-      * } */
     </script>
 
     {{template "foot" -}}
@@ -376,6 +366,7 @@
 	    {{- if not .article.Deleted -}}
 		<form class="vote-form{{if eq .article.CurrUserState.VoteType "up"}} voted{{end}}" action="/articles/{{.article.Id}}/vote" method="POST">
 		    {{.CSRFField}}
+		    <input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
 		    <input name="type" type="hidden" value="up"/>
 		    <button class="btn-vote--up" type="submit" title="Upvote"><svg width="14" viewBox="0 1 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1 21h22L12 2"/></svg></button>
 		</form>
@@ -384,6 +375,7 @@
 		{{- end -}}
 		<form class="vote-form{{if eq .article.CurrUserState.VoteType "down"}} voted{{end}}" action="/articles/{{.article.Id}}/vote" method="POST">
 		    {{.CSRFField}}
+		    <input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
 		    <input name="type" type="hidden" value="down"/>
 		    <button class="btn-vote--down" type="submit" title="Downvote"><svg width="14" viewBox="0 1 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1 3h22L12 22"/></svg></button>
 		</form>&nbsp;
@@ -413,15 +405,44 @@
 
 	<small>
 	    {{- if not .article.Deleted -}}
+		{{- $reactOptions := .reactOptions -}}
+		{{- $reactMap := .reactMap -}}
+		{{- $article := .article -}}
+		{{- $currReactType := "" -}}
+		{{- $currUser := .currUser -}}
+		{{- $csrfField := .CSRFField -}}
+		{{- if and .article.CurrUserState .article.CurrUserState.ReactType -}}
+		    {{- $currReactType = .article.CurrUserState.ReactType -}}
+		{{- end -}}
+		<div class="article-reacts">
+		    {{- range $reactOptions -}}
+			{{- if gt (index $article.ReactCounts .) 0 -}}
+			    {{- if $currUser -}}
+				<form class="btn-form btn-react" action="/articles/{{$article.Id}}/react" method="POST">
+				    {{$csrfField}}
+				    <input name="root" type="hidden" value="{{$article.ReplyRootArticleId}}"/>
+				    <input name="react" type="hidden" value="{{.}}"/>
+				    {{if eq $currReactType .}}
+					<span class="btn-react__selected" onclick="this.parentNode.submit()">{{index $reactMap .}}{{index $article.ReactCounts .}}</span>&nbsp;&nbsp;
+				    {{- else -}}
+					<span onclick="this.parentNode.submit()">{{index $reactMap .}}{{index $article.ReactCounts .}}</span>&nbsp;&nbsp;
+				    {{- end -}}
+				</form>
+			    {{- else -}}
+				<span>{{index $reactMap .}}{{index $article.ReactCounts .}}</span>&nbsp;&nbsp;
+			    {{- end -}}
+			{{- end -}}
+		    {{- end -}}
+		</div>
+		
 		{{- if .currUser -}}
-		    <!-- <a href="/articles/{{.article.Id}}/thanks" title="Thanks"><svg width="16" viewBox="0 -1 16 16" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" d="M1.352 4.905a3.547 3.547 0 0 1 3.541-3.553c1.365 0 1.968.571 2.607 1.583c.64-1.012 1.242-1.583 2.607-1.583a3.547 3.547 0 0 1 3.54 3.553c0 1.835-1.046 3.6-2.246 5.064c-1.137 1.387-2.48 2.582-3.395 3.397l-.173.155a.5.5 0 0 1-.666 0l-.173-.155c-.916-.815-2.258-2.01-3.395-3.397C2.4 8.505 1.352 6.74 1.352 4.905Z" clip-rule="evenodd"/>
-			 </svg></a>&nbsp;&nbsp; -->
+		    <!-- <a href="/articles/{{.article.Id}}/thanks" title="Thanks"><svg width="16" viewBox="0 -1 16 16" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" d="M1.352 4.905a3.547 3.547 0 0 1 3.541-3.553c1.365 0 1.968.571 2.607 1.583c.64-1.012 1.242-1.583 2.607-1.583a3.547 3.547 0 0 1 3.54 3.553c0 1.835-1.046 3.6-2.246 5.064c-1.137 1.387-2.48 2.582-3.395 3.397l-.173.155a.5.5 0 0 1-.666 0l-.173-.155c-.916-.815-2.258-2.01-3.395-3.397C2.4 8.505 1.352 6.74 1.352 4.905Z" clip-rule="evenodd"/></svg></a>&nbsp;&nbsp; -->
 		    <form class="btn-form btn-react" action="/articles/{{.article.Id}}/react" method="POST">
-			<span title="Emoji"><svg width="16" viewBox="0 -2 16 16" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" d="M7.5.877a6.623 6.623 0 1 0 0 13.246A6.623 6.623 0 0 0 7.5.877ZM1.827 7.5a5.673 5.673 0 1 1 11.346 0a5.673 5.673 0 0 1-11.346 0Zm3.21 1.714a.5.5 0 1 0-.82.572A3.996 3.996 0 0 0 7.5 11.5c1.36 0 2.56-.679 3.283-1.714a.5.5 0 0 0-.82-.572A2.996 2.996 0 0 1 7.5 10.5a2.996 2.996 0 0 1-2.463-1.286Zm.338-2.364a.875.875 0 1 0 0-1.75a.875.875 0 0 0 0 1.75Zm5.125-.875a.875.875 0 1 1-1.75 0a.875.875 0 0 1 1.75 0Z" clip-rule="evenodd"/>
-			</svg>
-			{{- $reactMap := .reactMap -}}
-			{{- $article := .article -}}
-			<select title="React" id="react_{{$article.Id}}" name="react" autocomplete="off" onchange="onReactChange(event, this)">
+			{{.CSRFField}}
+			<input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
+			<span title="Emoji">
+			    <svg width="16" viewBox="0 -2 16 16" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" d="M7.5.877a6.623 6.623 0 1 0 0 13.246A6.623 6.623 0 0 0 7.5.877ZM1.827 7.5a5.673 5.673 0 1 1 11.346 0a5.673 5.673 0 0 1-11.346 0Zm3.21 1.714a.5.5 0 1 0-.82.572A3.996 3.996 0 0 0 7.5 11.5c1.36 0 2.56-.679 3.283-1.714a.5.5 0 0 0-.82-.572A2.996 2.996 0 0 1 7.5 10.5a2.996 2.996 0 0 1-2.463-1.286Zm.338-2.364a.875.875 0 1 0 0-1.75a.875.875 0 0 0 0 1.75Zm5.125-.875a.875.875 0 1 1-1.75 0a.875.875 0 0 1 1.75 0Z" clip-rule="evenodd"/></svg>
+			    <select title="React" id="react_{{$article.Id}}" name="react" autocomplete="off" onchange="onReactChange(event, this)">
 			    <option value="" selected hidden disabled></option>
 			    {{- range .reactOptions -}}
 				<option value="{{.}}">{{index $reactMap .}}</option>

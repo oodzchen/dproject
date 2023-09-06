@@ -65,16 +65,23 @@ func GetArticleReactEmojiMap() map[ArticleReact]string {
 	}
 }
 
+type ArticleReactCounts map[ArticleReact]int
+
 type CurrUserState struct {
-	VoteType     VoteType
-	NullVoteType pgtype.Text
-	Saved        bool
-	Reaction     ArticleReact
+	VoteType      VoteType
+	NullVoteType  pgtype.Text
+	Saved         bool
+	NullReactType pgtype.Text
+	ReactType     ArticleReact
 }
 
 func (cus *CurrUserState) FormatNullValues() {
 	if cus.VoteType == "" && cus.NullVoteType.Valid {
 		cus.VoteType = VoteType(cus.NullVoteType.String)
+	}
+
+	if cus.ReactType == "" && cus.NullReactType.Valid {
+		cus.ReactType = ArticleReact(cus.NullReactType.String)
 	}
 }
 
@@ -199,7 +206,7 @@ type Article struct {
 	ListWeight                float64 // weight in list page
 	ParticipateCount          int
 	CurrUserState             *CurrUserState
-	// SortType                  ArticleSortType
+	ReactCounts               *ArticleReactCounts
 }
 
 func (a *Article) FormatNullValues() {

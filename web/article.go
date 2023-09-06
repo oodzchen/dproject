@@ -50,7 +50,7 @@ func (ar *ArticleResource) Routes() http.Handler {
 		r.Get("/reply", ar.ReplyPage)
 		r.Post("/vote", ar.Vote)
 		r.Post("/save", ar.Save)
-		// r.Post("/thanks", ar.Thanks)
+		r.Post("/react", ar.React)
 	})
 
 	return rt
@@ -552,6 +552,8 @@ func (ar *ArticleResource) Vote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	rootId := r.Form.Get("root")
+
 	userId := ar.GetLoginedUserId(w, r)
 	if userId != 0 {
 		err = ar.store.Article.Vote(articleId, userId, voteType)
@@ -567,7 +569,11 @@ func (ar *ArticleResource) Vote(w http.ResponseWriter, r *http.Request) {
 	referer := r.Referer()
 	refererUrl, _ := url.Parse(r.Referer())
 	if IsRegisterdPage(refererUrl, ar.router) {
-		http.Redirect(w, r, referer, http.StatusFound)
+		if rootId != "" && rootId != "0" && rootId != articleIdS {
+			http.Redirect(w, r, fmt.Sprintf("/articles/%s#ar_%s", rootId, articleIdS), http.StatusFound)
+		} else {
+			http.Redirect(w, r, referer, http.StatusFound)
+		}
 	} else {
 		http.Redirect(w, r, "/article/"+articleIdS, http.StatusFound)
 	}
@@ -604,33 +610,47 @@ func (ar *ArticleResource) Save(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// func (ar *ArticleResource) Thanks(w http.ResponseWriter, r *http.Request) {
-// 	r.ParseForm()
+func (ar *ArticleResource) React(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
 
-// 	articleIdS := chi.URLParam(r, "id")
-// 	articleId, err := strconv.Atoi(articleIdS)
-// 	if err != nil {
-// 		ar.Error("", errors.New("get article id failed"), w, r, http.StatusBadRequest)
-// 		return
-// 	}
+	articleIdS := chi.URLParam(r, "id")
+	articleId, err := strconv.Atoi(articleIdS)
+	if err != nil {
+		ar.Error("", errors.New("get article id failed"), w, r, http.StatusBadRequest)
+		return
+	}
 
-// 	userId := ar.GetLoginedUserId(w, r)
-// 	if userId != 0 {
-// 		err = ar.store.Article.Thanks(articleId, userId)
-// 		if err != nil {
-// 			ar.ServerError("", err, w, r)
-// 			return
-// 		}
-// 	} else {
-// 		ar.ToLogin(w, r)
-// 		return
-// 	}
+	rootId := r.Form.Get("root")
+	react := r.Form.Get("react")
+	reactMap := model.GetArticleReactEmojiMap()
 
-// 	referer := r.Referer()
-// 	refererUrl, _ := url.Parse(r.Referer())
-// 	if IsRegisterdPage(refererUrl, ar.router) {
-// 		http.Redirect(w, r, referer, http.StatusFound)
-// 	} else {
-// 		http.Redirect(w, r, "/article/"+articleIdS, http.StatusFound)
-// 	}
-// }
+	reactType := model.ArticleReact(react)
+	if _, ok := reactMap[reactType]; !ok {
+		ar.Error("react type error", nil, w, r, http.StatusBadRequest)
+		return
+	}
+
+	userId := ar.GetLoginedUserId(w, r)
+	if userId != 0 {
+		err = ar.store.Article.React(articleId, userId, string(reactType))
+		if err != nil {
+			ar.ServerError("", err, w, r)
+			return
+		}
+	} else {
+		ar.ToLogin(w, r)
+		return
+	}
+
+	referer := r.Referer()
+	refererUrl, _ := url.Parse(r.Referer())
+	if IsRegisterdPage(refererUrl, ar.router) {
+		if rootId != "" && rootId != "0" && rootId != articleIdS {
+			http.Redirect(w, r, fmt.Sprintf("/articles/%s#ar_%s", rootId, articleIdS), http.StatusFound)
+		} else {
+			http.Redirect(w, r, referer, http.StatusFound)
+		}
+	} else {
+		http.Redirect(w, r, "/article/"+articleIdS, http.StatusFound)
+	}
+}

@@ -26,6 +26,7 @@ type ArticleStore interface {
 	VoteCheck(id, userId int) (error, string)
 	Vote(id, loginedUserId int, voteType string) error
 	Save(id, loginedUserId int) error
+	React(id, loginedUserId int, reactType string) error
 }
 
 type UserStore interface {
