@@ -394,7 +394,7 @@
 		{{- end -}}
 		<a title="Reply" href="/articles/{{.article.Id}}/reply">Reply</a>&nbsp;&nbsp;
 
-		{{- if ne .article.ReplyTo 0 -}}
+		{{- if gt .pageDepth 1 -}}
 		    <a title="Parent" href="#ar_{{.article.ReplyTo}}" onclick="scrollToElementById(event, 'ar_{{.article.ReplyTo}}')">Parent</a>&nbsp;&nbsp;
 		{{- end -}}
 	    {{- end -}}

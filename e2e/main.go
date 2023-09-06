@@ -13,6 +13,7 @@ import (
 	chp "github.com/chromedp/chromedp"
 	"github.com/oodzchen/dproject/config"
 	"github.com/oodzchen/dproject/mocktool"
+	mt "github.com/oodzchen/dproject/mocktool"
 	"github.com/pkg/errors"
 )
 
@@ -42,7 +43,7 @@ func main() {
 	startTime := time.Now()
 	dir, err := os.MkdirTemp("", "chromedp-example")
 	defer os.RemoveAll(dir)
-	mocktool.LogErrf("create temp dir failed:%v", err)
+	mt.LogErrf("create temp dir failed:%v", err)
 
 	flag.Parse()
 
@@ -55,7 +56,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	mock = mocktool.NewMock(cfg)
+	mock = mt.NewMock(cfg)
 
 	opts := append(chp.DefaultExecAllocatorOptions[:],
 		chp.DisableGPU,
@@ -75,9 +76,9 @@ func main() {
 	var content string
 	err = runTasks("visit article and get content", ctx,
 		chp.Navigate(mock.ServerURL),
-		chp.WaitVisible(`body>footer`),
+		mock.WaitFooterReady(),
 		chp.Click(`ol>li:first-child>a`, chp.NodeVisible),
-		chp.WaitVisible(`body>footer`),
+		mock.WaitFooterReady(),
 		chp.TextContent(`body>article>section`, &content),
 		chp.ActionFunc(func(ctx context.Context) error {
 			if len(content) == 0 {
@@ -86,34 +87,34 @@ func main() {
 			return nil
 		}),
 	)
-	mocktool.LogFailed(err)
+	mt.LogFailed(err)
 
 	err = runTasks("add new as anonymous", ctx,
 		chp.Navigate(mock.ServerURL),
-		chp.WaitVisible(`body>footer`),
+		mock.WaitFooterReady(),
 		chp.Click(`ul.nav-menu:nth-child(2) > li > a[href^="/articles/new"]`, chp.NodeVisible),
-		chp.WaitVisible(`body>footer`),
+		mock.WaitFooterReady(),
 		chp.WaitVisible(`#password`, chp.ByID),
 	)
-	mocktool.LogFailed(err)
+	mt.LogFailed(err)
 
-	newUser := mocktool.GenUser()
+	newUser := mt.GenUser()
 	var resultText string
 	err = runTasks("register new user", ctx,
 		mock.Register(newUser),
 		chp.TextContent(`#page-tip>span`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
-			mocktool.Logln("new user: ", newUser)
+			mt.Logln("new user: ", newUser)
 			if len(resultText) == 0 {
 				return errors.New("empty register success message")
 			}
 			return nil
 		}),
 	)
-	mocktool.LogFailed(err)
+	mt.LogFailed(err)
 
 	// if regexp.MustCompile(``).Match([]byte(resultText)){
-	// 	mocktool.LogErrf(msg string, err error)
+	// 	mt.LogErrf(msg string, err error)
 	// }
 
 	err = runTasks("register duplicate user", ctx,
@@ -126,7 +127,7 @@ func main() {
 			return nil
 		}),
 	)
-	mocktool.LogFailed(err)
+	mt.LogFailed(err)
 
 	err = runTasks("login", ctx,
 		mock.Login(newUser),
@@ -138,7 +139,7 @@ func main() {
 			return nil
 		}),
 	)
-	mocktool.LogFailed(err)
+	mt.LogFailed(err)
 
 	err = runTasks("logout", ctx,
 		mock.Logout(),
@@ -150,19 +151,19 @@ func main() {
 			return nil
 		}),
 	)
-	mocktool.LogFailed(err)
+	mt.LogFailed(err)
 
 	err = runTasks("user profile", ctx,
 		mock.Login(newUser),
 		chp.Click(`ul.nav-menu:nth-child(2) > li > a[href^="/users/"]`),
-		chp.WaitVisible(`body>footer`),
+		mock.WaitFooterReady(),
 	)
-	mocktool.LogFailed(err)
+	mt.LogFailed(err)
 
 	err = runTasks("create article as anonymous", ctx,
 		mock.Logout(),
 		chp.Click(`ul.nav-menu:nth-child(2) > li > a[href^="/articles/new"]`),
-		chp.WaitVisible(`body>footer`),
+		mock.WaitFooterReady(),
 		chp.TextContent(`button[type=submit]`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
 			if resultText != "Login" {
@@ -171,22 +172,22 @@ func main() {
 			return nil
 		}),
 	)
-	mocktool.LogFailed(err)
+	mt.LogFailed(err)
 
-	newArticle := mocktool.GenArticle()
+	newArticle := mt.GenArticle()
 	err = runTasks("create article as logined user", ctx,
 		mock.Login(newUser),
 		mock.CreateArticle(newArticle),
 	)
-	mocktool.LogFailed(err)
+	mt.LogFailed(err)
 
-	editArticle := mocktool.GenArticle()
+	editArticle := mt.GenArticle()
 	err = runTasks("edit article", ctx,
 		chp.Click(`body > article > div > small > a.btn-edit`),
-		chp.WaitVisible(`body>footer`),
+		mock.WaitFooterReady(),
 		chp.SetValue(`textarea[name="content"]`, editArticle.Content),
 		chp.Click(`body>form>button[type="submit"]`),
-		chp.WaitVisible(`body>footer`),
+		mock.WaitFooterReady(),
 		chp.TextContent(`body > article > section`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
 			if resultText != editArticle.Content {
@@ -195,11 +196,11 @@ func main() {
 			return nil
 		}),
 	)
-	mocktool.LogFailed(err)
+	mt.LogFailed(err)
 
 	err = runTasks("visit profile post list", ctx,
 		chp.Click(`ul.nav-menu:nth-child(2) > li > a[href^="/users/"]`),
-		chp.WaitVisible(`body>footer`),
+		mock.WaitFooterReady(),
 		chp.TextContent(`body > ul > li:nth-child(1) > div:last-child`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
 			if len(resultText) == 0 {
@@ -208,56 +209,61 @@ func main() {
 			return nil
 		}),
 	)
-	mocktool.LogFailed(err)
+	mt.LogFailed(err)
 
 	newReply := gofakeit.Sentence(5 + rand.Intn(10))
 	err = runTasks("reply article", ctx,
 		chp.Click(`body > ul > li:last-child > div:first-child > a`),
-		chp.WaitVisible(`body>footer`),
+		mock.WaitFooterReady(),
+		chp.Click(`body > article > .article-operation a[title="Reply"]`),
+		mock.WaitFooterReady(),
 		chp.SetValue(`#content`, newReply, chp.ByID),
-		chp.Click(`#reply_form>button[type="submit"]`),
-		chp.WaitVisible(`body>footer`),
-		chp.TextContent(`ul.replies > li:last-child > article > section`, &resultText),
+		chp.Click(`#reply_form button[type="submit"]`),
+		mock.WaitFooterReady(),
+		chp.TextContent(`li:target > article > section`, &resultText, chp.ByQuery),
 		chp.ActionFunc(func(ctx context.Context) error {
-			mocktool.Logln("new reply: ", newReply)
-			mocktool.Logln("resultText: ", resultText)
+			mt.Logln("new reply: ", newReply)
+			mt.Logln("resultText: ", resultText)
 			if resultText != newReply {
 				return errors.New("reply content is incorrect")
 			}
 			return nil
 		}),
 	)
-	mocktool.LogFailed(err)
+	mt.LogFailed(err)
 
+	// var currUrl string
 	newReply = gofakeit.Sentence(5 + rand.Intn(10))
 	err = runTasks("reply comment", ctx,
-		chp.WaitVisible(`body>footer`),
-		chp.Click(`ul.replies > li:nth-child(1) > article > section+div > small > a[href$="/reply"]`),
-		chp.WaitVisible(`body>footer`),
-		chp.SetValue(`#reply_form>textarea[name="content"]`, newReply),
-		chp.Click(`#reply_form>button[type="submit"]`),
-		chp.WaitVisible(`body>footer`),
-		chp.TextContent(`ul.replies > li:last-child > article > section`, &resultText),
+		mock.WaitFooterReady(),
+		chp.Click(`#replies-box > li:first-child > article > .article-operation a[title="Reply"]`),
+		mock.WaitFooterReady(),
+		chp.SetValue(`#content`, newReply, chp.ByID),
+		chp.Click(`#reply_form button[type="submit"]`),
+		mock.WaitFooterReady(),
+		chp.TextContent(`li:target > article > section`, &resultText, chp.ByQuery),
+		// chp.Location(&currUrl),
 		chp.ActionFunc(func(ctx context.Context) error {
-			mocktool.Logln("new reply: ", newReply)
-			mocktool.Logln("resultText: ", resultText)
+			// mt.Logln("current url: ", currUrl)
+			mt.Logln("new reply: ", newReply)
+			mt.Logln("resultText: ", resultText)
 			if resultText != newReply {
 				return errors.New("reply content is incorrect")
 			}
 			return nil
 		}),
 	)
-	mocktool.LogFailed(err)
+	mt.LogFailed(err)
 
 	err = runTasks("delete article", ctx,
 		chp.Click(`ul.nav-menu:nth-child(2) > li > a[href^="/users/"]`),
-		chp.WaitVisible(`body>footer`),
+		mock.WaitFooterReady(),
 		chp.Click(`body > ul > li:last-child > div:first-child > a`),
-		chp.WaitVisible(`body>footer`),
+		mock.WaitFooterReady(),
 		chp.Click(`.btn-del`),
-		chp.WaitVisible(`body>footer`),
+		mock.WaitFooterReady(),
 		chp.Click(`body>form>button[type=submit]`),
-		chp.WaitVisible(`body>footer`),
+		mock.WaitFooterReady(),
 		chp.TextContent(`body>article>i`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
 			if resultText != "<Deleted>" {
@@ -266,21 +272,21 @@ func main() {
 			return nil
 		}),
 	)
-	mocktool.LogFailed(err)
+	mt.LogFailed(err)
 
 	testingDuration := time.Now().Sub(startTime)
 	fmt.Printf("OK, all pass! Testing duration: %fs\n", testingDuration.Seconds())
 }
 
 func runTasks(name string, ctx context.Context, actions ...chp.Action) error {
-	mocktool.Logln("Task: " + name)
+	mt.Logln("Task: " + name)
 
 	err := chp.Run(ctx, actions...)
 
 	if err != nil {
 		return err
 	}
-	mocktool.Logln("PASS: ", name)
-	mocktool.Logln("")
+	mt.Logln("PASS: ", name)
+	mt.Logln("")
 	return nil
 }

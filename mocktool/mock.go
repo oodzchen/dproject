@@ -90,3 +90,9 @@ func (mc *Mock) CreateArticle(a *TestArticle) chp.Tasks {
 		}),
 	}
 }
+
+func (mc *Mock) WaitFooterReady() chp.Tasks {
+	return chp.Tasks{
+		chp.WaitReady(`body > footer`, chp.ByQuery),
+	}
+}
