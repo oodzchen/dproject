@@ -23,10 +23,19 @@ var TmplFuncs = template.FuncMap{
 					switch v := val.(type) {
 					case string:
 						tplData[item], _ = strconv.Atoi(v)
-						// fmt.Println("type is string: ", v)
+					case int32:
+						tplData[item] = int(v)
+					case int64:
+						tplData[item] = int(v)
 					case int:
 						tplData[item] = v
-						// fmt.Println("type is int: ", v)
+					case float32:
+						tplData[item] = int(v)
+					case float64:
+						tplData[item] = int(v)
+					default:
+						// fmt.Println("Count data type: ", reflect.TypeOf(v))
+						tplData[item] = 0
 
 					}
 				} else {
