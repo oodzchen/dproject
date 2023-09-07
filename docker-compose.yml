@@ -44,6 +44,19 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  nginx:
+    image: nginx:1.25.2-alpine
+    container_name: "local-nginx"
+    environment:
+      - APP_LOCAL_HOST=$APP_LOCAL_HOST
+      - NGINX_PORT=$NGINX_PORT
+    volumes:
+      - ./static:/data/static
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/templates:/etc/nginx/templates
+      - ./nginx/logs:/etc/nginx/logs
+    ports:
+      - 3004:$NGINX_PORT
 
 volumes:
   db-data:

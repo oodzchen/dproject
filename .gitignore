@@ -23,3 +23,5 @@ tmp
 *_password.txt
 .secrets*
 *local_testing.yml
+nginx/logs/*.log
+nginx/logs/*.pid

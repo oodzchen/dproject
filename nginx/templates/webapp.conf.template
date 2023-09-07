@@ -1,0 +1,20 @@
+# resolver 127.0.0.11 valid=10s;
+
+server {
+    listen ${NGINX_PORT};
+
+    location /static {
+        alias /data/static;
+    }
+
+    location /favicon.ico {
+        alias /data/static/favicon.ico;
+    }
+
+    set $app ${APP_LOCAL_HOST}:3000;
+    location / {
+        proxy_pass http://$app;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}

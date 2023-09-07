@@ -102,10 +102,10 @@ func Service(c *ServiceConfig) http.Handler {
 		r.Mount("/debug", middleware.Profiler())
 	}
 
-	FileServer(r, "/static", http.Dir("./static"))
-	r.Get("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/static/favicon.ico", http.StatusFound)
-	})
+	// FileServer(r, "/static", http.Dir("./static"))
+	// r.Get("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+	// 	http.Redirect(w, r, "/static/favicon.ico", http.StatusFound)
+	// })
 	r.Mount("/", mainResource.Routes())
 	r.Mount("/articles", articleResource.Routes())
 	r.Mount("/users", userResource.Routes())

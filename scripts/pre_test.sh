@@ -9,9 +9,10 @@ echo "ADMIN_PASSWORD=$ADMIN_PASSWORD" >> ./.env.testing
 echo "USER_DEFAULT_PASSWORD=$USER_DEFAULT_PASSWORD" >> ./.env.testing
 echo "DB_HOST=$DB_HOST" >> ./.env.testing
 echo "DB_PORT=$DB_PORT" >> ./.env.testing
-echo "DEBUG=0" >> ./.env.testing
-echo "DOMAIN_NAME=localhost" >> ./.env.testing
-echo "PORT=3000" >> ./.env.testing
+echo "DEBUG=$DEBUG" >> ./.env.testing
+echo "DOMAIN_NAME=$DOMAIN_NAME" >> ./.env.testing
+echo "APP_LOCAL_HOST=$APP_LOCAL_HOST" >> ./.env.testing
+echo "NGINX_PORT=$NGINX_PORT" >> ./.env.testing
 
 echo "env file len $(expr length "$(cat ./.env.testing)")"
 
