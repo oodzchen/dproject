@@ -1,18 +1,20 @@
-FROM golang:1.20
+# syntax=docker/dockerfile:1
 
-RUN apt-get update && apt-get install -y --no-install-recommends uuid-runtime apache2-utils
+FROM golang:1.20.8 AS build-stage
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
-# pre-copy/cache go.mod for pre-downloading dependencies and only redownloading them in subsequent builds if they change
+ARG GOPROXY
+
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 
 COPY . .
-RUN go build -v -o /usr/local/bin/app .
+RUN CGO_ENABLED=0 GOOS=linux go build -o ./bin/webapp .
 
-ADD ./config/endpoint.sh /usr/local/bin/run.sh
+FROM alpine:3.18 AS release-stage
+WORKDIR /app
 
-CMD "run.sh" "/usr/src/app" && sleep infinity
+COPY --from=build-stage /app .
 
-EXPOSE 3000/tcp
+CMD ["/app/bin/webapp"]

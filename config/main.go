@@ -12,14 +12,13 @@ import (
 type AppConfig struct {
 	SessionSecret      string `env:"SESSION_SECRET"`
 	CSRFSecret         string `env:"CSRF_SECRET"`
-	SiteName           string `env:"SITE_NAME"`
 	DomainName         string `env:"DOMAIN_NAME" envDefault:"localhost"`
 	Port               int    `env:"PORT" envDefault:"3000"`
-	ReplyDepthPageSize int    `env:"REPLY_DEPTH_PAGE_SIZE" envDefault:"10"`
 	Debug              bool   `env:"DEBUG" envDefault:"false"`
 	BrandName          string `env:"BRAND_NAME"`
 	Slogan             string `env:"SLOGAN"`
 	DB                 *DBConfig
+	ReplyDepthPageSize int
 }
 
 func (ac *AppConfig) GetServerURL() string {
@@ -55,9 +54,19 @@ var Config *AppConfig
 // var BrandName = "DizKaz"
 var BrandName = "笛卡"
 var Slogan = "知无不言, 言无不尽"
+var ReplyDepthPageSize = 10
 
 func Init(envFile string) error {
 	cfg, err := Parse(envFile)
+	if err != nil {
+		return err
+	}
+	Config = cfg
+	return nil
+}
+
+func InitFromEnv() error {
+	cfg, err := ParseFromEnv()
 	if err != nil {
 		return err
 	}
@@ -71,15 +80,20 @@ func Parse(envFile string) (*AppConfig, error) {
 		return nil, err
 	}
 
+	return ParseFromEnv()
+}
+
+func ParseFromEnv() (*AppConfig, error) {
 	dbCfg := &DBConfig{}
 	if err := env.Parse(dbCfg); err != nil {
 		return nil, err
 	}
 
 	cfg := &AppConfig{
-		DB:        dbCfg,
-		BrandName: BrandName,
-		Slogan:    Slogan,
+		DB:                 dbCfg,
+		BrandName:          BrandName,
+		Slogan:             Slogan,
+		ReplyDepthPageSize: ReplyDepthPageSize,
 	}
 	if err := env.Parse(cfg); err != nil {
 		return nil, err

@@ -32,11 +32,11 @@ var maxLevel int
 func init() {
 	const defaultArticleNum int = 16
 	const defaultUserNum int = 30
-	const defaultEnvFile string = ".env.local"
+	const defaultEnvFile string = ".env.testing"
 
 	flag.IntVar(&articleNum, "an", defaultArticleNum, "Create article with specific number")
 	flag.IntVar(&userNum, "un", defaultUserNum, "User(goroutine) number")
-	flag.StringVar(&envFile, "e", defaultEnvFile, "ENV file path, default to .env.local")
+	flag.StringVar(&envFile, "e", defaultEnvFile, "ENV file path, default to .env.testing")
 	flag.BoolVar(&showHead, "h", false, "Show browser head")
 
 	replyCmd = flag.NewFlagSet("reply", flag.ExitOnError)

@@ -81,7 +81,7 @@ LIMIT $2;`
 
 	// fmt.Println("page", page)
 	// fmt.Println("pageSize", pageSize)
-	fmt.Println("args: ", args)
+	// fmt.Println("args: ", args)
 
 	rows, err := a.dbPool.Query(context.Background(), sqlStr, args...)
 

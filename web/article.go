@@ -569,7 +569,7 @@ func (ar *ArticleResource) Vote(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, referer, http.StatusFound)
 		}
 	} else {
-		http.Redirect(w, r, "/article/"+articleIdS, http.StatusFound)
+		http.Redirect(w, r, "/articles/"+articleIdS, http.StatusFound)
 	}
 }
 
@@ -600,7 +600,7 @@ func (ar *ArticleResource) Save(w http.ResponseWriter, r *http.Request) {
 	if IsRegisterdPage(refererUrl, ar.router) {
 		http.Redirect(w, r, referer, http.StatusFound)
 	} else {
-		http.Redirect(w, r, "/article/"+articleIdS, http.StatusFound)
+		http.Redirect(w, r, "/articles/"+articleIdS, http.StatusFound)
 	}
 }
 
@@ -638,6 +638,8 @@ func (ar *ArticleResource) React(w http.ResponseWriter, r *http.Request) {
 
 	referer := r.Referer()
 	refererUrl, _ := url.Parse(r.Referer())
+	fmt.Println("referer: ", referer)
+	fmt.Println("refererUrl: ", refererUrl)
 	if IsRegisterdPage(refererUrl, ar.router) {
 		if rootId != "" && rootId != "0" && rootId != articleIdS {
 			http.Redirect(w, r, fmt.Sprintf("/articles/%s#ar_%s", rootId, articleIdS), http.StatusFound)
@@ -645,6 +647,6 @@ func (ar *ArticleResource) React(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, referer, http.StatusFound)
 		}
 	} else {
-		http.Redirect(w, r, "/article/"+articleIdS, http.StatusFound)
+		http.Redirect(w, r, "/articles/"+articleIdS, http.StatusFound)
 	}
 }

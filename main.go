@@ -19,7 +19,14 @@ import (
 )
 
 func main() {
-	err := config.Init(".env.local")
+	var err error
+	testingMode := os.Getenv("TEST")
+	if testingMode == "1" || testingMode == "true" {
+		err = config.Init(".env.testing")
+	} else {
+		err = config.InitFromEnv()
+	}
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -89,12 +96,10 @@ func main() {
 		serverStopCtx()
 	}()
 
-	fmt.Printf("Listening at http://localhost%d\n", port)
+	fmt.Printf("Listening at http://localhost:%d\n", port)
 	err = server.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
-	// port := os.Getenv("PORT")
-	// log.Fatal(http.ListenAndServe(port, server))
 	<-serverCtx.Done()
 }

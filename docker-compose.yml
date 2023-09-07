@@ -4,38 +4,41 @@ services:
     build:
       context: .
       args:
-        HTTPS_PROXY: http://192.168.31.130:1089
+        GOPROXY: "https://goproxy.cn,direct"
     environment:
       DB_CONTAINER_NAME: "webapp-db-1"
       DB_HOST: "db"
       DB_PORT: 5432
+      DOMAIN_NAME: $DOMAIN_NAME
+      DEBUG: $DEBUG
+      DB_NAME: $DB_NAME
+      DB_USER: $DB_USER
+      ADMIN_PASSWORD: $ADMIN_PASSWORD
+      USER_DEFAULT_PASSWORD: $USER_DEFAULT_PASSWORD
     container_name: "webapp-app-1"
     ports:
-      - 3000:3000
+      - $APP_PORT:3000
     depends_on:
       db:
         condition: service_healthy
     links:
       - db
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /usr/bin/docker:/usr/bin/docker
-      - .:/usr/src/app
   db:
     image: postgres:15.4
-    container_name: "webapp-db-1"
+    container_name: "local-webapp-db"
     user: postgres
-    secrets:
-      - db-password
     volumes:
       - db-data:/var/lib/postgresql/data
+      - ./config/db/initdb:/docker-entrypoint-initdb.d/
+      - ./config/db:/tmp/data
     environment:
       - POSTGRES_DB=postgres
-      - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
-    expose:
-      - 5432
+      - POSTGRES_PASSWORD=$PG_PASSWORD
+      - DB_NAME=$DB_NAME
+      - DB_USER=$DB_USER
+      - ADMIN_PASSWORD=$ADMIN_PASSWORD
     ports:
-      - 8088:5432
+      - $DB_PORT:5432
     healthcheck:
       test: [ "CMD", "pg_isready" ]
       interval: 10s
@@ -44,7 +47,3 @@ services:
 
 volumes:
   db-data:
-
-secrets:
-  db-password:
-    file: ./config/pg_password.txt

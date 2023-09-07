@@ -13,7 +13,7 @@ import (
 )
 
 func connectDB() (*pgstore.PGStore, error) {
-	err := config.Init("testdata/.env.local")
+	err := config.Init("testdata/.env.testing")
 	if err != nil {
 		return nil, err
 	}

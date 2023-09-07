@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 
-source ./run_docker.sh $1
+env_file=${1:-./.env.local.dev}
+compose_file=${2:-./docker-compose.dev.yml}
 
-echo "env file: $env_file"
+# echo "compose file: $compose_file"
 
-echo "is ci: $2"
+export DEV=1
+
+source ./scripts/init_env.sh $env_file
+source ./scripts/run_docker.sh $env_file $compose_file
+source ./scripts/pre_test.sh 
 
 cleanup() {
     echo "Ctrl+C pressed. Cleaning up..."
@@ -13,9 +18,5 @@ cleanup() {
     exit 1
 }
 
-if [ "$2" == "ci" ];then
-    app &
-else
-    trap cleanup SIGINT
-    fresh
-fi
+trap cleanup SIGINT
+fresh

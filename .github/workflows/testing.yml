@@ -29,15 +29,9 @@ jobs:
           USER_DEFAULT_PASSWORD: ${{ secrets.USER_DEFAULT_PASSWORD }}
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_PORT: ${{ secrets.DB_PORT }}
-      run: |
-        echo "PG_PASSWORD=$PG_PASSWORD" > ./.env.testing
-        echo "DB_NAME=$DB_NAME" >> ./.env.testing
-        echo "DB_USER=$DB_USER" >> ./.env.testing
-        echo "ADMIN_PASSWORD=$ADMIN_PASSWORD" >> ./.env.testing
-        echo "USER_DEFAULT_PASSWORD=$USER_DEFAULT_PASSWORD" >> ./.env.testing
-        echo "DB_HOST=$DB_HOST" >> ./.env.testing
-        echo "DB_PORT=$DB_PORT" >> ./.env.testing
-        echo "env file len $(expr length "$(cat ./.env.testing)")"
+          DEBUG: 0
+          DOMAIN_NAME: "localhost"
+      run: ./scripts/pre_test.sh
 
     - run: docker compose --env-file ./.env.testing -f ./docker-compose.dev.yml pull
 
@@ -47,17 +41,17 @@ jobs:
 
     - name: Run docker
       run: |
-        ./run_docker.sh ./.env.testing
+        ./scripts/run_docker.sh ./.env.testing
         docker ps
 
     - name: Build
-      run: go build -o /usr/local/bin/app -v .
+      run: CGO_ENABLED=0 GOOS=linux go build -o /usr/local/bin/app -v .
 
     - name: Test
       run: go test -v ./...
 
     - name: Run app
-      run: app &
-        
+      run: TEST=1 app &
+
     - name: E2E test
       run: go run ./e2e -t 180

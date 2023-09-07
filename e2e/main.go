@@ -32,7 +32,7 @@ var mock *mocktool.Mock
 func init() {
 	const defaultTimeoutDuration int = 6
 	const defaultSowHead = false
-	const defaultEnvFile = ".env.local"
+	const defaultEnvFile = ".env.testing"
 
 	flag.BoolVar(&showHead, "h", defaultSowHead, "Show browser head")
 	flag.IntVar(&timeoutDuration, "t", defaultTimeoutDuration, "Timeout duration")

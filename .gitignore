@@ -19,7 +19,7 @@ tmp
 #*#
 *~
 .env.local*
-.env.act
+.env.testing*
 *_password.txt
 .secrets*
 *local_testing.yml
