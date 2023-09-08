@@ -3,13 +3,9 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
-	"os"
-	"strconv"
 
 	"github.com/oodzchen/dproject/config"
 )
-
-const DEFAULT_REPLY_DEPTH_SIZE int = 10
 
 func GetSiteHost() string {
 	// domain := os.Getenv("DOMAIN_NAME")
@@ -41,13 +37,9 @@ func SprintJSONf(data any) string {
 }
 
 func GetReplyDepthSize() int {
-	size, _ := strconv.Atoi(os.Getenv("REPLY_DEPTH_PAGE_SIZE"))
-	if size == 0 {
-		return DEFAULT_REPLY_DEPTH_SIZE
-	}
-	return size
+	return config.ReplyDepthPageSize
 }
 
 func IsDebug() bool {
-	return os.Getenv("DEBUG") == "1"
+	return config.Config.Debug
 }

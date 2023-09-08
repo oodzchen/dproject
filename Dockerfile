@@ -10,11 +10,14 @@ COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o ./bin/webapp .
+RUN CGO_ENABLED=0 GOOS=linux go build -o ./dist/bin/webapp .
+RUN cp -r ./views ./dist
 
 FROM alpine:3.18 AS release-stage
 WORKDIR /app
 
-COPY --from=build-stage /app .
+RUN apk update && apk add curl
+
+COPY --from=build-stage /app/dist .
 
 CMD ["/app/bin/webapp"]

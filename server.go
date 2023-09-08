@@ -2,7 +2,8 @@ package main
 
 import (
 	"net/http"
-	"strings"
+	"os"
+	"path"
 	"text/template"
 	"time"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/go-chi/httprate"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
-	"github.com/oodzchen/dproject/config"
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
 	"github.com/oodzchen/dproject/web"
@@ -35,28 +35,32 @@ var AuthRequiredPathes map[string]Methods = map[string]Methods{
 	`^/settings/account/?$`: {"GET", "POST"},
 }
 
-func FileServer(r chi.Router, path string, root http.FileSystem) {
-	if strings.ContainsAny(path, "{}*") {
-		panic("FileServer does not permit any URL parameters.")
-	}
+// func FileServer(r chi.Router, path string, root http.FileSystem) {
+// 	if strings.ContainsAny(path, "{}*") {
+// 		panic("FileServer does not permit any URL parameters.")
+// 	}
 
-	if path != "/" && path[len(path)-1] != '/' {
-		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
-		path += "/"
-	}
-	path += "*"
+// 	if path != "/" && path[len(path)-1] != '/' {
+// 		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
+// 		path += "/"
+// 	}
+// 	path += "*"
 
-	r.Get(path, func(w http.ResponseWriter, r *http.Request) {
-		rctx := chi.RouteContext(r.Context())
-		pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
-		fs := http.StripPrefix(pathPrefix, http.FileServer(root))
-		fs.ServeHTTP(w, r)
-	})
-}
+// 	r.Get(path, func(w http.ResponseWriter, r *http.Request) {
+// 		rctx := chi.RouteContext(r.Context())
+// 		pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
+// 		fs := http.StripPrefix(pathPrefix, http.FileServer(root))
+// 		fs.ServeHTTP(w, r)
+// 	})
+// }
 
 func Service(c *ServiceConfig) http.Handler {
+	wd, _ := os.Getwd()
+	// fmt.Println("work directory: ", wd)
+	// fmt.Println("templates directory: ", path.Join(wd, "./views/*.tmpl"))
+	tmplPath := path.Join(wd, "./views/*.tmpl")
 	baseTmpl := template.New("base").Funcs(TmplFuncs).Funcs(sprig.FuncMap())
-	baseTmpl = template.Must(baseTmpl.ParseGlob("./views/*.tmpl"))
+	baseTmpl = template.Must(baseTmpl.ParseGlob(tmplPath))
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -98,9 +102,9 @@ func Service(c *ServiceConfig) http.Handler {
 	})
 	r.Use(CreateCheckAuthMiddleware(AuthRequiredPathes, sessStore))
 
-	if config.Config.Debug {
-		r.Mount("/debug", middleware.Profiler())
-	}
+	// if config.Config.Debug {
+	// 	r.Mount("/debug", middleware.Profiler())
+	// }
 
 	// FileServer(r, "/static", http.Dir("./static"))
 	// r.Get("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {

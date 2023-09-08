@@ -26,7 +26,7 @@ services:
     image: nginx:1.25.2-alpine
     container_name: "local-nginx"
     environment:
-      - APP_LOCAL_HOST=$APP_LOCAL_HOST
+      - APP_LOCAL_HOST=172.17.0.1
       - NGINX_PORT=$NGINX_PORT
     volumes:
       - ./static:/data/static

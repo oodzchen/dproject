@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 env_file=${1:-./.env.local.dev}
-# store_testdata=./store/testdata
 
 echo "env file: $env_file"
 

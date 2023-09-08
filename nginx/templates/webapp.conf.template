@@ -1,5 +1,9 @@
 # resolver 127.0.0.11 valid=10s;
 
+upstream backend{
+    server ${APP_LOCAL_HOST}:3000;
+}
+
 server {
     listen ${NGINX_PORT};
 
@@ -11,9 +15,9 @@ server {
         alias /data/static/favicon.ico;
     }
 
-    set $app ${APP_LOCAL_HOST}:3000;
+    
     location / {
-        proxy_pass http://$app;
+        proxy_pass http://backend;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }

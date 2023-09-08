@@ -30,8 +30,11 @@ encrypt_password(){
     hash_password "$USER_DEFAULT_PASSWORD" > ./config/db/initdb/encrypted_user_password.txt
 }
 
+rebuild_docker(){
+    docker compose -f $compose_file rm -f
+    docker compose -f $compose_file build
+}
+
 stop_docker(){
     docker compose -f $compose_file down
 }
-
-run_docker

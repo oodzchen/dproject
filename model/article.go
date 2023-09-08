@@ -94,15 +94,15 @@ const (
 	ListSortHot                    = "list_hot"
 )
 
-var replySortMap = map[ArticleSortType]bool{
+var articleSortMap = map[ArticleSortType]bool{
 	ReplySortBest:  true,
 	ListSortLatest: true,
 	ListSortBest:   true,
 	ListSortHot:    true,
 }
 
-func ValidReplySort(sortType string) bool {
-	return replySortMap[ArticleSortType(sortType)]
+func ValidArticleSort(sortType string) bool {
+	return articleSortMap[ArticleSortType(sortType)]
 }
 
 type ArticleList struct {

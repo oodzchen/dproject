@@ -18,5 +18,6 @@ cleanup() {
     exit 1
 }
 
+run_docker
 trap cleanup SIGINT
 fresh

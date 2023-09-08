@@ -29,7 +29,6 @@ jobs:
           USER_DEFAULT_PASSWORD: ${{ secrets.USER_DEFAULT_PASSWORD }}
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_PORT: ${{ secrets.DB_PORT }}
-          DEBUG: 0
           DOMAIN_NAME: "localhost"
           APP_LOCAL_HOST: "172.17.0.1"
           NGINX_PORT: 8001

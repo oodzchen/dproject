@@ -57,11 +57,7 @@ func main() {
 	}
 
 	port := appCfg.Port
-	domain := appCfg.DomainName
-	if utils.IsDebug() {
-		domain = "0.0.0.0"
-	}
-	addr := fmt.Sprintf("%s:%d", domain, port)
+	addr := fmt.Sprintf(":%d", port)
 
 	model.InitConfidences()
 	server := &http.Server{

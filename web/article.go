@@ -63,10 +63,10 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	sort := r.Form.Get("sort")
 
 	var sortType model.ArticleSortType
-	if sort == "" {
-		sortType = model.ListSortBest
-	} else {
+	if model.ValidArticleSort(sort) {
 		sortType = model.ArticleSortType(sort)
+	} else {
+		sortType = model.ListSortBest
 	}
 	// fmt.Println("paramPage:", paramPage)
 	page, err := strconv.Atoi(paramPage)
@@ -383,7 +383,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	}
 
 	replySort := model.ReplySortBest
-	if model.ValidReplySort(sortType) {
+	if model.ValidArticleSort(sortType) {
 		replySort = model.ArticleSortType(sortType)
 	}
 	// fmt.Println("replySort: ", replySort)
