@@ -42,7 +42,7 @@ jobs:
 
     - name: Run docker
       run: |
-        ./scripts/run_docker.sh ./.env.testing
+        source./scripts/run_docker.sh && run_docker ./.env.testing
         docker ps
 
     - name: Build
