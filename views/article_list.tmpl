@@ -26,6 +26,9 @@
     {{$csrfField := .CSRFField -}}
     {{$startIndex := add (mul (add $data.CurrPage -1) $data.PageSize) 1}}
     <ol class="article-list" start="{{$startIndex}}">
+	{{- if eq .Data.ArticleTotal 0 -}}
+	    <i class="text-lighten-2">No data</i>
+	{{- end -}}
 	{{range $idx, $item := .Data.Articles -}}
 	    <li>
 		<a {{if eq $idx 0}}id="article-list-head"{{end}} href="/articles/{{$item.Id}}">{{$item.DisplayTitle}}</a>

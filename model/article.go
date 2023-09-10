@@ -145,6 +145,9 @@ func (al *ArticleList) PagingList(page, pageSize int) []*Article {
 
 	start := pageSize * (page - 1)
 	end := start + pageSize
+	if start < 0{
+		start = 0
+	}
 	if end > len(al.List) {
 		end = len(al.List)
 	}
