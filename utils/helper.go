@@ -11,7 +11,7 @@ func GetSiteHost() string {
 	// domain := os.Getenv("DOMAIN_NAME")
 	domain := config.Config.DomainName
 	// port := os.Getenv("PORT")
-	port := config.Config.Port
+	port := config.Config.AppPort
 
 	if port != 80 && port != 443 {
 		// return domain + ":" + port

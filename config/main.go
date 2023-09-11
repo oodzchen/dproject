@@ -13,17 +13,18 @@ type AppConfig struct {
 	SessionSecret      string `env:"SESSION_SECRET"`
 	CSRFSecret         string `env:"CSRF_SECRET"`
 	DomainName         string `env:"DOMAIN_NAME" envDefault:"localhost"`
-	Port               int    `env:"PORT" envDefault:"3000"`
+	AppPort            int    `env:"APP_PORT" envDefault:"3000"`
 	AppOuterPort       int    `env:"APP_OUTER_PORT" envDefault:"3000"`
 	Debug              bool   `env:"DEBUG" envDefault:"false"`
 	BrandName          string `env:"BRAND_NAME"`
 	Slogan             string `env:"SLOGAN"`
 	DB                 *DBConfig
 	ReplyDepthPageSize int
+	AdminEmail         string `env:"ADMIN_EMIL"`
 }
 
 func (ac *AppConfig) GetServerURL() string {
-	return fmt.Sprintf("http://%s:%d", ac.DomainName, ac.Port)
+	return fmt.Sprintf("http://%s:%d", ac.DomainName, ac.AppPort)
 }
 
 // Get app host as host:port

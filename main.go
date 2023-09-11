@@ -56,16 +56,28 @@ func main() {
 		log.Fatal(err)
 	}
 
-	port := appCfg.Port
+	isProd := false
+	if os.Getenv("PROD") == "1" {
+		isProd = true
+	}
+
+	port := appCfg.AppPort
 	addr := fmt.Sprintf(":%d", port)
 
 	model.InitConfidences()
+
 	server := &http.Server{
 		Addr: addr,
 		Handler: (Service(&ServiceConfig{
 			sessSecret: appCfg.SessionSecret,
 			store:      dataStore,
 		})),
+	}
+
+	tlsManager := NewCertManager()
+	if isProd {
+		server.Addr = ":https"
+		server.TLSConfig = tlsManager.TLSConfig()
 	}
 
 	serverCtx, serverStopCtx := context.WithCancel(context.Background())
@@ -92,9 +104,15 @@ func main() {
 		serverStopCtx()
 	}()
 
-	fmt.Printf("App listening at http://localhost:%d\n", port)
-	fmt.Printf("Nginx expose at http://localhost:%d\n", appCfg.AppOuterPort)
-	err = server.ListenAndServe()
+	if isProd {
+		go http.ListenAndServe(":http", tlsManager.HTTPHandler(nil))
+		err = server.ListenAndServeTLS("", "")
+	} else {
+		fmt.Printf("App listening at http://localhost:%d\n", port)
+		fmt.Printf("Nginx expose at http://localhost:%d\n", appCfg.AppOuterPort)
+		err = server.ListenAndServe()
+	}
+
 	if err != nil && err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
