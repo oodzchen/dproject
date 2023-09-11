@@ -1,10 +1,11 @@
 version: "3.8"
 services:
   webapp:
-    build:
-      context: .
-      args:
-        GOPROXY: "https://goproxy.cn,direct"
+    # build:
+    #   context: .
+    #   args:
+    #     GOPROXY: "https://goproxy.cn,direct"
+    image: kholinchen/dproject:latest
     environment:
       DB_CONTAINER_NAME: "webapp-db-1"
       DB_HOST: "db"
