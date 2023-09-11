@@ -20,7 +20,7 @@ type AppConfig struct {
 	Slogan             string `env:"SLOGAN"`
 	DB                 *DBConfig
 	ReplyDepthPageSize int
-	AdminEmail         string `env:"ADMIN_EMIL"`
+	AdminEmail         string `env:"ADMIN_EMAIL"`
 }
 
 func (ac *AppConfig) GetServerURL() string {

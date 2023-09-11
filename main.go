@@ -105,8 +105,12 @@ func main() {
 	}()
 
 	if isProd {
-		go http.ListenAndServe(":http", tlsManager.HTTPHandler(nil))
+		go func() {
+			log.Fatal(http.ListenAndServe(":http", tlsManager.HTTPHandler(nil)))
+		}()
+		fmt.Printf("App listening at https://%s\n", appCfg.DomainName)
 		err = server.ListenAndServeTLS("", "")
+		// err = http.Serve(autocert.NewListener(appCfg.DomainName), server.Handler)
 	} else {
 		fmt.Printf("App listening at http://localhost:%d\n", port)
 		fmt.Printf("Nginx expose at http://localhost:%d\n", appCfg.AppOuterPort)
