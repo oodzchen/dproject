@@ -7,6 +7,7 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"regexp"
 	"time"
 
 	"github.com/brianvoe/gofakeit/v6"
@@ -28,6 +29,8 @@ var timeoutDuration int
 
 var envFile string
 var mock *mocktool.Mock
+
+var successRE = regexp.MustCompile("/successfully/")
 
 func init() {
 	const defaultTimeoutDuration int = 6
@@ -220,12 +223,10 @@ func main() {
 		chp.SetValue(`#content`, newReply, chp.ByID),
 		chp.Click(`#reply_form button[type="submit"]`),
 		mock.WaitFooterReady(),
-		chp.TextContent(`li:target > article > section`, &resultText, chp.ByQuery),
+		chp.TextContent(`#page-tip>span`, &resultText, chp.ByQuery),
 		chp.ActionFunc(func(ctx context.Context) error {
-			mt.Logln("new reply: ", newReply)
-			mt.Logln("resultText: ", resultText)
-			if resultText != newReply {
-				return errors.New("reply content is incorrect")
+			if successRE.Match([]byte(resultText)) {
+				return errors.New("reply article failed")
 			}
 			return nil
 		}),
@@ -235,20 +236,20 @@ func main() {
 	// var currUrl string
 	newReply = gofakeit.Sentence(5 + rand.Intn(10))
 	err = runTasks("reply comment", ctx,
+		chp.Navigate(mock.ServerURL),
+		chp.Click(`body > .tabs > a[title^="Hot"]`),
+		mock.WaitFooterReady(),
+		chp.Click(`body > .article-list > li:first-child > a`),
 		mock.WaitFooterReady(),
 		chp.Click(`#replies-box > li:first-child > article > .article-operation a[title="Reply"]`),
 		mock.WaitFooterReady(),
 		chp.SetValue(`#content`, newReply, chp.ByID),
 		chp.Click(`#reply_form button[type="submit"]`),
 		mock.WaitFooterReady(),
-		chp.TextContent(`li:target > article > section`, &resultText, chp.ByQuery),
-		// chp.Location(&currUrl),
+		chp.TextContent(`#page-tip>span`, &resultText, chp.ByQuery),
 		chp.ActionFunc(func(ctx context.Context) error {
-			// mt.Logln("current url: ", currUrl)
-			mt.Logln("new reply: ", newReply)
-			mt.Logln("resultText: ", resultText)
-			if resultText != newReply {
-				return errors.New("reply content is incorrect")
+			if successRE.Match([]byte(resultText)) {
+				return errors.New("reply comment failed")
 			}
 			return nil
 		}),

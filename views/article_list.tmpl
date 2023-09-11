@@ -15,9 +15,9 @@
     <div class="tabs">
 	{{- range $sortTabs -}}
 	    {{- if eq $data.SortType . -}}
-		<span class="tab active">{{get $sortTabMap .}}</span>
+		<span title="{{get $sortTabMap .}}" class="tab active">{{get $sortTabMap .}}</span>
 	    {{- else -}}	
-		<a class="tab" href="/articles{{if ne . "list_best"}}?sort={{.}}{{end}}">{{get $sortTabMap .}}</a>
+		<a class="tab" title="{{get $sortTabMap .}}" href="/articles{{if ne . "list_best"}}?sort={{.}}{{end}}">{{get $sortTabMap .}}</a>
 	    {{- end -}}
 	{{- end -}}
     </div>

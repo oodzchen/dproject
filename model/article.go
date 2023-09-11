@@ -145,7 +145,7 @@ func (al *ArticleList) PagingList(page, pageSize int) []*Article {
 
 	start := pageSize * (page - 1)
 	end := start + pageSize
-	if start < 0{
+	if start < 0 {
 		start = 0
 	}
 	if end > len(al.List) {
@@ -272,8 +272,6 @@ func (a *Article) Sanitize() {
 	a.Title = p.Sanitize(a.Title)
 	a.Content = p.Sanitize(a.Content)
 }
-
-var ErrValidArticleFailed = errors.New("valid article failed")
 
 func articleValidErr(str string) error {
 	return errors.Join(ErrValidArticleFailed, errors.New(str))

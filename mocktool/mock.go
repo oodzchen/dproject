@@ -16,6 +16,7 @@ type Mock struct {
 
 func NewMock(cfg *config.AppConfig) *Mock {
 	testingPWD := cfg.DB.UserDefaultPassword
+	// fmt.Println("test password: ", testingPWD)
 	serverURL := cfg.GetServerURL()
 	return &Mock{cfg: cfg, TestingPWD: testingPWD, ServerURL: serverURL}
 }
@@ -43,7 +44,7 @@ func (mc *Mock) Login(data *TestUser) chp.Tasks {
 		chp.Click(`ul.nav-menu:nth-child(2) > li > a[href^="/login"]`),
 		chp.SetValue(`input[name="email"]`, data.Email),
 		chp.SetValue(`input[name="password"]`, mc.TestingPWD),
-		chp.Click(`body>form>button[type="submit"]`),
+		chp.Click(`#login-form>button[type="submit"]`),
 		chp.WaitVisible(`body>footer`),
 	}
 }

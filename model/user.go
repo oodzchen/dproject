@@ -42,8 +42,6 @@ func (u *User) Sanitize() {
 	u.Introduction = p.Sanitize(u.Introduction)
 }
 
-var ErrValidUserFailed = errors.New("valid user failed")
-
 func userValidErr(str string) error {
 	return errors.Join(ErrValidUserFailed, errors.New(str))
 }

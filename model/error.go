@@ -1,6 +1,9 @@
 package model
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type AppError struct {
 	Err     error
@@ -16,6 +19,11 @@ type AppErrCode int
 const (
 	ErrAlreadyRegistered AppErrCode = 1000
 	ErrNotRegistered                = 1001
+)
+
+var (
+	ErrValidUserFailed    = errors.New("user validation failed")
+	ErrValidArticleFailed = errors.New("article validation failed")
 )
 
 func NewAppError(err error, code AppErrCode) *AppError {
