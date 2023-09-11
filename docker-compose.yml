@@ -53,13 +53,15 @@ services:
     environment:
       - APP_LOCAL_HOST=webapp
       - APP_PORT=$APP_PORT
+      - DOMAIN_NAME=$DOMAIN_NAME
     volumes:
       - ./static:/data/static
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/templates/webapp.conf.template:/etc/nginx/templates/webapp.conf.template:ro
       - ./nginx/logs:/etc/nginx/logs
     ports:
-      - $APP_OUTER_PORT:80
+      - 443:443
+      - 80:80
     depends_on:
       - webapp
 
