@@ -14,6 +14,7 @@ type AppConfig struct {
 	CSRFSecret         string `env:"CSRF_SECRET"`
 	DomainName         string `env:"DOMAIN_NAME" envDefault:"localhost"`
 	Port               int    `env:"PORT" envDefault:"3000"`
+	AppOuterPort       int    `env:"APP_OUTER_PORT" envDefault:"3000"`
 	Debug              bool   `env:"DEBUG" envDefault:"false"`
 	BrandName          string `env:"BRAND_NAME"`
 	Slogan             string `env:"SLOGAN"`
@@ -27,7 +28,7 @@ func (ac *AppConfig) GetServerURL() string {
 
 // Get app host as host:port
 func (ac *AppConfig) GetHost() string {
-	return fmt.Sprintf("%s:%d", ac.DomainName, ac.Port)
+	return fmt.Sprintf("%s:%d", ac.DomainName, ac.AppOuterPort)
 }
 
 type DBConfig struct {

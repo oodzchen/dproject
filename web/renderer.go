@@ -264,6 +264,25 @@ func (rd *Renderer) ToRefererUrl(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, targetUrl, http.StatusFound)
 }
 
+func (rd *Renderer) SavePrevPage(w http.ResponseWriter, r *http.Request) {
+	referer := r.Referer()
+	refererUrl, _ := url.Parse(referer)
+
+	if refererUrl != nil && IsRegisterdPage(refererUrl, rd.router) {
+		rd.Session("one", w, r).SetValue("prev_url", referer)
+	}
+}
+
+func (rd *Renderer) ToPrevPage(w http.ResponseWriter, r *http.Request) {
+	prevPgaeUrl := rd.Session("one", w, r).GetStringValue("prev_url")
+	if prevPgaeUrl != "" {
+		http.Redirect(w, r, prevPgaeUrl, http.StatusFound)
+		return
+	}
+
+	http.Redirect(w, r, "/", http.StatusFound)
+}
+
 type Session struct {
 	rd  *Renderer
 	Raw *sessions.Session
@@ -274,6 +293,14 @@ type Session struct {
 // Get value from *sessions.Session.Values
 func (ss *Session) GetValue(key string) any {
 	return ss.Raw.Values[key]
+}
+
+func (ss *Session) GetStringValue(key string) string {
+	val := ss.GetValue(key)
+	if v, ok := val.(string); ok {
+		return v
+	}
+	return ""
 }
 
 // Set data to *sessons.Session.Values and auto save, handle save error

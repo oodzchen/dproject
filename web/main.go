@@ -225,14 +225,12 @@ func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, email, p
 }
 
 func (mr *MainResource) LoginDebug(w http.ResponseWriter, r *http.Request) {
-	// mr.doLogout(w, r)
-
 	email := r.PostForm.Get("debug-user-email")
 	password := config.Config.DB.UserDefaultPassword
 	fmt.Println("debug-user-email: ", email)
 
 	mr.doLogin(w, r, email, password)
-	mr.ToRefererUrl(w, r)
+	mr.ToPrevPage(w, r)
 }
 
 func (mr *MainResource) Logout(w http.ResponseWriter, r *http.Request) {

@@ -5,7 +5,7 @@ upstream backend{
 }
 
 server {
-    listen ${NGINX_PORT};
+    listen 80;
 
     location /static {
         alias /data/static;

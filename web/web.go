@@ -59,5 +59,7 @@ func CeilInt(a, b int) int {
 
 func IsRegisterdPage(url *url.URL, r *chi.Mux) bool {
 	currHost := config.Config.GetHost()
+	// fmt.Println("url.Host: ", url.Host)
+	// fmt.Println("config.Config.GetHost()", currHost)
 	return currHost == url.Host && r.Match(chi.NewRouteContext(), "GET", url.Path)
 }

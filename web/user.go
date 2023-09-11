@@ -85,6 +85,8 @@ func (ur *UserResource) List(w http.ResponseWriter, r *http.Request) {
 		PageSize  int
 	}
 
+	ur.SavePrevPage(w, r)
+
 	ur.Render(w, r, "user_list", &PageData{
 		Title: "User List",
 		Data: &UserListPage{

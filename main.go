@@ -92,7 +92,8 @@ func main() {
 		serverStopCtx()
 	}()
 
-	fmt.Printf("Listening at http://localhost:%d\n", port)
+	fmt.Printf("App listening at http://localhost:%d\n", port)
+	fmt.Printf("Nginx expose at http://localhost:%d\n", appCfg.AppOuterPort)
 	err = server.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
 		log.Fatal(err)

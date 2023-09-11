@@ -32,7 +32,7 @@ encrypt_password(){
 
 rebuild_docker(){
     docker compose -f $compose_file rm -f
-    docker compose -f $compose_file build
+    docker compose -f $compose_file build --no-cache
 }
 
 stop_docker(){

@@ -199,7 +199,6 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 	title := r.Form.Get("title")
 	content := r.Form.Get("content")
 	paramReplyTo := r.Form.Get("reply_to")
-	// rootId := r.Form.Get("root")
 
 	var isReply bool
 	var replyTo int
@@ -244,12 +243,12 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	refererUrl := r.Referer()
-	referer, _ := url.Parse(refererUrl)
+	ssOne := ar.Session("one", w, r)
 
-	if isReply && refererUrl != "" && IsRegisterdPage(referer, ar.router) {
-		// http.Redirect(w, r, refererUrl, http.StatusFound)
-		http.Redirect(w, r, fmt.Sprintf("/articles/%d?sort=latest#ar_%d", replyTo, id), http.StatusFound)
+	ssOne.Flash("Publish content successfully")
+
+	if isReply && ssOne.GetStringValue("prev_url") != "" {
+		ar.ToPrevPage(w, r)
 	} else {
 		http.Redirect(w, r, fmt.Sprintf("/articles/%d", id), http.StatusFound)
 	}
@@ -526,6 +525,7 @@ func (ar *ArticleResource) DeletePage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ar *ArticleResource) ReplyPage(w http.ResponseWriter, r *http.Request) {
+	ar.SavePrevPage(w, r)
 	ar.handleItem(w, r, ArticlePageReply)
 	// http.Redirect(w, r, fmt.Sprintf("/articles/%s", chi.URLParam(r, "id")), http.StatusFound)
 }
@@ -562,14 +562,10 @@ func (ar *ArticleResource) Vote(w http.ResponseWriter, r *http.Request) {
 
 	referer := r.Referer()
 	refererUrl, _ := url.Parse(r.Referer())
-	if IsRegisterdPage(refererUrl, ar.router) {
-		if rootId != "" && rootId != "0" && rootId != articleIdS {
-			http.Redirect(w, r, fmt.Sprintf("/articles/%s#ar_%s", rootId, articleIdS), http.StatusFound)
-		} else {
-			http.Redirect(w, r, referer, http.StatusFound)
-		}
+	if IsRegisterdPage(refererUrl, ar.router) && rootId != "" && rootId != "0" && rootId != articleIdS {
+		http.Redirect(w, r, fmt.Sprintf("%s#ar_%s", referer, articleIdS), http.StatusFound)
 	} else {
-		http.Redirect(w, r, "/articles/"+articleIdS, http.StatusFound)
+		http.Redirect(w, r, referer, http.StatusFound)
 	}
 }
 
@@ -583,6 +579,7 @@ func (ar *ArticleResource) Save(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	rootId := r.Form.Get("root")
 	userId := ar.GetLoginedUserId(w, r)
 	if userId != 0 {
 		err = ar.store.Article.Save(articleId, userId)
@@ -597,10 +594,10 @@ func (ar *ArticleResource) Save(w http.ResponseWriter, r *http.Request) {
 
 	referer := r.Referer()
 	refererUrl, _ := url.Parse(r.Referer())
-	if IsRegisterdPage(refererUrl, ar.router) {
-		http.Redirect(w, r, referer, http.StatusFound)
+	if IsRegisterdPage(refererUrl, ar.router) && rootId != "" && rootId != "0" && rootId != articleIdS {
+		http.Redirect(w, r, fmt.Sprintf("%s#ar_%s", referer, articleIdS), http.StatusFound)
 	} else {
-		http.Redirect(w, r, "/articles/"+articleIdS, http.StatusFound)
+		http.Redirect(w, r, referer, http.StatusFound)
 	}
 }
 
@@ -638,15 +635,11 @@ func (ar *ArticleResource) React(w http.ResponseWriter, r *http.Request) {
 
 	referer := r.Referer()
 	refererUrl, _ := url.Parse(r.Referer())
-	fmt.Println("referer: ", referer)
-	fmt.Println("refererUrl: ", refererUrl)
-	if IsRegisterdPage(refererUrl, ar.router) {
-		if rootId != "" && rootId != "0" && rootId != articleIdS {
-			http.Redirect(w, r, fmt.Sprintf("/articles/%s#ar_%s", rootId, articleIdS), http.StatusFound)
-		} else {
-			http.Redirect(w, r, referer, http.StatusFound)
-		}
+	// fmt.Println("referer: ", referer)
+	// fmt.Println("refererUrl: ", refererUrl)
+	if IsRegisterdPage(refererUrl, ar.router) && rootId != "" && rootId != "0" && rootId != articleIdS {
+		http.Redirect(w, r, fmt.Sprintf("%s#ar_%s", referer, articleIdS), http.StatusFound)
 	} else {
-		http.Redirect(w, r, "/articles/"+articleIdS, http.StatusFound)
+		http.Redirect(w, r, referer, http.StatusFound)
 	}
 }
