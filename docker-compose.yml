@@ -1,11 +1,9 @@
 version: "3.8"
 services:
   webapp:
-    # build:
-    #   context: .
-    #   args:
-    #     GOPROXY: "https://goproxy.cn,direct"
     image: kholinchen/dproject:latest
+    container_name: "webapp-app-1"
+    restart: always
     environment:
       DB_CONTAINER_NAME: "webapp-db-1"
       DB_HOST: "db"
@@ -18,9 +16,6 @@ services:
       USER_DEFAULT_PASSWORD: $USER_DEFAULT_PASSWORD
       APP_PORT: $APP_PORT
       APP_OUTER_PORT: $APP_OUTER_PORT
-    container_name: "webapp-app-1"
-    # ports:
-    #   - $APP_PORT:3000
     depends_on:
       db:
         condition: service_healthy
@@ -29,6 +24,7 @@ services:
   db:
     image: postgres:15.4
     container_name: "local-webapp-db"
+    restart: always
     user: postgres
     volumes:
       - db-data:/var/lib/postgresql/data
@@ -40,8 +36,6 @@ services:
       - DB_NAME=$DB_NAME
       - DB_USER=$DB_USER
       - ADMIN_PASSWORD=$ADMIN_PASSWORD
-    # ports:
-    #   - $DB_PORT:5432
     healthcheck:
       test: [ "CMD", "pg_isready" ]
       interval: 10s
@@ -50,6 +44,7 @@ services:
   nginx:
     image: nginx:1.25.2-alpine
     container_name: "local-nginx"
+    restart: always
     environment:
       - APP_LOCAL_HOST=webapp
       - APP_PORT=$APP_PORT

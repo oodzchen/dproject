@@ -48,9 +48,16 @@ func init() {
 
 func main() {
 	flag.Parse()
-	fmt.Printf("ENV file path: %s\n", envFile)
 
-	err := config.Init(envFile)
+	_, err := os.Stat(envFile)
+
+	if os.IsNotExist(err) {
+		err = config.InitFromEnv()
+	} else {
+		fmt.Printf("ENV file path: %s\n", envFile)
+		err = config.Init(envFile)
+	}
+
 	if err != nil {
 		log.Fatal(err)
 	}

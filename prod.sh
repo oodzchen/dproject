@@ -3,8 +3,6 @@
 env_file=./.env.local.dev
 compose_file=./docker-compose.yml
 
-export PROD=1
-
 source ./scripts/init_env.sh $env_file
 source ./scripts/run_docker.sh $env_file $compose_file
 

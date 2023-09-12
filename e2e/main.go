@@ -54,7 +54,16 @@ func main() {
 	fmt.Printf("Timeout duration: %ds\n", timeoutDuration)
 	fmt.Printf("ENV file: %s\n", envFile)
 
-	cfg, err := config.Parse(envFile)
+	_, err = os.Stat(envFile)
+
+	var cfg *config.AppConfig
+	if os.IsNotExist(err) {
+		cfg, err = config.ParseFromEnv()
+	} else {
+		fmt.Printf("ENV file path: %s\n", envFile)
+		cfg, err = config.Parse(envFile)
+	}
+
 	if err != nil {
 		log.Fatal(err)
 	}
