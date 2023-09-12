@@ -194,15 +194,18 @@ func main() {
 	mt.LogFailed(err)
 
 	editArticle := mt.GenArticle()
-	err = runTasks("edit article", ctx,
+	var resultTitle string
+	err = runTasks("edit article title and content", ctx,
 		chp.Click(`body > article > div > small > a.btn-edit`),
 		mock.WaitFooterReady(),
+		chp.SetValue(`input[name="title"]`, editArticle.Title),
 		chp.SetValue(`textarea[name="content"]`, editArticle.Content),
 		chp.Click(`body>form>button[type="submit"]`),
 		mock.WaitFooterReady(),
+		chp.TextContent(`body > article > h1`, &resultTitle),
 		chp.TextContent(`body > article > section`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
-			if resultText != editArticle.Content {
+			if resultText != editArticle.Content || resultTitle != editArticle.Title {
 				return errors.New("content not match after edit")
 			}
 			return nil
@@ -225,7 +228,10 @@ func main() {
 
 	newReply := gofakeit.Sentence(5 + rand.Intn(10))
 	err = runTasks("reply article", ctx,
-		chp.Click(`body > ul > li:last-child > div:first-child > a`),
+		chp.Navigate(mock.ServerURL),
+		chp.Click(`body > .tabs > a[title^="Hot"]`),
+		mock.WaitFooterReady(),
+		chp.Click(`body > .article-list > li:first-child > a`),
 		mock.WaitFooterReady(),
 		chp.Click(`body > article > .article-operation a[title="Reply"]`),
 		mock.WaitFooterReady(),

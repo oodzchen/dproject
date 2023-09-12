@@ -187,6 +187,8 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 		data = article
 	}
 
+	ar.SavePrevPage(w, r)
+
 	ar.Render(w, r, "create", &PageData{Title: pageTitle, Data: data})
 }
 
@@ -287,14 +289,27 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := ar.store.Article.Update(article, []string{"Content"})
+	updateFields := []string{"Content"}
+	if !isReply {
+		updateFields = append(updateFields, "Title")
+	}
+
+	id, err := ar.store.Article.Update(article, updateFields)
 
 	if err != nil {
 		ar.Error("", err, w, r, http.StatusInternalServerError)
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/articles/%d", id), http.StatusFound)
+	ssOne := ar.Session("one", w, r)
+
+	ssOne.Flash("Publish content successfully")
+
+	if isReply && ssOne.GetStringValue("prev_url") != "" {
+		ar.ToPrevPage(w, r)
+	} else {
+		http.Redirect(w, r, fmt.Sprintf("/articles/%d", id), http.StatusFound)
+	}
 }
 
 func (ar *ArticleResource) Item(w http.ResponseWriter, r *http.Request) {
