@@ -1,0 +1,25 @@
+version: "3.8"
+services:
+  nginx:
+    image: nginx:1.25.2-alpine
+    container_name: "local-nginx"
+    environment:
+      - APP_LOCAL_HOST=webapp
+      - APP_PORT=$APP_PORT
+      - DOMAIN_NAME=$DOMAIN_NAME
+    volumes:
+      - ./static:/data/static
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/templates/webapp.cert.conf.template:/etc/nginx/templates/webapp.conf.template:ro
+      - ./nginx/logs:/etc/nginx/logs
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
+    ports:
+      - "443:443"
+      - "80:80"
+  certbot:
+    image: certbot/certbot
+    container_name: "local-certbot"
+    volumes:
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
