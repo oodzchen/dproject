@@ -35,6 +35,10 @@ server {
         alias /data/static/favicon.ico;
     }
 
+    location /robots.txt {
+        alias /data/static/robots.txt
+    }
+
     
     location / {
         proxy_pass http://backend;
