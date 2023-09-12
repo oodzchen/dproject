@@ -45,7 +45,6 @@ services:
     image: nginx:1.25.2-alpine
     container_name: "local-nginx"
     restart: always
-    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
     environment:
       - APP_LOCAL_HOST=webapp
       - APP_PORT=$APP_PORT
@@ -57,6 +56,7 @@ services:
       - ./nginx/logs:/etc/nginx/logs
       - ./nginx/certbot/conf:/etc/letsencrypt
       - ./nginx/certbot/www:/var/www/certbot
+      - ./nginx/40-reload-cron.sh:/docker-entrypoint.d/40-reload-cron.sh
     ports:
       - "443:443"
       - "80:80"
