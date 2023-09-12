@@ -56,9 +56,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	isProd := false
-	if os.Getenv("PROD") == "1" {
-		isProd = true
+	appTLS := false
+	if os.Getenv("APP_TLS") == "1" {
+		appTLS = true
 	}
 
 	port := appCfg.AppPort
@@ -75,7 +75,7 @@ func main() {
 	}
 
 	tlsManager := NewCertManager()
-	if isProd {
+	if appTLS {
 		server.Addr = ":https"
 		server.TLSConfig = tlsManager.TLSConfig()
 	}
@@ -104,7 +104,7 @@ func main() {
 		serverStopCtx()
 	}()
 
-	if isProd {
+	if appTLS {
 		go func() {
 			log.Fatal(http.ListenAndServe(":http", tlsManager.HTTPHandler(nil)))
 		}()
