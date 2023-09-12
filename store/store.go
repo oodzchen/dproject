@@ -37,7 +37,7 @@ type UserStore interface {
 	Delete(int) error
 	Ban(int) error
 	Login(email string, pwd string) (int, error)
-	GetPosts(int) ([]*model.Article, error)
+	GetPosts(userId int, listType string) ([]*model.Article, error)
 	GetSavedPosts(int) ([]*model.Article, error)
 	Count() (int, error)
 }

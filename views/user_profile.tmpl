@@ -7,11 +7,11 @@
     {{template "user_basic_info" .Data.UserInfo -}}
 
     {{- $data := .Data -}}
-    {{- $tabs := list "all" -}}
-    {{- $tabsMap := dict "all" "Posts" "saved" "Saved" -}}
+    {{- $tabs := list "all" "article" "reply" -}}
+    {{- $tabsMap := dict "all" "All" "article" "Articles" "reply" "Replies" "saved" "Saved" -}}
 
     {{- if and .LoginedUser (eq .LoginedUser.Id .Data.UserInfo.Id) -}}
-	{{- $tabs = list "all" "saved" -}}
+	{{- $tabs = append $tabs "saved" -}}
     {{- end -}}
 
     <div class="tabs">

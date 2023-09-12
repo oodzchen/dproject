@@ -186,8 +186,8 @@ func (u *User) Login(email string, pwd string) (int, error) {
 	return id, nil
 }
 
-func (u *User) GetPosts(userId int) ([]*model.Article, error) {
-	sqlStr := `
+func (u *User) GetPosts(userId int, listType string) ([]*model.Article, error) {
+	sqlStrHead := `
 SELECT
 p.id,
 p.title,
@@ -202,8 +202,19 @@ p3.title AS root_article_title
 FROM posts p
 LEFT JOIN users u ON p.author_id = u.id
 LEFT JOIN posts p3 ON p.root_article_id = p3.id
-WHERE p.author_id = $1 AND p.deleted = false
-ORDER BY p.created_at DESC`
+WHERE p.author_id = $1 AND p.deleted = false`
+	sqlStrTail := ` ORDER BY p.created_at DESC`
+
+	switch listType {
+	case "article":
+		sqlStrHead += ` AND p.reply_to = 0`
+	case "reply":
+		sqlStrHead += ` AND p.reply_to != 0`
+	default:
+	}
+
+	sqlStr := sqlStrHead + sqlStrTail
+
 	rows, err := u.dbPool.Query(context.Background(), sqlStr, userId)
 	if err != nil {
 		return nil, err

@@ -8,8 +8,10 @@ import (
 type UserListType string
 
 const (
-	UserListAll   UserListType = "all"
-	UserListSaved              = "saved"
+	UserListAll     UserListType = "all"
+	UserListSaved                = "saved"
+	UserListArticle              = "article"
+	UserListReply                = "reply"
 )
 
 var AuthRequiedUserTabMap = map[UserListType]bool{
@@ -54,6 +56,6 @@ func (u *User) GetPosts(userId int, listType UserListType) ([]*model.Article, er
 	case UserListSaved:
 		return u.Store.User.GetSavedPosts(userId)
 	default:
-		return u.Store.User.GetPosts(userId)
+		return u.Store.User.GetPosts(userId, string(listType))
 	}
 }
