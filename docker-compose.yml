@@ -64,6 +64,23 @@ services:
       - "80:80"
     depends_on:
       - webapp
+  goaccess:
+    image: allinurl/goaccess:1.7.2
+    container_name: "local-goaccess"
+    restart: always
+    entrypoint: "/bin/goaccess /data/logs/access.log -o /data/static/analysis/report.html --real-time-html --prot=9880 --ssl-cert=$SSL_CERT --ssl-key=$SSL_KEY"
+    environment:
+      - TZ="China/Shanghai"
+      - SSL_CERT=/etc/letsencrypt/live/${SECOND_LEVEL_DOMAIN_NAME}/fullchain.pem
+      - SSL_KEY=/etc/letsencrypt/live/${SECOND_LEVEL_DOMAIN_NAME}/privkey.pem;
+    volumes:
+      - /usr/share/geoip/GeoLite2-City_20191224/GeoLite2-City.mmdb:/data/GeoLite2-City_20191224/GeoLite2-City.mmdb
+      - /etc/letsencrypt:/etc/letsencrypt
+      - ./goaccess.conf:/etc/goaccess/goaccess.conf
+      - ./nginx/logs:/data/logs
+      - ./static:/data/static
+    ports:
+      - "9880:9880"
   # certbot:
   #   image: certbot/certbot
   #   container_name: "local-certbot"
