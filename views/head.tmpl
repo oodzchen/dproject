@@ -267,6 +267,11 @@
 
 	     .article-operation .btn-react{
 		 position: relative;
+		 padding: 0 4px;
+		 margin-right: 4px;
+	     }
+	     .article-operation .btn-react:last-child{
+		 margin-right: 0;
 	     }
 	     .article-operation .btn-react > a,
 	     .article-operation .btn-react > span,
@@ -290,14 +295,15 @@
 		 background: transparent;
 		 cursor: pointer;
 	     }
-	     .article-operation .btn-form.btn-react .btn-react__selected{
+
+	     .article-operation .btn-form{
 		 display: inline-block;
-		 width: 1rem;
-		 height: 1rem;
+	     }
+	     
+	     .article-operation .btn-react.btn-react--selected{
 		 border: 1px solid var(--theme-color);
-		 border-radius: 50%;
+		 border-radius: 1rem;
 		 text-align: center;
-		 line-height: 0;
 	     }
 
 	     .article-placeholder{

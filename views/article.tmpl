@@ -422,19 +422,15 @@
 		    {{- range $reactOptions -}}
 			{{- if gt (index $article.ReactCounts .) 0 -}}
 			    {{- if not $isSelf -}}
-				<form class="btn-form btn-react" action="/articles/{{$article.Id}}/react" method="POST">
+				<form class="btn-form btn-react{{if eq $currReactType .}} btn-react--selected{{end}}" action="/articles/{{$article.Id}}/react" method="POST">
 				    {{$csrfField}}
 				    <input name="root" type="hidden" value="{{$article.ReplyRootArticleId}}"/>
 				    <input name="react" type="hidden" value="{{.}}"/>
 				    {{- $strVal := . | toString -}}
-				    {{if eq $currReactType .}}
-					<button type="submit" title="{{get $reactDescribeMap $strVal}}" class="btn-react__selected">{{index $reactMap .}}</button>{{index $article.ReactCounts .}}&nbsp;&nbsp;
-				    {{- else -}}
-					<button type="submit" title="{{get $reactDescribeMap $strVal}}">{{index $reactMap .}}</button>{{index $article.ReactCounts .}}&nbsp;&nbsp;
-				    {{- end -}}
+				    <button type="submit" title="{{get $reactDescribeMap $strVal}}">{{index $reactMap .}}{{index $article.ReactCounts .}}</button>
 				</form>
 			    {{- else -}}
-				<span>{{index $reactMap .}}{{index $article.ReactCounts .}}</span>&nbsp;&nbsp;
+				<span>{{index $reactMap .}}{{index $article.ReactCounts .}}</span>
 			    {{- end -}}
 			{{- end -}}
 		    {{- end -}}
