@@ -23,9 +23,9 @@ type AppConfig struct {
 	AdminEmail         string `env:"ADMIN_EMAIL"`
 }
 
-// func (ac *AppConfig) GetServerURL() string {
-// 	return fmt.Sprintf("http://%s:%d", ac.DomainName, ac.AppPort)
-// }
+func (ac *AppConfig) GetServerURL() string {
+	return fmt.Sprintf("http://%s:%d", "localhost", ac.AppPort)
+}
 
 // Get app host as host:port
 // func (ac *AppConfig) GetHost() string {
