@@ -7,19 +7,19 @@ import (
 	"github.com/oodzchen/dproject/config"
 )
 
-func GetSiteHost() string {
-	// domain := os.Getenv("DOMAIN_NAME")
-	domain := config.Config.DomainName
-	// port := os.Getenv("PORT")
-	port := config.Config.AppPort
+// func GetSiteHost() string {
+// 	// domain := os.Getenv("DOMAIN_NAME")
+// 	domain := config.Config.DomainName
+// 	// port := os.Getenv("PORT")
+// 	port := config.Config.AppPort
 
-	if port != 80 && port != 443 {
-		// return domain + ":" + port
-		return fmt.Sprintf("%s:%d", domain, port)
-	} else {
-		return domain
-	}
-}
+// 	if port != 80 && port != 443 {
+// 		// return domain + ":" + port
+// 		return fmt.Sprintf("%s:%d", domain, port)
+// 	} else {
+// 		return domain
+// 	}
+// }
 
 // Print data as JSON string with prefix
 func PrintJSONf(prefix string, data any) {

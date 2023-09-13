@@ -10,7 +10,7 @@ echo "USER_DEFAULT_PASSWORD=$USER_DEFAULT_PASSWORD" >> ./.env.testing
 echo "DB_HOST=$DB_HOST" >> ./.env.testing
 echo "DB_PORT=$DB_PORT" >> ./.env.testing
 echo "DEBUG=$DEBUG" >> ./.env.testing
-echo "DOMAIN_NAME=$DOMAIN_NAME" >> ./.env.testing
+# echo "DOMAIN_NAME=$DOMAIN_NAME" >> ./.env.testing
 echo "APP_LOCAL_HOST=$APP_LOCAL_HOST" >> ./.env.testing
 
 echo "env file len $(expr length "$(cat ./.env.testing)")"

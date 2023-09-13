@@ -108,7 +108,7 @@ func main() {
 		go func() {
 			log.Fatal(http.ListenAndServe(":http", tlsManager.HTTPHandler(nil)))
 		}()
-		fmt.Printf("App listening at https://%s\n", appCfg.DomainName)
+		// fmt.Printf("App listening at https://%s\n", appCfg.DomainName)
 		err = server.ListenAndServeTLS("", "")
 		// err = http.Serve(autocert.NewListener(appCfg.DomainName), server.Handler)
 	} else {

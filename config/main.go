@@ -10,9 +10,9 @@ import (
 )
 
 type AppConfig struct {
-	SessionSecret      string `env:"SESSION_SECRET"`
-	CSRFSecret         string `env:"CSRF_SECRET"`
-	DomainName         string `env:"DOMAIN_NAME" envDefault:"localhost"`
+	SessionSecret string `env:"SESSION_SECRET"`
+	CSRFSecret    string `env:"CSRF_SECRET"`
+	// DomainName         string `env:"DOMAIN_NAME" envDefault:"localhost"`
 	AppPort            int    `env:"APP_PORT" envDefault:"3000"`
 	AppOuterPort       int    `env:"APP_OUTER_PORT" envDefault:"3000"`
 	Debug              bool   `env:"DEBUG" envDefault:"false"`
@@ -23,14 +23,14 @@ type AppConfig struct {
 	AdminEmail         string `env:"ADMIN_EMAIL"`
 }
 
-func (ac *AppConfig) GetServerURL() string {
-	return fmt.Sprintf("http://%s:%d", ac.DomainName, ac.AppPort)
-}
+// func (ac *AppConfig) GetServerURL() string {
+// 	return fmt.Sprintf("http://%s:%d", ac.DomainName, ac.AppPort)
+// }
 
 // Get app host as host:port
-func (ac *AppConfig) GetHost() string {
-	return fmt.Sprintf("%s:%d", ac.DomainName, ac.AppOuterPort)
-}
+// func (ac *AppConfig) GetHost() string {
+// 	return fmt.Sprintf("%s:%d", ac.DomainName, ac.AppOuterPort)
+// }
 
 type DBConfig struct {
 	DBHost              string `env:"DB_HOST"`

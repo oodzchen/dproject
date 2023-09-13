@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/sessions"
-	"github.com/oodzchen/dproject/config"
 	"github.com/pkg/errors"
 )
 
@@ -58,8 +57,9 @@ func CeilInt(a, b int) int {
 }
 
 func IsRegisterdPage(url *url.URL, r *chi.Mux) bool {
-	currHostName := config.Config.DomainName
+	// currHostName := config.Config.DomainName
 	// fmt.Println("url.Hostname(): ", url.Hostname())
 	// fmt.Println("config.Config.DomainName", currHostName)
-	return currHostName == url.Hostname() && r.Match(chi.NewRouteContext(), "GET", url.Path)
+	// return currHostName == url.Hostname() && r.Match(chi.NewRouteContext(), "GET", url.Path)
+	return r.Match(chi.NewRouteContext(), "GET", url.Path)
 }

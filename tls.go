@@ -7,9 +7,9 @@ import (
 
 func NewCertManager() *autocert.Manager {
 	return &autocert.Manager{
-		Cache:      autocert.DirCache("tls-cache"),
-		Prompt:     autocert.AcceptTOS,
-		Email:      config.Config.AdminEmail,
-		HostPolicy: autocert.HostWhitelist(config.Config.DomainName),
+		Cache:  autocert.DirCache("tls-cache"),
+		Prompt: autocert.AcceptTOS,
+		Email:  config.Config.AdminEmail,
+		// HostPolicy: autocert.HostWhitelist(config.Config.DomainName),
 	}
 }
