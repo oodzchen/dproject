@@ -115,12 +115,14 @@ func (rd *Renderer) Error(msg string, err error, w http.ResponseWriter, r *http.
 	errText := http.StatusText(code)
 
 	type errPageData struct {
-		ErrCode model.AppErrCode
-		ErrText string
-		PrevUrl string
+		HttpStatusCode int
+		ErrCode        model.AppErrCode
+		ErrText        string
+		PrevUrl        string
 	}
 	var pageData errPageData
-	pageData = errPageData{0, errText, prevUrl}
+	pageData = errPageData{0, 0, errText, prevUrl}
+
 	data := &PageData{
 		Title: errText,
 		Data:  &pageData,
@@ -135,6 +137,7 @@ func (rd *Renderer) Error(msg string, err error, w http.ResponseWriter, r *http.
 		pageData.ErrCode = err.ErrCode
 	}
 
+	pageData.HttpStatusCode = code
 	rd.doRender(w, r, "error", data, code)
 }
 

@@ -3,6 +3,7 @@
     {{template "head" . -}}
 
     <p id="err-msg">
+	{{- .Data.HttpStatusCode -}}&nbsp;
 	{{- .Data.ErrText -}}
 	{{- if eq .Data.ErrCode 1000 -}}
 	    <a href="/login">, go to login</a>.

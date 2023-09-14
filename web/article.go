@@ -196,6 +196,7 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		ar.Error("", err, w, r, http.StatusBadRequest)
+		return
 	}
 
 	title := r.Form.Get("title")
@@ -260,6 +261,7 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		ar.Error("", err, w, r, http.StatusBadRequest)
+		return
 	}
 
 	rId, err := strconv.Atoi(r.Form.Get("id"))
@@ -355,6 +357,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	if len(articleTreeList) == 0 {
 		// http.Redirect(w, r, "/404", http.StatusNotFound)
 		ar.Error("", nil, w, r, http.StatusNotFound)
+		return
 	}
 
 	var rootArticle *model.Article
