@@ -1,10 +1,15 @@
 {{define "head" -}}
+    {{- $bgColorLight := "white" -}}
+    {{- $bgColorDark := "#282A36" -}}
+    {{- $colorThemeMap := dict "light" $bgColorLight "dark" $bgColorDark -}}
     <!DOCTYPE html>
     <html lang="en" {{if .UISettings}}data-theme="{{.UISettings.Theme}}"{{end}}>
 	<head>
 	    <meta charset="UTF-8">
 	    <meta http-equiv="X-UA-Compatible" content="IE=edge">
 	    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	    <meta name="color-scheme" content="dark light" />
+	    <meta name="theme-color" content="{{get $colorThemeMap .UISettings.Theme}}" />
 	    <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
 	    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
 	    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
@@ -16,13 +21,14 @@
 		 --colored-bg: #BED3E5;
 		 --tip-bg: #E5E4BE;
 		 --theme-color: #2F71AC;
+		 --theme-color-darken: #5050DC;
 		 --border-color-active: var(--theme-color);
 		 --reply-indent-size: 2rem;
 	     }
 	     :root[data-theme="light"] {
 		 color-scheme: light;
 		 --text: black;
-		 --background: white;
+		 --background: {{$bgColorLight}};
 		 --background-hover: #FAFAFA;
 
 		 --text-with-background: black;
@@ -30,19 +36,24 @@
 		 --text-lighten-2: #666;
 		 --text-lighten-3: #999;
 
-		 --border-color: #ccc;
+		 --link-visited: #9A3D9A;
+
+		 --border-color: #CCC;
 	     }
 	     :root[data-theme="dark"] {
 		 color-scheme: dark;
 		 --theme-color: #74BCFB;
+		 --theme-color-darken: #8C8CDC;
 		 --text: white;
-		 --background: #282A36;
+		 --background: {{$bgColorDark}};
 		 --background-hover: #383A45;
 
 		 --text-with-background: black;
-		 --text-lighten: #ddd;
-		 --text-lighten-2: #ccc;
-		 --text-lighten-3: #aaa;
+		 --text-lighten: #DDD;
+		 --text-lighten-2: #CCC;
+		 --text-lighten-3: #AAA;
+
+		 --link-visited: #A35FA3;
 
 		 --border-color: #666;
 	     }
@@ -51,6 +62,13 @@
 	     }
 	     a {
 		 text-decoration: none;
+		 color: var(--theme-color);
+	     }
+	     a:active{
+		 color: var(--theme-color-darken);
+	     }
+	     a:visited{
+		 color: var(--link-visited);
 	     }
 	     a:hover,
 	     a:focus-visible{
@@ -81,8 +99,9 @@
 		 {{- if and .UISettings (eq .UISettings.ContentLayout "centered") -}}
 		 max-width: 1000px;
 		 {{- end -}}
+		 font-family: Helvetica, sans-serif, Noto Sans, Microsoft YaHei, Microsoft JhengHei, PingFang, Noto Color Emoji;
 	     }
-	     .brand{
+	     a.brand{
 		 display: inline-block;
 		 font-weight: bold;
 		 font-size: 1.2rem;
@@ -91,13 +110,16 @@
 	     .slogan{
 		 font-size: 0.8rem;
 	     }
-	     .text-lighten{
+	     .text-lighten,
+	     a.text-lighten{
 		 color: var(--text-lighten)
 	     }
-	     .text-lighten-2{
+	     .text-lighten-2,
+	     a.text-lighten-2{
 		 color: var(--text-lighten-2)
 	     }
-	     .text-lighten-3{
+	     .text-lighten-3,
+	     a.text-lighten-3{
 		 color: var(--text-lighten-3)
 	     }
 	     .page-tip{
@@ -261,16 +283,26 @@
 		 cursor: pointer;
 		 font-family: inherit;
 		 font-size: inherit;
+		 vertical-align: inherit;
 	     }
 
 	     .article-operation .btn-form button[type="submit"]:hover{
 		 text-decoration: underline;
 	     }
 
+	     .article-reacts{
+		 display: inline-block;
+		 vertical-align: baseline;
+	     }
+	     .article-reacts form>span{
+		 cursor: pointer;
+	     }
+
 	     .article-operation .btn-react{
 		 position: relative;
 		 padding: 0 4px;
 		 margin-right: 4px;
+		 vertical-align: baseline;
 	     }
 	     .article-operation .btn-react:last-child{
 		 margin-right: 0;
@@ -310,13 +342,6 @@
 
 	     .article-placeholder{
 		 padding: 4px 0;
-		 cursor: pointer;
-	     }
-
-	     .article-reacts{
-		 display: inline-block;
-	     }
-	     .article-reacts form>span{
 		 cursor: pointer;
 	     }
 

@@ -343,7 +343,20 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 
 	currUserId := ar.GetLoginedUserId(w, r)
 
-	articleTreeList, err := ar.store.Article.ItemTree(articleId, currUserId)
+	if pageType != ArticlePageDetail && currUserId == 0 {
+		ar.ToLogin(w, r)
+		return
+	}
+
+	var articleTreeList []*model.Article
+	var singleArticle *model.Article
+	if pageType == ArticlePageDetail {
+		articleTreeList, err = ar.store.Article.ItemTree(articleId, currUserId)
+	} else {
+		singleArticle, err = ar.store.Article.Item(articleId, currUserId)
+		articleTreeList = []*model.Article{singleArticle}
+	}
+
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			// http.Redirect(w, r, "/404", http.StatusNotFound)
@@ -378,10 +391,10 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 
 	if pageType == ArticlePageDel {
 		// currUserId, err := GetLoginUserId(ar.sessStore, w, r)
-		if err != nil {
-			ar.Error("Please login", err, w, r, http.StatusUnauthorized)
-			return
-		}
+		// if err != nil {
+		// 	ar.Error("Please login", err, w, r, http.StatusUnauthorized)
+		// 	return
+		// }
 
 		if rootArticle.AuthorId != currUserId {
 			http.Redirect(w, r, fmt.Sprintf("/articles/%d", articleId), http.StatusFound)
@@ -533,7 +546,7 @@ func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ar.Session("one", w, r).Flash("Delete article successfully")
+	ar.Session("one", w, r).Flash("Content deleted successfully")
 
 	http.Redirect(w, r, fmt.Sprintf("/articles/%d", rootArticleId), http.StatusFound)
 }
