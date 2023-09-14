@@ -109,7 +109,7 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 		mr.Error("", err, w, r, http.StatusInternalServerError)
 	}
 
-	sess.AddFlash("Register success")
+	sess.AddFlash("Account registered successfully")
 	err = sess.Save(r, w)
 	if err != nil {
 		HandleSaveSessionErr(errors.WithStack(err))
