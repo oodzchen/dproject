@@ -248,7 +248,7 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 
 	ssOne := ar.Session("one", w, r)
 
-	ssOne.Flash("Publish content successfully")
+	// ssOne.Flash("Publish content successfully")
 
 	if isReply && ssOne.GetStringValue("prev_url") != "" {
 		ar.ToPrevPage(w, r)
@@ -305,7 +305,7 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 
 	ssOne := ar.Session("one", w, r)
 
-	ssOne.Flash("Publish content successfully")
+	// ssOne.Flash("Publish content successfully")
 
 	if isReply && ssOne.GetStringValue("prev_url") != "" {
 		ar.ToPrevPage(w, r)

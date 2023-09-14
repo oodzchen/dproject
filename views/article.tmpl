@@ -420,17 +420,17 @@
 		{{- end -}}
 		<div class="article-reacts">
 		    {{- range $reactOptions -}}
+			{{- $strVal := . | toString -}}
 			{{- if gt (index $article.ReactCounts .) 0 -}}
 			    {{- if not $isSelf -}}
 				<form class="btn-form btn-react{{if eq $currReactType .}} btn-react--selected{{end}}" action="/articles/{{$article.Id}}/react" method="POST">
 				    {{$csrfField}}
 				    <input name="root" type="hidden" value="{{$article.ReplyRootArticleId}}"/>
 				    <input name="react" type="hidden" value="{{.}}"/>
-				    {{- $strVal := . | toString -}}
 				    <button type="submit" title="{{get $reactDescribeMap $strVal}}">{{index $reactMap .}}{{index $article.ReactCounts .}}</button>
 				</form>
 			    {{- else -}}
-				<span>{{index $reactMap .}}{{index $article.ReactCounts .}}</span>
+				<span class="btn-react" title="{{get $reactDescribeMap $strVal}}">{{index $reactMap .}}{{index $article.ReactCounts .}}</span>
 			    {{- end -}}
 			{{- end -}}
 		    {{- end -}}
