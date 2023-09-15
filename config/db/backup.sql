@@ -1,202 +1,202 @@
---
--- PostgreSQL database dump
---
+-- --
+-- -- PostgreSQL database dump
+-- --
 
--- Dumped from database version 15.4 (Debian 15.4-1.pgdg120+1)
--- Dumped by pg_dump version 15.4 (Debian 15.4-1.pgdg120+1)
+-- -- Dumped from database version 15.4 (Debian 15.4-1.pgdg120+1)
+-- -- Dumped by pg_dump version 15.4 (Debian 15.4-1.pgdg120+1)
 
-SET statement_timeout = 0;
-SET lock_timeout = 0;
-SET idle_in_transaction_session_timeout = 0;
-SET client_encoding = 'UTF8';
-SET standard_conforming_strings = on;
-SELECT pg_catalog.set_config('search_path', '', false);
-SET check_function_bodies = false;
-SET xmloption = content;
-SET client_min_messages = warning;
-SET row_security = off;
+-- SET statement_timeout = 0;
+-- SET lock_timeout = 0;
+-- SET idle_in_transaction_session_timeout = 0;
+-- SET client_encoding = 'UTF8';
+-- SET standard_conforming_strings = on;
+-- SELECT pg_catalog.set_config('search_path', '', false);
+-- SET check_function_bodies = false;
+-- SET xmloption = content;
+-- SET client_min_messages = warning;
+-- SET row_security = off;
 
---
--- Name: react_type; Type: TYPE; Schema: public; Owner: admin
---
+-- --
+-- -- Name: react_type; Type: TYPE; Schema: public; Owner: admin
+-- --
 
-CREATE TYPE public.react_type AS ENUM (
-    'grinning',
-    'confused',
-    'eyes',
-    'party',
-    'thanks'
-);
-
-
-ALTER TYPE public.react_type OWNER TO admin;
-
---
--- Name: save_type; Type: TYPE; Schema: public; Owner: admin
---
-
-CREATE TYPE public.save_type AS ENUM (
-    'fav'
-);
+-- CREATE TYPE public.react_type AS ENUM (
+--     'grinning',
+--     'confused',
+--     'eyes',
+--     'party',
+--     'thanks'
+-- );
 
 
-ALTER TYPE public.save_type OWNER TO admin;
+-- ALTER TYPE public.react_type OWNER TO admin;
 
---
--- Name: vote_type; Type: TYPE; Schema: public; Owner: admin
---
+-- --
+-- -- Name: save_type; Type: TYPE; Schema: public; Owner: admin
+-- --
 
-CREATE TYPE public.vote_type AS ENUM (
-    'up',
-    'down'
-);
-
-
-ALTER TYPE public.vote_type OWNER TO admin;
-
-SET default_tablespace = '';
-
-SET default_table_access_method = heap;
-
---
--- Name: post_reacts; Type: TABLE; Schema: public; Owner: admin
---
-
-CREATE TABLE public.post_reacts (
-    user_id integer,
-    post_id integer,
-    created_at timestamp without time zone DEFAULT now() NOT NULL,
-    type public.react_type
-);
+-- CREATE TYPE public.save_type AS ENUM (
+--     'fav'
+-- );
 
 
-ALTER TABLE public.post_reacts OWNER TO admin;
+-- ALTER TYPE public.save_type OWNER TO admin;
 
---
--- Name: post_saves; Type: TABLE; Schema: public; Owner: admin
---
+-- --
+-- -- Name: vote_type; Type: TYPE; Schema: public; Owner: admin
+-- --
 
-CREATE TABLE public.post_saves (
-    user_id integer,
-    post_id integer,
-    created_at timestamp without time zone DEFAULT now() NOT NULL,
-    type public.save_type
-);
+-- CREATE TYPE public.vote_type AS ENUM (
+--     'up',
+--     'down'
+-- );
 
 
-ALTER TABLE public.post_saves OWNER TO admin;
+-- ALTER TYPE public.vote_type OWNER TO admin;
 
---
--- Name: post_votes; Type: TABLE; Schema: public; Owner: admin
---
+-- SET default_tablespace = '';
 
-CREATE TABLE public.post_votes (
-    user_id integer,
-    post_id integer,
-    created_at timestamp without time zone DEFAULT now() NOT NULL,
-    type public.vote_type
-);
+-- SET default_table_access_method = heap;
 
+-- --
+-- -- Name: post_reacts; Type: TABLE; Schema: public; Owner: admin
+-- --
 
-ALTER TABLE public.post_votes OWNER TO admin;
-
---
--- Name: posts; Type: TABLE; Schema: public; Owner: admin
---
-
-CREATE TABLE public.posts (
-    id integer NOT NULL,
-    title character varying(255),
-    author_id integer,
-    content text,
-    created_at timestamp without time zone DEFAULT now() NOT NULL,
-    updated_at timestamp without time zone DEFAULT now() NOT NULL,
-    reply_to integer DEFAULT 0,
-    deleted boolean DEFAULT false NOT NULL,
-    depth integer DEFAULT 0 NOT NULL,
-    root_article_id integer DEFAULT 0 NOT NULL,
-    list_weight integer DEFAULT 0 NOT NULL,
-    CONSTRAINT posts_reply_to_title_check CHECK ((((reply_to IS NULL) AND (title IS NOT NULL)) OR (reply_to IS NOT NULL)))
-);
+-- CREATE TABLE public.post_reacts (
+--     user_id integer,
+--     post_id integer,
+--     created_at timestamp without time zone DEFAULT now() NOT NULL,
+--     type public.react_type
+-- );
 
 
-ALTER TABLE public.posts OWNER TO admin;
+-- ALTER TABLE public.post_reacts OWNER TO admin;
 
---
--- Name: posts_id_seq; Type: SEQUENCE; Schema: public; Owner: admin
---
+-- --
+-- -- Name: post_saves; Type: TABLE; Schema: public; Owner: admin
+-- --
 
-CREATE SEQUENCE public.posts_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE public.posts_id_seq OWNER TO admin;
-
---
--- Name: posts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: admin
---
-
-ALTER SEQUENCE public.posts_id_seq OWNED BY public.posts.id;
+-- CREATE TABLE public.post_saves (
+--     user_id integer,
+--     post_id integer,
+--     created_at timestamp without time zone DEFAULT now() NOT NULL,
+--     type public.save_type
+-- );
 
 
---
--- Name: users; Type: TABLE; Schema: public; Owner: admin
---
+-- ALTER TABLE public.post_saves OWNER TO admin;
 
-CREATE TABLE public.users (
-    id integer NOT NULL,
-    email character varying(255) NOT NULL,
-    password character varying(255) NOT NULL,
-    name character varying(255) NOT NULL,
-    introduction text,
-    created_at timestamp without time zone DEFAULT now() NOT NULL,
-    is_admin boolean DEFAULT false NOT NULL,
-    deleted boolean DEFAULT false NOT NULL,
-    banned boolean DEFAULT false NOT NULL
-);
+-- --
+-- -- Name: post_votes; Type: TABLE; Schema: public; Owner: admin
+-- --
+
+-- CREATE TABLE public.post_votes (
+--     user_id integer,
+--     post_id integer,
+--     created_at timestamp without time zone DEFAULT now() NOT NULL,
+--     type public.vote_type
+-- );
 
 
-ALTER TABLE public.users OWNER TO admin;
+-- ALTER TABLE public.post_votes OWNER TO admin;
 
---
--- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: admin
---
+-- --
+-- -- Name: posts; Type: TABLE; Schema: public; Owner: admin
+-- --
 
-CREATE SEQUENCE public.users_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE public.users_id_seq OWNER TO admin;
-
---
--- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: admin
---
-
-ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
+-- CREATE TABLE public.posts (
+--     id integer NOT NULL,
+--     title character varying(255),
+--     author_id integer,
+--     content text,
+--     created_at timestamp without time zone DEFAULT now() NOT NULL,
+--     updated_at timestamp without time zone DEFAULT now() NOT NULL,
+--     reply_to integer DEFAULT 0,
+--     deleted boolean DEFAULT false NOT NULL,
+--     depth integer DEFAULT 0 NOT NULL,
+--     root_article_id integer DEFAULT 0 NOT NULL,
+--     list_weight integer DEFAULT 0 NOT NULL,
+--     CONSTRAINT posts_reply_to_title_check CHECK ((((reply_to IS NULL) AND (title IS NOT NULL)) OR (reply_to IS NOT NULL)))
+-- );
 
 
---
--- Name: posts id; Type: DEFAULT; Schema: public; Owner: admin
---
+-- ALTER TABLE public.posts OWNER TO admin;
 
-ALTER TABLE ONLY public.posts ALTER COLUMN id SET DEFAULT nextval('public.posts_id_seq'::regclass);
+-- --
+-- -- Name: posts_id_seq; Type: SEQUENCE; Schema: public; Owner: admin
+-- --
+
+-- CREATE SEQUENCE public.posts_id_seq
+--     AS integer
+--     START WITH 1
+--     INCREMENT BY 1
+--     NO MINVALUE
+--     NO MAXVALUE
+--     CACHE 1;
 
 
---
--- Name: users id; Type: DEFAULT; Schema: public; Owner: admin
---
+-- ALTER TABLE public.posts_id_seq OWNER TO admin;
 
-ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
+-- --
+-- -- Name: posts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: admin
+-- --
+
+-- ALTER SEQUENCE public.posts_id_seq OWNED BY public.posts.id;
+
+
+-- --
+-- -- Name: users; Type: TABLE; Schema: public; Owner: admin
+-- --
+
+-- CREATE TABLE public.users (
+--     id integer NOT NULL,
+--     email character varying(255) NOT NULL,
+--     password character varying(255) NOT NULL,
+--     name character varying(255) NOT NULL,
+--     introduction text,
+--     created_at timestamp without time zone DEFAULT now() NOT NULL,
+--     is_admin boolean DEFAULT false NOT NULL,
+--     deleted boolean DEFAULT false NOT NULL,
+--     banned boolean DEFAULT false NOT NULL
+-- );
+
+
+-- ALTER TABLE public.users OWNER TO admin;
+
+-- --
+-- -- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: admin
+-- --
+
+-- CREATE SEQUENCE public.users_id_seq
+--     AS integer
+--     START WITH 1
+--     INCREMENT BY 1
+--     NO MINVALUE
+--     NO MAXVALUE
+--     CACHE 1;
+
+
+-- ALTER TABLE public.users_id_seq OWNER TO admin;
+
+-- --
+-- -- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: admin
+-- --
+
+-- ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
+
+
+-- --
+-- -- Name: posts id; Type: DEFAULT; Schema: public; Owner: admin
+-- --
+
+-- ALTER TABLE ONLY public.posts ALTER COLUMN id SET DEFAULT nextval('public.posts_id_seq'::regclass);
+
+
+-- --
+-- -- Name: users id; Type: DEFAULT; Schema: public; Owner: admin
+-- --
+
+-- ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
 
 
 --
@@ -447,113 +447,113 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 -- Name: posts_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin
 --
 
-SELECT pg_catalog.setval('public.posts_id_seq', 51, true);
+-- SELECT pg_catalog.setval('public.posts_id_seq', 51, true);
 
 
---
--- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin
---
+-- --
+-- -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: admin
+-- --
 
-SELECT pg_catalog.setval('public.users_id_seq', 90, true);
-
-
---
--- Name: post_votes post_votes_user_id_post_id_key; Type: CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.post_votes
-    ADD CONSTRAINT post_votes_user_id_post_id_key UNIQUE (user_id, post_id);
+-- SELECT pg_catalog.setval('public.users_id_seq', 90, true);
 
 
---
--- Name: posts posts_pkey; Type: CONSTRAINT; Schema: public; Owner: admin
---
+-- --
+-- -- Name: post_votes post_votes_user_id_post_id_key; Type: CONSTRAINT; Schema: public; Owner: admin
+-- --
 
-ALTER TABLE ONLY public.posts
-    ADD CONSTRAINT posts_pkey PRIMARY KEY (id);
-
-
---
--- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT users_email_key UNIQUE (email);
+-- ALTER TABLE ONLY public.post_votes
+--     ADD CONSTRAINT post_votes_user_id_post_id_key UNIQUE (user_id, post_id);
 
 
---
--- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: admin
---
+-- --
+-- -- Name: posts posts_pkey; Type: CONSTRAINT; Schema: public; Owner: admin
+-- --
 
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
-
-
---
--- Name: posts post_del_protect; Type: RULE; Schema: public; Owner: admin
---
-
-CREATE RULE post_del_protect AS
-    ON DELETE TO public.posts DO INSTEAD NOTHING;
+-- ALTER TABLE ONLY public.posts
+--     ADD CONSTRAINT posts_pkey PRIMARY KEY (id);
 
 
---
--- Name: post_reacts post_reacts_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: admin
---
+-- --
+-- -- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: admin
+-- --
 
-ALTER TABLE ONLY public.post_reacts
-    ADD CONSTRAINT post_reacts_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id);
-
-
---
--- Name: post_reacts post_reacts_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.post_reacts
-    ADD CONSTRAINT post_reacts_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+-- ALTER TABLE ONLY public.users
+--     ADD CONSTRAINT users_email_key UNIQUE (email);
 
 
---
--- Name: post_saves post_saves_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: admin
---
+-- --
+-- -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: admin
+-- --
 
-ALTER TABLE ONLY public.post_saves
-    ADD CONSTRAINT post_saves_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id);
-
-
---
--- Name: post_saves post_saves_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.post_saves
-    ADD CONSTRAINT post_saves_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+-- ALTER TABLE ONLY public.users
+--     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
 
 
---
--- Name: post_votes post_votes_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: admin
---
+-- --
+-- -- Name: posts post_del_protect; Type: RULE; Schema: public; Owner: admin
+-- --
 
-ALTER TABLE ONLY public.post_votes
-    ADD CONSTRAINT post_votes_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id);
-
-
---
--- Name: post_votes post_votes_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: admin
---
-
-ALTER TABLE ONLY public.post_votes
-    ADD CONSTRAINT post_votes_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+-- CREATE RULE post_del_protect AS
+--     ON DELETE TO public.posts DO INSTEAD NOTHING;
 
 
---
--- Name: posts posts_author_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: admin
---
+-- --
+-- -- Name: post_reacts post_reacts_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: admin
+-- --
 
-ALTER TABLE ONLY public.posts
-    ADD CONSTRAINT posts_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.users(id);
+-- ALTER TABLE ONLY public.post_reacts
+--     ADD CONSTRAINT post_reacts_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id);
 
 
---
--- PostgreSQL database dump complete
---
+-- --
+-- -- Name: post_reacts post_reacts_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: admin
+-- --
+
+-- ALTER TABLE ONLY public.post_reacts
+--     ADD CONSTRAINT post_reacts_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+-- --
+-- -- Name: post_saves post_saves_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: admin
+-- --
+
+-- ALTER TABLE ONLY public.post_saves
+--     ADD CONSTRAINT post_saves_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id);
+
+
+-- --
+-- -- Name: post_saves post_saves_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: admin
+-- --
+
+-- ALTER TABLE ONLY public.post_saves
+--     ADD CONSTRAINT post_saves_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+-- --
+-- -- Name: post_votes post_votes_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: admin
+-- --
+
+-- ALTER TABLE ONLY public.post_votes
+--     ADD CONSTRAINT post_votes_post_id_fkey FOREIGN KEY (post_id) REFERENCES public.posts(id);
+
+
+-- --
+-- -- Name: post_votes post_votes_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: admin
+-- --
+
+-- ALTER TABLE ONLY public.post_votes
+--     ADD CONSTRAINT post_votes_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+-- --
+-- -- Name: posts posts_author_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: admin
+-- --
+
+-- ALTER TABLE ONLY public.posts
+--     ADD CONSTRAINT posts_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.users(id);
+
+
+-- --
+-- -- PostgreSQL database dump complete
+-- --
 
