@@ -16,11 +16,7 @@
 
     <div class="tabs">
 	{{- range $tabs -}}
-	    {{- if eq $data.CurrTab . -}}
-		<span class="tab active">{{get $tabsMap .}}</span>
-	    {{- else -}}
-		<a class="tab" href="/users/{{$data.UserInfo.Id}}{{if ne . "all"}}?tab={{.}}{{end}}">{{get $tabsMap .}}</a>
-	    {{- end -}}
+	    <a class="tab{{if eq $data.CurrTab .}} active{{end}}" href="/users/{{$data.UserInfo.Id}}{{if ne . "all"}}?tab={{.}}{{end}}">{{get $tabsMap .}}</a>
 	{{- end -}}
     </div>
 

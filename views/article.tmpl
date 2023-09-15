@@ -337,11 +337,7 @@
 		    {{- $sortTabMap := dict "best" "Best" "latest" "Latest" -}}
 		    <div class="tabs">
 			{{- range $sortTabs -}}
-			    {{- if eq $article.Replies.SortType . -}}
-				<span class="tab active">{{get $sortTabMap .}}</span>
-			    {{- else -}}	
-				<a class="tab" href="/articles/{{$article.Id}}{{if ne . "best"}}?sort={{.}}#replies{{end}}">{{get $sortTabMap .}}</a>
-			    {{- end -}}
+			    <a class="tab{{if eq $article.Replies.SortType .}} active{{end}}" href="/articles/{{$article.Id}}{{if ne . "best"}}?sort={{.}}#replies{{end}}">{{get $sortTabMap .}}</a>
 			{{- end -}}
 		    </div>
 		</div>

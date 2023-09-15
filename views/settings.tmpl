@@ -9,11 +9,7 @@
 	    {{- $tabs = list "account" "ui" -}}
 	{{- end -}}
 	{{- range $tabs -}}
-	    {{- if eq $data.PageKey . -}}
-		<span class="tab active">{{get $tabNameMap .}}</span>
-	    {{- else -}}
-		<a class="tab" href="/settings/{{.}}">{{get $tabNameMap .}}</a>
-	    {{- end -}}
+	    <a class="tab{{if eq $data.PageKey .}} active{{end}}" href="/settings/{{.}}">{{get $tabNameMap .}}</a>
 	{{- end -}}
     </div>
 
