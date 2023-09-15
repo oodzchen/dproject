@@ -17,6 +17,7 @@ type AppConfig struct {
 	AppOuterPort       int    `env:"APP_OUTER_PORT" envDefault:"3000"`
 	Debug              bool   `env:"DEBUG" envDefault:"false"`
 	BrandName          string `env:"BRAND_NAME"`
+	BrandDomainName    string `env:"BRAND_DOMAIN_NAME"`
 	Slogan             string `env:"SLOGAN"`
 	DB                 *DBConfig
 	ReplyDepthPageSize int
@@ -55,6 +56,7 @@ var Config *AppConfig
 
 // var BrandName = "DizKaz"
 var BrandName = "笛卡"
+var BrandDomainName = "DizKaz.com"
 var Slogan = "知无不言, 言无不尽"
 var ReplyDepthPageSize = 10
 
@@ -94,6 +96,7 @@ func ParseFromEnv() (*AppConfig, error) {
 	cfg := &AppConfig{
 		DB:                 dbCfg,
 		BrandName:          BrandName,
+		BrandDomainName:    BrandDomainName,
 		Slogan:             Slogan,
 		ReplyDepthPageSize: ReplyDepthPageSize,
 	}

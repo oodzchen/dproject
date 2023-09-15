@@ -36,7 +36,9 @@
 		 --text-lighten-2: #666;
 		 --text-lighten-3: #999;
 
+		 --link: #1111FE;
 		 --link-visited: #9A3D9A;
+		 --link-active: #CE3535;
 
 		 --border-color: #CCC;
 	     }
@@ -53,7 +55,9 @@
 		 --text-lighten-2: #CCC;
 		 --text-lighten-3: #AAA;
 
+		 --link: #A3A3FF;
 		 --link-visited: #A35FA3;
+		 --link-active: #EE7C7C;
 
 		 --border-color: #666;
 	     }
@@ -62,10 +66,10 @@
 	     }
 	     a {
 		 text-decoration: none;
-		 color: var(--theme-color);
+		 color: var(--link);
 	     }
 	     a:active{
-		 color: var(--theme-color-darken);
+		 color: var(--link-active);
 	     }
 	     a:visited{
 		 color: var(--link-visited);
@@ -103,9 +107,8 @@
 	     }
 	     a.brand{
 		 display: inline-block;
-		 font-weight: bold;
 		 font-size: 1.2rem;
-		 color: var(--theme-color);
+		 color: var(--theme-color) !important;
 	     }
 	     .slogan{
 		 font-size: 0.8rem;
@@ -213,7 +216,7 @@
 		 display: inline-block;
 		 padding: 0;
 		 margin: 0;
-		 vertical-align: text-top;
+		 vertical-align: text-bottom;
 		 line-height: 0;
 	     }
 	     .vote-form button[type="submit"]{
@@ -413,40 +416,66 @@
 		 list-style: none;
 		 margin: 0;
 		 padding: 0;
+		 max-width: 50%;
 	     }
 	     .nav-menu li{
 		 vertical-align: middle;
-		 margin-right: 10px;
+		 
 		 line-height: 1.2rem;
 	     }
-	     .nav-menu li:last-child{
-		 margin-right: 0;
-	     }
 	     .nav-menu li a{
-		 /* color: var(--text-color) */
+		 color: var(--text-lighten);
 	     }
 	     .nav-menu.nav-menu--left{
 		 flex: 1 0 auto;
 	     }
 	     .nav-menu.nav-menu--right{
 		 justify-content: flex-end;
+		 text-align: right;
+	     }
+	     .nav-menu.nav-menu--right li{
+		 margin-left: 10px;
+	     }
+	     .nav-menu.nav-menu--right li:first-child{
+		 margin-left: 0;
+	     }
+	     .nav-menu.nav-menu--right li{
+		 margin-left: 10px;
+	     }
+	     .nav-menu.nav-menu--left li{
+		 margin-right: 10px;
+	     }
+	     .nav-menu.nav-menu--left li:last-child{
+		 margin-right: 0;
 	     }
 	    </style>
 	    <nav class="top-nav">
 		<ul class="nav-menu nav-menu--left">
-		    <li><a class="brand logo" href="/">{{.BrandName}}</a></li>
+		    <li><a class="brand logo" href="/"><b>{{.BrandName}}</b> {{.BrandDomainName}}</a></li>
 		    {{- range .BreadCrumbs -}}
 			<li><b><a href="{{.Path}}">{{.Name}}</a></b></li>
 		    {{- end -}}
 		</ul>
 		<ul class="nav-menu nav-menu--right">
 		    <li><a href="/articles/new">&plus;New</a></li>
-		    {{- if .Debug -}}
-			<li><a href="/users">Users</a></li>
-		    {{- end -}}
 		    {{if .LoginedUser -}}
 			<li><a href="/users/{{.LoginedUser.Id}}">{{.LoginedUser.Name}}</a></li>
-			{{- if .Debug }}
+			<li><a href="/logout">Logout</a></li>
+		    {{else -}}
+			<li><a href="/register">Register</a></li>
+			<li><a href="/login">Login</a></li>
+		    {{end -}}
+		    <li>
+			<a href="/settings">Settings</a>
+		    </li>
+		</ul>
+	    </nav>
+	    {{- if .Debug -}}
+		<nav class="top-nav">
+		    <ul class="nav-menu nav-menu--left"></ul>
+		    <ul class="nav-menu nav-menu--right">
+			<li><a href="/users">Users</a></li>
+			{{- if .LoginedUser -}}
 			    <li>
 				<form action="/login_debug" method="post">
 				    {{.CSRFField}}
@@ -459,16 +488,9 @@
 				</form>
 			    </li>
 			{{- end -}}
-			<li><a href="/logout">Logout</a></li>
-		    {{else -}}
-			<li><a href="/register">Register</a></li>
-			<li><a href="/login">Login</a></li>
-		    {{end -}}
-		    <li>
-			<a href="/settings">Settings</a>
-		    </li>
-		</ul>
-	    </nav>
+		    </ul>
+		</nav>
+	    {{- end -}}
 	    <!-- <hr/> -->
 	    {{range .TipMsg -}}
 		<div id="page-tip" class="page-tip">

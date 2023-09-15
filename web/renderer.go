@@ -44,20 +44,21 @@ type BreadCrumb struct {
 }
 
 type PageData struct {
-	Title       string
-	Data        any
-	TipMsg      []string
-	LoginedUser *model.User
-	JSONStr     string
-	CSRFField   string
-	UISettings  *UISettings
-	RoutePath   string
-	Debug       bool
-	DebugUsers  []*model.User
-	BreadCrumbs []*BreadCrumb
-	I18nData    map[string]any
-	BrandName   string
-	Slogan      string
+	Title           string
+	Data            any
+	TipMsg          []string
+	LoginedUser     *model.User
+	JSONStr         string
+	CSRFField       string
+	UISettings      *UISettings
+	RoutePath       string
+	Debug           bool
+	DebugUsers      []*model.User
+	BreadCrumbs     []*BreadCrumb
+	I18nData        map[string]any
+	BrandName       string
+	BrandDomainName string
+	Slogan          string
 }
 
 func (pd *PageData) AddI18nData(data map[string]any) {
@@ -197,6 +198,7 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	data.RoutePath = r.URL.Path
 	data.Debug = config.Config.Debug
 	data.BrandName = config.Config.BrandName
+	data.BrandDomainName = config.Config.BrandDomainName
 	data.Slogan = config.Config.Slogan
 	if data.Title != "" {
 		data.Title += fmt.Sprintf(" - %s", config.Config.BrandName)
