@@ -51,7 +51,7 @@ func CheckDB(beforeConnect bool) error {
 	return nil
 }
 
-func (pg *PGStore) NewArticle() (any, error) {
+func (pg *PGStore) NewArticleStore() (any, error) {
 	err := CheckDB(false)
 	if err != nil {
 		return nil, err
@@ -59,10 +59,26 @@ func (pg *PGStore) NewArticle() (any, error) {
 	return &Article{pgDB.Pool}, nil
 }
 
-func (pg *PGStore) NewUser() (any, error) {
+func (pg *PGStore) NewUserStore() (any, error) {
 	err := CheckDB(false)
 	if err != nil {
 		return nil, err
 	}
 	return &User{pgDB.Pool}, nil
+}
+
+func (pg *PGStore) NewRoleStore() (any, error) {
+	err := CheckDB(false)
+	if err != nil {
+		return nil, err
+	}
+	return &Role{pgDB.Pool}, nil
+}
+
+func (pg *PGStore) NewPermissionStore() (any, error) {
+	err := CheckDB(false)
+	if err != nil {
+		return nil, err
+	}
+	return &Permission{pgDB.Pool}, nil
 }

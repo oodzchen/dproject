@@ -19,13 +19,16 @@ type react_type
 CREATE TABLE roles (
     id SERIAL PRIMARY KEY,
     front_id VARCHAR(50) NOT NULL,
-    name VARCHAR(50) NOT NULL
+    name VARCHAR(50) NOT NULL,
+    deleted BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE permissions (
     id SERIAL PRIMARY KEY,
     front_id VARCHAR(50) NOT NULL,
-    name VARCHAR(50) NOT NULL
+    name VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE role_permissions (

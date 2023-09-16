@@ -5,13 +5,17 @@ import (
 )
 
 type Store struct {
-	Article ArticleStore
-	User    UserStore
+	Article    ArticleStore
+	User       UserStore
+	Role       RoleStore
+	Permission PermissionStore
 }
 
 type DBStore interface {
-	NewArticle() (any, error)
-	NewUser() (any, error)
+	NewArticleStore() (any, error)
+	NewUserStore() (any, error)
+	NewPermissionStore() (any, error)
+	NewRoleStore() (any, error)
 }
 
 type ArticleStore interface {
@@ -42,19 +46,41 @@ type UserStore interface {
 	Count() (int, error)
 }
 
+type PermissionStore interface {
+	List(page, pageSize int) ([]*model.Permission, error)
+	Create(frontId, name string) (int, error)
+	Update(name string) (int, error)
+	Item(int) (*model.Permission, error)
+	// Delete(int) error
+}
+
+type RoleStore interface {
+	List(page, pageSize int) ([]*model.Role, error)
+	Create(frontId, name string) (int, error)
+	Update(name string) (int, error)
+	Item(int) (*model.Role, error)
+	Delete(int) error
+}
+
 func New(dbStore DBStore) (*Store, error) {
-	//...f
-	article, err := dbStore.NewArticle()
-	user, err := dbStore.NewUser()
+	article, err := dbStore.NewArticleStore()
+	user, err := dbStore.NewUserStore()
+	permission, err := dbStore.NewPermissionStore()
+	role, err := dbStore.NewRoleStore()
+
 	if err != nil {
 		return nil, err
 	}
 
 	articleStore := article.(ArticleStore)
 	userStore := user.(UserStore)
+	permissionStore := permission.(PermissionStore)
+	roleStore := role.(RoleStore)
 
 	return &Store{
-		Article: articleStore,
-		User:    userStore,
+		Article:    articleStore,
+		User:       userStore,
+		Role:       roleStore,
+		Permission: permissionStore,
 	}, nil
 }

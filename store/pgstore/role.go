@@ -1,0 +1,99 @@
+package pgstore
+
+import (
+	"context"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/oodzchen/dproject/model"
+)
+
+type Role struct {
+	dbPool *pgxpool.Pool
+}
+
+func (r *Role) List(page, pageSize int) ([]*model.Role, error) {
+	if page < 1 {
+		page = defaultPage
+	}
+
+	if pageSize < 1 {
+		pageSize = defaultPage
+	}
+
+	rows, err := r.dbPool.Query(
+		context.Background(),
+		`SELECT id, name, front_id, created_at FROM roles ORDER BY created_at`,
+		pageSize*(page-1),
+		pageSize,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var list []*model.Role
+	for rows.Next() {
+		var item model.Role
+		err := rows.Scan(
+			&item.Id,
+			&item.Name,
+			&item.FrontId,
+			&item.CreatedAt,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		list = append(list, &item)
+	}
+
+	return list, nil
+}
+
+func (r *Role) Create(frontId, name string) (int, error) {
+	var id int
+	err := r.dbPool.QueryRow(context.Background(), "INSERT INTO roles (front_id, name) VALUES ($1, $2) RETURNING (id)",
+		frontId,
+		name,
+	).Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
+}
+
+func (r *Role) Update(name string) (int, error) {
+	var id int
+	err := r.dbPool.QueryRow(context.Background(), "UPDATE roles SET name = $1 WHERE id = $2 RETURNING (id)",
+		name,
+	).Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
+}
+
+func (r *Role) Item(id int) (*model.Role, error) {
+	var item model.Role
+	err := r.dbPool.QueryRow(context.Background(), "SELECT id, front_id, name, created_at FROM roles id = $1",
+		id,
+	).Scan(
+		&item.Id,
+		&item.FrontId,
+		&item.Name,
+		&item.CreatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &item, nil
+}
+
+func (r *Role) Delete(id int) error {
+	err := r.dbPool.QueryRow(context.Background(), "UPDATE roles SET deleted = true WHERE id = $1").Scan(nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
