@@ -24,11 +24,14 @@ CREATE TABLE roles (
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+CREATE TYPE permission_module AS ENUM ('user', 'article', 'permission', 'role');
+
 CREATE TABLE permissions (
     id SERIAL PRIMARY KEY,
     front_id VARCHAR(50) NOT NULL,
     name VARCHAR(50) NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    module permission_module NOT NULL
 );
 
 CREATE TABLE role_permissions (
@@ -45,12 +48,11 @@ INSERT INTO roles (front_id, name) VALUES ('user', 'User');
 INSERT INTO roles (front_id, name) VALUES ('moderator', 'Moderator');
 INSERT INTO roles (front_id, name) VALUES ('admin', 'Admin');
 
-INSERT INTO permissions (front_id, name) VALUES ('create_article', 'Create article');
-INSERT INTO permissions (front_id, name) VALUES ('create_reply', 'Create reply');
+INSERT INTO permissions (front_id, name, module) VALUES ('create_article', 'Create article', 'article');
+INSERT INTO permissions (front_id, name, module) VALUES ('create_reply', 'Create reply', 'article');
 
-INSERT INTO permissions (front_id, name) VALUES ('access_manage', 'Access Manage');
-INSERT INTO permissions (front_id, name) VALUES ('create_role', 'Create Role');
-INSERT INTO permissions (front_id, name) VALUES ('create_permission', 'Create Permission');
+INSERT INTO permissions (front_id, name, module) VALUES ('create_role', 'Create Role', 'role');
+INSERT INTO permissions (front_id, name, module) VALUES ('create_permission', 'Create Permission', 'permission');
 
 INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 1);
 INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 2);

@@ -79,6 +79,7 @@ func Service(c *ServiceConfig) http.Handler {
 	articleResource := web.NewArticleResource(baseTmpl, c.store, sessStore, r)
 	userResource := web.NewUserResource(baseTmpl, c.store, sessStore, r)
 	mainResource := web.NewMainResource(baseTmpl, c.store, sessStore, articleResource, r)
+	manageResource := web.NewManageResource(baseTmpl, c.store, sessStore, r, userResource)
 
 	rateLimit := 100
 	if utils.IsDebug() {
@@ -113,6 +114,7 @@ func Service(c *ServiceConfig) http.Handler {
 	r.Mount("/", mainResource.Routes())
 	r.Mount("/articles", articleResource.Routes())
 	r.Mount("/users", userResource.Routes())
+	r.Mount("/manage", manageResource.Routes())
 
 	// chi.Walk(r, func(method, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
 	// 	////

@@ -22,9 +22,7 @@ func (p *Permission) List(page, pageSize int) ([]*model.Permission, error) {
 
 	rows, err := p.dbPool.Query(
 		context.Background(),
-		`SELECT id, name, front_id, created_at FROM permissions ORDER BY created_at`,
-		pageSize*(page-1),
-		pageSize,
+		`SELECT id, name, front_id, created_at, module FROM permissions ORDER BY created_at`,
 	)
 
 	if err != nil {
@@ -39,6 +37,7 @@ func (p *Permission) List(page, pageSize int) ([]*model.Permission, error) {
 			&item.Name,
 			&item.FrontId,
 			&item.CreatedAt,
+			&item.Module,
 		)
 
 		if err != nil {

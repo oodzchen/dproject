@@ -22,6 +22,11 @@ func TestTimeFormat(t *testing.T) {
 			want: "24/07/2023 08:24:23",
 		},
 		{
+			in:   []int{2023, 7, 24, 11, 24, 23},
+			tpl:  "DD/MM/YYYY hh:mm:ss",
+			want: "24/07/2023 11:24:23",
+		},
+		{
 			in:   []int{2023, 7, 24, 8, 24, 23},
 			tpl:  "YYYY-M-D h:m:s",
 			want: "2023-7-24 8:24:23",

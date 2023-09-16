@@ -18,7 +18,6 @@
 	    <style>
 	     :root{
 		 --font-size: 16px;
-		 --colored-bg: #BED3E5;
 		 --tip-bg: #E5E4BE;
 		 --theme-color: #2F71AC;
 		 --theme-color-darken: #5050DC;
@@ -31,6 +30,8 @@
 		 --background: {{$bgColorLight}};
 		 --background-hover: #FAFAFA;
 
+		 --text-bg: #E8F4FF;
+		 
 		 --text-with-background: black;
 		 --text-lighten: #333;
 		 --text-lighten-2: #666;
@@ -50,6 +51,8 @@
 		 --background: {{$bgColorDark}};
 		 --background-hover: #383A45;
 
+		 --text-bg: #2E3841;
+		 
 		 --text-with-background: black;
 		 --text-lighten: #DDD;
 		 --text-lighten-2: #CCC;
@@ -105,6 +108,26 @@
 		 {{- end -}}
 		 font-family: Helvetica, sans-serif, Noto Sans, Microsoft YaHei, Microsoft JhengHei, PingFang, Noto Color Emoji;
 	     }
+
+	     hr{
+		 border-color: var(--border-color);
+	     }
+
+	     .table-data{
+		 border: 1px solid var(--border-color);
+		 border-collapse: collapse;
+	     }
+
+	     .table-data thead th{
+		 background: var(--text-bg);
+	     }
+
+	     .table-data th,
+	     .table-data td{
+		 border: 1px solid var(--border-color);
+		 padding: 4px 12px;
+	     }
+	     
 	     a.brand{
 		 display: inline-block;
 		 font-size: 1.2rem;
@@ -204,7 +227,7 @@
 	     .form .form__row{
 		 margin-bottom: 12px;
 	     }
-	     .form .form__row > label{
+	     .form .form__row > .form__label{
 		 display: block;
 		 margin-bottom: 6px;
 		 font-weight: bold;
@@ -450,10 +473,21 @@
 	     }
 	    </style>
 	    <nav class="top-nav">
+		{{- $breadIdx := 0 -}}
 		<ul class="nav-menu nav-menu--left">
 		    <li><a class="brand logo" href="/"><b>{{.BrandName}}</b> {{.BrandDomainName}}</a></li>
 		    {{- range .BreadCrumbs -}}
-			<li><b><a href="{{.Path}}">{{.Name}}</a></b></li>
+			{{- if gt $breadIdx 0 -}}
+			    <li class="separator">/</li>
+			{{- end -}}
+			{{- $breadIdx = add $breadIdx 1 -}}
+			<li><b>
+			    {{- if .Path -}}
+				<a href="{{.Path}}">{{.Name}}</a>
+			    {{- else -}}
+				{{.Name}}
+			    {{- end -}}
+			</b></li>
 		    {{- end -}}
 		</ul>
 		<ul class="nav-menu nav-menu--right">
@@ -474,6 +508,7 @@
 		<nav class="top-nav">
 		    <ul class="nav-menu nav-menu--left"></ul>
 		    <ul class="nav-menu nav-menu--right">
+			<li><a href="/manage">Manage</a></li>
 			<li><a href="/users">Users</a></li>
 			{{- if .LoginedUser -}}
 			    <li>

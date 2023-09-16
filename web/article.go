@@ -154,7 +154,7 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 	var data *model.Article
 
 	if id == "" {
-		pageTitle = "Create"
+		pageTitle = "Add"
 		data = &model.Article{}
 	} else {
 		rId, err := strconv.Atoi(id)
@@ -189,7 +189,10 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 
 	ar.SavePrevPage(w, r)
 
-	ar.Render(w, r, "create", &PageData{Title: pageTitle, Data: data})
+	ar.Render(w, r, "create", &PageData{
+		Title: pageTitle,
+		Data:  data,
+	})
 }
 
 func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {

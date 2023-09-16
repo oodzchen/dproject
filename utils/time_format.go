@@ -38,7 +38,7 @@ func FormatTime(t time.Time, format string) string {
 					nativeFormat = append(nativeFormat, nativeFormatMap[tp])
 				}
 			} else {
-				if tp == "Y" && repeatCount < 4 {
+				if (tp == "Y" && repeatCount < 4) || (tp == "h" && hour > 9) {
 					prev = tp
 					continue
 				}

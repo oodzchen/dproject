@@ -316,7 +316,7 @@
 	<form method="post" action="/articles/{{.article.Id}}/delete{{if gt .pageDepth 1}}?from=reply{{- end}}" id="del_form_{{.article.Id}}" style="margin:12px 0 12px;padding:10px;border:1px solid #ccc;">
 	    {{.CSRFField -}}
 	    <input type="hidden" name="id" value="{{.article.Id}}">
-	    <label for="confirm_del">Confirm to delete?</label>
+	    <label>Confirm to delete?</label>
 	    <br/>
 	    <br/>
 	    <button type="submit">Delete</button>

@@ -1,0 +1,65 @@
+{{define "permission_list"}}
+
+    {{template "head" .}}
+    
+    {{- $csrfField := .CSRFField -}}
+    {{- $debug := .Debug -}}
+
+    <div style="margin-bottom: 16px">
+	{{- if eq .Data.PageType "create" -}}
+	    <h1>Add Permission</h1>
+	    <hr/>
+	    <form class="form" action="/manage/permissions" method="POST">
+		{{- $csrfField -}}
+		<div class="form__row">
+		    <label class="form__label">Module</label>
+		    {{- range .Data.ModuleOptions -}}
+			<input required name="module" type="radio" id="{{.}}" autocomplete="off" value="{{.}}"/>
+			<label for="{{.}}">{{.}}</label>&nbsp;&nbsp;
+		    {{- end -}}
+		</div>
+		<div class="form__row">
+		    <label class="form__label" for="front_id">Front Id</label>
+		    <input required id="front_id" name="front_id" type="text" value=""/>
+		</div>
+		<div class="form__row">
+		    <label class="form__label" for="name">Name</label>
+		    <input required id="name" name="name" type="text" value=""/>
+		</div>
+
+		<button type="submit">Submit</button>
+	    </form>
+	{{- else -}}
+	    <div>
+		<a href="/manage/permissions/new" class="text-lighten">+Add Permission</a>
+	    </div>
+	{{- end -}}
+    </div>
+
+    <hr/>
+    
+    <table class="table-data">
+	<thead>
+	    <tr>
+		<th>Permission Name</th>
+		<th>Front Id</th>
+		<th>Created At</th>
+	    </tr>
+	</thead>
+	<tbody>
+	    {{- range .Data.List -}}
+		<tr>
+		    <td>{{.Name}}</td>
+		    <td>{{.FrontId}}</td>
+		    <td>{{timeFormat .CreatedAt "YYYY-MM-DD hh:mm:ss"}}</td>
+		</tr>
+	    {{- end -}}
+	</tbody>
+    </table>
+
+    {{ $pagiData := dict "currPage" .Data.CurrPage "totalPage" .Data.TotalPage "pathPrefix" "/users"  }}
+    {{ template "pagination" $pagiData }}    
+
+    {{template "foot" .}}
+
+{{- end -}}
