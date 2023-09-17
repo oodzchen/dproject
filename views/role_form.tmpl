@@ -1,0 +1,37 @@
+{{define "role_form"}}
+
+    {{template "head" .}}
+    
+    {{- $csrfField := .CSRFField -}}
+    {{- $debug := .Debug -}}
+
+    <form class="form" action="/manage/roles" method="POST">
+	{{- $csrfField -}}
+	<div class="form__row">
+	    <label class="form__label" for="front_id">Front Id</label>
+	    <input required id="front_id" name="front_id" type="text" value=""/>
+	</div>
+	<div class="form__row">
+	    <label class="form__label" for="name">Name</label>
+	    <input required id="name" name="name" type="text" value=""/>
+	</div>
+	<div class="form__row">
+	    <label class="form__label">Permissions</label>
+	    <!-- <input required id="name" name="name" type="text" value=""/> -->
+	    {{- range .Data.PermissionList -}}
+	    <fieldset>
+		<legend><b>{{.Module}}</b></legend>
+		{{- range .List -}}
+		    <input name="permissions" id="{{.FrontId}}" type="checkbox" value="{{.Id}}"/>
+		    <label for="{{.FrontId}}">{{.Name}}</label>&nbsp;&nbsp;&nbsp;&nbsp;
+		{{- end -}}
+	    </fieldset>
+	    {{- end -}}
+	</div>
+
+	<button type="submit">Submit</button>
+    </form>
+
+    {{template "foot" .}}
+
+{{- end -}}

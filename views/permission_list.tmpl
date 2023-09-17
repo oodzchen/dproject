@@ -32,32 +32,18 @@
 	{{- end -}}
     </div>
 
-    <!-- <hr/> -->
-
-    <style>
-     .permission-tab{
-	 display: flex;
-	 border-bottom: 1px solid var(--border-color);
-	 justify-content: space-between;
-	 align-items: center;
-	 margin: 10px;
-     }
-     .permission-tab .tabs{
-	 margin-bottom: -1px;
-     }
-    </style>
     {{- $data := .Data -}}
     {{- $permissionTabs := prepend .Data.ModuleOptions "all" -}}
-    <div class="permission-tab">
+    <div class="page-tab">
 	<div class="tabs">
 	    {{- range $permissionTabs -}}
-		<a class="tab{{if eq $data.CurrTab .}} active{{end}}" title="{{.}}" href="/manage/permissions{{if ne . "all"}}?tab={{.}}{{end}}">{{.}}</a>
+		<a class="tab{{if eq $data.CurrTab .}} active{{end}}" title="{{.}}" href="?tab={{.}}">{{.}}</a>
 	    {{- end -}}
 	</div>
 
 	{{- if eq .Data.PageType "list" -}}
 	    <div>
-		<a href="/manage/permissions/new" class="text-lighten">+Add Permission</a>
+		<a href="/manage/permissions/new?tab={{$data.CurrTab}}" class="text-lighten">+Add Permission</a>
 	    </div>
 	{{- end -}}
     </div>

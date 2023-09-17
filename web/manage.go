@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"text/template"
@@ -40,6 +41,12 @@ func (mr *ManageResource) Routes() http.Handler {
 			r.Get("/", mr.PermissionListPage)
 			r.Post("/", mr.PermissionSubmit)
 			r.Get("/new", mr.PermissionCreatePage)
+		})
+
+		r.Route("/roles", func(r chi.Router) {
+			r.Get("/", mr.RoleListPage)
+			r.Post("/", mr.RoleSubmit)
+			r.Get("/new", mr.RoleCreatePage)
 		})
 
 		// r.Get("/roles", mr.RoleListPage)
@@ -91,11 +98,7 @@ func (mr *ManageResource) handlePermissionList(w http.ResponseWriter, r *http.Re
 		mr.Error("", err, w, r, http.StatusInternalServerError)
 	}
 
-	total, err := mr.store.User.Count()
-	if err != nil {
-		mr.Error("", err, w, r, http.StatusInternalServerError)
-		return
-	}
+	total := len(list)
 
 	type PermissionListPage struct {
 		List          []*model.Permission
@@ -180,6 +183,169 @@ func (mr *ManageResource) PermissionSubmit(w http.ResponseWriter, r *http.Reques
 	}
 
 	mr.Session("one", w, r).Flash("Add permission successfully")
+	// http.Redirect(w, r, "/manage/permissions", http.StatusFound)
+	mr.ToPrevPage(w, r)
+}
+
+type PermissionListItem struct {
+	Module model.PermissionModule
+	List   []*model.Permission
+}
+
+func (mr *ManageResource) RoleListPage(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+
+	paramPage := r.Form.Get("page")
+
+	page, err := strconv.Atoi(paramPage)
+	if err != nil {
+		// fmt.Printf("page err %v\n", err)
+		page = 1
+	}
+
+	pageSize, err := strconv.Atoi(r.Form.Get("page_size"))
+	if err != nil {
+		pageSize = 999
+	}
+
+	list, err := mr.store.Role.List(page, pageSize)
+	if err != nil {
+		mr.Error("", err, w, r, http.StatusInternalServerError)
+	}
+
+	total := len(list)
+
+	type RoleListPageData struct {
+		List      []*model.Role
+		Total     int
+		CurrPage  int
+		TotalPage int
+		PageSize  int
+	}
+
+	title := "Role List"
+	breadCrumbs := []*BreadCrumb{
+		{
+			"/manage/roles",
+			"Role",
+		},
+	}
+
+	mr.SavePrevPage(w, r)
+
+	mr.Render(w, r, "role_list", &PageData{
+		Title: title,
+		Data: &RoleListPageData{
+			list,
+			total,
+			page,
+			CeilInt(total, pageSize),
+			pageSize,
+		},
+		BreadCrumbs: breadCrumbs,
+	})
+}
+
+func (mr *ManageResource) RoleCreatePage(w http.ResponseWriter, r *http.Request) {
+	permissionList, err := mr.store.Permission.List(1, 999, "")
+	if err != nil {
+		mr.Error("", err, w, r, http.StatusInternalServerError)
+		return
+	}
+
+	type RoleCreatePageData struct {
+		PermissionList []*PermissionListItem
+	}
+
+	formattedPermissionList := formatPermissionList(permissionList)
+
+	breadCrumbs := []*BreadCrumb{
+		{
+			"/manage/roles",
+			"Role",
+		},
+		{
+			"",
+			"Add Role",
+		},
+	}
+
+	mr.Render(w, r, "role_form", &PageData{
+		Title: "Add Role",
+		Data: &RoleCreatePageData{
+			PermissionList: formattedPermissionList,
+		},
+		BreadCrumbs: breadCrumbs,
+	})
+}
+
+func formatPermissionList(rawList []*model.Permission) []*PermissionListItem {
+	var list []*PermissionListItem
+	listMap := make(map[model.PermissionModule][]*model.Permission)
+
+	for _, item := range rawList {
+		if mList, ok := listMap[item.Module]; !ok {
+			listMap[item.Module] = []*model.Permission{item}
+		} else {
+			listMap[item.Module] = append(mList, item)
+		}
+	}
+
+	for k, v := range listMap {
+		list = append(list, &PermissionListItem{
+			Module: k,
+			List:   v,
+		})
+	}
+
+	return list
+}
+
+func (mr *ManageResource) RoleSubmit(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+
+	frontId := r.Form.Get("front_id")
+	name := r.Form.Get("name")
+	permissions := r.Form["permissions"]
+
+	fmt.Println("permissions: ", permissions)
+
+	role := &model.Role{
+		FrontId: frontId,
+		Name:    name,
+	}
+
+	role.TrimSpace()
+
+	err := role.Valid()
+	if err != nil {
+		mr.Error(err.Error(), err, w, r, http.StatusBadRequest)
+		return
+	}
+
+	var permissionIds []int
+
+	for _, idStr := range permissions {
+		id, err := strconv.Atoi(idStr)
+		if err == nil {
+			permissionIds = append(permissionIds, id)
+		}
+	}
+
+	_, err = mr.store.Role.Create(role.FrontId, role.Name, permissionIds)
+
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == PGErrUniqueViolation {
+			mr.Error("the role is existing", err, w, r, http.StatusBadRequest)
+		} else {
+			mr.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
+		}
+
+		return
+	}
+
+	mr.Session("one", w, r).Flash("Add role successfully")
 	// http.Redirect(w, r, "/manage/permissions", http.StatusFound)
 	mr.ToPrevPage(w, r)
 }

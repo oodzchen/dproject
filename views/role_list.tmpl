@@ -1,7 +1,32 @@
 {{define "role_list"}}
 
     {{template "head" .}}
-    
+
+    <div class="page-tab">
+	<div></div>
+	<div>
+	    <a href="/manage/roles/new" class="text-lighten">+Add Role</a>
+	</div>
+    </div>
+
+    <table class="table-data">
+	<thead>
+	    <tr>
+		<th>Permission Name</th>
+		<th>Front Id</th>
+		<th>Created At</th>
+	    </tr>
+	</thead>
+	<tbody>
+	    {{- range .Data.List -}}
+		<tr>
+		    <td>{{.Name}}</td>
+		    <td>{{.FrontId}}</td>
+		    <td>{{timeFormat .CreatedAt "YYYY-MM-DD hh:mm:ss"}}</td>
+		</tr>
+	    {{- end -}}
+	</tbody>
+    </table>
 
     {{template "foot" .}}
 

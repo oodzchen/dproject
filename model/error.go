@@ -25,6 +25,7 @@ var (
 	ErrValidUserFailed       = errors.New("user validation failed")
 	ErrValidArticleFailed    = errors.New("article validation failed")
 	ErrValidPermissionFailed = errors.New("permission validation failed")
+	ErrValidRoleFailed       = errors.New("role validation failed")
 )
 
 func NewAppError(err error, code AppErrCode) *AppError {

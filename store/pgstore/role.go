@@ -2,6 +2,8 @@ package pgstore
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/oodzchen/dproject/model"
@@ -22,9 +24,7 @@ func (r *Role) List(page, pageSize int) ([]*model.Role, error) {
 
 	rows, err := r.dbPool.Query(
 		context.Background(),
-		`SELECT id, name, front_id, created_at FROM roles ORDER BY created_at`,
-		pageSize*(page-1),
-		pageSize,
+		`SELECT id, name, front_id, created_at FROM roles ORDER BY created_at DESC`,
 	)
 
 	if err != nil {
@@ -51,7 +51,7 @@ func (r *Role) List(page, pageSize int) ([]*model.Role, error) {
 	return list, nil
 }
 
-func (r *Role) Create(frontId, name string) (int, error) {
+func (r *Role) Create(frontId, name string, permissions []int) (int, error) {
 	var id int
 	err := r.dbPool.QueryRow(context.Background(), "INSERT INTO roles (front_id, name) VALUES ($1, $2) RETURNING (id)",
 		frontId,
@@ -60,6 +60,27 @@ func (r *Role) Create(frontId, name string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+
+	if len(permissions) > 0 {
+		sqlStrHead := `INSERT INTO role_permissions (role_id, permission_id) VALUES `
+		var strArr []string
+		var args []any
+		var argCount = 1
+		for _, pId := range permissions {
+			strArr = append(strArr, fmt.Sprintf("($%d, $%d)", argCount, argCount+1))
+			args = append(args, id, pId)
+			argCount += 2
+		}
+		sqlStr := sqlStrHead + strings.Join(strArr, ", ")
+		fmt.Println("create role sql string: ", sqlStr)
+		fmt.Println("create role args: ", args)
+
+		_, err := r.dbPool.Exec(context.Background(), sqlStr, args...)
+		if err != nil {
+			return 0, err
+		}
+	}
+
 	return id, nil
 }
 

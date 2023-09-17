@@ -56,7 +56,7 @@ type PermissionStore interface {
 
 type RoleStore interface {
 	List(page, pageSize int) ([]*model.Role, error)
-	Create(frontId, name string) (int, error)
+	Create(frontId, name string, permissions []int) (int, error)
 	Update(name string) (int, error)
 	Item(int) (*model.Role, error)
 	Delete(int) error
