@@ -29,18 +29,42 @@
 
 		<button type="submit">Submit</button>
 	    </form>
-	{{- else -}}
+	{{- end -}}
+    </div>
+
+    <!-- <hr/> -->
+
+    <style>
+     .permission-tab{
+	 display: flex;
+	 border-bottom: 1px solid var(--border-color);
+	 justify-content: space-between;
+	 align-items: center;
+	 margin: 10px;
+     }
+     .permission-tab .tabs{
+	 margin-bottom: -1px;
+     }
+    </style>
+    {{- $data := .Data -}}
+    {{- $permissionTabs := prepend .Data.ModuleOptions "all" -}}
+    <div class="permission-tab">
+	<div class="tabs">
+	    {{- range $permissionTabs -}}
+		<a class="tab{{if eq $data.CurrTab .}} active{{end}}" title="{{.}}" href="/manage/permissions{{if ne . "all"}}?tab={{.}}{{end}}">{{.}}</a>
+	    {{- end -}}
+	</div>
+
+	{{- if eq .Data.PageType "list" -}}
 	    <div>
 		<a href="/manage/permissions/new" class="text-lighten">+Add Permission</a>
 	    </div>
 	{{- end -}}
     </div>
-
-    <hr/>
-    
     <table class="table-data">
 	<thead>
 	    <tr>
+		<th>Module</th>
 		<th>Permission Name</th>
 		<th>Front Id</th>
 		<th>Created At</th>
@@ -49,6 +73,7 @@
 	<tbody>
 	    {{- range .Data.List -}}
 		<tr>
+		    <td>{{.Module}}</td>
 		    <td>{{.Name}}</td>
 		    <td>{{.FrontId}}</td>
 		    <td>{{timeFormat .CreatedAt "YYYY-MM-DD hh:mm:ss"}}</td>

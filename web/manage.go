@@ -7,8 +7,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/sessions"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/store"
+	"github.com/pkg/errors"
 )
 
 type ManageResource struct {
@@ -66,7 +68,13 @@ func (mr *ManageResource) handlePermissionList(w http.ResponseWriter, r *http.Re
 	r.ParseForm()
 
 	paramPage := r.Form.Get("page")
+
+	tab := r.Form.Get("tab")
 	// fmt.Println("paramPage:", paramPage)
+	if !model.ValidPermissionModule(tab) {
+		tab = "all"
+	}
+
 	page, err := strconv.Atoi(paramPage)
 	if err != nil {
 		// fmt.Printf("page err %v\n", err)
@@ -78,7 +86,7 @@ func (mr *ManageResource) handlePermissionList(w http.ResponseWriter, r *http.Re
 		pageSize = 999
 	}
 
-	list, err := mr.store.Permission.List(page, pageSize)
+	list, err := mr.store.Permission.List(page, pageSize, tab)
 	if err != nil {
 		mr.Error("", err, w, r, http.StatusInternalServerError)
 	}
@@ -97,6 +105,7 @@ func (mr *ManageResource) handlePermissionList(w http.ResponseWriter, r *http.Re
 		PageSize      int
 		PageType      string
 		ModuleOptions []model.PermissionModule
+		CurrTab       string
 	}
 
 	title := "Permission List"
@@ -115,6 +124,10 @@ func (mr *ManageResource) handlePermissionList(w http.ResponseWriter, r *http.Re
 		})
 	}
 
+	if pageType == PermissionPageList {
+		mr.SavePrevPage(w, r)
+	}
+
 	mr.Render(w, r, "permission_list", &PageData{
 		Title: title,
 		Data: &PermissionListPage{
@@ -125,6 +138,7 @@ func (mr *ManageResource) handlePermissionList(w http.ResponseWriter, r *http.Re
 			pageSize,
 			string(pageType),
 			model.GetPermissionModuleOptions(),
+			tab,
 		},
 		BreadCrumbs: breadCrumbs,
 	})
@@ -133,7 +147,39 @@ func (mr *ManageResource) handlePermissionList(w http.ResponseWriter, r *http.Re
 func (mr *ManageResource) PermissionSubmit(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
-	// module := r.Form.Get("module")
-	// frontId := r.Form.Get("front_id")
-	// name := r.Form.Get("name")
+	module := r.Form.Get("module")
+	frontId := r.Form.Get("front_id")
+	name := r.Form.Get("name")
+
+	permission := &model.Permission{
+		Module:  model.PermissionModule(module),
+		FrontId: frontId,
+		Name:    name,
+	}
+
+	permission.TrimSpace()
+	// permission.Sanitize()
+
+	err := permission.Valid()
+	if err != nil {
+		mr.Error(err.Error(), err, w, r, http.StatusBadRequest)
+		return
+	}
+
+	_, err = mr.store.Permission.Create(string(permission.Module), permission.FrontId, permission.Name)
+
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == PGErrUniqueViolation {
+			mr.Error("the permission is existing", err, w, r, http.StatusBadRequest)
+		} else {
+			mr.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
+		}
+
+		return
+	}
+
+	mr.Session("one", w, r).Flash("Add permission successfully")
+	// http.Redirect(w, r, "/manage/permissions", http.StatusFound)
+	mr.ToPrevPage(w, r)
 }

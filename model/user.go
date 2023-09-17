@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -44,6 +45,11 @@ func (u *User) Sanitize() {
 
 func userValidErr(str string) error {
 	return errors.Join(ErrValidUserFailed, errors.New(str))
+}
+
+func (u *User) TrimSpace() {
+	u.Email = strings.TrimSpace(u.Email)
+	u.Name = strings.TrimSpace(u.Name)
 }
 
 func (u *User) Valid() error {

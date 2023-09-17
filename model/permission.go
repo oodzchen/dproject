@@ -3,7 +3,11 @@ package model
 import (
 	"errors"
 	"fmt"
+	"regexp"
+	"strconv"
+	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 type PermissionModule string
@@ -47,6 +51,14 @@ func permissionValidErr(str string) error {
 	return errors.Join(ErrValidPermissionFailed, errors.New(str))
 }
 
+const PermissionFrontIdMaxLen int = 50
+const PermissionNameMaxLen int = 50
+
+func (p *Permission) TrimSpace() {
+	p.FrontId = strings.TrimSpace(p.FrontId)
+	p.Name = strings.TrimSpace(p.Name)
+}
+
 func (p *Permission) Valid() error {
 	lackField := ""
 
@@ -61,27 +73,30 @@ func (p *Permission) Valid() error {
 	}
 
 	if lackField != "" {
-		return userValidErr(fmt.Sprintf("require field: %s", lackField))
+		return permissionValidErr(fmt.Sprintf("require field: %s", lackField))
 	}
 
-	// ok := utils.ValidateEmail(p.Email)
-	// if !ok {
-	// 	return userValidErr("email format error")
-	// }
+	if ok := ValidPermissionModule(string(p.Module)); !ok {
+		return permissionValidErr("module not exist")
+	}
 
-	// reUsername := regexp.MustCompile(`^[\p{L}\p{N}\s]+$`)
-	// if !reUsername.Match([]byte(p.Name)) {
-	// 	return userValidErr("username format error")
-	// }
+	if utf8.RuneCountInString(p.FrontId) > PermissionFrontIdMaxLen {
+		return permissionValidErr(fmt.Sprintf("front id length limit in %d characters", PermissionFrontIdMaxLen))
+	}
 
-	// rePassword := regexp.MustCompile(`[A-Za-z\d[:graph:]]{8,}`)
-	// reLetter := regexp.MustCompile(`[A-Za-z]`)
-	// reNum := regexp.MustCompile(`\d`)
-	// reNotaion := regexp.MustCompile(`[[:graph:]]`)
-	// originalPwd := []byte(p.Password)
-	// if !rePassword.Match(originalPwd) || !reLetter.Match(originalPwd) || !reNum.Match(originalPwd) || !reNotaion.Match(originalPwd) {
-	// 	return userValidErr("password format error")
-	// }
+	reFrontId := regexp.MustCompile(`^[\w\d_]{1,` + strconv.Itoa(PermissionFrontIdMaxLen) + `}$`)
+	if !reFrontId.Match([]byte(p.FrontId)) {
+		return permissionValidErr("front id format error")
+	}
+
+	if utf8.RuneCountInString(p.Name) > PermissionNameMaxLen {
+		return permissionValidErr(fmt.Sprintf("name length limit in %d characters", PermissionNameMaxLen))
+	}
+
+	reName := regexp.MustCompile(`^[\w\d\s]{1,` + strconv.Itoa(PermissionNameMaxLen) + `}$`)
+	if !reName.Match([]byte(p.Name)) {
+		return permissionValidErr("name format error")
+	}
 
 	return nil
 }

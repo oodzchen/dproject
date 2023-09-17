@@ -17,6 +17,7 @@ func (a *Article) Create(title, content string, authorId, replyTo int) (int, err
 		ReplyTo:  replyTo,
 	}
 
+	article.TrimSpace()
 	article.Sanitize()
 
 	err := article.Valid(false)

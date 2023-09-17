@@ -33,8 +33,8 @@ func (u *User) Register(email string, password string, name string) (int, error)
 		Password: password,
 	}
 
+	user.TrimSpace()
 	user.Sanitize()
-
 	err := user.Valid()
 	if err != nil {
 		return 0, err

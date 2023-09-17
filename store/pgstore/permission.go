@@ -11,18 +11,29 @@ type Permission struct {
 	dbPool *pgxpool.Pool
 }
 
-func (p *Permission) List(page, pageSize int) ([]*model.Permission, error) {
-	if page < 1 {
-		page = defaultPage
-	}
+func (p *Permission) List(page, pageSize int, module string) ([]*model.Permission, error) {
+	// if page < 1 {
+	// 	page = defaultPage
+	// }
 
-	if pageSize < 1 {
-		pageSize = defaultPage
+	// if pageSize < 1 {
+	// 	pageSize = defaultPage
+	// }
+
+	sqlStrHead := `SELECT id, name, front_id, created_at, module FROM permissions`
+	sqlStrTail := ` ORDER BY created_at DESC`
+	args := []any{}
+
+	sqlStr := sqlStrHead + sqlStrTail
+	if model.ValidPermissionModule(module) {
+		sqlStr = sqlStrHead + ` WHERE module = $1` + sqlStrTail
+		args = append(args, module)
 	}
 
 	rows, err := p.dbPool.Query(
 		context.Background(),
-		`SELECT id, name, front_id, created_at, module FROM permissions ORDER BY created_at`,
+		sqlStr,
+		args...,
 	)
 
 	if err != nil {
@@ -50,11 +61,12 @@ func (p *Permission) List(page, pageSize int) ([]*model.Permission, error) {
 	return list, nil
 }
 
-func (p *Permission) Create(frontId, name string) (int, error) {
+func (p *Permission) Create(module, frontId, name string) (int, error) {
 	var id int
-	err := p.dbPool.QueryRow(context.Background(), "INSERT INTO permissions (front_id, name) VALUES ($1, $2) RETURNING (id)",
+	err := p.dbPool.QueryRow(context.Background(), "INSERT INTO permissions (front_id, name, module) VALUES ($1, $2, $3) RETURNING (id)",
 		frontId,
 		name,
+		module,
 	).Scan(&id)
 	if err != nil {
 		return 0, err

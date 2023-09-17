@@ -277,6 +277,10 @@ func articleValidErr(str string) error {
 	return errors.Join(ErrValidArticleFailed, errors.New(str))
 }
 
+func (a *Article) TrimSpace() {
+	a.Title = strings.TrimSpace(a.Title)
+}
+
 func (a *Article) Valid(isUpdate bool) error {
 	isReply := a.ReplyDepth > 0 || a.ReplyTo != 0
 	authorId := a.AuthorId

@@ -104,16 +104,18 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 
 	// log.Printf("create user success, user id: %d", id)
 
-	sess, err := mr.sessStore.Get(r, "one")
-	if err != nil {
-		mr.Error("", err, w, r, http.StatusInternalServerError)
-	}
+	// sess, err := mr.sessStore.Get(r, "one")
+	// if err != nil {
+	// 	mr.Error("", err, w, r, http.StatusInternalServerError)
+	// }
 
-	sess.AddFlash("Account registered successfully")
-	err = sess.Save(r, w)
-	if err != nil {
-		HandleSaveSessionErr(errors.WithStack(err))
-	}
+	// sess.AddFlash("Account registered successfully")
+	// err = sess.Save(r, w)
+	// if err != nil {
+	// 	HandleSaveSessionErr(errors.WithStack(err))
+	// }
+
+	mr.Session("one", w, r).Flash("Account registered successfully")
 
 	http.Redirect(w, r, "/login", http.StatusFound)
 }

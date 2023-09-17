@@ -286,6 +286,8 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 	if !isReply {
 		article.Title = r.Form.Get("title")
 	}
+
+	article.TrimSpace()
 	article.Sanitize()
 
 	err = article.Valid(true)

@@ -21,7 +21,8 @@ CREATE TABLE roles (
     front_id VARCHAR(50) NOT NULL,
     name VARCHAR(50) NOT NULL,
     deleted BOOLEAN NOT NULL DEFAULT false,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    UNIQUE(front_id)
 );
 
 CREATE TYPE permission_module AS ENUM ('user', 'article', 'permission', 'role');
@@ -31,17 +32,20 @@ CREATE TABLE permissions (
     front_id VARCHAR(50) NOT NULL,
     name VARCHAR(50) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    module permission_module NOT NULL
+    module permission_module NOT NULL,
+    UNIQUE(front_id)
 );
 
 CREATE TABLE role_permissions (
     role_id INTEGER REFERENCES roles(id),
-    permission_id INTEGER REFERENCES permissions(id)
+    permission_id INTEGER REFERENCES permissions(id),
+    UNIQUE(role_id, permission_id)
 );
 
 CREATE TABLE user_roles (
     user_id INTEGER REFERENCES users(id),
-    role_id INTEGER REFERENCES roles(id)
+    role_id INTEGER REFERENCES roles(id),
+    UNIQUE(user_id, role_id)
 );
 
 INSERT INTO roles (front_id, name) VALUES ('user', 'User');
