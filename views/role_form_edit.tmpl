@@ -1,0 +1,42 @@
+{{define "role_form_edit"}}
+
+    {{template "head" .}}
+    
+    {{- $csrfField := .CSRFField -}}
+    {{- $debug := .Debug -}}
+    {{- $role := .Data.Role -}}
+    {{- $rolePermissionIdList := .Data.RolePermissionIdList -}}
+
+    <h1>Edit Role</h1>
+    <hr/>
+
+    <form class="form" action="/manage/roles/{{$role.Id}}/edit" method="POST">
+	{{- $csrfField -}}
+	<div class="form__row">
+	    <label class="form__label" for="front_id">Front Id</label>
+	    <input required id="front_id" name="front_id" type="text" disabled value="{{$role.FrontId}}"/>
+	</div>
+	<div class="form__row">
+	    <label class="form__label" for="name">Name</label>
+	    <input required id="name" name="name" type="text" value="{{$role.Name}}"/>
+	</div>
+	<div class="form__row">
+	    <label class="form__label">Permissions</label>
+	    <!-- <input required id="name" name="name" type="text" value=""/> -->
+	    {{- range .Data.PermissionList -}}
+		<fieldset>
+		    <legend><b>{{.Module}}</b></legend>
+		    {{- range .List -}}
+			<input name="permissions" id="{{.FrontId}}" type="checkbox" value="{{.Id}}" {{if has .Id $rolePermissionIdList}}checked{{end}}/>
+			<label for="{{.FrontId}}">{{.Name}}</label>&nbsp;&nbsp;&nbsp;&nbsp;
+		    {{- end -}}
+		</fieldset>
+	    {{- end -}}
+	</div>
+
+	<button type="submit">Submit</button>
+    </form>
+
+    {{template "foot" .}}
+
+{{- end -}}

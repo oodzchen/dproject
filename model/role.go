@@ -30,36 +30,39 @@ func (r *Role) TrimSpace() {
 	r.Name = strings.TrimSpace(r.Name)
 }
 
-func (r *Role) Valid() error {
+func (r *Role) Valid(isUpdate bool) error {
 	lackField := ""
 
-	if r.FrontId == "" {
+	if !isUpdate && r.FrontId == "" {
 		lackField = "front id"
 	}
+
 	if r.Name == "" {
 		lackField = "name"
 	}
 
 	if lackField != "" {
-		return permissionValidErr(fmt.Sprintf("require field: %s", lackField))
+		return roleValidErr(fmt.Sprintf("require field: %s", lackField))
 	}
 
-	if utf8.RuneCountInString(r.FrontId) > PermissionFrontIdMaxLen {
-		return permissionValidErr(fmt.Sprintf("front id length limit in %d characters", PermissionFrontIdMaxLen))
-	}
+	if !isUpdate {
+		if utf8.RuneCountInString(r.FrontId) > PermissionFrontIdMaxLen {
+			return roleValidErr(fmt.Sprintf("front id length limit in %d characters", PermissionFrontIdMaxLen))
+		}
 
-	reFrontId := regexp.MustCompile(`^[\w\d_]{1,` + strconv.Itoa(PermissionFrontIdMaxLen) + `}$`)
-	if !reFrontId.Match([]byte(r.FrontId)) {
-		return permissionValidErr("front id format error")
+		reFrontId := regexp.MustCompile(`^[\w\d_]{1,` + strconv.Itoa(PermissionFrontIdMaxLen) + `}$`)
+		if !reFrontId.Match([]byte(r.FrontId)) {
+			return roleValidErr("front id format error")
+		}
 	}
 
 	if utf8.RuneCountInString(r.Name) > PermissionNameMaxLen {
-		return permissionValidErr(fmt.Sprintf("name length limit in %d characters", PermissionNameMaxLen))
+		return roleValidErr(fmt.Sprintf("name length limit in %d characters", PermissionNameMaxLen))
 	}
 
 	reName := regexp.MustCompile(`^[\w\d\s]{1,` + strconv.Itoa(PermissionNameMaxLen) + `}$`)
 	if !reName.Match([]byte(r.Name)) {
-		return permissionValidErr("name format error")
+		return roleValidErr("name format error")
 	}
 
 	return nil

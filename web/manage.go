@@ -1,7 +1,6 @@
 package web
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"text/template"
@@ -47,6 +46,8 @@ func (mr *ManageResource) Routes() http.Handler {
 			r.Get("/", mr.RoleListPage)
 			r.Post("/", mr.RoleSubmit)
 			r.Get("/new", mr.RoleCreatePage)
+			r.Get("/{id}/edit", mr.RoleEditPage)
+			r.Post("/{id}/edit", mr.RoleEditSubmit)
 		})
 
 		// r.Get("/roles", mr.RoleListPage)
@@ -291,11 +292,15 @@ func formatPermissionList(rawList []*model.Permission) []*PermissionListItem {
 		}
 	}
 
-	for k, v := range listMap {
-		list = append(list, &PermissionListItem{
-			Module: k,
-			List:   v,
-		})
+	options := model.GetPermissionModuleOptions()
+
+	for _, module := range options {
+		if v, ok := listMap[module]; ok {
+			list = append(list, &PermissionListItem{
+				Module: module,
+				List:   v,
+			})
+		}
 	}
 
 	return list
@@ -308,7 +313,7 @@ func (mr *ManageResource) RoleSubmit(w http.ResponseWriter, r *http.Request) {
 	name := r.Form.Get("name")
 	permissions := r.Form["permissions"]
 
-	fmt.Println("permissions: ", permissions)
+	// fmt.Println("permissions: ", permissions)
 
 	role := &model.Role{
 		FrontId: frontId,
@@ -317,7 +322,7 @@ func (mr *ManageResource) RoleSubmit(w http.ResponseWriter, r *http.Request) {
 
 	role.TrimSpace()
 
-	err := role.Valid()
+	err := role.Valid(false)
 	if err != nil {
 		mr.Error(err.Error(), err, w, r, http.StatusBadRequest)
 		return
@@ -346,6 +351,116 @@ func (mr *ManageResource) RoleSubmit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mr.Session("one", w, r).Flash("Add role successfully")
-	// http.Redirect(w, r, "/manage/permissions", http.StatusFound)
-	mr.ToPrevPage(w, r)
+	http.Redirect(w, r, "/manage/roles", http.StatusFound)
+	// mr.ToPrevPage(w, r)
+}
+
+func (mr *ManageResource) RoleEditPage(w http.ResponseWriter, r *http.Request) {
+	roleIdStr := chi.URLParam(r, "id")
+	// fmt.Println("roleId: ", roleIdStr)
+
+	roleId, err := strconv.Atoi(roleIdStr)
+	if err != nil {
+		mr.Error("", err, w, r, http.StatusBadRequest)
+		return
+	}
+
+	role, err := mr.store.Role.Item(roleId)
+	if err != nil {
+		mr.Error("", err, w, r, http.StatusInternalServerError)
+		return
+	}
+
+	permissionList, err := mr.store.Permission.List(1, 999, "")
+	if err != nil {
+		mr.Error("", err, w, r, http.StatusInternalServerError)
+		return
+	}
+
+	type RoleCreatePageData struct {
+		Role                 *model.Role
+		RolePermissionIdList []int
+		PermissionList       []*PermissionListItem
+	}
+
+	var rolePermissionIdList []int
+	if role.Permissions != nil {
+		for _, item := range role.Permissions {
+			rolePermissionIdList = append(rolePermissionIdList, item.Id)
+		}
+	}
+
+	formattedPermissionList := formatPermissionList(permissionList)
+
+	breadCrumbs := []*BreadCrumb{
+		{
+			"/manage/roles",
+			"Role",
+		},
+		{
+			"",
+			"Edit Role",
+		},
+	}
+
+	mr.Render(w, r, "role_form_edit", &PageData{
+		Title: "Edit Role",
+		Data: &RoleCreatePageData{
+			Role:                 role,
+			RolePermissionIdList: rolePermissionIdList,
+			PermissionList:       formattedPermissionList,
+		},
+		BreadCrumbs: breadCrumbs,
+	})
+}
+
+func (mr *ManageResource) RoleEditSubmit(w http.ResponseWriter, r *http.Request) {
+	roleIdStr := chi.URLParam(r, "id")
+	// fmt.Println("roleId: ", roleIdStr)
+
+	roleId, err := strconv.Atoi(roleIdStr)
+	if err != nil {
+		mr.Error("", err, w, r, http.StatusBadRequest)
+		return
+	}
+
+	name := r.Form.Get("name")
+	permissions := r.Form["permissions"]
+
+	// fmt.Println("permissions: ", permissions)
+
+	role := &model.Role{
+		Id:   roleId,
+		Name: name,
+	}
+
+	role.TrimSpace()
+
+	err = role.Valid(true)
+	if err != nil {
+		mr.Error(err.Error(), err, w, r, http.StatusBadRequest)
+		return
+	}
+
+	var permissionIds []int
+
+	for _, idStr := range permissions {
+		id, err := strconv.Atoi(idStr)
+		if err == nil {
+			permissionIds = append(permissionIds, id)
+		}
+	}
+
+	_, err = mr.store.Role.Update(role.Id, role.Name, permissionIds)
+
+	if err != nil {
+		mr.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
+
+		return
+	}
+
+	mr.Session("one", w, r).Flash("Update role successfully")
+
+	http.Redirect(w, r, "/manage/roles", http.StatusFound)
+
 }

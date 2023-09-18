@@ -5,10 +5,11 @@
     {{- $csrfField := .CSRFField -}}
     {{- $debug := .Debug -}}
 
+    <h1>{{if eq .Data.PageType "create"}}Add Permission{{else}}Permission List{{end}}</h1>
+    <hr/>
+
     <div style="margin-bottom: 16px">
 	{{- if eq .Data.PageType "create" -}}
-	    <h1>Add Permission</h1>
-	    <hr/>
 	    <form class="form" action="/manage/permissions" method="POST">
 		{{- $csrfField -}}
 		<div class="form__row">
@@ -43,7 +44,7 @@
 
 	{{- if eq .Data.PageType "list" -}}
 	    <div>
-		<a href="/manage/permissions/new?tab={{$data.CurrTab}}" class="text-lighten">+Add Permission</a>
+		<a href="/manage/permissions/new?tab={{$data.CurrTab}}" class="page-tab__btn text-lighten">+Add Permission</a>
 	    </div>
 	{{- end -}}
     </div>
