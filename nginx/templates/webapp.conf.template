@@ -10,7 +10,7 @@ server {
     listen 80 default_server;
     listen [::]:80 default_server;
     
-    server_name *.${SECOND_LEVEL_DOMAIN_NAME};
+    server_name dev.${SECOND_LEVEL_DOMAIN_NAME} cf.${SECOND_LEVEL_DOMAIN_NAME};
 
     location / {
         return 301 https://$host$request_uri;
@@ -26,7 +26,7 @@ server {
     listen [::]:443 ssl;
     http2 on;
     
-    server_name *.${SECOND_LEVEL_DOMAIN_NAME};
+    server_name dev.${SECOND_LEVEL_DOMAIN_NAME} cf.${SECOND_LEVEL_DOMAIN_NAME};
 
     ssl_certificate /etc/letsencrypt/live/${SECOND_LEVEL_DOMAIN_NAME}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/${SECOND_LEVEL_DOMAIN_NAME}/privkey.pem;
