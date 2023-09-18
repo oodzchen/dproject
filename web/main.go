@@ -5,17 +5,14 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
-	"text/template"
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/oodzchen/dproject/config"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/service"
-	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
 	"github.com/pkg/errors"
 )
@@ -30,12 +27,12 @@ type MainResource struct {
 	userSrv *service.User
 }
 
-func NewMainResource(tmpl *template.Template, store *store.Store, sessStore *sessions.CookieStore, ar *ArticleResource, router *chi.Mux) *MainResource {
+func NewMainResource(renderer *Renderer, ar *ArticleResource) *MainResource {
 	return &MainResource{
-		&Renderer{tmpl, sessStore, router, store},
+		renderer,
 		ar,
 		&service.User{
-			Store: store,
+			Store: renderer.store,
 		},
 	}
 }
@@ -339,6 +336,7 @@ func (mr *MainResource) handleSettingsPage(w http.ResponseWriter, r *http.Reques
 			user, err := mr.store.User.Item(userId)
 			if err != nil {
 				mr.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
+				return
 			}
 			pageData.AccountData = user
 		} else {

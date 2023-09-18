@@ -2,6 +2,8 @@ package pgstore
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/oodzchen/dproject/model"
@@ -25,7 +27,8 @@ func (p *Permission) List(page, pageSize int, module string) ([]*model.Permissio
 	args := []any{}
 
 	sqlStr := sqlStrHead + sqlStrTail
-	if model.ValidPermissionModule(module) {
+
+	if module != "all" {
 		sqlStr = sqlStrHead + ` WHERE module = $1` + sqlStrTail
 		args = append(args, module)
 	}
@@ -74,6 +77,33 @@ func (p *Permission) Create(module, frontId, name string) (int, error) {
 	return id, nil
 }
 
+func (p *Permission) CreateMany(list []*model.Permission) error {
+	sqlStrHead := `INSERT INTO permissions (front_id, name, module) VALUES `
+	var strArr []string
+	var args []any
+	var argCount = 1
+
+	for _, item := range list {
+		strArr = append(strArr, fmt.Sprintf("($%d, $%d, $%d)", argCount, argCount+1, argCount+2))
+		args = append(args, item.FrontId, item.Name, item.Module)
+		argCount += 3
+	}
+
+	sqlStr := sqlStrHead + strings.Join(strArr, ", ")
+
+	// fmt.Println("sqlStr: ", sqlStr)
+
+	_, err := p.dbPool.Exec(context.Background(),
+		sqlStr,
+		args...,
+	)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (p *Permission) Update(name string) (int, error) {
 	var id int
 	err := p.dbPool.QueryRow(context.Background(), "UPDATE permissions SET name = $1 WHERE id = $2 RETURNING (id)",
@@ -99,4 +129,9 @@ func (p *Permission) Item(id int) (*model.Permission, error) {
 		return nil, err
 	}
 	return &item, nil
+}
+
+func (p *Permission) Clear() error {
+	_, err := p.dbPool.Exec(context.Background(), `DELETE FROM permissions`)
+	return err
 }

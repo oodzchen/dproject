@@ -10,42 +10,43 @@ import (
 	"unicode/utf8"
 )
 
-type PermissionModule string
+// type PermissionModule string
 
-const (
-	PermissionModuleUser       PermissionModule = "user"
-	PermissionModuleArticle                     = "article"
-	PermissionModulePermission                  = "permission"
-	PermissionModuleRole                        = "role"
-)
+// const (
+// 	PermissionModuleUser       PermissionModule = "user"
+// 	PermissionModuleArticle                     = "article"
+// 	PermissionModulePermission                  = "permission"
+// 	PermissionModuleRole                        = "role"
+// )
 
-var PermissionModuleMap = map[PermissionModule]bool{
-	PermissionModuleUser:       true,
-	PermissionModuleArticle:    true,
-	PermissionModulePermission: true,
-	PermissionModuleRole:       true,
-}
+// var PermissionModuleMap = map[PermissionModule]bool{
+// 	PermissionModuleUser:       true,
+// 	PermissionModuleArticle:    true,
+// 	PermissionModulePermission: true,
+// 	PermissionModuleRole:       true,
+// }
 
 type Permission struct {
 	Id        int
 	FrontId   string
 	Name      string
 	CreatedAt time.Time
-	Module    PermissionModule
+	// Module    PermissionModule
+	Module string
 }
 
-func ValidPermissionModule(module string) bool {
-	return PermissionModuleMap[PermissionModule(module)]
-}
+// func ValidPermissionModule(module string) bool {
+// 	return PermissionModuleMap[PermissionModule(module)]
+// }
 
-func GetPermissionModuleOptions() []PermissionModule {
-	return []PermissionModule{
-		PermissionModuleUser,
-		PermissionModuleArticle,
-		PermissionModulePermission,
-		PermissionModuleRole,
-	}
-}
+// func GetPermissionModuleOptions() []PermissionModule {
+// 	return []PermissionModule{
+// 		PermissionModuleUser,
+// 		PermissionModuleArticle,
+// 		PermissionModulePermission,
+// 		PermissionModuleRole,
+// 	}
+// }
 
 func permissionValidErr(str string) error {
 	return errors.Join(ErrValidPermissionFailed, errors.New(str))
@@ -76,9 +77,9 @@ func (p *Permission) Valid() error {
 		return permissionValidErr(fmt.Sprintf("require field: %s", lackField))
 	}
 
-	if ok := ValidPermissionModule(string(p.Module)); !ok {
-		return permissionValidErr("module not exist")
-	}
+	// if ok := ValidPermissionModule(string(p.Module)); !ok {
+	// 	return permissionValidErr("module not exist")
+	// }
 
 	if utf8.RuneCountInString(p.FrontId) > PermissionFrontIdMaxLen {
 		return permissionValidErr(fmt.Sprintf("front id length limit in %d characters", PermissionFrontIdMaxLen))

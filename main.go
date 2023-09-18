@@ -13,6 +13,7 @@ import (
 	"github.com/oodzchen/dproject/config"
 	i18nc "github.com/oodzchen/dproject/i18n"
 	"github.com/oodzchen/dproject/model"
+	"github.com/oodzchen/dproject/service"
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/store/pgstore"
 	"github.com/oodzchen/dproject/utils"
@@ -41,6 +42,15 @@ func main() {
 
 	i18nc.Init()
 
+	permissionData, err := config.ParsePermissionData("./config/permissions.yml")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// fmt.Println("permissionData: ", permissionData)
+	// fmt.Println("create articler enabled: ", permissionData.Permit("article", "create"))
+	// fmt.Println("ban user enabled: ", permissionData.Permit("user", "ban"))
+
 	pg := pgstore.New(&pgstore.DBConfig{
 		DSN: appCfg.DB.GetDSN(),
 	})
@@ -56,6 +66,23 @@ func main() {
 		log.Fatal(err)
 	}
 
+	for {
+		err := pg.Ping(context.Background())
+		// fmt.Println("ping database error: ", err)
+		if err == nil {
+			permissionSrv := &service.Permission{
+				Store:          dataStore,
+				PermissionData: permissionData,
+			}
+
+			err = permissionSrv.InitPermissionTable()
+			if err != nil {
+				log.Fatal(err)
+			}
+			break
+		}
+	}
+
 	appTLS := false
 	if os.Getenv("APP_TLS") == "1" {
 		appTLS = true
@@ -69,8 +96,9 @@ func main() {
 	server := &http.Server{
 		Addr: addr,
 		Handler: (Service(&ServiceConfig{
-			sessSecret: appCfg.SessionSecret,
-			store:      dataStore,
+			sessSecret:     appCfg.SessionSecret,
+			store:          dataStore,
+			permissionData: permissionData,
 		})),
 	}
 

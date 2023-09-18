@@ -4,14 +4,11 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"text/template"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/service"
-	"github.com/oodzchen/dproject/store"
 	"github.com/pkg/errors"
 )
 
@@ -27,16 +24,11 @@ type userProfile struct {
 	CurrTab  service.UserListType
 }
 
-func NewUserResource(tmpl *template.Template, store *store.Store, sessStore *sessions.CookieStore, router *chi.Mux) *UserResource {
+func NewUserResource(renderer *Renderer) *UserResource {
 	return &UserResource{
-		&Renderer{
-			tmpl,
-			sessStore,
-			router,
-			store,
-		},
+		renderer,
 		&service.User{
-			Store: store,
+			Store: renderer.store,
 		},
 	}
 }

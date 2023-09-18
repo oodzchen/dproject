@@ -1,0 +1,77 @@
+article:
+  create:
+    name: Create Article
+    adapt_id: article.create # adapt_id is used to adapt with backend permission front id
+    enabled: true
+  edit:
+    name: Edit Article
+    adapt_id: article.edit
+    enabled: true
+  delete:
+    name: Delete Article
+    adapt_id: article.delete
+    enabled: true
+  save:
+    name: Save Article
+    adapt_id: article.save
+    enabled: true
+  vote_up:
+    name: Vote Up Article
+    adapt_id: article.vote_up
+    enabled: true
+  vote_down:
+    name: Vote Down Article
+    adapt_id: article.vote_down
+    enabled: false
+  react:
+    name: React Article
+    adapt_id: article.react
+    enabled: true
+  reply:
+    name: Reply Article
+    adapt_id: article.reply
+    enabled: true
+
+reply:
+  create:
+    name: Create Reply
+    adapt_id: reply.create
+    enabled: true
+  edit:
+    name: Edit Reply
+    adapt_id: reply.edit
+    enabled: true
+  delete:
+    name: Delete Reply
+    adapt_id: reply.delete
+    enabled: true
+  save:
+    name: Save Reply
+    adapt_id: reply.save
+    enabled: true
+  vote_up:
+    name: Vote Up Reply
+    adapt_id: reply.vote_up
+    enabled: true
+  vote_down:
+    name: Vote Down Reply
+    adapt_id: reply.vote_down
+    enabled: false
+  react:
+    name: React Reply
+    adapt_id: reply.react
+    enabled: true
+  reply:
+    name: Reply Reply
+    adapt_id: reply.reply
+    enabled: true
+
+user:
+  ban:
+    name: Ban User
+    adapt_id: user.ban
+    enabled: false
+  update_intro:
+    name: Update User Intro
+    adapt_id: user.update_intro
+    enabled: true

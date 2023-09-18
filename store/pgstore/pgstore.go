@@ -1,6 +1,10 @@
 package pgstore
 
-import "github.com/oodzchen/dproject/utils"
+import (
+	"context"
+
+	"github.com/oodzchen/dproject/utils"
+)
 
 type PGStore struct{}
 
@@ -33,6 +37,10 @@ func (pg *PGStore) ConnectDB() error {
 
 func (pg *PGStore) CloseDB() {
 	pgDB.Close()
+}
+
+func (pg *PGStore) Ping(ctx context.Context) error {
+	return pgDB.Pool.Ping(ctx)
 }
 
 func CheckDB(beforeConnect bool) error {

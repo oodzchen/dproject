@@ -49,8 +49,10 @@ type UserStore interface {
 type PermissionStore interface {
 	List(page, pageSize int, module string) ([]*model.Permission, error)
 	Create(module, frontId, name string) (int, error)
+	CreateMany(list []*model.Permission) error
 	Update(name string) (int, error)
 	Item(int) (*model.Permission, error)
+	Clear() error
 	// Delete(int) error
 }
 

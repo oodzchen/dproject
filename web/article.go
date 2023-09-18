@@ -5,14 +5,11 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"text/template"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/service"
-	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
 	"github.com/pkg/errors"
 )
@@ -25,11 +22,11 @@ type ArticleResource struct {
 	// store *store.Store
 }
 
-func NewArticleResource(tmpl *template.Template, store *store.Store, sessStore *sessions.CookieStore, router *chi.Mux) *ArticleResource {
+func NewArticleResource(renderer *Renderer) *ArticleResource {
 	return &ArticleResource{
-		&Renderer{tmpl, sessStore, router, store},
+		renderer,
 		&service.Article{
-			Store: store,
+			Store: renderer.store,
 		},
 	}
 }

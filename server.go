@@ -13,15 +13,17 @@ import (
 	"github.com/go-chi/httprate"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
+	"github.com/oodzchen/dproject/config"
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
 	"github.com/oodzchen/dproject/web"
 )
 
 type ServiceConfig struct {
-	sessSecret string
-	csrfSecret string
-	store      *store.Store
+	sessSecret     string
+	csrfSecret     string
+	store          *store.Store
+	permissionData config.PermissionMap
 }
 
 var AuthRequiredPathes map[string]Methods = map[string]Methods{
@@ -76,10 +78,12 @@ func Service(c *ServiceConfig) http.Handler {
 	sessStore.Options.Secure = !utils.IsDebug()
 	sessStore.Options.SameSite = http.SameSiteLaxMode
 
-	articleResource := web.NewArticleResource(baseTmpl, c.store, sessStore, r)
-	userResource := web.NewUserResource(baseTmpl, c.store, sessStore, r)
-	mainResource := web.NewMainResource(baseTmpl, c.store, sessStore, articleResource, r)
-	manageResource := web.NewManageResource(baseTmpl, c.store, sessStore, r, userResource)
+	renderer := web.NewRenderer(baseTmpl, sessStore, r, c.store, c.permissionData)
+
+	articleResource := web.NewArticleResource(renderer)
+	userResource := web.NewUserResource(renderer)
+	mainResource := web.NewMainResource(renderer, articleResource)
+	manageResource := web.NewManageResource(renderer, userResource)
 
 	rateLimit := 100
 	if utils.IsDebug() {

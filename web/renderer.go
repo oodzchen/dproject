@@ -72,10 +72,21 @@ func (pd *PageData) AddI18nData(data map[string]any) {
 }
 
 type Renderer struct {
-	tmpl      *template.Template
-	sessStore *sessions.CookieStore
-	router    *chi.Mux
-	store     *store.Store
+	tmpl       *template.Template
+	sessStore  *sessions.CookieStore
+	router     *chi.Mux
+	store      *store.Store
+	permission config.PermissionMap
+}
+
+func NewRenderer(tmpl *template.Template, sessStore *sessions.CookieStore, router *chi.Mux, store *store.Store, permission config.PermissionMap) *Renderer {
+	return &Renderer{
+		tmpl,
+		sessStore,
+		router,
+		store,
+		permission,
+	}
 }
 
 func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, data *PageData) {

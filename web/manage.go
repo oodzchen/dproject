@@ -3,13 +3,10 @@ package web
 import (
 	"net/http"
 	"strconv"
-	"text/template"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/gorilla/sessions"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/oodzchen/dproject/model"
-	"github.com/oodzchen/dproject/store"
 	"github.com/pkg/errors"
 )
 
@@ -18,14 +15,9 @@ type ManageResource struct {
 	ur *UserResource
 }
 
-func NewManageResource(tmpl *template.Template, store *store.Store, sessStore *sessions.CookieStore, router *chi.Mux, ur *UserResource) *ManageResource {
+func NewManageResource(renderer *Renderer, ur *UserResource) *ManageResource {
 	return &ManageResource{
-		&Renderer{
-			tmpl,
-			sessStore,
-			router,
-			store,
-		},
+		renderer,
 		ur,
 	}
 }
@@ -79,7 +71,7 @@ func (mr *ManageResource) handlePermissionList(w http.ResponseWriter, r *http.Re
 
 	tab := r.Form.Get("tab")
 	// fmt.Println("paramPage:", paramPage)
-	if !model.ValidPermissionModule(tab) {
+	if !mr.permission.Valid(tab) {
 		tab = "all"
 	}
 
@@ -108,7 +100,7 @@ func (mr *ManageResource) handlePermissionList(w http.ResponseWriter, r *http.Re
 		TotalPage     int
 		PageSize      int
 		PageType      string
-		ModuleOptions []model.PermissionModule
+		ModuleOptions []string
 		CurrTab       string
 	}
 
@@ -141,7 +133,7 @@ func (mr *ManageResource) handlePermissionList(w http.ResponseWriter, r *http.Re
 			CeilInt(total, pageSize),
 			pageSize,
 			string(pageType),
-			model.GetPermissionModuleOptions(),
+			mr.permission.GetModuleList(),
 			tab,
 		},
 		BreadCrumbs: breadCrumbs,
@@ -156,13 +148,19 @@ func (mr *ManageResource) PermissionSubmit(w http.ResponseWriter, r *http.Reques
 	name := r.Form.Get("name")
 
 	permission := &model.Permission{
-		Module:  model.PermissionModule(module),
+		Module:  module,
 		FrontId: frontId,
 		Name:    name,
 	}
 
 	permission.TrimSpace()
 	// permission.Sanitize()
+
+	moduleValid := mr.permission.Valid(module)
+	if !moduleValid {
+		mr.Error("module dose not exist", errors.New("module dose not exist"), w, r, http.StatusBadRequest)
+		return
+	}
 
 	err := permission.Valid()
 	if err != nil {
@@ -175,7 +173,7 @@ func (mr *ManageResource) PermissionSubmit(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == PGErrUniqueViolation {
-			mr.Error("the permission is existing", err, w, r, http.StatusBadRequest)
+			mr.Error("the permission already existed", err, w, r, http.StatusBadRequest)
 		} else {
 			mr.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
 		}
@@ -189,7 +187,7 @@ func (mr *ManageResource) PermissionSubmit(w http.ResponseWriter, r *http.Reques
 }
 
 type PermissionListItem struct {
-	Module model.PermissionModule
+	Module string
 	List   []*model.Permission
 }
 
@@ -258,7 +256,7 @@ func (mr *ManageResource) RoleCreatePage(w http.ResponseWriter, r *http.Request)
 		PermissionList []*PermissionListItem
 	}
 
-	formattedPermissionList := formatPermissionList(permissionList)
+	formattedPermissionList := formatPermissionList(permissionList, mr.permission.GetModuleList())
 
 	breadCrumbs := []*BreadCrumb{
 		{
@@ -280,9 +278,9 @@ func (mr *ManageResource) RoleCreatePage(w http.ResponseWriter, r *http.Request)
 	})
 }
 
-func formatPermissionList(rawList []*model.Permission) []*PermissionListItem {
+func formatPermissionList(rawList []*model.Permission, moduleOptions []string) []*PermissionListItem {
 	var list []*PermissionListItem
-	listMap := make(map[model.PermissionModule][]*model.Permission)
+	listMap := make(map[string][]*model.Permission)
 
 	for _, item := range rawList {
 		if mList, ok := listMap[item.Module]; !ok {
@@ -292,9 +290,7 @@ func formatPermissionList(rawList []*model.Permission) []*PermissionListItem {
 		}
 	}
 
-	options := model.GetPermissionModuleOptions()
-
-	for _, module := range options {
+	for _, module := range moduleOptions {
 		if v, ok := listMap[module]; ok {
 			list = append(list, &PermissionListItem{
 				Module: module,
@@ -390,7 +386,7 @@ func (mr *ManageResource) RoleEditPage(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	formattedPermissionList := formatPermissionList(permissionList)
+	formattedPermissionList := formatPermissionList(permissionList, mr.permission.GetModuleList())
 
 	breadCrumbs := []*BreadCrumb{
 		{
