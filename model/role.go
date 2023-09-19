@@ -11,11 +11,12 @@ import (
 )
 
 type Role struct {
-	Id          int
-	FrontId     string
-	Name        string
-	CreatedAt   time.Time
-	Permissions []*Permission
+	Id                   int
+	FrontId              string
+	Name                 string
+	CreatedAt            time.Time
+	Permissions          []*Permission
+	FormattedPermissions []*PermissionListItem
 }
 
 func roleValidErr(str string) error {

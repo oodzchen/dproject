@@ -2,6 +2,7 @@ package web
 
 import (
 	"net/http"
+	"sort"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
@@ -30,8 +31,8 @@ func (mr *ManageResource) Routes() http.Handler {
 
 		r.Route("/permissions", func(r chi.Router) {
 			r.Get("/", mr.PermissionListPage)
-			r.Post("/", mr.PermissionSubmit)
-			r.Get("/new", mr.PermissionCreatePage)
+			// r.Post("/", mr.PermissionSubmit)
+			// r.Get("/new", mr.PermissionCreatePage)
 		})
 
 		r.Route("/roles", func(r chi.Router) {
@@ -186,11 +187,6 @@ func (mr *ManageResource) PermissionSubmit(w http.ResponseWriter, r *http.Reques
 	mr.ToPrevPage(w, r)
 }
 
-type PermissionListItem struct {
-	Module string
-	List   []*model.Permission
-}
-
 func (mr *ManageResource) RoleListPage(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
@@ -210,6 +206,10 @@ func (mr *ManageResource) RoleListPage(w http.ResponseWriter, r *http.Request) {
 	list, err := mr.store.Role.List(page, pageSize)
 	if err != nil {
 		mr.Error("", err, w, r, http.StatusInternalServerError)
+	}
+
+	for _, item := range list {
+		item.FormattedPermissions = formatPermissionList(item.Permissions, mr.permission.GetModuleList())
 	}
 
 	total := len(list)
@@ -245,16 +245,30 @@ func (mr *ManageResource) RoleListPage(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+type RoleFormPageType string
+
+const (
+	RoleFormPageAdd  RoleFormPageType = "add"
+	RoleFormPageEdit                  = "edit"
+)
+
+type RoleFormPageData struct {
+	Role                 *model.Role
+	RolePermissionIdList []int
+	PermissionList       []*model.PermissionListItem
+	PageType             RoleFormPageType
+}
+
 func (mr *ManageResource) RoleCreatePage(w http.ResponseWriter, r *http.Request) {
-	permissionList, err := mr.store.Permission.List(1, 999, "")
+	permissionList, err := mr.store.Permission.List(1, 999, "all")
 	if err != nil {
 		mr.Error("", err, w, r, http.StatusInternalServerError)
 		return
 	}
 
-	type RoleCreatePageData struct {
-		PermissionList []*PermissionListItem
-	}
+	// type RoleCreatePageData struct {
+	// 	PermissionList []*model.PermissionListItem
+	// }
 
 	formattedPermissionList := formatPermissionList(permissionList, mr.permission.GetModuleList())
 
@@ -271,15 +285,16 @@ func (mr *ManageResource) RoleCreatePage(w http.ResponseWriter, r *http.Request)
 
 	mr.Render(w, r, "role_form", &PageData{
 		Title: "Add Role",
-		Data: &RoleCreatePageData{
+		Data: &RoleFormPageData{
 			PermissionList: formattedPermissionList,
+			PageType:       RoleFormPageAdd,
 		},
 		BreadCrumbs: breadCrumbs,
 	})
 }
 
-func formatPermissionList(rawList []*model.Permission, moduleOptions []string) []*PermissionListItem {
-	var list []*PermissionListItem
+func formatPermissionList(rawList []*model.Permission, moduleOptions []string) []*model.PermissionListItem {
+	var list []*model.PermissionListItem
 	listMap := make(map[string][]*model.Permission)
 
 	for _, item := range rawList {
@@ -291,12 +306,18 @@ func formatPermissionList(rawList []*model.Permission, moduleOptions []string) [
 	}
 
 	for _, module := range moduleOptions {
-		if v, ok := listMap[module]; ok {
-			list = append(list, &PermissionListItem{
+		if pList, ok := listMap[module]; ok {
+			list = append(list, &model.PermissionListItem{
 				Module: module,
-				List:   v,
+				List:   pList,
 			})
 		}
+	}
+
+	for _, item := range list {
+		sort.Slice(item.List, func(i, j int) bool {
+			return rune(item.List[i].Name[0]) < rune(item.List[j].Name[0])
+		})
 	}
 
 	return list
@@ -367,16 +388,10 @@ func (mr *ManageResource) RoleEditPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	permissionList, err := mr.store.Permission.List(1, 999, "")
+	permissionList, err := mr.store.Permission.List(1, 999, "all")
 	if err != nil {
 		mr.Error("", err, w, r, http.StatusInternalServerError)
 		return
-	}
-
-	type RoleCreatePageData struct {
-		Role                 *model.Role
-		RolePermissionIdList []int
-		PermissionList       []*PermissionListItem
 	}
 
 	var rolePermissionIdList []int
@@ -399,12 +414,13 @@ func (mr *ManageResource) RoleEditPage(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	mr.Render(w, r, "role_form_edit", &PageData{
+	mr.Render(w, r, "role_form", &PageData{
 		Title: "Edit Role",
-		Data: &RoleCreatePageData{
+		Data: &RoleFormPageData{
 			Role:                 role,
 			RolePermissionIdList: rolePermissionIdList,
 			PermissionList:       formattedPermissionList,
+			PageType:             RoleFormPageEdit,
 		},
 		BreadCrumbs: breadCrumbs,
 	})

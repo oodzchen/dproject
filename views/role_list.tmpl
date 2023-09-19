@@ -29,12 +29,20 @@
 		    <td>{{timeFormat .CreatedAt "YYYY-MM-DD hh:mm:ss"}}</td>
 		    <td>
 			{{$role := .}}
-			{{$pLen := len .Permissions}}
-			{{$pIdx := 0}}
-			{{- range .Permissions -}}
-			    <span>{{.Name}}</span>{{if lt $pIdx (add $pLen -1)}},&nbsp;&nbsp;{{end}}
-			    {{$pIdx = add $pIdx 1}}
+
+			{{- range .FormattedPermissions -}}
+			    <b>{{.Module}}</b>
+			    <br/>
+			    {{$pLen := len .List}}
+			    {{$pIdx := 0}}
+			    {{- range .List -}}
+				<span>{{.Name}}</span>{{if lt $pIdx (add $pLen -1)}},&nbsp;&nbsp;{{end}}
+				{{$pIdx = add $pIdx 1}}
+			    {{- end -}}
+			    <br/>
+			    <br/>
 			{{- end -}}
+			{{- placehold .FormattedPermissions "<i class=\"text-lighten-2\">No permissions</i>" -}}
 		    </td>
 		    <td>
 			<a href="/manage/roles/{{$role.Id}}/edit">Edit</a>&nbsp;&nbsp;

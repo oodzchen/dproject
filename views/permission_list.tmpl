@@ -10,26 +10,26 @@
 
     <div style="margin-bottom: 16px">
 	{{- if eq .Data.PageType "create" -}}
-	    <form class="form" action="/manage/permissions" method="POST">
-		{{- $csrfField -}}
-		<div class="form__row">
-		    <label class="form__label">Module</label>
-		    {{- range .Data.ModuleOptions -}}
-			<input required name="module" type="radio" id="{{.}}" autocomplete="off" value="{{.}}"/>
-			<label for="{{.}}">{{.}}</label>&nbsp;&nbsp;
-		    {{- end -}}
-		</div>
-		<div class="form__row">
-		    <label class="form__label" for="front_id">Front Id</label>
-		    <input required id="front_id" name="front_id" type="text" value=""/>
-		</div>
-		<div class="form__row">
-		    <label class="form__label" for="name">Name</label>
-		    <input required id="name" name="name" type="text" value=""/>
-		</div>
+	    <!-- <form class="form" action="/manage/permissions" method="POST">
+		 {{- $csrfField -}}
+		 <div class="form__row">
+		 <label class="form__label">Module</label>
+		 {{- range .Data.ModuleOptions -}}
+		 <input required name="module" type="radio" id="{{.}}" autocomplete="off" value="{{.}}"/>
+		 <label for="{{.}}">{{.}}</label>&nbsp;&nbsp;
+		 {{- end -}}
+		 </div>
+		 <div class="form__row">
+		 <label class="form__label" for="front_id">Front Id</label>
+		 <input required id="front_id" name="front_id" type="text" value=""/>
+		 </div>
+		 <div class="form__row">
+		 <label class="form__label" for="name">Name</label>
+		 <input required id="name" name="name" type="text" value=""/>
+		 </div>
 
-		<button type="submit">Submit</button>
-	    </form>
+		 <button type="submit">Submit</button>
+		 </form> -->
 	{{- end -}}
     </div>
 
@@ -44,7 +44,7 @@
 
 	{{- if eq .Data.PageType "list" -}}
 	    <div>
-		<a href="/manage/permissions/new?tab={{$data.CurrTab}}" class="page-tab__btn text-lighten">+Add Permission</a>
+		<!-- <a href="/manage/permissions/new?tab={{$data.CurrTab}}" class="page-tab__btn text-lighten">+Add Permission</a> -->
 	    </div>
 	{{- end -}}
     </div>

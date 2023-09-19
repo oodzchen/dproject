@@ -10,13 +10,26 @@ import (
 
 type Permission struct {
 	Store          *store.Store
-	PermissionData config.PermissionMap
+	PermissionData *config.PermissionData
 }
 
 func (pm *Permission) InitPermissionTable() error {
+	pList, err := pm.Store.Permission.List(1, 999, "all")
+	if err != nil {
+		return err
+	}
+
+	if len(pList) > 0 {
+		return nil
+	}
+
 	var list []*model.Permission
 
-	for m, v := range pm.PermissionData {
+	if pm.PermissionData == nil || pm.PermissionData.Data == nil {
+		return errors.New("permission data is nil")
+	}
+
+	for m, v := range pm.PermissionData.Data {
 		for _, p := range v {
 			list = append(list, &model.Permission{
 				Module:  m,
@@ -30,7 +43,7 @@ func (pm *Permission) InitPermissionTable() error {
 		return errors.New("no data")
 	}
 
-	err := pm.Store.Permission.Clear()
+	err = pm.Store.Permission.Clear()
 	if err != nil {
 		return err
 	}

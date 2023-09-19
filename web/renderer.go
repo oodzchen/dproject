@@ -76,10 +76,10 @@ type Renderer struct {
 	sessStore  *sessions.CookieStore
 	router     *chi.Mux
 	store      *store.Store
-	permission config.PermissionMap
+	permission *config.PermissionData
 }
 
-func NewRenderer(tmpl *template.Template, sessStore *sessions.CookieStore, router *chi.Mux, store *store.Store, permission config.PermissionMap) *Renderer {
+func NewRenderer(tmpl *template.Template, sessStore *sessions.CookieStore, router *chi.Mux, store *store.Store, permission *config.PermissionData) *Renderer {
 	return &Renderer{
 		tmpl,
 		sessStore,

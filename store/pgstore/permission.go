@@ -132,6 +132,15 @@ func (p *Permission) Item(id int) (*model.Permission, error) {
 }
 
 func (p *Permission) Clear() error {
-	_, err := p.dbPool.Exec(context.Background(), `DELETE FROM permissions`)
-	return err
+	_, err := p.dbPool.Exec(context.Background(), `DELETE FROM role_permissions`)
+	if err != nil {
+		return err
+	}
+
+	_, err = p.dbPool.Exec(context.Background(), `DELETE FROM permissions`)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

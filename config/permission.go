@@ -14,8 +14,17 @@ type Permission struct {
 
 type PermissionMap map[string]map[string]*Permission
 
-func (pm PermissionMap) Permit(module, action string) bool {
-	if m, ok := pm[module]; ok {
+type PermissionData struct {
+	Modules []string
+	Data    PermissionMap
+}
+
+func (pd *PermissionData) Permit(module, action string) bool {
+	if pd.Data == nil {
+		return false
+	}
+
+	if m, ok := pd.Data[module]; ok {
 		if a, ok := m[action]; ok {
 			return a.Enabled
 		}
@@ -23,13 +32,13 @@ func (pm PermissionMap) Permit(module, action string) bool {
 	return false
 }
 
-func (pm PermissionMap) Update(permittedIds []string) PermissionMap {
+func (pd *PermissionData) Update(permittedIds []string) *PermissionData {
 	idMap := make(map[string]bool)
 	for _, id := range permittedIds {
 		idMap[id] = true
 	}
 
-	for _, v := range pm {
+	for _, v := range pd.Data {
 		for _, p := range v {
 			if _, ok := idMap[p.AdaptId]; ok {
 				p.Enabled = true
@@ -39,32 +48,32 @@ func (pm PermissionMap) Update(permittedIds []string) PermissionMap {
 		}
 	}
 
-	return pm
+	return pd
 }
 
-func (pm PermissionMap) Valid(module string) bool {
-	_, ok := pm[module]
+func (pd *PermissionData) Valid(module string) bool {
+	if pd.Data == nil {
+		return false
+	}
+
+	_, ok := pd.Data[module]
 	return ok
 }
 
-func (pm PermissionMap) GetModuleList() []string {
-	var list []string
-	for module := range pm {
-		list = append(list, module)
-	}
-	return list
+func (pd *PermissionData) GetModuleList() []string {
+	return pd.Modules
 }
 
-func ParsePermissionData(filePath string) (PermissionMap, error) {
+func ParsePermissionData(filePath string) (*PermissionData, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}
 
-	out := PermissionMap{}
+	out := PermissionData{}
 	err = yaml.Unmarshal(data, &out)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	return &out, nil
 }

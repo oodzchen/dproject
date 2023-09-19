@@ -35,6 +35,11 @@ type Permission struct {
 	Module string
 }
 
+type PermissionListItem struct {
+	Module string
+	List   []*Permission
+}
+
 // func ValidPermissionModule(module string) bool {
 // 	return PermissionModuleMap[PermissionModule(module)]
 // }

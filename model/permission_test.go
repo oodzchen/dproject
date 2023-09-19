@@ -63,7 +63,7 @@ func TestPermissionValid(t *testing.T) {
 			u := &Permission{
 				FrontId: tt.in.FrontId,
 				Name:    tt.in.Name,
-				Module:  PermissionModule(tt.in.Module),
+				Module:  tt.in.Module,
 			}
 			err := u.Valid()
 			// if err != nil {
@@ -80,30 +80,30 @@ func TestPermissionValid(t *testing.T) {
 	}
 }
 
-func TestValidPermissionModule(t *testing.T) {
-	tests := []struct {
-		desc string
-		in   string
-		want bool
-	}{
-		{
-			"User module",
-			"user",
-			true,
-		},
-		{
-			"All module",
-			"all",
-			false,
-		},
-	}
+// func TestValidPermissionModule(t *testing.T) {
+// 	tests := []struct {
+// 		desc string
+// 		in   string
+// 		want bool
+// 	}{
+// 		{
+// 			"User module",
+// 			"user",
+// 			true,
+// 		},
+// 		{
+// 			"All module",
+// 			"all",
+// 			false,
+// 		},
+// 	}
 
-	for _, tt := range tests {
-		t.Run(tt.desc, func(t *testing.T) {
-			result := ValidPermissionModule(tt.in)
-			if result != tt.want {
-				t.Errorf("valid result should be %t, but got %t", tt.want, result)
-			}
-		})
-	}
-}
+// 	for _, tt := range tests {
+// 		t.Run(tt.desc, func(t *testing.T) {
+// 			result := ValidPermissionModule(tt.in)
+// 			if result != tt.want {
+// 				t.Errorf("valid result should be %t, but got %t", tt.want, result)
+// 			}
+// 		})
+// 	}
+// }

@@ -23,7 +23,7 @@ type ServiceConfig struct {
 	sessSecret     string
 	csrfSecret     string
 	store          *store.Store
-	permissionData config.PermissionMap
+	permissionData *config.PermissionData
 }
 
 var AuthRequiredPathes map[string]Methods = map[string]Methods{
