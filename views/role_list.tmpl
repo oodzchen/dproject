@@ -17,6 +17,7 @@
 		<th>Role Name</th>
 		<th>Front Id</th>
 		<th>Created At</th>
+		<th>Default Role</th>
 		<th>Permisisons</th>
 		<th width="120px">Operations</th>
 	    </tr>
@@ -27,6 +28,7 @@
 		    <td>{{.Name}}</td>
 		    <td>{{.FrontId}}</td>
 		    <td>{{timeFormat .CreatedAt "YYYY-MM-DD hh:mm:ss"}}</td>
+		    <td>{{if .IsDefault}}Yes{{else}}No{{end}}</td>
 		    <td>
 			{{$role := .}}
 

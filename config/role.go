@@ -8,7 +8,7 @@ import (
 
 type RoleItem struct {
 	Name        string   `yaml:"name"`
-	Adapt       string   `yaml:"adapt_id"`
+	AdaptId     string   `yaml:"adapt_id"`
 	Permissions []string `yaml:"permissions,flow"`
 }
 

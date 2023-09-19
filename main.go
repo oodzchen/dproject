@@ -90,6 +90,11 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
+
+			err = permissionSrv.InitRoleTable()
+			if err != nil {
+				log.Fatal(err)
+			}
 			break
 		}
 	}

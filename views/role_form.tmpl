@@ -6,10 +6,41 @@
     {{- $debug := .Debug -}}
     {{- $isEdit := eq .Data.PageType "edit" -}}
     {{- $role := .Data.Role -}}
+    {{- $isDefault := and $role $role.IsDefault -}}
     {{- $rolePermissionIdList := .Data.RolePermissionIdList -}}
 
     <h1>{{if $isEdit}}Edit{{else}}Add{{end}} Role</h1>
     <hr/>
+
+    <form class="form" action="/manage/roles{{if $isEdit}}/{{$role.Id}}/edit{{end}}" method="POST">
+	{{- $csrfField -}}
+	<div class="form__row">
+	    <label class="form__label" for="front_id">Front Id</label>
+	    <input required id="front_id" name="front_id" type="text" value="{{if $isEdit}}{{$role.FrontId}}{{end}}" {{if or $isDefault $isEdit}}disabled{{end}}/>
+	</div>
+	<div class="form__row">
+	    <label class="form__label" for="name">Name</label>
+	    <input required id="name" name="name" type="text" value="{{if $isEdit}}{{$role.Name}}{{end}}" {{if $isDefault}}disabled{{end}}/>
+	</div>
+	<div class="form__row">
+	    <label class="form__label">Permissions</label>
+	    <!-- <input required id="name" name="name" type="text" value=""/> -->
+	    {{- range .Data.PermissionList -}}
+	    <fieldset>
+		<legend>
+		    <input id="{{.Module}}-all" class="btn-all" type="checkbox" onchange="checkAll(event, this)" {{if $isDefault}}disabled{{end}}/>
+		    <label for="{{.Module}}-all"><b>{{.Module}}</b></label>
+		</legend>
+		{{- range .List -}}
+		    <input name="permissions" id="{{.FrontId}}" type="checkbox" value="{{.Id}}" {{if and $isEdit (has .Id $rolePermissionIdList)}}checked{{end}} onchange="onCheck(event, this)" {{if $isDefault}}disabled{{end}}/>
+		    <label for="{{.FrontId}}">{{.Name}}</label>&nbsp;&nbsp;&nbsp;&nbsp;
+		{{- end -}}
+	    </fieldset>
+	    {{- end -}}
+	</div>
+
+	{{if not $isDefault}}<button type="submit">Submit</button>{{end}}
+    </form>
 
     <script>
      function checkAll(ev, el){
@@ -22,6 +53,10 @@
 
      function onCheck(ev, el){
 	 /* console.log(ev, el) */
+	 toggleBtnAll(el)
+     }
+
+     function toggleBtnAll(el){
 	 const allBtn = el.closest('fieldset').querySelector('input.btn-all')
 	 const inputEls = el.closest('fieldset').querySelectorAll('input[name="permissions"]')
 	 let allChecked = true
@@ -35,37 +70,11 @@
 
 	 allBtn.checked = allChecked
      }
+
+     (function(){
+	 document.querySelectorAll('.btn-all').forEach(el => toggleBtnAll(el))
+     })()
     </script>
-
-    <form class="form" action="/manage/roles{{if $isEdit}}/{{$role.Id}}/edit{{end}}" method="POST">
-	{{- $csrfField -}}
-	<div class="form__row">
-	    <label class="form__label" for="front_id">Front Id</label>
-	    <input required id="front_id" name="front_id" type="text" value="{{if $isEdit}}{{$role.FrontId}}{{end}}" {{if $isEdit}}disabled{{end}}/>
-	</div>
-	<div class="form__row">
-	    <label class="form__label" for="name">Name</label>
-	    <input required id="name" name="name" type="text" value="{{if $isEdit}}{{$role.Name}}{{end}}"/>
-	</div>
-	<div class="form__row">
-	    <label class="form__label">Permissions</label>
-	    <!-- <input required id="name" name="name" type="text" value=""/> -->
-	    {{- range .Data.PermissionList -}}
-	    <fieldset>
-		<legend>
-		    <input id="{{.Module}}-all" class="btn-all" type="checkbox" onchange="checkAll(event, this)" />
-		    <label for="{{.Module}}-all"><b>{{.Module}}</b></label>
-		</legend>
-		{{- range .List -}}
-		    <input name="permissions" id="{{.FrontId}}" type="checkbox" value="{{.Id}}" {{if and $isEdit (has .Id $rolePermissionIdList)}}checked{{end}} onchange="onCheck(event, this)" />
-		    <label for="{{.FrontId}}">{{.Name}}</label>&nbsp;&nbsp;&nbsp;&nbsp;
-		{{- end -}}
-	    </fieldset>
-	    {{- end -}}
-	</div>
-
-	<button type="submit">Submit</button>
-    </form>
 
     {{template "foot" .}}
 

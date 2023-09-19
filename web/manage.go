@@ -436,12 +436,24 @@ func (mr *ManageResource) RoleEditSubmit(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	// isDefault := r.Form.Get("is_default")
+	role, err := mr.store.Role.Item(roleId)
+	if err != nil {
+		mr.Error("", err, w, r, http.StatusInternalServerError)
+		return
+	}
+
+	if role.IsDefault {
+		mr.Error("", nil, w, r, http.StatusForbidden)
+		return
+	}
+
 	name := r.Form.Get("name")
 	permissions := r.Form["permissions"]
 
 	// fmt.Println("permissions: ", permissions)
 
-	role := &model.Role{
+	role = &model.Role{
 		Id:   roleId,
 		Name: name,
 	}

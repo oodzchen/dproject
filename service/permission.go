@@ -56,3 +56,39 @@ func (pm *Permission) InitPermissionTable() error {
 
 	return nil
 }
+
+func (pm *Permission) InitRoleTable() error {
+	rList, err := pm.Store.Role.List(1, 999)
+	if err != nil {
+		return err
+	}
+
+	if len(rList) > 0 {
+		return nil
+	}
+
+	var roleList []*model.Role
+	for _, v := range pm.RoleData {
+		var pList []*model.Permission
+		for _, pFrontId := range v.Permissions {
+			pList = append(pList, &model.Permission{
+				FrontId: pFrontId,
+			})
+		}
+
+		roleList = append(roleList, &model.Role{
+			FrontId:     v.AdaptId,
+			Name:        v.Name,
+			Permissions: pList,
+		})
+	}
+
+	// fmt.Printf("roleList: %#v\n", roleList)
+
+	err = pm.Store.Role.CreateManyWithFrontId(roleList)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

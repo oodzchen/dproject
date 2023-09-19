@@ -20,7 +20,7 @@ common_user:
 
 baned_user:
   name: Baned User
-  adapt_id: common_user # adapt_id is used to adapt with backend role front id
+  adapt_id: baned_user
   permissions:
     
 moderator:

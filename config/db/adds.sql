@@ -22,6 +22,7 @@ CREATE TABLE roles (
     name VARCHAR(50) NOT NULL,
     deleted BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    is_default BOOLEAN NOT NULL DEFAULT false,
     UNIQUE(front_id)
 );
 

@@ -15,6 +15,7 @@ type Role struct {
 	FrontId              string
 	Name                 string
 	CreatedAt            time.Time
+	IsDefault            bool
 	Permissions          []*Permission
 	FormattedPermissions []*PermissionListItem
 }
