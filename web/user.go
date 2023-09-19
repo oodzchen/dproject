@@ -36,7 +36,7 @@ func NewUserResource(renderer *Renderer) *UserResource {
 func (ur *UserResource) Routes() http.Handler {
 	rt := chi.NewRouter()
 
-	rt.Get("/", ur.List)
+	// rt.Get("/", ur.List)
 	rt.Get("/{userId}", ur.ItemPage)
 
 	return rt

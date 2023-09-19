@@ -90,7 +90,7 @@ func (p *Permission) Valid() error {
 		return permissionValidErr(fmt.Sprintf("front id length limit in %d characters", PermissionFrontIdMaxLen))
 	}
 
-	reFrontId := regexp.MustCompile(`^[\w\d_]{1,` + strconv.Itoa(PermissionFrontIdMaxLen) + `}$`)
+	reFrontId := regexp.MustCompile(`^[\w\d_.]{1,` + strconv.Itoa(PermissionFrontIdMaxLen) + `}$`)
 	if !reFrontId.Match([]byte(p.FrontId)) {
 		return permissionValidErr("front id format error")
 	}

@@ -22,7 +22,6 @@
     {{$csrfField := .CSRFField -}}
     {{$startIndex := add (mul (add $data.CurrPage -1) $data.PageSize) 1}}
     <ol class="article-list" start="{{$startIndex}}">
-	
 	{{- placehold .Data.Articles "<i class='text-lighten'>No data</i>" -}}
 	{{range $idx, $item := .Data.Articles -}}
 	    <li>

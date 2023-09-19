@@ -11,6 +11,7 @@ import (
 type Permission struct {
 	Store          *store.Store
 	PermissionData *config.PermissionData
+	RoleData       config.RoleData
 }
 
 func (pm *Permission) InitPermissionTable() error {

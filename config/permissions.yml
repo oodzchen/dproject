@@ -12,14 +12,22 @@ data:
       name: Create Article
       adapt_id: article.create # adapt_id is used to adapt with backend permission front id
       enabled: true
-    edit:
-      name: Edit Article
-      adapt_id: article.edit
+    edit_mine:
+      name: Edit Article of Myself
+      adapt_id: article.edit_mine
       enabled: true
-    delete:
-      name: Delete Article
-      adapt_id: article.delete
+    edit_others:
+      name: Edit Article of Others
+      adapt_id: article.edit_others
+      enabled: false
+    delete_mine:
+      name: Delete Article of Myself
+      adapt_id: article.delete_mine
       enabled: true
+    delete_others:
+      name: Delete Article of Others
+      adapt_id: article.delete_others
+      enabled: false
     save:
       name: Save Article
       adapt_id: article.save
@@ -46,14 +54,22 @@ data:
       name: Create Reply
       adapt_id: reply.create
       enabled: true
-    edit:
-      name: Edit Reply
-      adapt_id: reply.edit
+    edit_mine:
+      name: Edit Reply of Myself
+      adapt_id: reply.edit_mine
       enabled: true
-    delete:
-      name: Delete Reply
-      adapt_id: reply.delete
+    edit_others:
+      name: Edit Reply of Others
+      adapt_id: reply.edit_others
+      enabled: false
+    delete_mine:
+      name: Delete Reply of Myself
+      adapt_id: reply.delete_mine
       enabled: true
+    delete_others:
+      name: Delete Reply of Others
+      adapt_id: reply.delete_others
+      enabled: false
     save:
       name: Save Reply
       adapt_id: reply.save
@@ -84,10 +100,18 @@ data:
       name: Ban User
       adapt_id: user.ban
       enabled: false
-    update_intro:
-      name: Update User Intro
-      adapt_id: user.update_intro
+    update_intro_mine:
+      name: Update User Intro of Myself
+      adapt_id: user.update_intro_mine
       enabled: true
+    update_intro_others:
+      name: Update User Intro of Others
+      adapt_id: user.update_intro_others
+      enabled: false
+    update_role:
+      name: Update User Role of All
+      adapt_id: user.update_role
+      enabled: false
 
   manage:
     access:

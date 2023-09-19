@@ -48,9 +48,9 @@ CREATE TABLE user_roles (
     UNIQUE(user_id, role_id)
 );
 
-INSERT INTO roles (front_id, name) VALUES ('user', 'User');
-INSERT INTO roles (front_id, name) VALUES ('moderator', 'Moderator');
-INSERT INTO roles (front_id, name) VALUES ('admin', 'Admin');
+-- INSERT INTO roles (front_id, name) VALUES ('user', 'User');
+-- INSERT INTO roles (front_id, name) VALUES ('moderator', 'Moderator');
+-- INSERT INTO roles (front_id, name) VALUES ('admin', 'Admin');
 
 -- INSERT INTO permissions (front_id, name, module) VALUES ('create_article', 'Create article', 'article');
 -- INSERT INTO permissions (front_id, name, module) VALUES ('create_reply', 'Create reply', 'article');
@@ -62,6 +62,6 @@ INSERT INTO roles (front_id, name) VALUES ('admin', 'Admin');
 -- INSERT INTO role_permissions (role_id, permission_id) VALUES (1, 2);
 
 -- INSERT INTO user_roles SET (user_id, role_id) VALUES (1, 1);
-INSERT INTO user_roles (user_id, role_id)
-SELECT id, 1
-FROM users;
+-- INSERT INTO user_roles (user_id, role_id)
+-- SELECT id, 1
+-- FROM users;

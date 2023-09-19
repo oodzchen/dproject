@@ -22,6 +22,11 @@ func TestPermissionValid(t *testing.T) {
 			valid: true,
 		},
 		{
+			desc:  "All valid",
+			in:    &permissionData{Module: "user", FrontId: "role.read", Name: "Read Role"},
+			valid: true,
+		},
+		{
 			desc:  "Module is requried",
 			in:    &permissionData{Module: "", FrontId: "role_read", Name: "Read Role"},
 			valid: false,

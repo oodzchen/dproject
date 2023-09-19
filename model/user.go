@@ -26,6 +26,9 @@ type User struct {
 	Deleted          bool
 	Banned           bool
 	PasswordHased    bool
+	RoleName         string
+	RoleId           string
+	Permissions      []string
 }
 
 func (u *User) FormatTimeStr() {

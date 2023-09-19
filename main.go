@@ -51,6 +51,16 @@ func main() {
 	// fmt.Println("create articler enabled: ", permissionData.Permit("article", "create"))
 	// fmt.Println("ban user enabled: ", permissionData.Permit("user", "ban"))
 
+	roleData, err := config.ParseRoleData("./config/roles.yml")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// fmt.Println("roleData: ", roleData)
+	// fmt.Println("roleData['common_user']: ", roleData["common_user"])
+	// fmt.Println("roleData.Get('moderator'): ", roleData.Get("moderator"))
+	// fmt.Println("roleData.Get('aaa'): ", roleData.Get("aaa"))
+
 	pg := pgstore.New(&pgstore.DBConfig{
 		DSN: appCfg.DB.GetDSN(),
 	})
@@ -73,6 +83,7 @@ func main() {
 			permissionSrv := &service.Permission{
 				Store:          dataStore,
 				PermissionData: permissionData,
+				RoleData:       roleData,
 			}
 
 			err = permissionSrv.InitPermissionTable()

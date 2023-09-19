@@ -61,7 +61,12 @@ func Service(c *ServiceConfig) http.Handler {
 	// fmt.Println("work directory: ", wd)
 	// fmt.Println("templates directory: ", path.Join(wd, "./views/*.tmpl"))
 	tmplPath := path.Join(wd, "./views/*.tmpl")
-	baseTmpl := template.New("base").Funcs(TmplFuncs).Funcs(sprig.FuncMap())
+
+	tmplFuncs := template.FuncMap{
+		"permit": c.permissionData.Permit,
+	}
+
+	baseTmpl := template.New("base").Funcs(TmplFuncs).Funcs(tmplFuncs).Funcs(sprig.FuncMap())
 	baseTmpl = template.Must(baseTmpl.ParseGlob(tmplPath))
 
 	r := chi.NewRouter()
