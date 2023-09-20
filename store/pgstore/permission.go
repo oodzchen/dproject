@@ -43,6 +43,8 @@ func (p *Permission) List(page, pageSize int, module string) ([]*model.Permissio
 		return nil, err
 	}
 
+	defer rows.Close()
+
 	var list []*model.Permission
 	for rows.Next() {
 		var item model.Permission

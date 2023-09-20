@@ -405,6 +405,8 @@ ORDER BY ar.created_at;`
 		return nil, err
 	}
 
+	defer rows.Close()
+
 	var list []*model.Article
 	for rows.Next() {
 		var userState model.CurrUserState

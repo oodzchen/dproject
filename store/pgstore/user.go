@@ -27,15 +27,21 @@ func (u *User) List(page, pageSize int, oldest bool) ([]*model.User, error) {
 
 	rows, err := u.dbPool.Query(
 		context.Background(),
-		`SELECT u.id, u.name, u.email, u.created_at, u.introduction,
-COALESCE(r.name, 'Common User') as role_name, COALESCE(r.front_id, 'common_user') AS role_front_id
+		`SELECT u.id, u.name, u.email, u.created_at, COALESCE(u.introduction, ''),
+COALESCE(r.name, 'Common User') as role_name, COALESCE(r.front_id, 'common_user') AS role_front_id,
+COALESCE(p.id, 0) AS p_id, COALESCE(p.name, '') AS p_name, COALESCE(p.front_id, '') AS p_front_id, COALESCE(p.module, 'user') AS p_module, COALESCE(p.created_at, NOW()) AS p_created_at
 FROM users u
 LEFT JOIN user_roles ur ON ur.user_id = u.id
 LEFT JOIN roles r ON ur.role_id = r.id
+LEFT JOIN role_permissions rp ON rp.role_id = r.id
+LEFT JOIN permissions p ON p.id = rp.permission_id
+INNER JOIN (
+SELECT id FROM users
 ORDER BY 
-    CASE WHEN $3 = true THEN u.created_at END ASC,
-    CASE WHEN $3 = false THEN u.created_at END DESC
-OFFSET $1 LIMIT $2;`,
+    CASE WHEN $3 = true THEN created_at END ASC,
+    CASE WHEN $3 = false THEN created_at END DESC
+OFFSET $1 LIMIT $2
+) AS u1 ON u1.id = u.id;`,
 		pageSize*(page-1),
 		pageSize,
 		oldest,
@@ -45,9 +51,14 @@ OFFSET $1 LIMIT $2;`,
 		return nil, err
 	}
 
+	defer rows.Close()
+
 	var list []*model.User
+	listMap := make(map[int]*model.User)
+
 	for rows.Next() {
 		var item model.User
+		var pItem model.Permission
 		err := rows.Scan(
 			&item.Id,
 			&item.Name,
@@ -56,15 +67,34 @@ OFFSET $1 LIMIT $2;`,
 			&item.Introduction,
 			&item.RoleName,
 			&item.RoleFrontId,
+			&pItem.Id,
+			&pItem.Name,
+			&pItem.FrontId,
+			&pItem.Module,
+			&pItem.CreatedAt,
 		)
 
 		if err != nil {
 			return nil, err
 		}
 
-		item.FormatTimeStr()
+		if v, ok := listMap[item.Id]; ok {
+			if pItem.Id > 0 {
+				if v.Permissions != nil {
+					v.Permissions = append(v.Permissions, &pItem)
+				} else {
+					v.Permissions = []*model.Permission{&pItem}
+				}
+			}
+		} else {
+			if pItem.Id > 0 {
+				item.Permissions = []*model.Permission{&pItem}
+			}
 
-		list = append(list, &item)
+			listMap[item.Id] = &item
+			item.FormatTimeStr()
+			list = append(list, &item)
+		}
 	}
 
 	return list, nil
@@ -144,16 +174,63 @@ func (u *User) Update(item *model.User, fieldNames []string) (int, error) {
 }
 
 func (u *User) Item(id int) (*model.User, error) {
-	var item model.User
-	err := u.dbPool.QueryRow(context.Background(), "SELECT id, email, name, introduction, created_at FROM users WHERE id = $1", id).Scan(
-		&item.Id,
-		&item.Email,
-		&item.Name,
-		&item.NullIntroduction,
-		&item.RegisteredAt)
+	fmt.Println("userId: ", id)
+
+	sqlStr := `SELECT u.id, u.name, u.email, u.created_at, COALESCE(u.introduction, '') as introduction,
+COALESCE(r.name, 'Common User') as role_name, COALESCE(r.front_id, 'common_user') AS role_front_id,
+COALESCE(p.id, 0) AS p_id, COALESCE(p.name, '') AS p_name, COALESCE(p.front_id, '') AS p_front_id, COALESCE(p.module, 'user') AS p_module, COALESCE(p.created_at, NOW()) AS p_created_at
+FROM users u
+LEFT JOIN user_roles ur ON ur.user_id = u.id
+LEFT JOIN roles r ON ur.role_id = r.id
+LEFT JOIN role_permissions rp ON rp.role_id = r.id
+LEFT JOIN permissions p ON p.id = rp.permission_id
+WHERE u.id = $1`
+
+	rows, err := u.dbPool.Query(context.Background(), sqlStr, id)
 	if err != nil {
 		return nil, err
 	}
+
+	defer rows.Close()
+
+	var item model.User
+	for rows.Next() {
+		var uItem model.User
+		var pItem model.Permission
+
+		rows.Scan(
+			&uItem.Id,
+			&uItem.Name,
+			&uItem.Email,
+			&uItem.RegisteredAt,
+			&uItem.Introduction,
+			&uItem.RoleName,
+			&uItem.RoleFrontId,
+			&pItem.Id,
+			&pItem.Name,
+			&pItem.FrontId,
+			&pItem.Module,
+			&pItem.CreatedAt,
+		)
+
+		if item.Id < 1 {
+			item = uItem
+		}
+
+		fmt.Println("inscan:", item.Id)
+
+		if item.Permissions != nil {
+			item.Permissions = append(item.Permissions, &pItem)
+		} else {
+			item.Permissions = []*model.Permission{&pItem}
+		}
+	}
+
+	if item.Id < 1 {
+		return nil, errors.New("user dose not exist")
+	}
+
+	fmt.Println("user data: ", item)
 
 	item.FormatTimeStr()
 	item.FormatNullVals()
@@ -194,7 +271,7 @@ func (u *User) Login(email string, pwd string) (int, error) {
 		return 0, err
 	}
 
-	fmt.Printf("pass!\n")
+	// fmt.Println("pass! user id: ", id)
 
 	return id, nil
 }
@@ -232,6 +309,8 @@ WHERE p.author_id = $1 AND p.deleted = false`
 	if err != nil {
 		return nil, err
 	}
+
+	defer rows.Close()
 
 	var posts []*model.Article
 	for rows.Next() {
@@ -286,6 +365,8 @@ ORDER BY ps.created_at DESC`
 	if err != nil {
 		return nil, err
 	}
+
+	defer rows.Close()
 
 	var posts []*model.Article
 	for rows.Next() {

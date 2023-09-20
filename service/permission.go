@@ -103,6 +103,10 @@ func (pm *Permission) InitUserRoleTable() error {
 		return nil
 	}
 
+	if uList[0].RoleFrontId != "" {
+		return nil
+	}
+
 	for _, item := range uList {
 		item.RoleFrontId = DefaultUserRoleFrontId
 	}

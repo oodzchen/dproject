@@ -38,6 +38,8 @@ ORDER BY r.created_at DESC`
 		return nil, err
 	}
 
+	defer rows.Close()
+
 	var list []*model.Role
 	listMap := make(map[int]*model.Role)
 
@@ -139,6 +141,8 @@ func (r *Role) CreateManyWithFrontId(list []*model.Role) error {
 		sqlStr,
 		args...,
 	)
+
+	defer rows.Close()
 
 	var roleIdList []int
 	for rows.Next() {
@@ -250,6 +254,8 @@ WHERE r.id = $1`
 	if err != nil {
 		return nil, err
 	}
+
+	defer rows.Close()
 
 	var item model.Role
 	for rows.Next() {
