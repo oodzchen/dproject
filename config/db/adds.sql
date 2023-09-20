@@ -46,7 +46,7 @@ CREATE TABLE role_permissions (
 CREATE TABLE user_roles (
     user_id INTEGER REFERENCES users(id),
     role_id INTEGER REFERENCES roles(id),
-    UNIQUE(user_id, role_id)
+    UNIQUE(user_id)
 );
 
 -- INSERT INTO roles (front_id, name) VALUES ('user', 'User');

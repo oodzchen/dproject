@@ -92,3 +92,25 @@ func (pm *Permission) InitRoleTable() error {
 
 	return nil
 }
+
+func (pm *Permission) InitUserRoleTable() error {
+	uList, err := pm.Store.User.List(1, 999, true)
+	if err != nil {
+		return err
+	}
+
+	if len(uList) == 0 {
+		return nil
+	}
+
+	for _, item := range uList {
+		item.RoleFrontId = DefaultUserRoleFrontId
+	}
+
+	err = pm.Store.User.SetRoleManyWithFrontId(uList)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

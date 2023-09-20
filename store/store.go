@@ -35,7 +35,7 @@ type ArticleStore interface {
 
 type UserStore interface {
 	List(page, pageSize int, oldest bool) ([]*model.User, error)
-	Create(email, password, name string) (int, error)
+	Create(email, password, name string, roleFrontId string) (int, error)
 	Update(u *model.User, fields []string) (int, error)
 	Item(int) (*model.User, error)
 	Delete(int) error
@@ -44,6 +44,8 @@ type UserStore interface {
 	GetPosts(userId int, listType string) ([]*model.Article, error)
 	GetSavedPosts(int) ([]*model.Article, error)
 	Count() (int, error)
+	SetRole(userId int, roleFrontId string) (int, error)
+	SetRoleManyWithFrontId([]*model.User) error
 }
 
 type PermissionStore interface {

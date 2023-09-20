@@ -26,6 +26,8 @@ type User struct {
 	Store *store.Store
 }
 
+const DefaultUserRoleFrontId = "common_user"
+
 func (u *User) Register(email string, password string, name string) (int, error) {
 	user := &model.User{
 		Email:    email,
@@ -48,7 +50,7 @@ func (u *User) Register(email string, password string, name string) (int, error)
 	}
 
 	// fmt.Printf("Password value: %s\n", user.Password)
-	return u.Store.User.Create(user.Email, user.Password, user.Name)
+	return u.Store.User.Create(user.Email, user.Password, user.Name, DefaultUserRoleFrontId)
 }
 
 func (u *User) GetPosts(userId int, listType UserListType) ([]*model.Article, error) {

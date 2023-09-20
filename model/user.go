@@ -27,7 +27,7 @@ type User struct {
 	Banned           bool
 	PasswordHased    bool
 	RoleName         string
-	RoleId           string
+	RoleFrontId      string
 	Permissions      []string
 }
 

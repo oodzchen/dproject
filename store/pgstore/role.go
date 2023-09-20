@@ -132,8 +132,8 @@ func (r *Role) CreateManyWithFrontId(list []*model.Role) error {
 
 	sqlStr := sqlStrHead + strings.Join(strArr, ", ") + sqlStrTail
 
-	fmt.Println("create roles sqlStr: ", sqlStr)
-	fmt.Println("create roles args: ", args)
+	// fmt.Println("create roles sqlStr: ", sqlStr)
+	// fmt.Println("create roles args: ", args)
 
 	rows, err := r.dbPool.Query(context.Background(),
 		sqlStr,

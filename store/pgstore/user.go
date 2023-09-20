@@ -27,10 +27,14 @@ func (u *User) List(page, pageSize int, oldest bool) ([]*model.User, error) {
 
 	rows, err := u.dbPool.Query(
 		context.Background(),
-		`SELECT id, name, email, created_at FROM users
+		`SELECT u.id, u.name, u.email, u.created_at, u.introduction,
+COALESCE(r.name, 'Common User') as role_name, COALESCE(r.front_id, 'common_user') AS role_front_id
+FROM users u
+LEFT JOIN user_roles ur ON ur.user_id = u.id
+LEFT JOIN roles r ON ur.role_id = r.id
 ORDER BY 
-    CASE WHEN $3 = true THEN created_at END ASC,
-    CASE WHEN $3 = false THEN created_at END DESC
+    CASE WHEN $3 = true THEN u.created_at END ASC,
+    CASE WHEN $3 = false THEN u.created_at END DESC
 OFFSET $1 LIMIT $2;`,
 		pageSize*(page-1),
 		pageSize,
@@ -49,6 +53,9 @@ OFFSET $1 LIMIT $2;`,
 			&item.Name,
 			&item.Email,
 			&item.RegisteredAt,
+			&item.Introduction,
+			&item.RoleName,
+			&item.RoleFrontId,
 		)
 
 		if err != nil {
@@ -72,7 +79,7 @@ func (u *User) Count() (int, error) {
 	return count, nil
 }
 
-func (u *User) Create(email, password, name string) (int, error) {
+func (u *User) Create(email, password, name string, roleFrontId string) (int, error) {
 	// fmt.Printf("user.create item: %+v\n", item)
 	var id int
 	err := u.dbPool.QueryRow(context.Background(), "INSERT INTO users (email, password, name) VALUES ($1, $2, $3) RETURNING (id)",
@@ -82,6 +89,12 @@ func (u *User) Create(email, password, name string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+
+	_, err = u.dbPool.Exec(context.Background(), "INSERT INTO user_roles (user_id, role_id) SELECT $1, id FROM roles WHERE front_id = $2", id, roleFrontId)
+	if err != nil {
+		return 0, err
+	}
+
 	return id, nil
 }
 
@@ -302,4 +315,44 @@ ORDER BY ps.created_at DESC`
 	}
 
 	return posts, nil
+}
+
+func (u *User) SetRole(userId int, roleFrontId string) (int, error) {
+	_, err := u.dbPool.Exec(context.Background(), `INSERT INTO user_roles (user_id, role_id) SELECT $1, r.id FROM roles r WHERE r.front_id = $2`, userId, roleFrontId)
+	if err != nil {
+		return 0, err
+	}
+
+	return userId, nil
+}
+
+func (u *User) SetRoleManyWithFrontId(list []*model.User) error {
+	sqlStr := `INSERT INTO user_roles (user_id, role_id) `
+	var args []any
+	var argCount = 1
+
+	for idx, item := range list {
+		if item.Id < 1 || item.RoleFrontId == "" {
+			continue
+		}
+
+		if idx == 0 {
+			sqlStr += fmt.Sprintf("\nSELECT $%d::int, r.id FROM roles r WHERE r.front_id = $%d \n", argCount, argCount+1)
+		} else {
+			sqlStr += fmt.Sprintf("UNION ALL SELECT $%d::int, r.id FROM roles r WHERE r.front_id = $%d \n", argCount, argCount+1)
+		}
+		args = append(args, item.Id, item.RoleFrontId)
+		argCount += 2
+	}
+
+	// fmt.Println("set many roles sql string: \n", sqlStr)
+	// fmt.Println("set many roles args: ", args)
+	// fmt.Println("set many roles args length: ", len(args))
+
+	_, err := u.dbPool.Exec(context.Background(), sqlStr, args...)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
