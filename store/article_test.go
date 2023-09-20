@@ -41,7 +41,7 @@ func connectDB() (*pgstore.PGStore, error) {
 func registerNewUser(store *Store) (int, error) {
 	user := mt.GenUser()
 	pwd, _ := bcrypt.GenerateFromPassword([]byte(config.Config.DB.UserDefaultPassword), 10)
-	return store.User.Create(user.Email, string(pwd), user.Name)
+	return store.User.Create(user.Email, string(pwd), user.Name, "common_user")
 }
 
 func createNewArticle(store *Store, userId int) (int, error) {
