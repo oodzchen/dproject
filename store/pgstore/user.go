@@ -176,7 +176,7 @@ func (u *User) Update(item *model.User, fieldNames []string) (int, error) {
 func (u *User) Item(id int) (*model.User, error) {
 	fmt.Println("userId: ", id)
 
-	sqlStr := `SELECT u.id, u.name, u.email, u.created_at, COALESCE(u.introduction, '') as introduction,
+	sqlStr := `SELECT u.id, u.name, u.email, u.created_at, u.super_admin, COALESCE(u.introduction, '') as introduction,
 COALESCE(r.name, 'Common User') as role_name, COALESCE(r.front_id, 'common_user') AS role_front_id,
 COALESCE(p.id, 0) AS p_id, COALESCE(p.name, '') AS p_name, COALESCE(p.front_id, '') AS p_front_id, COALESCE(p.module, 'user') AS p_module, COALESCE(p.created_at, NOW()) AS p_created_at
 FROM users u
@@ -203,6 +203,7 @@ WHERE u.id = $1`
 			&uItem.Name,
 			&uItem.Email,
 			&uItem.RegisteredAt,
+			&uItem.Super,
 			&uItem.Introduction,
 			&uItem.RoleName,
 			&uItem.RoleFrontId,
@@ -217,7 +218,7 @@ WHERE u.id = $1`
 			item = uItem
 		}
 
-		fmt.Println("inscan:", item.Id)
+		// fmt.Println("inscan:", item.Id)
 
 		if item.Permissions != nil {
 			item.Permissions = append(item.Permissions, &pItem)
@@ -230,7 +231,7 @@ WHERE u.id = $1`
 		return nil, errors.New("user dose not exist")
 	}
 
-	fmt.Println("user data: ", item)
+	// fmt.Println("user data: ", item)
 
 	item.FormatTimeStr()
 	item.FormatNullVals()

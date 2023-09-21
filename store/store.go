@@ -61,8 +61,16 @@ type PermissionStore interface {
 type RoleStore interface {
 	List(page, pageSize int) ([]*model.Role, error)
 	Create(frontId, name string, permissions []int) (int, error)
+
+	//Create role use permission front id
+	CreateWithFrontId(frontId, name string, permissionFrontIds []string) (int, error)
+
+	// Create multi role with permission front id
 	CreateManyWithFrontId([]*model.Role) error
 	Update(id int, name string, permissions []int) (int, error)
+
+	// Update role use permission front id
+	UpdateWithFrontId(roleId int, name string, permissionFrontIds []string) (int, error)
 	Item(int) (*model.Role, error)
 	Delete(int) error
 }

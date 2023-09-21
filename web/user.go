@@ -19,9 +19,10 @@ type UserResource struct {
 }
 
 type userProfile struct {
-	UserInfo *model.User
-	Posts    []*model.Article
-	CurrTab  service.UserListType
+	UserInfo        *model.User
+	Posts           []*model.Article
+	CurrTab         service.UserListType
+	PermissionNames []string
 }
 
 func NewUserResource(renderer *Renderer) *UserResource {
@@ -141,12 +142,18 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 		article.GenSummary(200)
 	}
 
+	var permissionNames []string
+	for _, item := range user.Permissions {
+		permissionNames = append(permissionNames, item.Name)
+	}
+
 	ur.Render(w, r, "user_item", &PageData{
 		Title: user.Name,
 		Data: &userProfile{
-			UserInfo: user,
-			Posts:    postList,
-			CurrTab:  service.UserListType(tab),
+			UserInfo:        user,
+			Posts:           postList,
+			CurrTab:         service.UserListType(tab),
+			PermissionNames: permissionNames,
 		},
 		BreadCrumbs: []*BreadCrumb{
 			{

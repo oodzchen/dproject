@@ -14,6 +14,7 @@ import (
 	"github.com/oodzchen/dproject/config"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/store"
+	"github.com/oodzchen/dproject/utils"
 	"github.com/pkg/errors"
 )
 
@@ -167,15 +168,19 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 		}
 	}
 
-	if userId, ok := sess.Values["user_id"].(int); ok {
-		// fmt.Printf("logined user id: %d\n", userId)
-		// userInfo.Id = userId
-		loginedUser, err := rd.store.User.Item(userId)
-		if err != nil {
-			fmt.Println("get logined user info failed: ", err)
-		}
+	// if userId, ok := sess.Values["user_id"].(int); ok {
+	// 	// fmt.Printf("logined user id: %d\n", userId)
+	// 	// userInfo.Id = userId
+	// 	loginedUser, err := rd.store.User.Item(userId)
+	// 	if err != nil {
+	// 		fmt.Println("get logined user info failed: ", err)
+	// 	}
 
-		data.LoginedUser = loginedUser
+	// 	data.LoginedUser = loginedUser
+	// }
+
+	if userData, ok := r.Context().Value("user_data").(*model.User); ok {
+		data.LoginedUser = userData
 	}
 
 	err := sess.Save(r, w)
@@ -258,6 +263,20 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	}
 }
 
+func (rd *Renderer) getUserPermittedFrontIds(r *http.Request) []string {
+	var frontIdList []string
+	if userData, ok := r.Context().Value("user_data").(*model.User); ok {
+		if userData.Permissions != nil && len(userData.Permissions) > 0 {
+			for _, item := range userData.Permissions {
+				frontIdList = append(frontIdList, item.FrontId)
+			}
+
+			return frontIdList
+		}
+	}
+	return nil
+}
+
 func (rd *Renderer) Session(name string, w http.ResponseWriter, r *http.Request) *Session {
 	sess, err := rd.sessStore.Get(r, name)
 	HandleGetSessionErr(err)
@@ -299,6 +318,25 @@ func (rd *Renderer) ToPrevPage(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
+// func (rd *Renderer) SaveUserInfo(u *model.User, w http.ResponseWriter, r *http.Request) {
+// 	ss := rd.Session("one", w, r)
+// 	ss.SetValue("user_id", u.Id)
+// 	ss.SetValue("user_name", u.Name)
+
+// 	// gob.Register(model.User{})
+
+// 	ss.SetValue("user_info", *u)
+// }
+
+// func (rd *Renderer) GetUserInfo(w http.ResponseWriter, r *http.Request) (*model.User, error) {
+// 	ss := rd.Session("one", w, r)
+// 	u := ss.GetValue("user_info")
+// 	if v, ok := u.(model.User); ok {
+// 		return &v, nil
+// 	}
+// 	return nil, errors.New("no user info stored in cookie")
+// }
+
 type Session struct {
 	rd  *Renderer
 	Raw *sessions.Session
@@ -322,9 +360,17 @@ func (ss *Session) GetStringValue(key string) string {
 // Set data to *sessons.Session.Values and auto save, handle save error
 func (ss *Session) SetValue(key string, val any) {
 	ss.Raw.Values[key] = val
+
+	ss.Raw.Options.HttpOnly = true
+	ss.Raw.Options.Secure = !utils.IsDebug()
+	ss.Raw.Options.SameSite = http.SameSiteLaxMode
+	ss.Raw.Options.Path = "/"
+
 	err := ss.Raw.Save(ss.r, ss.w)
 	if err != nil {
+		// fmt.Println("save session error: ", err)
 		ss.rd.Error("", errors.WithStack(err), ss.w, ss.r, http.StatusInternalServerError)
+		return
 	}
 }
 

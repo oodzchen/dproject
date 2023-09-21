@@ -2,6 +2,31 @@
 
     {{template "head" . -}}
 
+    {{- if permit "user" "manage" -}}
+	<fieldset>
+	    <legend>User Manage</legend>
+	    {{if permit "user" "ban"}}<a href="">Ban</a>&nbsp;&nbsp;{{end}}
+	    {{if permit "user" "set_moderator"}}<a href="">Set as Moderator</a>&nbsp;&nbsp;{{end}}
+	    {{if permit "user" "set_admin"}}<a href="">Set as Admin</a>&nbsp;&nbsp;{{end}}
+	    <hr/>
+	    <div>
+		<small>
+		    <div>
+			<b>Role</b>:
+			<br/>
+			{{.Data.UserInfo.RoleName}}
+		    </div>
+		    <br/>
+		    <div>
+			<b>Permissions</b>
+			<br/>
+			{{joinStrArr .Data.PermissionNames ", &nbsp;&nbsp;"}}
+		    </div>
+		</small>
+	    </div>
+	</fieldset>
+    {{- end -}}
+
     <h1>{{.Data.UserInfo.Name}}</h1>
 
     {{template "user_basic_info" .Data.UserInfo -}}

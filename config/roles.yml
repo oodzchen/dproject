@@ -47,6 +47,7 @@ moderator:
     - article.delete_others
     - reply.edit_others
     - reply.delete_others
+    - user.manage
     - user.ban
     - user.update_intro_others
 
@@ -74,11 +75,13 @@ admin:
     - article.delete_others
     - reply.edit_others
     - reply.delete_others
+    - user.manage
     - user.ban
     - user.update_intro_others
 
     - user.list_access
-    - user.update_role
+    - user.set_moderator
+    - user.set_admin
     - manage.access
     - permission.access
     - role.access

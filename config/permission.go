@@ -32,7 +32,7 @@ func (pd *PermissionData) Permit(module, action string) bool {
 	return false
 }
 
-func (pd *PermissionData) Update(permittedIds []string) *PermissionData {
+func (pd *PermissionData) Update(permittedIds []string, isSuper bool) *PermissionData {
 	idMap := make(map[string]bool)
 	for _, id := range permittedIds {
 		idMap[id] = true
@@ -40,7 +40,7 @@ func (pd *PermissionData) Update(permittedIds []string) *PermissionData {
 
 	for _, v := range pd.Data {
 		for _, p := range v {
-			if _, ok := idMap[p.AdaptId]; ok {
+			if _, ok := idMap[p.AdaptId]; ok || isSuper {
 				p.Enabled = true
 			} else {
 				p.Enabled = false

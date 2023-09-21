@@ -104,13 +104,19 @@ func Service(c *ServiceConfig) http.Handler {
 		}),
 	))
 
+	r.Use(CreateCheckAuthMiddleware(AuthRequiredPathes, sessStore))
+	r.Use(CreateUpdateUserDataMiddleware(c.store, sessStore, c.permissionData))
+
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		mainResource.Error("", nil, w, r, http.StatusNotFound)
 	})
+	r.HandleFunc("/500", func(w http.ResponseWriter, r *http.Request) {
+		mainResource.Error("", nil, w, r, http.StatusInternalServerError)
+	})
+
 	r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
 		mainResource.Error("", nil, w, r, http.StatusMethodNotAllowed)
 	})
-	r.Use(CreateCheckAuthMiddleware(AuthRequiredPathes, sessStore))
 
 	// if config.Config.Debug {
 	// 	r.Mount("/debug", middleware.Profiler())

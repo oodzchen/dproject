@@ -3,6 +3,7 @@ package main
 import (
 	"reflect"
 	"strconv"
+	"strings"
 	"text/template"
 	"time"
 
@@ -17,6 +18,11 @@ var TmplFuncs = template.FuncMap{
 	"intRange":   intRange,
 	"local":      i18nLocalize,
 	"placehold":  placehold,
+	"joinStrArr": joinStrArr,
+}
+
+func joinStrArr(arr []string, sep string) string {
+	return strings.Join(arr, sep)
 }
 
 func formatTimeAgo(t time.Time) string {

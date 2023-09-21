@@ -92,6 +92,10 @@ data:
       enabled: true
   
   user:
+    manage:
+      name: Manage User
+      adapt_id: user.manage
+      enabled: false
     list_access:
       name: Acess User List
       adapt_id: user.list_access
@@ -111,6 +115,14 @@ data:
     update_role:
       name: Update User Role of All
       adapt_id: user.update_role
+      enabled: false
+    set_moderator:
+      name: Set User as Moderator
+      adapt_id: user.set_moderator
+      enabled: false
+    set_admin:
+      name: Set User as Admin
+      adapt_id: user.set_admin
       enabled: false
 
   manage:

@@ -200,16 +200,25 @@ func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, email, p
 	}
 
 	// fmt.Printf("user %d login success!\n", user.Id)
+	var permittedIdList []string
+	for _, item := range user.Permissions {
+		permittedIdList = append(permittedIdList, item.FrontId)
+	}
+
+	mr.permission.Update(permittedIdList, user.Super)
+	// mr.SaveUserInfo(user, w, r)
 
 	sess, err := mr.sessStore.Get(r, "one")
 	if err != nil {
 		mr.Error("", err, w, r, http.StatusInternalServerError)
 		return
 	}
-	// sess.AddFlash(fmt.Sprintf("Hi, %s", user.Name))
 
 	sess.Values["user_id"] = user.Id
 	sess.Values["user_name"] = user.Name
+
+	// gob.Register([]string{})
+	// sess.Values["user_permitted_id_list"] = permittedIdList
 
 	sess.Options.HttpOnly = true
 	sess.Options.Secure = !utils.IsDebug()
@@ -229,7 +238,8 @@ func (mr *MainResource) LoginDebug(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("debug-user-email: ", email)
 
 	mr.doLogin(w, r, email, password)
-	mr.ToPrevPage(w, r)
+	// mr.ToPrevPage(w, r)
+	mr.ToRefererUrl(w, r)
 }
 
 func (mr *MainResource) Logout(w http.ResponseWriter, r *http.Request) {

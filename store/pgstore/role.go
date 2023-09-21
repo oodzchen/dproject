@@ -118,6 +118,39 @@ func (r *Role) Create(frontId, name string, permissions []int) (int, error) {
 	return id, nil
 }
 
+func (r *Role) CreateWithFrontId(frontId, name string, permissionFrontIds []string) (int, error) {
+	var id int
+	err := r.dbPool.QueryRow(context.Background(), "INSERT INTO roles (front_id, name) VALUES ($1, $2) RETURNING (id)",
+		frontId,
+		name,
+	).Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+
+	if len(permissionFrontIds) > 0 {
+		sqlStrHead := `INSERT INTO role_permissions (role_id, permission_id) `
+		var strArr []string
+		var args []any
+		var argCount = 1
+		for _, pFrontId := range permissionFrontIds {
+			strArr = append(strArr, fmt.Sprintf("SELECT $%d::int, id FROM permissions WHERE front_id = $%d", argCount, argCount+1))
+			args = append(args, id, pFrontId)
+			argCount += 2
+		}
+		sqlStr := sqlStrHead + strings.Join(strArr, " UNION ALL ")
+		fmt.Println("create role sql string: ", sqlStr)
+		fmt.Println("create role args: ", args)
+
+		_, err := r.dbPool.Exec(context.Background(), sqlStr, args...)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return id, nil
+}
+
 func (r *Role) CreateManyWithFrontId(list []*model.Role) error {
 	sqlStrHead := `INSERT INTO roles (front_id, name, is_default) VALUES `
 	sqlStrTail := ` RETURNING (id)`
@@ -227,6 +260,51 @@ func (r *Role) Update(id int, name string, permissions []int) (int, error) {
 		}
 
 		sqlStr := sqlStrHead + strings.Join(strArr, ", ")
+
+		_, err = r.dbPool.Exec(context.Background(), sqlStr,
+			args...,
+		)
+
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return id, nil
+}
+
+func (r *Role) UpdateWithFrontId(id int, name string, permissionFrontIds []string) (int, error) {
+	_, err := r.dbPool.Exec(context.Background(), "UPDATE roles SET name = $1 WHERE id = $2",
+		name,
+		id,
+	)
+
+	if err != nil {
+		return 0, err
+	}
+
+	_, err = r.dbPool.Exec(context.Background(), "DELETE FROM role_permissions WHERE role_id = $1",
+		id,
+	)
+
+	if err != nil {
+		return 0, err
+	}
+
+	if len(permissionFrontIds) > 0 {
+		sqlStrHead := `INSERT INTO role_permissions (role_id, permission_id) `
+		var strArr []string
+		var args []any
+		var argCount = 1
+
+		for _, pFrontId := range permissionFrontIds {
+			// strArr = append(strArr, fmt.Sprintf("($%d, $%d)", argCount, argCount+1))
+			strArr = append(strArr, fmt.Sprintf("SELECT $%d::int, id FROM permissions WHERE front_id = $%d", argCount, argCount+1))
+			args = append(args, id, pFrontId)
+			argCount += 2
+		}
+
+		sqlStr := sqlStrHead + strings.Join(strArr, " UNION ALL ")
 
 		_, err = r.dbPool.Exec(context.Background(), sqlStr,
 			args...,

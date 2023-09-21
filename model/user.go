@@ -29,6 +29,7 @@ type User struct {
 	RoleName         string
 	RoleFrontId      string
 	Permissions      []*Permission
+	Super            bool
 }
 
 func (u *User) FormatTimeStr() {

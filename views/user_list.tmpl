@@ -20,6 +20,11 @@
 		<a href="/users/{{.Id}}">{{.Name}}</a>
 		<div>{{.Email}}</div>
 		<div class="text-lighten-3">regitered at {{ timeAgo .RegisteredAt }}</div>
+		<div>
+		    <small>
+			<b>Role</b>: {{.RoleName}}
+		    </small>
+		</div>
 		{{- if $debug -}}
 		    <form action="/login_debug" method="POST">
 			{{$csrfField}}

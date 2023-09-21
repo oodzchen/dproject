@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
 	"sort"
 	"strconv"
@@ -260,17 +261,19 @@ type RoleFormPageData struct {
 }
 
 func (mr *ManageResource) RoleCreatePage(w http.ResponseWriter, r *http.Request) {
-	permissionList, err := mr.store.Permission.List(1, 999, "all")
-	if err != nil {
-		mr.Error("", err, w, r, http.StatusInternalServerError)
-		return
-	}
+	// permissionList, err := mr.store.Permission.List(1, 999, "all")
+	// if err != nil {
+	// 	mr.Error("", err, w, r, http.StatusInternalServerError)
+	// 	return
+	// }
 
 	// type RoleCreatePageData struct {
 	// 	PermissionList []*model.PermissionListItem
 	// }
 
-	formattedPermissionList := formatPermissionList(permissionList, mr.permission.GetModuleList())
+	filteredPermissionList := mr.getFilteredPermissionList(w, r)
+
+	formattedPermissionList := formatPermissionList(filteredPermissionList, mr.permission.GetModuleList())
 
 	breadCrumbs := []*BreadCrumb{
 		{
@@ -345,16 +348,32 @@ func (mr *ManageResource) RoleSubmit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var permissionIds []int
+	filteredPermissionList := mr.getFilteredPermissionList(w, r)
+	filteredPermissionMap := make(map[string]bool)
+	for _, pItem := range filteredPermissionList {
+		filteredPermissionMap[pItem.FrontId] = true
+	}
 
-	for _, idStr := range permissions {
-		id, err := strconv.Atoi(idStr)
-		if err == nil {
-			permissionIds = append(permissionIds, id)
+	var permissionFrontIds []string
+	for _, pId := range permissions {
+		if _, ok := filteredPermissionMap[pId]; ok {
+			permissionFrontIds = append(permissionFrontIds, pId)
 		}
 	}
 
-	_, err = mr.store.Role.Create(role.FrontId, role.Name, permissionIds)
+	// var permissionIds []int
+
+	// for _, idStr := range permissions {
+	// 	id, err := strconv.Atoi(idStr)
+	// 	if err == nil {
+	// 		permissionIds = append(permissionIds, id)
+	// 	}
+	// }
+
+	// _, err = mr.store.Role.Create(role.FrontId, role.Name, permissionIds)
+
+	fmt.Println("permissionFrontIds: ", permissionFrontIds)
+	_, err = mr.store.Role.CreateWithFrontId(role.FrontId, role.Name, permissionFrontIds)
 
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -370,6 +389,37 @@ func (mr *ManageResource) RoleSubmit(w http.ResponseWriter, r *http.Request) {
 	mr.Session("one", w, r).Flash("Add role successfully")
 	http.Redirect(w, r, "/manage/roles", http.StatusFound)
 	// mr.ToPrevPage(w, r)
+}
+
+// Fitler permmmsions that not belong to current user
+func (mr *ManageResource) getFilteredPermissionList(w http.ResponseWriter, r *http.Request) []*model.Permission {
+	permissionList, err := mr.store.Permission.List(1, 999, "all")
+	if err != nil {
+		mr.Error("", err, w, r, http.StatusInternalServerError)
+		return nil
+	}
+
+	// userPermittedIdList := mr.Session("one", w, r).GetValue("user_permitted_id_list")
+	userPermittedIdList := mr.getUserPermittedFrontIds(r)
+
+	userPermittedIdMap := make(map[string]bool)
+	for _, frontId := range userPermittedIdList {
+		userPermittedIdMap[frontId] = true
+	}
+
+	// if uPList, ok := userPermittedIdList.([]string); ok {
+	// 	for _, frontId := range uPList {
+	// 		userPermittedIdMap[frontId] = true
+	// 	}
+	// }
+
+	var filteredPermissionList []*model.Permission
+	for _, item := range permissionList {
+		if _, ok := userPermittedIdMap[item.FrontId]; ok {
+			filteredPermissionList = append(filteredPermissionList, item)
+		}
+	}
+	return filteredPermissionList
 }
 
 func (mr *ManageResource) RoleEditPage(w http.ResponseWriter, r *http.Request) {
@@ -388,11 +438,8 @@ func (mr *ManageResource) RoleEditPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	permissionList, err := mr.store.Permission.List(1, 999, "all")
-	if err != nil {
-		mr.Error("", err, w, r, http.StatusInternalServerError)
-		return
-	}
+	filteredPermissionList := mr.getFilteredPermissionList(w, r)
+	formattedPermissionList := formatPermissionList(filteredPermissionList, mr.permission.GetModuleList())
 
 	var rolePermissionIdList []int
 	if role.Permissions != nil {
@@ -400,8 +447,6 @@ func (mr *ManageResource) RoleEditPage(w http.ResponseWriter, r *http.Request) {
 			rolePermissionIdList = append(rolePermissionIdList, item.Id)
 		}
 	}
-
-	formattedPermissionList := formatPermissionList(permissionList, mr.permission.GetModuleList())
 
 	breadCrumbs := []*BreadCrumb{
 		{
@@ -466,16 +511,31 @@ func (mr *ManageResource) RoleEditSubmit(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	var permissionIds []int
+	// var permissionIds []int
 
-	for _, idStr := range permissions {
-		id, err := strconv.Atoi(idStr)
-		if err == nil {
-			permissionIds = append(permissionIds, id)
+	// for _, idStr := range permissions {
+	// 	id, err := strconv.Atoi(idStr)
+	// 	if err == nil {
+	// 		permissionIds = append(permissionIds, id)
+	// 	}
+	// }
+
+	// _, err = mr.store.Role.Update(role.Id, role.Name, permissionIds)
+
+	filteredPermissionList := mr.getFilteredPermissionList(w, r)
+	filteredPermissionMap := make(map[string]bool)
+	for _, pItem := range filteredPermissionList {
+		filteredPermissionMap[pItem.FrontId] = true
+	}
+
+	var permissionFrontIds []string
+	for _, pId := range permissions {
+		if _, ok := filteredPermissionMap[pId]; ok {
+			permissionFrontIds = append(permissionFrontIds, pId)
 		}
 	}
 
-	_, err = mr.store.Role.Update(role.Id, role.Name, permissionIds)
+	_, err = mr.store.Role.UpdateWithFrontId(role.Id, role.Name, permissionFrontIds)
 
 	if err != nil {
 		mr.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
