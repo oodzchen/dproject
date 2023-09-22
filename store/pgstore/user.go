@@ -174,7 +174,7 @@ func (u *User) Update(item *model.User, fieldNames []string) (int, error) {
 }
 
 func (u *User) Item(id int) (*model.User, error) {
-	fmt.Println("userId: ", id)
+	// fmt.Println("userId: ", id)
 
 	sqlStr := `SELECT u.id, u.name, u.email, u.created_at, u.super_admin, COALESCE(u.introduction, '') as introduction,
 COALESCE(r.name, 'Common User') as role_name, COALESCE(r.front_id, 'common_user') AS role_front_id,
@@ -220,10 +220,12 @@ WHERE u.id = $1`
 
 		// fmt.Println("inscan:", item.Id)
 
-		if item.Permissions != nil {
-			item.Permissions = append(item.Permissions, &pItem)
-		} else {
-			item.Permissions = []*model.Permission{&pItem}
+		if pItem.Id != 0 {
+			if item.Permissions != nil {
+				item.Permissions = append(item.Permissions, &pItem)
+			} else {
+				item.Permissions = []*model.Permission{&pItem}
+			}
 		}
 	}
 
