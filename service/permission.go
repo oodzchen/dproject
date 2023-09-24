@@ -11,7 +11,19 @@ import (
 type Permission struct {
 	Store          *store.Store
 	PermissionData *config.PermissionData
-	RoleData       config.RoleData
+	RoleData       *config.RoleData
+	loginedUser    *model.User
+}
+
+func (pm *Permission) SetLoginedUser(u *model.User) {
+	pm.loginedUser = u
+
+	var permittedIdList []string
+	for _, item := range u.Permissions {
+		permittedIdList = append(permittedIdList, item.FrontId)
+	}
+
+	pm.PermissionData.Update(permittedIdList, u.Super)
 }
 
 func (pm *Permission) InitPermissionTable() error {
@@ -68,7 +80,9 @@ func (pm *Permission) InitRoleTable() error {
 	}
 
 	var roleList []*model.Role
-	for _, v := range pm.RoleData {
+	roleData := *pm.RoleData
+
+	for _, v := range roleData {
 		var pList []*model.Permission
 		for _, pFrontId := range v.Permissions {
 			pList = append(pList, &model.Permission{

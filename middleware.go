@@ -6,8 +6,8 @@ import (
 	"regexp"
 
 	"github.com/gorilla/sessions"
-	"github.com/oodzchen/dproject/config"
 	"github.com/oodzchen/dproject/model"
+	"github.com/oodzchen/dproject/service"
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/web"
 	"github.com/pkg/errors"
@@ -50,7 +50,7 @@ func CreateCheckAuthMiddleware(pathes PahthesNeedAuth, sessStore *sessions.Cooki
 	}
 }
 
-func CreateUpdateUserDataMiddleware(store *store.Store, sessStore *sessions.CookieStore, permission *config.PermissionData) func(http.Handler) http.Handler {
+func CreateUpdateUserDataMiddleware(store *store.Store, sessStore *sessions.CookieStore, permissionSrv *service.Permission) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			sess, _ := sessStore.Get(r, "one")
@@ -64,13 +64,7 @@ func CreateUpdateUserDataMiddleware(store *store.Store, sessStore *sessions.Cook
 					return
 				}
 				userData = user
-
-				var permittedIdList []string
-				for _, item := range user.Permissions {
-					permittedIdList = append(permittedIdList, item.FrontId)
-				}
-
-				permission.Update(permittedIdList, user.Super)
+				permissionSrv.SetLoginedUser(user)
 			} else {
 				userData = nil
 			}

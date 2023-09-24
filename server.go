@@ -13,17 +13,17 @@ import (
 	"github.com/go-chi/httprate"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
-	"github.com/oodzchen/dproject/config"
+	"github.com/oodzchen/dproject/service"
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
 	"github.com/oodzchen/dproject/web"
 )
 
 type ServiceConfig struct {
-	sessSecret     string
-	csrfSecret     string
-	store          *store.Store
-	permissionData *config.PermissionData
+	sessSecret    string
+	csrfSecret    string
+	store         *store.Store
+	permisisonSrv *service.Permission
 }
 
 var AuthRequiredPathes map[string]Methods = map[string]Methods{
@@ -63,7 +63,7 @@ func Service(c *ServiceConfig) http.Handler {
 	tmplPath := path.Join(wd, "./views/*.tmpl")
 
 	tmplFuncs := template.FuncMap{
-		"permit": c.permissionData.Permit,
+		"permit": c.permisisonSrv.PermissionData.Permit,
 	}
 
 	baseTmpl := template.New("base").Funcs(TmplFuncs).Funcs(tmplFuncs).Funcs(sprig.FuncMap())
@@ -83,7 +83,7 @@ func Service(c *ServiceConfig) http.Handler {
 	sessStore.Options.Secure = !utils.IsDebug()
 	sessStore.Options.SameSite = http.SameSiteLaxMode
 
-	renderer := web.NewRenderer(baseTmpl, sessStore, r, c.store, c.permissionData)
+	renderer := web.NewRenderer(baseTmpl, sessStore, r, c.store, c.permisisonSrv)
 
 	articleResource := web.NewArticleResource(renderer)
 	userResource := web.NewUserResource(renderer)
@@ -105,7 +105,7 @@ func Service(c *ServiceConfig) http.Handler {
 	))
 
 	r.Use(CreateCheckAuthMiddleware(AuthRequiredPathes, sessStore))
-	r.Use(CreateUpdateUserDataMiddleware(c.store, sessStore, c.permissionData))
+	r.Use(CreateUpdateUserDataMiddleware(c.store, sessStore, c.permisisonSrv))
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		mainResource.Error("", nil, w, r, http.StatusNotFound)

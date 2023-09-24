@@ -22,7 +22,6 @@ type User struct {
 	RegisteredAtStr  string
 	NullIntroduction pgtype.Text
 	Introduction     string
-	IsAdmin          bool
 	Deleted          bool
 	Banned           bool
 	PasswordHased    bool

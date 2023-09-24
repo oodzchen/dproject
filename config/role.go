@@ -18,7 +18,7 @@ func (rd RoleData) Get(roleId string) *RoleItem {
 	return rd[roleId]
 }
 
-func ParseRoleData(filePath string) (RoleData, error) {
+func ParseRoleData(filePath string) (*RoleData, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
@@ -30,5 +30,5 @@ func ParseRoleData(filePath string) (RoleData, error) {
 		return nil, err
 	}
 
-	return out, nil
+	return &out, nil
 }

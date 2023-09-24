@@ -199,14 +199,7 @@ func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, email, p
 		mr.Error("internal server error", err, w, r, http.StatusInternalServerError)
 	}
 
-	// fmt.Printf("user %d login success!\n", user.Id)
-	var permittedIdList []string
-	for _, item := range user.Permissions {
-		permittedIdList = append(permittedIdList, item.FrontId)
-	}
-
-	mr.permission.Update(permittedIdList, user.Super)
-	// mr.SaveUserInfo(user, w, r)
+	mr.permissionSrv.SetLoginedUser(user)
 
 	sess, err := mr.sessStore.Get(r, "one")
 	if err != nil {

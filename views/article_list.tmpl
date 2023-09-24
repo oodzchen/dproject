@@ -43,8 +43,6 @@
 			</form>
 			{{- if gt $item.VoteScore 0 -}}
 			    <span class="article-list__vote-score">{{$item.VoteScore}}</span>
-			{{- else -}}
-			    <span class="article-list__vote-score">0</span>
 			{{- end -}}
 			&nbsp;&nbsp;
 			{{- if eq $item.TotalReplyCount 0 -}}

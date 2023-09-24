@@ -76,16 +76,16 @@ func main() {
 		log.Fatal(err)
 	}
 
+	permissionSrv := &service.Permission{
+		Store:          dataStore,
+		PermissionData: permissionData,
+		RoleData:       roleData,
+	}
+
 	for {
 		err := pg.Ping(context.Background())
 		// fmt.Println("ping database error: ", err)
 		if err == nil {
-			permissionSrv := &service.Permission{
-				Store:          dataStore,
-				PermissionData: permissionData,
-				RoleData:       roleData,
-			}
-
 			err = permissionSrv.InitPermissionTable()
 			if err != nil {
 				log.Fatal(err)
@@ -117,9 +117,9 @@ func main() {
 	server := &http.Server{
 		Addr: addr,
 		Handler: (Service(&ServiceConfig{
-			sessSecret:     appCfg.SessionSecret,
-			store:          dataStore,
-			permissionData: permissionData,
+			sessSecret:    appCfg.SessionSecret,
+			store:         dataStore,
+			permisisonSrv: permissionSrv,
 		})),
 	}
 

@@ -73,7 +73,7 @@ func (mr *ManageResource) handlePermissionList(w http.ResponseWriter, r *http.Re
 
 	tab := r.Form.Get("tab")
 	// fmt.Println("paramPage:", paramPage)
-	if !mr.permission.Valid(tab) {
+	if !mr.permissionSrv.PermissionData.Valid(tab) {
 		tab = "all"
 	}
 
@@ -135,7 +135,7 @@ func (mr *ManageResource) handlePermissionList(w http.ResponseWriter, r *http.Re
 			CeilInt(total, pageSize),
 			pageSize,
 			string(pageType),
-			mr.permission.GetModuleList(),
+			mr.permissionSrv.PermissionData.GetModuleList(),
 			tab,
 		},
 		BreadCrumbs: breadCrumbs,
@@ -158,7 +158,7 @@ func (mr *ManageResource) PermissionSubmit(w http.ResponseWriter, r *http.Reques
 	permission.TrimSpace()
 	// permission.Sanitize()
 
-	moduleValid := mr.permission.Valid(module)
+	moduleValid := mr.permissionSrv.PermissionData.Valid(module)
 	if !moduleValid {
 		mr.Error("module dose not exist", errors.New("module dose not exist"), w, r, http.StatusBadRequest)
 		return
@@ -210,7 +210,7 @@ func (mr *ManageResource) RoleListPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, item := range list {
-		item.FormattedPermissions = formatPermissionList(item.Permissions, mr.permission.GetModuleList())
+		item.FormattedPermissions = formatPermissionList(item.Permissions, mr.permissionSrv.PermissionData.GetModuleList())
 	}
 
 	total := len(list)
@@ -273,7 +273,7 @@ func (mr *ManageResource) RoleCreatePage(w http.ResponseWriter, r *http.Request)
 
 	filteredPermissionList := mr.getFilteredPermissionList(w, r)
 
-	formattedPermissionList := formatPermissionList(filteredPermissionList, mr.permission.GetModuleList())
+	formattedPermissionList := formatPermissionList(filteredPermissionList, mr.permissionSrv.PermissionData.GetModuleList())
 
 	breadCrumbs := []*BreadCrumb{
 		{
@@ -439,7 +439,7 @@ func (mr *ManageResource) RoleEditPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	filteredPermissionList := mr.getFilteredPermissionList(w, r)
-	formattedPermissionList := formatPermissionList(filteredPermissionList, mr.permission.GetModuleList())
+	formattedPermissionList := formatPermissionList(filteredPermissionList, mr.permissionSrv.PermissionData.GetModuleList())
 
 	var rolePermissionIdList []int
 	if role.Permissions != nil {

@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/oodzchen/dproject/config"
 	"github.com/oodzchen/dproject/model"
+	"github.com/oodzchen/dproject/service"
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
 	"github.com/pkg/errors"
@@ -73,20 +74,21 @@ func (pd *PageData) AddI18nData(data map[string]any) {
 }
 
 type Renderer struct {
-	tmpl       *template.Template
-	sessStore  *sessions.CookieStore
-	router     *chi.Mux
-	store      *store.Store
-	permission *config.PermissionData
+	tmpl      *template.Template
+	sessStore *sessions.CookieStore
+	router    *chi.Mux
+	store     *store.Store
+	// permission *config.PermissionData
+	permissionSrv *service.Permission
 }
 
-func NewRenderer(tmpl *template.Template, sessStore *sessions.CookieStore, router *chi.Mux, store *store.Store, permission *config.PermissionData) *Renderer {
+func NewRenderer(tmpl *template.Template, sessStore *sessions.CookieStore, router *chi.Mux, store *store.Store, permissionSrv *service.Permission) *Renderer {
 	return &Renderer{
 		tmpl,
 		sessStore,
 		router,
 		store,
-		permission,
+		permissionSrv,
 	}
 }
 
