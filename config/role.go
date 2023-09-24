@@ -18,6 +18,11 @@ func (rd RoleData) Get(roleId string) *RoleItem {
 	return rd[roleId]
 }
 
+func (rd RoleData) Valid(roleId string) bool {
+	_, ok := rd[roleId]
+	return ok
+}
+
 func ParseRoleData(filePath string) (*RoleData, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {

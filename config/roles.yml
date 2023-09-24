@@ -18,9 +18,9 @@ common_user:
     - reply.vote_up
     - user.update_intro_mine
 
-baned_user:
-  name: Baned User
-  adapt_id: baned_user
+banned_user:
+  name: Banned User
+  adapt_id: banned_user
   permissions:
     
 moderator:

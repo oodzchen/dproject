@@ -28,7 +28,7 @@ func (u *User) List(page, pageSize int, oldest bool) ([]*model.User, error) {
 	rows, err := u.dbPool.Query(
 		context.Background(),
 		`SELECT u.id, u.name, u.email, u.created_at, COALESCE(u.introduction, ''),
-COALESCE(r.name, 'Common User') as role_name, COALESCE(r.front_id, 'common_user') AS role_front_id,
+COALESCE(r.name, '') as role_name, COALESCE(r.front_id, '') AS role_front_id,
 COALESCE(p.id, 0) AS p_id, COALESCE(p.name, '') AS p_name, COALESCE(p.front_id, '') AS p_front_id, COALESCE(p.module, 'user') AS p_module, COALESCE(p.created_at, NOW()) AS p_created_at
 FROM users u
 LEFT JOIN user_roles ur ON ur.user_id = u.id
@@ -36,11 +36,11 @@ LEFT JOIN roles r ON ur.role_id = r.id
 LEFT JOIN role_permissions rp ON rp.role_id = r.id
 LEFT JOIN permissions p ON p.id = rp.permission_id
 INNER JOIN (
-SELECT id FROM users
-ORDER BY 
-    CASE WHEN $3 = true THEN created_at END ASC,
-    CASE WHEN $3 = false THEN created_at END DESC
-OFFSET $1 LIMIT $2
+    SELECT id FROM users
+    ORDER BY 
+        CASE WHEN $3 = true THEN created_at END ASC,
+        CASE WHEN $3 = false THEN created_at END DESC
+    OFFSET $1 LIMIT $2
 ) AS u1 ON u1.id = u.id;`,
 		pageSize*(page-1),
 		pageSize,
@@ -177,7 +177,7 @@ func (u *User) Item(id int) (*model.User, error) {
 	// fmt.Println("userId: ", id)
 
 	sqlStr := `SELECT u.id, u.name, u.email, u.created_at, u.super_admin, COALESCE(u.introduction, '') as introduction,
-COALESCE(r.name, 'Common User') as role_name, COALESCE(r.front_id, 'common_user') AS role_front_id,
+COALESCE(r.name, '') as role_name, COALESCE(r.front_id, '') AS role_front_id,
 COALESCE(p.id, 0) AS p_id, COALESCE(p.name, '') AS p_name, COALESCE(p.front_id, '') AS p_front_id, COALESCE(p.module, 'user') AS p_module, COALESCE(p.created_at, NOW()) AS p_created_at
 FROM users u
 LEFT JOIN user_roles ur ON ur.user_id = u.id
@@ -402,7 +402,12 @@ ORDER BY ps.created_at DESC`
 }
 
 func (u *User) SetRole(userId int, roleFrontId string) (int, error) {
-	_, err := u.dbPool.Exec(context.Background(), `INSERT INTO user_roles (user_id, role_id) SELECT $1, r.id FROM roles r WHERE r.front_id = $2`, userId, roleFrontId)
+	_, err := u.dbPool.Exec(context.Background(), `DELETE FROM user_roles WHERE user_id = $1`, userId)
+	if err != nil {
+		return 0, err
+	}
+
+	_, err = u.dbPool.Exec(context.Background(), `INSERT INTO user_roles (user_id, role_id) SELECT $1, r.id FROM roles r WHERE r.front_id = $2`, userId, roleFrontId)
 	if err != nil {
 		return 0, err
 	}

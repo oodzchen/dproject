@@ -1,8 +1,18 @@
-{{ define "set_role_form" }}
-    <form action="/users/{{.userId}}/set_role" method="POST">
-	{{.csrfFields}}
-	<input name="role_front_id" type="hidden" value="{{.roleFrontId}}"/>
-	<input required name="comment" type="text" value=""/>
-	<button type="submit">Submit</button>
+{{ define "user_role_form" }}
+    {{template "head" . -}}
+    {{- $userData := .Data.UserData -}}
+    <div>Confirm to ban {{$userData.Name}}?</div>
+    <br/>
+    <form class="form" action="/users/{{$userData.Id}}/set_role" method="POST">
+	{{.CSRFField}}
+	<input name="role_front_id" type="hidden" value="banned_user"/>
+	<div class="form__row">
+	    <label for="comment" class="form__label">Reason:</label>
+	    <input id="comment" required name="comment" type="text" value=""/>
+	</div>
+	
+	<button type="submit">Confirm</button>
     </form>
+
+    {{template "foot" . -}}
 {{end}}

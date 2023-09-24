@@ -49,6 +49,18 @@ CREATE TABLE user_roles (
     UNIQUE(user_id)
 );
 
+CREATE TABLE user_activity (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    type VARCHAR(255) NOT NULL,
+    target_model VARCHAR(255),
+    target_id INTEGER,
+    created_at TIMESTAMP NOT DEFAULT NOW(),
+    ip_address VARCHAR(255),
+    device_info VARCHAR(255),
+    details TEXT
+);
+
 -- INSERT INTO roles (front_id, name) VALUES ('user', 'User');
 -- INSERT INTO roles (front_id, name) VALUES ('moderator', 'Moderator');
 -- INSERT INTO roles (front_id, name) VALUES ('admin', 'Admin');

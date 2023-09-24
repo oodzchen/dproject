@@ -10,6 +10,15 @@ import (
 	"unicode/utf8"
 )
 
+type UserRoleFrontId string
+
+const (
+	DefaultUserRoleCommon    UserRoleFrontId = "common_user"
+	DefaultUserRoleBanned                    = "banned_user"
+	DefaultUserRoleModerator                 = "moderator"
+	DefaultUserRoleAdmin                     = "admin"
+)
+
 type Role struct {
 	Id                   int
 	FrontId              string

@@ -117,12 +117,14 @@ func (pm *Permission) InitUserRoleTable() error {
 		return nil
 	}
 
+	// fmt.Println("uList[0].RoleFrontId: ", uList[0].RoleFrontId)
+
 	if uList[0].RoleFrontId != "" {
 		return nil
 	}
 
 	for _, item := range uList {
-		item.RoleFrontId = DefaultUserRoleFrontId
+		item.RoleFrontId = string(model.DefaultUserRoleCommon)
 	}
 
 	err = pm.Store.User.SetRoleManyWithFrontId(uList)

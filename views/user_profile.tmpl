@@ -5,7 +5,7 @@
     {{- if permit "user" "manage" -}}
 	<fieldset>
 	    <legend>User Manage</legend>
-	    {{if permit "user" "ban"}}<a href="">Ban</a>&nbsp;&nbsp;{{end}}
+	    {{if permit "user" "ban"}}<a href="/users/{{.Data.UserInfo.Id}}/ban">Ban</a>&nbsp;&nbsp;{{end}}
 	    {{if permit "user" "set_moderator"}}<a href="">Set as Moderator</a>&nbsp;&nbsp;{{end}}
 	    {{if permit "user" "set_admin"}}<a href="">Set as Admin</a>&nbsp;&nbsp;{{end}}
 	    <hr/>
@@ -14,7 +14,7 @@
 		    <div>
 			<b>Role</b>:
 			<br/>
-			{{.Data.UserInfo.RoleName}}
+			<span {{if eq .Data.UserInfo.RoleFrontId "banned_user"}}style="color:red"{{end}}>{{.Data.UserInfo.RoleName}}</span>
 		    </div>
 		    <br/>
 		    <div>

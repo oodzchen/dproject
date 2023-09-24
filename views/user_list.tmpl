@@ -22,7 +22,7 @@
 		<div class="text-lighten-3">regitered at {{ timeAgo .RegisteredAt }}</div>
 		<div>
 		    <small>
-			<b>Role</b>: {{.RoleName}}
+			<b>Role</b>: <span {{if eq .RoleFrontId "banned_user"}}style="color:red"{{end}}>{{.RoleName}}</span>
 		    </small>
 		</div>
 		{{- if $debug -}}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
@@ -42,6 +43,7 @@ func (ur *UserResource) Routes() http.Handler {
 	rt.Route("/{userId}", func(r chi.Router) {
 		r.Get("/", ur.ItemPage)
 		r.Get("/ban", ur.BanPage)
+		r.Post("/set_role", ur.SetRole)
 	})
 
 	return rt
@@ -169,27 +171,89 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ur *UserResource) BanPage(w http.ResponseWriter, r *http.Request) {
-	// userId, err := strconv.Atoi(chi.URLParam(r, "userId"))
-	// if err != nil {
-	// 	ur.Error("", errors.WithStack(err), w, r, http.StatusBadRequest)
-	// 	return
-	// }
+	userId, err := strconv.Atoi(chi.URLParam(r, "userId"))
+	if err != nil {
+		ur.Error("", errors.WithStack(err), w, r, http.StatusBadRequest)
+		return
+	}
+
+	user, err := ur.store.User.Item(userId)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			ur.Error("", nil, w, r, http.StatusNotFound)
+		} else {
+			ur.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if user.RoleFrontId == model.DefaultUserRoleBanned {
+		ur.Session("one", w, r).Flash("already banned")
+		http.Redirect(w, r, fmt.Sprintf("/users/%d", user.Id), http.StatusFound)
+		return
+	}
 
 	type pageData struct {
+		UserData *model.User
 	}
-	// ur.Render(w, r, "user_role_form", &PageData{
-	// 	Title: user.Name,
-	// 	Data: &userProfile{
-	// 		UserInfo:        user,
-	// 		Posts:           postList,
-	// 		CurrTab:         service.UserListType(tab),
-	// 		PermissionNames: permissionNames,
-	// 	},
-	// 	BreadCrumbs: []*BreadCrumb{
-	// 		{
-	// 			fmt.Sprintf("/users/%d", user.Id),
-	// 			user.Name,
-	// 		},
-	// 	},
-	// })
+
+	ur.Render(w, r, "user_role_form", &PageData{
+		Title: "Confirm to ban " + user.Name,
+		Data: &pageData{
+			UserData: user,
+		},
+		BreadCrumbs: []*BreadCrumb{
+			{
+				fmt.Sprintf("/users/%d", user.Id),
+				user.Name,
+			},
+		},
+	})
+}
+
+func (ur *UserResource) SetRole(w http.ResponseWriter, r *http.Request) {
+	userId, err := strconv.Atoi(chi.URLParam(r, "userId"))
+	if err != nil {
+		ur.Error("", errors.WithStack(err), w, r, http.StatusBadRequest)
+		return
+	}
+
+	roleFrontId := r.PostForm.Get("role_front_id")
+	comment := r.PostForm.Get("comment")
+
+	fmt.Println("roleFrontId: ", roleFrontId)
+	if !ur.permissionSrv.RoleData.Valid(roleFrontId) {
+		ur.Error("", errors.New("role front id dose not exist"), w, r, http.StatusBadRequest)
+		return
+	}
+
+	if strings.TrimSpace(comment) == "" {
+		ur.Error("", errors.New("reason is required"), w, r, http.StatusBadRequest)
+		return
+	}
+
+	user, err := ur.store.User.Item(userId)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			ur.Error("", nil, w, r, http.StatusNotFound)
+		} else {
+			ur.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if user.RoleFrontId == roleFrontId {
+		http.Redirect(w, r, fmt.Sprintf("/users/%d", user.Id), http.StatusFound)
+		return
+	}
+
+	_, err = ur.store.User.SetRole(user.Id, roleFrontId)
+	if err != nil {
+		ur.Error("", err, w, r, http.StatusInternalServerError)
+		return
+	}
+
+	//
+
+	http.Redirect(w, r, fmt.Sprintf("/users/%d", user.Id), http.StatusFound)
 }
