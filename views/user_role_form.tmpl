@@ -1,0 +1,8 @@
+{{ define "set_role_form" }}
+    <form action="/users/{{.userId}}/set_role" method="POST">
+	{{.csrfFields}}
+	<input name="role_front_id" type="hidden" value="{{.roleFrontId}}"/>
+	<input required name="comment" type="text" value=""/>
+	<button type="submit">Submit</button>
+    </form>
+{{end}}

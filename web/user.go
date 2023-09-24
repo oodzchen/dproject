@@ -38,7 +38,11 @@ func (ur *UserResource) Routes() http.Handler {
 	rt := chi.NewRouter()
 
 	// rt.Get("/", ur.List)
-	rt.Get("/{userId}", ur.ItemPage)
+
+	rt.Route("/{userId}", func(r chi.Router) {
+		r.Get("/", ur.ItemPage)
+		r.Get("/ban", ur.BanPage)
+	})
 
 	return rt
 }
@@ -162,4 +166,30 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 	})
+}
+
+func (ur *UserResource) BanPage(w http.ResponseWriter, r *http.Request) {
+	// userId, err := strconv.Atoi(chi.URLParam(r, "userId"))
+	// if err != nil {
+	// 	ur.Error("", errors.WithStack(err), w, r, http.StatusBadRequest)
+	// 	return
+	// }
+
+	type pageData struct {
+	}
+	// ur.Render(w, r, "user_role_form", &PageData{
+	// 	Title: user.Name,
+	// 	Data: &userProfile{
+	// 		UserInfo:        user,
+	// 		Posts:           postList,
+	// 		CurrTab:         service.UserListType(tab),
+	// 		PermissionNames: permissionNames,
+	// 	},
+	// 	BreadCrumbs: []*BreadCrumb{
+	// 		{
+	// 			fmt.Sprintf("/users/%d", user.Id),
+	// 			user.Name,
+	// 		},
+	// 	},
+	// })
 }
