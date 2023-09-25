@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/oodzchen/dproject/config"
+	mdw "github.com/oodzchen/dproject/middleware"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/service"
 	"github.com/oodzchen/dproject/utils"
@@ -44,11 +45,26 @@ func (mr *MainResource) Routes() http.Handler {
 	rt.Post("/register", mr.Register)
 	rt.Get("/login", mr.LoginPage)
 	rt.Post("/login", mr.Login)
-	rt.Get("/logout", mr.Logout)
+	rt.With(
+		mdw.AuthCheck(mr.sessStore),
+	).Post("/logout", mr.Logout)
+
 	rt.Route("/settings", func(r chi.Router) {
 		r.Get("/", mr.SettingsPage)
-		r.Get("/account", mr.SettingsAccountPage)
-		r.Post("/account", mr.SaveAccountSettings)
+		r.With(
+			mdw.AuthCheck(mr.sessStore),
+		).Get("/account", mr.SettingsAccountPage)
+
+		r.With(
+			mdw.AuthCheck(mr.sessStore),
+			mdw.PermitCheck(
+				mr.permissionSrv,
+				[]string{
+					"user.update_intro_mine",
+					"user.update_intro_others",
+				},
+			),
+		).Post("/account", mr.SaveAccountSettings)
 		r.Get("/ui", mr.SettingsUIPage)
 		r.Post("/ui", mr.SaveUISettings)
 	})

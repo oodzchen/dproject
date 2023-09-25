@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
+	mdw "github.com/oodzchen/dproject/middleware"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/service"
 	"github.com/oodzchen/dproject/utils"
@@ -35,19 +36,97 @@ func (ar *ArticleResource) Routes() http.Handler {
 	rt := chi.NewRouter()
 
 	rt.Get("/", ar.List)
-	rt.Post("/", ar.Submit)
-	rt.Get("/new", ar.FormPage)
+	rt.With(
+		mdw.AuthCheck(ar.sessStore),
+		mdw.PermitCheck(
+			ar.permissionSrv,
+			[]string{
+				"article.create",
+			},
+		),
+	).Post("/", ar.Submit)
+
+	rt.With(
+		mdw.AuthCheck(ar.sessStore),
+		mdw.PermitCheck(
+			ar.permissionSrv,
+			[]string{
+				"article.create",
+			},
+		),
+	).Get("/new", ar.FormPage)
 
 	rt.Route("/{id}", func(r chi.Router) {
 		r.Get("/", ar.Item)
-		r.Get("/edit", ar.FormPage)
-		r.Post("/edit", ar.Update)
-		r.Get("/delete", ar.DeletePage)
-		r.Post("/delete", ar.Delete)
-		r.Get("/reply", ar.ReplyPage)
-		r.Post("/vote", ar.Vote)
-		r.Post("/save", ar.Save)
-		r.Post("/react", ar.React)
+
+		r.With(
+			mdw.AuthCheck(ar.sessStore),
+			mdw.PermitCheck(
+				ar.permissionSrv,
+				[]string{
+					"article.edit_mine",
+					"article.edit_others",
+				},
+			),
+		).Group(func(r chi.Router) {
+			r.Get("/edit", ar.FormPage)
+			r.Post("/edit", ar.Update)
+		})
+
+		r.With(
+			mdw.AuthCheck(ar.sessStore),
+			mdw.PermitCheck(
+				ar.permissionSrv,
+				[]string{
+					"article.delete_mine",
+					"article.delete_others",
+				},
+			),
+		).Group(func(r chi.Router) {
+			r.Get("/delete", ar.DeletePage)
+			r.Post("/delete", ar.Delete)
+		})
+
+		r.With(
+			mdw.AuthCheck(ar.sessStore),
+			mdw.PermitCheck(
+				ar.permissionSrv,
+				[]string{
+					"article.reply",
+				},
+			),
+		).Get("/reply", ar.ReplyPage)
+
+		r.With(
+			mdw.AuthCheck(ar.sessStore),
+			mdw.PermitCheck(
+				ar.permissionSrv,
+				[]string{
+					"article.vote_up",
+					"article.vote_down",
+				},
+			),
+		).Post("/vote", ar.Vote)
+
+		r.With(
+			mdw.AuthCheck(ar.sessStore),
+			mdw.PermitCheck(
+				ar.permissionSrv,
+				[]string{
+					"article.save",
+				},
+			),
+		).Post("/save", ar.Save)
+
+		r.With(
+			mdw.AuthCheck(ar.sessStore),
+			mdw.PermitCheck(
+				ar.permissionSrv,
+				[]string{
+					"article.react",
+				},
+			),
+		).Post("/react", ar.React)
 	})
 
 	return rt

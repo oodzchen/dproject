@@ -13,6 +13,7 @@ import (
 	"github.com/go-chi/httprate"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
+	mdw "github.com/oodzchen/dproject/middleware"
 	"github.com/oodzchen/dproject/service"
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
@@ -24,17 +25,6 @@ type ServiceConfig struct {
 	csrfSecret    string
 	store         *store.Store
 	permisisonSrv *service.Permission
-}
-
-var authRequiredPathes map[string]Methods = map[string]Methods{
-	`^/logout($|/)`:              {"GET"},
-	`^/articles($|/)`:            {"POST"},
-	`^/articles/\d+/delete($|/)`: {"GET", "POST"},
-	`^/articles/\d+/edit($|/)`:   {"GET", "POST"},
-	`^/articles/\d+/reply($|/)`:  {"GET", "POST"},
-	`^/articles/\d+/vote($|/)`:   {"GET", "POST"},
-	`^/settings/account/?$`:      {"GET", "POST"},
-	`^/manage/?`:                 {"GET"},
 }
 
 // func FileServer(r chi.Router, path string, root http.FileSystem) {
@@ -104,9 +94,7 @@ func Service(c *ServiceConfig) http.Handler {
 		}),
 	))
 
-	r.Use(CreateCheckAuthMiddleware(authRequiredPathes, sessStore))
-	r.Use(CreateUpdateUserDataMiddleware(c.store, sessStore, c.permisisonSrv))
-	r.Use(CreatePermissionCheckMiddleware(c.permisisonSrv, permissionMap))
+	r.Use(mdw.FetchUserData(c.store, sessStore, c.permisisonSrv))
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		mainResource.Error("", nil, w, r, http.StatusNotFound)
