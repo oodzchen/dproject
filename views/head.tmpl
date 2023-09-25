@@ -88,6 +88,10 @@
 		 font-size: var(--font-size)
 	     }
 
+	     *:disabled{
+		 cursor: not-allowed!important;
+	     }
+
 	     input[type="text"],
 	     textarea{
 		 max-width: 1000px;
@@ -516,7 +520,9 @@
 		    {{- end -}}
 		</ul>
 		<ul class="nav-menu nav-menu--right">
-		    <li><a href="/articles/new">&plus;New</a></li>
+		    {{- if permit "article" "create" -}}
+			<li><a href="/articles/new">&plus;New</a></li>
+		    {{- end -}}
 		    {{if .LoginedUser -}}
 			<li><a href="/users/{{.LoginedUser.Id}}">{{.LoginedUser.Name}}</a></li>
 			<li><a href="/logout">Logout</a></li>

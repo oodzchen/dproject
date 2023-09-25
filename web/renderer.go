@@ -187,7 +187,8 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 
 	err := sess.Save(r, w)
 	if err != nil {
-		HandleSaveSessionErr(errors.WithStack(err))
+		// HandleSaveSessionErr(errors.WithStack(err))
+		fmt.Printf("session save error: %+v", err)
 	}
 
 	localSess := rd.Session("local", w, r)
@@ -281,7 +282,10 @@ func (rd *Renderer) getUserPermittedFrontIds(r *http.Request) []string {
 
 func (rd *Renderer) Session(name string, w http.ResponseWriter, r *http.Request) *Session {
 	sess, err := rd.sessStore.Get(r, name)
-	HandleGetSessionErr(err)
+	// HandleGetSessionErr(err)
+	if err != nil {
+		ClearSession(sess, w, r)
+	}
 	return &Session{rd, sess, w, r}
 }
 

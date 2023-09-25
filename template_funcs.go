@@ -73,7 +73,7 @@ func i18nLocalize(id string, data ...any) string {
 }
 
 func placehold(data any, placeholcer string) string {
-	if data == nil {
+	if data == nil || data == false {
 		return placeholcer
 	}
 

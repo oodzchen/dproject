@@ -22,10 +22,10 @@
 	    </div>
 	    <div class="form__row">
 		<label class="form__label" for="introduction">Introduction:</label>
-		<textarea id="introduction" style="width:100%;box-sizing:border-box;" name="introduction" rows="10">{{.Data.AccountData.Introduction}}</textarea>
+		<textarea {{if not (permit "user" "update_intro_mine")}}disabled{{end}}  id="introduction" style="width:100%;box-sizing:border-box;" name="introduction" rows="10">{{.Data.AccountData.Introduction}}</textarea>
 	    </div>
 	    <br/>
-	    <button type="submit">Save</button>
+	    <button {{if not (permit "user" "update_intro_mine")}}disabled{{end}} type="submit">Save</button>
 	</form>
     {{- end -}}
 

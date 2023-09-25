@@ -39,7 +39,7 @@
 			<form class="vote-form{{if and $currUser (eq $item.CurrUserState.VoteType "up")}} voted{{end}}" action="/articles/{{$item.Id}}/vote" method="POST">
 			    {{$csrfField}}
 			    <input name="type" type="hidden" value="up"/>
-			    <button class="btn-vote--up" type="submit" title="Upvote"><svg width="14" viewBox="0 1 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1 21h22L12 2"/></svg></button>
+			    <button {{if not (permit "article" "vote_up")}}disabled{{end}} class="btn-vote--up" type="submit" title="Upvote"><svg width="14" viewBox="0 1 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1 21h22L12 2"/></svg></button>
 			</form>
 			{{- if gt $item.VoteScore 0 -}}
 			    <span class="article-list__vote-score">{{$item.VoteScore}}</span>

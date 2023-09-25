@@ -313,14 +313,16 @@
     </article>
 
     {{if and $delPage .currUser -}}
-	<form method="post" action="/articles/{{.article.Id}}/delete{{if gt .pageDepth 1}}?from=reply{{- end}}" id="del_form_{{.article.Id}}" style="margin:12px 0 12px;padding:10px;border:1px solid #ccc;">
-	    {{.CSRFField -}}
-	    <input type="hidden" name="id" value="{{.article.Id}}">
-	    <label>Confirm to delete?</label>
-	    <br/>
-	    <br/>
-	    <button type="submit">Delete</button>
-	</form>
+	{{- if permit "article" "delete" -}}
+	    <form method="post" action="/articles/{{.article.Id}}/delete{{if gt .pageDepth 1}}?from=reply{{- end}}" id="del_form_{{.article.Id}}" style="margin:12px 0 12px;padding:10px;border:1px solid #ccc;">
+		{{.CSRFField -}}
+		<input type="hidden" name="id" value="{{.article.Id}}">
+		<label>Confirm to delete?</label>
+		<br/>
+		<br/>
+		<button type="submit">Delete</button>
+	    </form>
+	{{- end -}}
     {{- else -}}
 	{{if eq .pageDepth 0 -}}
 	    {{if .currUser -}}
@@ -360,37 +362,50 @@
     <div class="article-operation">
 	<small>
 	    {{- if not .article.Deleted -}}
-		<form class="vote-form{{if eq .article.CurrUserState.VoteType "up"}} voted{{end}}" action="/articles/{{.article.Id}}/vote" method="POST">
+		    <form class="vote-form{{if eq .article.CurrUserState.VoteType "up"}} voted{{end}}" action="/articles/{{.article.Id}}/vote" method="POST">
 		    {{.CSRFField}}
 		    <input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
 		    <input name="type" type="hidden" value="up"/>
-		    <button class="btn-vote--up" type="submit" title="Upvote"><svg width="14" viewBox="0 1 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1 21h22L12 2"/></svg></button>
-		</form>
+		    <button {{if not (permit "article" "vote_up")}}disabled{{end}} class="btn-vote--up" type="submit" title="Upvote"><svg width="14" viewBox="0 1 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1 21h22L12 2"/></svg></button>
+		    </form>
 		{{- if gt .article.VoteScore 0 -}}
 		    <span>{{.article.VoteScore}}<span>
 		{{- end -}}
 		&nbsp;&nbsp;
-		<!-- <form class="vote-form{{if eq .article.CurrUserState.VoteType "down"}} voted{{end}}" action="/articles/{{.article.Id}}/vote" method="POST">
-		     {{.CSRFField}}
-		     <input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
-		     <input name="type" type="hidden" value="down"/>
-		     <button class="btn-vote--down" type="submit" title="Downvote"><svg width="14" viewBox="0 1 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1 3h22L12 22"/></svg></button>
-		     </form>&nbsp; -->
+		{{- if permit "article" "vote_down" -}}
+		    <form class="vote-form{{if eq .article.CurrUserState.VoteType "down"}} voted{{end}}" action="/articles/{{.article.Id}}/vote" method="POST">
+		    {{.CSRFField}}
+		    <input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
+		    <input name="type" type="hidden" value="down"/>
+		    <button class="btn-vote--down" type="submit" title="Downvote"><svg width="14" viewBox="0 1 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1 3h22L12 22"/></svg></button>
+		    </form>&nbsp;
+		{{- end -}}
 		{{- if .currUser -}}
 		    {{- if eq .currUser.Id .article.AuthorId -}}
-			<a href="/articles/{{.article.Id}}/edit" class="btn-edit">Edit</a>&nbsp;&nbsp;<a class="btn-del" href="/articles/{{.article.Id}}/delete">Delete</a>&nbsp;&nbsp;
+			{{- if permit "article" "edit" -}}
+			    <a href="/articles/{{.article.Id}}/edit" class="btn-edit">Edit</a>&nbsp;&nbsp;
+			{{- end -}}
+			{{- if permit "article" "delete" -}}
+			    <a class="btn-del" href="/articles/{{.article.Id}}/delete">Delete</a>&nbsp;&nbsp;
+			{{- end -}}
 		    {{- end -}}
-		    <form class="btn-form" action="/articles/{{.article.Id}}/save" method="POST" >
-			{{- .CSRFField -}}
-			<input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
-			<button title="Save" type="submit">{{- if and .article.CurrUserState .article.CurrUserState.Saved -}}
-			    Unsave
-			{{- else -}}
-			    Save
-			{{- end -}}</button>
-		    </form>&nbsp;&nbsp;
+
+		    {{- if permit "article" "save" -}}
+			<form class="btn-form" action="/articles/{{.article.Id}}/save" method="POST" >
+			    {{- .CSRFField -}}
+			    <input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
+			    <button title="Save" type="submit">{{- if and .article.CurrUserState .article.CurrUserState.Saved -}}
+				Unsave
+			    {{- else -}}
+				Save
+			    {{- end -}}</button>
+			</form>&nbsp;&nbsp;
+		    {{- end -}}
 		{{- end -}}
-		<a title="Reply" href="/articles/{{.article.Id}}/reply">Reply</a>&nbsp;&nbsp;
+
+		{{- if permit "article" "reply" -}}
+		    <a title="Reply" href="/articles/{{.article.Id}}/reply">Reply</a>&nbsp;&nbsp;
+		{{- end -}}
 
 		{{- if gt .pageDepth 1 -}}
 		    <a title="Parent" href="#ar_{{.article.ReplyTo}}" onclick="scrollToElementById(event, 'ar_{{.article.ReplyTo}}')">Parent</a>&nbsp;&nbsp;
@@ -421,12 +436,14 @@
 			    {{- $strVal := . | toString -}}
 			    {{- if gt (index $article.ReactCounts .) 0 -}}
 				{{- if not $isSelf -}}
-				    <form class="btn-form btn-react{{if eq $currReactType .}} btn-react--selected{{end}}" action="/articles/{{$article.Id}}/react" method="POST">
-					{{$csrfField}}
-					<input name="root" type="hidden" value="{{$article.ReplyRootArticleId}}"/>
-					<input name="react" type="hidden" value="{{.}}"/>
-					<button type="submit" title="{{get $reactDescribeMap $strVal}}">{{index $reactMap .}}{{index $article.ReactCounts .}}</button>
-				    </form>
+				    {{- if permit "article" "react" -}}
+					<form class="btn-form btn-react{{if eq $currReactType .}} btn-react--selected{{end}}" action="/articles/{{$article.Id}}/react" method="POST">
+					    {{$csrfField}}
+					    <input name="root" type="hidden" value="{{$article.ReplyRootArticleId}}"/>
+					    <input name="react" type="hidden" value="{{.}}"/>
+					    <button type="submit" title="{{get $reactDescribeMap $strVal}}">{{index $reactMap .}}{{index $article.ReactCounts .}}</button>
+					</form>
+				    {{- end -}}
 				{{- else -}}
 				    <span class="btn-react" title="{{get $reactDescribeMap $strVal}}">{{index $reactMap .}}{{index $article.ReactCounts .}}</span>
 				{{- end -}}
@@ -436,22 +453,24 @@
 		{{- end -}}
 		
 		{{- if not $isSelf -}}
-		    <form class="btn-form btn-react" action="/articles/{{.article.Id}}/react" method="POST">
-			{{.CSRFField}}
-			<input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
-			<span title="Emoji">
-			    <svg width="16" viewBox="0 -2 16 16" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" d="M7.5.877a6.623 6.623 0 1 0 0 13.246A6.623 6.623 0 0 0 7.5.877ZM1.827 7.5a5.673 5.673 0 1 1 11.346 0a5.673 5.673 0 0 1-11.346 0Zm3.21 1.714a.5.5 0 1 0-.82.572A3.996 3.996 0 0 0 7.5 11.5c1.36 0 2.56-.679 3.283-1.714a.5.5 0 0 0-.82-.572A2.996 2.996 0 0 1 7.5 10.5a2.996 2.996 0 0 1-2.463-1.286Zm.338-2.364a.875.875 0 1 0 0-1.75a.875.875 0 0 0 0 1.75Zm5.125-.875a.875.875 0 1 1-1.75 0a.875.875 0 0 1 1.75 0Z" clip-rule="evenodd"/></svg>
-			    <select required title="Reaction" id="react_{{$article.Id}}" name="react" autocomplete="off" onchange="onReactChange(event, this)">
-				<option value="" selected hidden disabled></option>
-				{{- range .reactOptions -}}
-				    <option value="{{.}}">{{index $reactMap .}}</option>
-				{{- end -}}
-			    </select>
-			</span>
-			<noscript>
-			    <button type="submit">Submit</button>
-			</noscript>
-		    </form>
+		    {{- if permit "article" "react" -}}
+			<form class="btn-form btn-react" action="/articles/{{.article.Id}}/react" method="POST">
+			    {{.CSRFField}}
+			    <input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
+			    <span title="Emoji">
+				<svg width="16" viewBox="0 -2 16 16" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" d="M7.5.877a6.623 6.623 0 1 0 0 13.246A6.623 6.623 0 0 0 7.5.877ZM1.827 7.5a5.673 5.673 0 1 1 11.346 0a5.673 5.673 0 0 1-11.346 0Zm3.21 1.714a.5.5 0 1 0-.82.572A3.996 3.996 0 0 0 7.5 11.5c1.36 0 2.56-.679 3.283-1.714a.5.5 0 0 0-.82-.572A2.996 2.996 0 0 1 7.5 10.5a2.996 2.996 0 0 1-2.463-1.286Zm.338-2.364a.875.875 0 1 0 0-1.75a.875.875 0 0 0 0 1.75Zm5.125-.875a.875.875 0 1 1-1.75 0a.875.875 0 0 1 1.75 0Z" clip-rule="evenodd"/></svg>
+				<select required title="Reaction" id="react_{{$article.Id}}" name="react" autocomplete="off" onchange="onReactChange(event, this)">
+				    <option value="" selected hidden disabled></option>
+				    {{- range .reactOptions -}}
+					<option value="{{.}}">{{index $reactMap .}}</option>
+				    {{- end -}}
+				</select>
+			    </span>
+			    <noscript>
+				<button type="submit">Submit</button>
+			    </noscript>
+			</form>
+		    {{- end -}}
 		{{- end -}}
 
 		{{- if gt .pageDepth 1 -}}

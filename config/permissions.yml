@@ -1,6 +1,5 @@
 modules:
   - article
-  - reply
   - user
   - manage
   - role
@@ -48,49 +47,7 @@ data:
       name: Reply Article
       adapt_id: article.reply
       enabled: true
-  
-  reply:
-    create:
-      name: Create Reply
-      adapt_id: reply.create
-      enabled: true
-    edit_mine:
-      name: Edit Reply of Myself
-      adapt_id: reply.edit_mine
-      enabled: true
-    edit_others:
-      name: Edit Reply of Others
-      adapt_id: reply.edit_others
-      enabled: false
-    delete_mine:
-      name: Delete Reply of Myself
-      adapt_id: reply.delete_mine
-      enabled: true
-    delete_others:
-      name: Delete Reply of Others
-      adapt_id: reply.delete_others
-      enabled: false
-    save:
-      name: Save Reply
-      adapt_id: reply.save
-      enabled: true
-    vote_up:
-      name: Vote Up Reply
-      adapt_id: reply.vote_up
-      enabled: true
-    vote_down:
-      name: Vote Down Reply
-      adapt_id: reply.vote_down
-      enabled: false
-    react:
-      name: React Reply
-      adapt_id: reply.react
-      enabled: true
-    reply:
-      name: Reply Reply
-      adapt_id: reply.reply
-      enabled: true
-  
+
   user:
     manage:
       name: Manage User
@@ -135,10 +92,6 @@ data:
     access:
       name: Access Permission
       adapt_id: permission.access
-      enabled: false
-    add:
-      name: Add Permission
-      adapt_id: permisison.add
       enabled: false
 
   role:

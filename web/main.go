@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
@@ -253,22 +252,24 @@ func (mr *MainResource) doLogout(w http.ResponseWriter, r *http.Request) {
 		mr.Error("", err, w, r, http.StatusInternalServerError)
 		return
 	}
-	sess.Options.MaxAge = -1
-	err = sess.Save(r, w)
-	if err != nil {
-		HandleSaveSessionErr(errors.WithStack(err))
-	}
+	ClearSession(sess, w, r)
 
-	csrfExpiredCookie := &http.Cookie{
-		Name:     "sc",
-		Value:    "",
-		Expires:  time.Unix(0, 0),
-		HttpOnly: true,
-		Secure:   !utils.IsDebug(),
-		Path:     "/",
-	}
+	// sess.Options.MaxAge = -1
+	// err = sess.Save(r, w)
+	// if err != nil {
+	// 	HandleSaveSessionErr(errors.WithStack(err))
+	// }
 
-	http.SetCookie(w, csrfExpiredCookie)
+	// csrfExpiredCookie := &http.Cookie{
+	// 	Name:     "sc",
+	// 	Value:    "",
+	// 	Expires:  time.Unix(0, 0),
+	// 	HttpOnly: true,
+	// 	Secure:   !utils.IsDebug(),
+	// 	Path:     "/",
+	// }
+
+	// http.SetCookie(w, csrfExpiredCookie)
 }
 
 func (mr *MainResource) SaveUISettings(w http.ResponseWriter, r *http.Request) {

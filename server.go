@@ -26,15 +26,15 @@ type ServiceConfig struct {
 	permisisonSrv *service.Permission
 }
 
-var AuthRequiredPathes map[string]Methods = map[string]Methods{
+var authRequiredPathes map[string]Methods = map[string]Methods{
 	`^/logout($|/)`:              {"GET"},
 	`^/articles($|/)`:            {"POST"},
 	`^/articles/\d+/delete($|/)`: {"GET", "POST"},
 	`^/articles/\d+/edit($|/)`:   {"GET", "POST"},
 	`^/articles/\d+/reply($|/)`:  {"GET", "POST"},
 	`^/articles/\d+/vote($|/)`:   {"GET", "POST"},
-	// `^/users/?$`:                 {"GET"},
-	`^/settings/account/?$`: {"GET", "POST"},
+	`^/settings/account/?$`:      {"GET", "POST"},
+	`^/manage/?`:                 {"GET"},
 }
 
 // func FileServer(r chi.Router, path string, root http.FileSystem) {
@@ -104,11 +104,15 @@ func Service(c *ServiceConfig) http.Handler {
 		}),
 	))
 
-	r.Use(CreateCheckAuthMiddleware(AuthRequiredPathes, sessStore))
+	r.Use(CreateCheckAuthMiddleware(authRequiredPathes, sessStore))
 	r.Use(CreateUpdateUserDataMiddleware(c.store, sessStore, c.permisisonSrv))
+	r.Use(CreatePermissionCheckMiddleware(c.permisisonSrv, permissionMap))
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		mainResource.Error("", nil, w, r, http.StatusNotFound)
+	})
+	r.HandleFunc("/403", func(w http.ResponseWriter, r *http.Request) {
+		mainResource.Error("", nil, w, r, http.StatusForbidden)
 	})
 	r.HandleFunc("/500", func(w http.ResponseWriter, r *http.Request) {
 		mainResource.Error("", nil, w, r, http.StatusInternalServerError)

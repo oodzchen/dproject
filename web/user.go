@@ -129,7 +129,7 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 
 	user, err := ur.store.User.Item(userId)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, pgx.ErrNoRows) || errors.Is(err, model.ErrUserNotExist) {
 			ur.Error("", nil, w, r, http.StatusNotFound)
 		} else {
 			ur.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
@@ -188,7 +188,7 @@ func (ur *UserResource) BanPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if user.RoleFrontId == model.DefaultUserRoleBanned {
-		ur.Session("one", w, r).Flash("already banned")
+		ur.Session("one", w, r).Flash("Already banned")
 		http.Redirect(w, r, fmt.Sprintf("/users/%d", user.Id), http.StatusFound)
 		return
 	}

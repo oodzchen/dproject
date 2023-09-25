@@ -5,22 +5,48 @@ import (
 	"math"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/sessions"
+	"github.com/oodzchen/dproject/utils"
 	"github.com/pkg/errors"
 )
 
-func HandleGetSessionErr(err error) {
-	if err != nil {
-		fmt.Printf("get session error: %v\n", err)
-	}
-}
+// func HandleGetSessionErr(err error) {
+// 	if err != nil {
+// 		fmt.Printf("get session error: %v\n", err)
+// 	}
+// }
 
-func HandleSaveSessionErr(err error) {
-	if err != nil {
-		fmt.Printf("session save error: %+v", err)
+// func HandleSaveSessionErr(err error) {
+// 	if err != nil {
+// 		fmt.Printf("session save error: %+v", err)
+// 	}
+// }
+
+func ClearSession(sess *sessions.Session, w http.ResponseWriter, r *http.Request) {
+	if sess != nil {
+		sess.Options.MaxAge = -1
+		err := sess.Save(r, w)
+		if err != nil {
+			// HandleSaveSessionErr(errors.WithStack(err))
+			fmt.Printf("session save error: %+v", err)
+		}
 	}
+
+	csrfExpiredCookie := &http.Cookie{
+		Name:     "sc",
+		Value:    "",
+		Expires:  time.Unix(0, 0),
+		HttpOnly: true,
+		Secure:   !utils.IsDebug(),
+		Path:     "/",
+	}
+
+	// fmt.Println("cookie: ", csrfExpiredCookie)
+
+	http.SetCookie(w, csrfExpiredCookie)
 }
 
 func GetLoginUserId(sessStore *sessions.CookieStore, w http.ResponseWriter, r *http.Request) (int, error) {
