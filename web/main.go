@@ -61,7 +61,7 @@ func (mr *MainResource) Routes() http.Handler {
 				mr.permissionSrv,
 				[]string{
 					"user.update_intro_mine",
-					"user.update_intro_others",
+					// "user.update_intro_others",
 				},
 			),
 		).Post("/account", mr.SaveAccountSettings)
@@ -270,6 +270,8 @@ func (mr *MainResource) doLogout(w http.ResponseWriter, r *http.Request) {
 	}
 	ClearSession(sess, w, r)
 
+	mr.permissionSrv.ResetPermissionData()
+
 	// sess.Options.MaxAge = -1
 	// err = sess.Save(r, w)
 	// if err != nil {
@@ -284,7 +286,6 @@ func (mr *MainResource) doLogout(w http.ResponseWriter, r *http.Request) {
 	// 	Secure:   !utils.IsDebug(),
 	// 	Path:     "/",
 	// }
-
 	// http.SetCookie(w, csrfExpiredCookie)
 }
 

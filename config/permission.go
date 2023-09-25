@@ -15,8 +15,10 @@ type Permission struct {
 type PermissionMap map[string]map[string]*Permission
 
 type PermissionData struct {
-	Modules []string
-	Data    PermissionMap
+	Modules            []string
+	Data               PermissionMap
+	EnabledFrondIdList []string
+	currentConfigFile  string
 }
 
 func (pd *PermissionData) Permit(module, action string) bool {
@@ -48,6 +50,8 @@ func (pd *PermissionData) Update(permittedIds []string, isSuper bool) *Permissio
 		}
 	}
 
+	pd.UpdateEnabledIdList()
+
 	return pd
 }
 
@@ -64,6 +68,23 @@ func (pd *PermissionData) GetModuleList() []string {
 	return pd.Modules
 }
 
+func (pd *PermissionData) DefaultData() (*PermissionData, error) {
+	return ParsePermissionData(pd.currentConfigFile)
+}
+
+func (pd *PermissionData) UpdateEnabledIdList() {
+	var idList []string
+	for _, v1 := range pd.Data {
+		for _, v2 := range v1 {
+			if v2.Enabled {
+				idList = append(idList, v2.AdaptId)
+			}
+		}
+	}
+
+	pd.EnabledFrondIdList = idList
+}
+
 func ParsePermissionData(filePath string) (*PermissionData, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
@@ -75,5 +96,10 @@ func ParsePermissionData(filePath string) (*PermissionData, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	out.currentConfigFile = filePath
+
+	out.UpdateEnabledIdList()
+
 	return &out, nil
 }

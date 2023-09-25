@@ -65,7 +65,7 @@ func (ar *ArticleResource) Routes() http.Handler {
 				ar.permissionSrv,
 				[]string{
 					"article.edit_mine",
-					"article.edit_others",
+					// "article.edit_others",
 				},
 			),
 		).Group(func(r chi.Router) {
@@ -79,7 +79,7 @@ func (ar *ArticleResource) Routes() http.Handler {
 				ar.permissionSrv,
 				[]string{
 					"article.delete_mine",
-					"article.delete_others",
+					// "article.delete_others",
 				},
 			),
 		).Group(func(r chi.Router) {

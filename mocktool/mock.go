@@ -51,7 +51,7 @@ func (mc *Mock) Login(data *TestUser) chp.Tasks {
 
 func (mc *Mock) Logout() chp.Tasks {
 	return chp.Tasks{
-		chp.Click(`ul.nav-menu:nth-child(2) > li > a[href^="/logout"]`),
+		chp.Click(`ul.nav-menu:nth-child(2) > li > form[action="/logout"] > button[type="submit"]`),
 		chp.WaitVisible(`body>footer`),
 	}
 }

@@ -134,3 +134,15 @@ func (pm *Permission) InitUserRoleTable() error {
 
 	return nil
 }
+
+func (pm *Permission) ResetPermissionData() error {
+	data, err := pm.PermissionData.DefaultData()
+
+	if err != nil {
+		return err
+	}
+
+	pm.PermissionData = data
+
+	return nil
+}

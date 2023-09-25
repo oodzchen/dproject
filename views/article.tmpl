@@ -313,7 +313,7 @@
     </article>
 
     {{if and $delPage .currUser -}}
-	{{- if permit "article" "delete" -}}
+	{{- if permit "article" "delete_mine" -}}
 	    <form method="post" action="/articles/{{.article.Id}}/delete{{if gt .pageDepth 1}}?from=reply{{- end}}" id="del_form_{{.article.Id}}" style="margin:12px 0 12px;padding:10px;border:1px solid #ccc;">
 		{{.CSRFField -}}
 		<input type="hidden" name="id" value="{{.article.Id}}">
@@ -382,10 +382,10 @@
 		{{- end -}}
 		{{- if .currUser -}}
 		    {{- if eq .currUser.Id .article.AuthorId -}}
-			{{- if permit "article" "edit" -}}
+			{{- if permit "article" "edit_mine" -}}
 			    <a href="/articles/{{.article.Id}}/edit" class="btn-edit">Edit</a>&nbsp;&nbsp;
 			{{- end -}}
-			{{- if permit "article" "delete" -}}
+			{{- if permit "article" "delete_mine" -}}
 			    <a class="btn-del" href="/articles/{{.article.Id}}/delete">Delete</a>&nbsp;&nbsp;
 			{{- end -}}
 		    {{- end -}}

@@ -200,7 +200,7 @@ func main() {
 		mock.WaitFooterReady(),
 		chp.SetValue(`input[name="title"]`, editArticle.Title),
 		chp.SetValue(`textarea[name="content"]`, editArticle.Content),
-		chp.Click(`body>form>button[type="submit"]`),
+		chp.Click(`body > form > button[type="submit"]`),
 		mock.WaitFooterReady(),
 		chp.TextContent(`body > article > h1`, &resultTitle),
 		chp.TextContent(`body > article > section`, &resultText),

@@ -61,6 +61,8 @@ type PageData struct {
 	BrandName       string
 	BrandDomainName string
 	Slogan          string
+	// PermissionData  *config.PermissionData
+	PermissionEnabledList []string
 }
 
 func (pd *PageData) AddI18nData(data map[string]any) {
@@ -219,6 +221,13 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	data.BrandName = config.Config.BrandName
 	data.BrandDomainName = config.Config.BrandDomainName
 	data.Slogan = config.Config.Slogan
+	// data.PermissionData = rd.permissionSrv.PermissionData
+	data.PermissionEnabledList = rd.permissionSrv.PermissionData.EnabledFrondIdList
+
+	rd.tmpl = rd.tmpl.Funcs(template.FuncMap{
+		"permit": rd.permissionSrv.PermissionData.Permit,
+	})
+
 	if data.Title != "" {
 		data.Title += fmt.Sprintf(" - %s", config.Config.BrandName)
 	} else {
