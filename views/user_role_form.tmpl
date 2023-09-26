@@ -1,18 +1,31 @@
 {{ define "user_role_form" }}
     {{template "head" . -}}
+
+    {{template "user_basic_info" .Data.UserData -}}
+    
     {{- $userData := .Data.UserData -}}
-    <div>Confirm to ban {{$userData.Name}}?</div>
-    <br/>
-    <form class="form" action="/users/{{$userData.Id}}/set_role" method="POST">
-	{{.CSRFField}}
-	<input name="role_front_id" type="hidden" value="banned_user"/>
-	<div class="form__row">
-	    <label for="comment" class="form__label">Reason:</label>
-	    <input id="comment" required name="comment" type="text" value=""/>
-	</div>
-	
-	<button type="submit">Confirm</button>
-    </form>
+    {{- $roleList := .Data.RoleList -}}
+
+    <div class="card">
+	<form class="form" action="/users/{{$userData.Id}}/set_role" method="POST">
+	    {{.CSRFField}}
+	    <div class="form__row">
+		<label class="form__label">Role:</label>
+		{{- range $roleList -}}
+		    <label>
+			<input required autocomplete="off" {{if eq $userData.RoleFrontId .FrontId}}checked{{end}} name="role_front_id" type="radio" value="{{.FrontId}}"/>
+			{{- .Name -}}
+		    </label>&nbsp;&nbsp;
+		{{- end -}}
+	    </div>
+	    <div class="form__row">
+		<label for="comment" class="form__label">Reason:</label>
+		<input id="comment" required name="comment" type="text" value=""/>
+	    </div>
+	    
+	    <button type="submit">Confirm</button>
+	</form>
+    </div>
 
     {{template "foot" . -}}
 {{end}}

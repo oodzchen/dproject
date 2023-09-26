@@ -94,7 +94,7 @@ func Service(c *ServiceConfig) http.Handler {
 		}),
 	))
 
-	r.Use(mdw.FetchUserData(c.store, sessStore, c.permisisonSrv))
+	r.Use(mdw.FetchUserData(c.store, sessStore, c.permisisonSrv, renderer))
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		mainResource.Error("", nil, w, r, http.StatusNotFound)

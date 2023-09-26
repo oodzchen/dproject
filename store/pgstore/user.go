@@ -402,12 +402,18 @@ ORDER BY ps.created_at DESC`
 }
 
 func (u *User) SetRole(userId int, roleFrontId string) (int, error) {
-	_, err := u.dbPool.Exec(context.Background(), `DELETE FROM user_roles WHERE user_id = $1`, userId)
+	var roleId int
+	err := u.dbPool.QueryRow(context.Background(), `SELECT id FROM roles WHERE front_id = $1`, roleFrontId).Scan(&roleId)
 	if err != nil {
 		return 0, err
 	}
 
-	_, err = u.dbPool.Exec(context.Background(), `INSERT INTO user_roles (user_id, role_id) SELECT $1, r.id FROM roles r WHERE r.front_id = $2`, userId, roleFrontId)
+	_, err = u.dbPool.Exec(context.Background(), `DELETE FROM user_roles WHERE user_id = $1`, userId)
+	if err != nil {
+		return 0, err
+	}
+
+	_, err = u.dbPool.Exec(context.Background(), `INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2)`, userId, roleId)
 	if err != nil {
 		return 0, err
 	}

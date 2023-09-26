@@ -13,7 +13,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-func FetchUserData(store *store.Store, sessStore *sessions.CookieStore, permissionSrv *service.Permission) func(http.Handler) http.Handler {
+type Renderer interface {
+	ServerError(w http.ResponseWriter, r *http.Request)
+	Forbidden(w http.ResponseWriter, r *http.Request)
+}
+
+func FetchUserData(store *store.Store, sessStore *sessions.CookieStore, permissionSrv *service.Permission, renderer any) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			sess, _ := sessStore.Get(r, "one")
@@ -23,7 +28,12 @@ func FetchUserData(store *store.Store, sessStore *sessions.CookieStore, permissi
 			if v, ok := userId.(int); ok {
 				user, err := store.User.Item(v)
 				if err != nil {
-					http.Redirect(w, r, "/500", http.StatusFound)
+					if v, ok := renderer.(Renderer); ok {
+						v.ServerError(w, r)
+					} else {
+						http.Redirect(w, r, "/500", http.StatusFound)
+					}
+
 					return
 				}
 				userData = user
@@ -59,7 +69,7 @@ func AuthCheck(sessStore *sessions.CookieStore) func(http.Handler) http.Handler 
 	}
 }
 
-func PermitCheck(permissionSrv *service.Permission, permissionIdList []string) func(http.Handler) http.Handler {
+func PermitCheck(permissionSrv *service.Permission, permissionIdList []string, renderer any) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// fmt.Printf("r.URL.Path: %s\n", r.URL.Path)
@@ -79,7 +89,12 @@ func PermitCheck(permissionSrv *service.Permission, permissionIdList []string) f
 					// fmt.Println("action", action)
 
 					if !permissionSrv.PermissionData.Permit(module, action) {
-						http.Redirect(w, r, "/403", http.StatusFound)
+						if v, ok := renderer.(Renderer); ok {
+							v.Forbidden(w, r)
+						} else {
+							http.Redirect(w, r, "/403", http.StatusFound)
+						}
+
 						return
 					}
 				}

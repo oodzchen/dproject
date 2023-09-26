@@ -74,12 +74,12 @@ func TestRoleValid(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
-			u := &Role{
+			r := &Role{
 				FrontId: tt.in.FrontId,
 				Name:    tt.in.Name,
 			}
 
-			err := u.Valid(tt.isUpdate)
+			err := r.Valid(tt.isUpdate)
 			// if err != nil {
 			// 	fmt.Println("err: ", err)
 			// 	fmt.Println("err is ErrValidUserFailed: ", errors.Is(err, ErrValidUserFailed))

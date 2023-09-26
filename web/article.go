@@ -36,97 +36,51 @@ func (ar *ArticleResource) Routes() http.Handler {
 	rt := chi.NewRouter()
 
 	rt.Get("/", ar.List)
-	rt.With(
-		mdw.AuthCheck(ar.sessStore),
-		mdw.PermitCheck(
-			ar.permissionSrv,
-			[]string{
-				"article.create",
-			},
-		),
+	rt.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
+		"article.create",
+	}, ar),
 	).Post("/", ar.Submit)
 
-	rt.With(
-		mdw.AuthCheck(ar.sessStore),
-		mdw.PermitCheck(
-			ar.permissionSrv,
-			[]string{
-				"article.create",
-			},
-		),
+	rt.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
+		"article.create",
+	}, ar),
 	).Get("/new", ar.FormPage)
 
 	rt.Route("/{id}", func(r chi.Router) {
 		r.Get("/", ar.Item)
 
-		r.With(
-			mdw.AuthCheck(ar.sessStore),
-			mdw.PermitCheck(
-				ar.permissionSrv,
-				[]string{
-					"article.edit_mine",
-					// "article.edit_others",
-				},
-			),
-		).Group(func(r chi.Router) {
+		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
+			"article.edit_mine",
+			// "article.edit_others",
+		}, ar)).Group(func(r chi.Router) {
 			r.Get("/edit", ar.FormPage)
 			r.Post("/edit", ar.Update)
 		})
 
-		r.With(
-			mdw.AuthCheck(ar.sessStore),
-			mdw.PermitCheck(
-				ar.permissionSrv,
-				[]string{
-					"article.delete_mine",
-					// "article.delete_others",
-				},
-			),
-		).Group(func(r chi.Router) {
+		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
+			"article.delete_mine",
+			// "article.delete_others",
+		}, ar)).Group(func(r chi.Router) {
 			r.Get("/delete", ar.DeletePage)
 			r.Post("/delete", ar.Delete)
 		})
 
-		r.With(
-			mdw.AuthCheck(ar.sessStore),
-			mdw.PermitCheck(
-				ar.permissionSrv,
-				[]string{
-					"article.reply",
-				},
-			),
-		).Get("/reply", ar.ReplyPage)
+		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
+			"article.reply",
+		}, ar)).Get("/reply", ar.ReplyPage)
 
-		r.With(
-			mdw.AuthCheck(ar.sessStore),
-			mdw.PermitCheck(
-				ar.permissionSrv,
-				[]string{
-					"article.vote_up",
-					"article.vote_down",
-				},
-			),
-		).Post("/vote", ar.Vote)
+		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
+			"article.vote_up",
+			"article.vote_down",
+		}, ar)).Post("/vote", ar.Vote)
 
-		r.With(
-			mdw.AuthCheck(ar.sessStore),
-			mdw.PermitCheck(
-				ar.permissionSrv,
-				[]string{
-					"article.save",
-				},
-			),
-		).Post("/save", ar.Save)
+		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
+			"article.save",
+		}, ar)).Post("/save", ar.Save)
 
-		r.With(
-			mdw.AuthCheck(ar.sessStore),
-			mdw.PermitCheck(
-				ar.permissionSrv,
-				[]string{
-					"article.react",
-				},
-			),
-		).Post("/react", ar.React)
+		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
+			"article.react",
+		}, ar)).Post("/react", ar.React)
 	})
 
 	return rt
@@ -664,7 +618,7 @@ func (ar *ArticleResource) Vote(w http.ResponseWriter, r *http.Request) {
 	if userId != 0 {
 		err = ar.store.Article.Vote(articleId, userId, voteType)
 		if err != nil {
-			ar.ServerError("", err, w, r)
+			ar.ServerErrorp("", err, w, r)
 			return
 		}
 	} else {
@@ -696,7 +650,7 @@ func (ar *ArticleResource) Save(w http.ResponseWriter, r *http.Request) {
 	if userId != 0 {
 		err = ar.store.Article.Save(articleId, userId)
 		if err != nil {
-			ar.ServerError("", err, w, r)
+			ar.ServerErrorp("", err, w, r)
 			return
 		}
 	} else {
@@ -737,7 +691,7 @@ func (ar *ArticleResource) React(w http.ResponseWriter, r *http.Request) {
 	if userId != 0 {
 		err = ar.store.Article.React(articleId, userId, string(reactType))
 		if err != nil {
-			ar.ServerError("", err, w, r)
+			ar.ServerErrorp("", err, w, r)
 			return
 		}
 	} else {

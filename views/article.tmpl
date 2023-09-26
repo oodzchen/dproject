@@ -314,7 +314,7 @@
 
     {{if and $delPage .currUser -}}
 	{{- if permit "article" "delete_mine" -}}
-	    <form method="post" action="/articles/{{.article.Id}}/delete{{if gt .pageDepth 1}}?from=reply{{- end}}" id="del_form_{{.article.Id}}" style="margin:12px 0 12px;padding:10px;border:1px solid #ccc;">
+	    <form method="post" class="card" action="/articles/{{.article.Id}}/delete{{if gt .pageDepth 1}}?from=reply{{- end}}" id="del_form_{{.article.Id}}">
 		{{.CSRFField -}}
 		<input type="hidden" name="id" value="{{.article.Id}}">
 		<label>Confirm to delete?</label>

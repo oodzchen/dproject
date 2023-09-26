@@ -82,7 +82,7 @@ func (pm *Permission) InitRoleTable() error {
 	var roleList []*model.Role
 	roleData := *pm.RoleData
 
-	for _, v := range roleData {
+	for _, v := range roleData.Data {
 		var pList []*model.Permission
 		for _, pFrontId := range v.Permissions {
 			pList = append(pList, &model.Permission{

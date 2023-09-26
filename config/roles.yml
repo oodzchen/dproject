@@ -1,90 +1,63 @@
-common_user:
-  name: Common User
-  adapt_id: common_user # adapt_id is used to adapt with backend role front id
-  permissions:
-    - article.create # backend permission front id
-    - article.reply
-    - article.edit_mine
-    - article.save
-    - article.react
-    - article.delete_mine
-    - article.vote_up
-    - reply.create
-    - reply.reply
-    - reply.edit_mine
-    - reply.save
-    - reply.react
-    - reply.delete_mine
-    - reply.vote_up
-    - user.update_intro_mine
-
-banned_user:
-  name: Banned User
-  adapt_id: banned_user
-  permissions:
-    
-moderator:
-  name: Moderator
-  adapt_id: moderator
-  permissions:
-    - article.create
-    - article.reply
-    - article.edit_mine
-    - article.save
-    - article.react
-    - article.delete_mine
-    - article.vote_up
-    - reply.create
-    - reply.reply
-    - reply.edit_mine
-    - reply.save
-    - reply.react
-    - reply.delete_mine
-    - reply.vote_up
-    - user.update_intro_mine
-
-    - article.edit_others
-    - article.delete_others
-    - reply.edit_others
-    - reply.delete_others
-    - user.manage
-    - user.ban
-    - user.update_intro_others
-
-admin:
-  name: Admin
-  adapt_id: admin
-  permissions:
-    - article.create
-    - article.reply
-    - article.edit_mine
-    - article.save
-    - article.react
-    - article.delete_mine
-    - article.vote_up
-    - reply.create
-    - reply.reply
-    - reply.edit_mine
-    - reply.save
-    - reply.react
-    - reply.delete_mine
-    - reply.vote_up
-    - user.update_intro_mine
-
-    - article.edit_others
-    - article.delete_others
-    - reply.edit_others
-    - reply.delete_others
-    - user.manage
-    - user.ban
-    - user.update_intro_others
-
-    - user.list_access
-    - user.set_moderator
-    - user.set_admin
-    - manage.access
-    - permission.access
-    - role.access
-    - role.add
-    - role.edit
-
+role_id_list:
+  - common_user
+  - banned_user
+  - moderator
+  - admin
+data:
+  common_user:
+    name: Common User
+    adapt_id: common_user # adapt_id is used to adapt with backend role front id
+    sub_roles:
+    permissions:
+      - article.create # backend permission front id
+      - article.reply
+      - article.edit_mine
+      - article.save
+      - article.react
+      - article.delete_mine
+      - article.vote_up
+      - reply.create
+      - reply.reply
+      - reply.edit_mine
+      - reply.save
+      - reply.react
+      - reply.delete_mine
+      - reply.vote_up
+      - user.update_intro_mine
+  
+  banned_user:
+    name: Banned User
+    adapt_id: banned_user
+    sub_roles:
+    permissions:
+      
+  moderator:
+    name: Moderator
+    adapt_id: moderator
+    sub_roles:
+      - common_user
+    permissions:  
+      - article.edit_others
+      - article.delete_others
+      - reply.edit_others
+      - reply.delete_others
+      - user.manage
+      - user.ban
+      - user.update_intro_others
+  
+  admin:
+    name: Admin
+    adapt_id: admin
+    sub_roles:
+      - moderator
+    permissions:
+      - user.list_access
+      - user.set_moderator
+      - user.set_admin
+      - manage.access
+      - permission.access
+      - role.access
+      - role.add
+      - role.edit
+  
+  

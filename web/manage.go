@@ -28,24 +28,12 @@ func NewManageResource(renderer *Renderer, ur *UserResource) *ManageResource {
 func (mr *ManageResource) Routes() http.Handler {
 	rt := chi.NewRouter()
 
-	rt.With(
-		mdw.AuthCheck(mr.sessStore),
-		mdw.PermitCheck(
-			mr.permissionSrv,
-			[]string{
-				"manage.access",
-			},
-		),
-	).Route("/", func(r chi.Router) {
-
-		r.With(
-			mdw.PermitCheck(
-				mr.permissionSrv,
-				[]string{
-					"permission.access",
-				},
-			),
-		).Group(func(r chi.Router) {
+	rt.With(mdw.AuthCheck(mr.sessStore), mdw.PermitCheck(mr.permissionSrv, []string{
+		"manage.access",
+	}, mr)).Route("/", func(r chi.Router) {
+		r.With(mdw.PermitCheck(mr.permissionSrv, []string{
+			"permission.access",
+		}, mr)).Group(func(r chi.Router) {
 			r.Get("/", mr.PermissionListPage)
 
 			r.Route("/permissions", func(r chi.Router) {
@@ -56,37 +44,21 @@ func (mr *ManageResource) Routes() http.Handler {
 		})
 
 		// r.With(middlewares ...func(http.Handler) http.Handler)
-
-		r.With(
-			mdw.PermitCheck(
-				mr.permissionSrv,
-				[]string{
-					"role.access",
-				},
-			),
-		).Route("/roles", func(r chi.Router) {
+		r.With(mdw.PermitCheck(mr.permissionSrv, []string{
+			"role.access",
+		}, mr)).Route("/roles", func(r chi.Router) {
 			r.Get("/", mr.RoleListPage)
 
-			r.With(
-				mdw.PermitCheck(
-					mr.permissionSrv,
-					[]string{
-						"role.add",
-					},
-				),
-			).Group(func(r chi.Router) {
+			r.With(mdw.PermitCheck(mr.permissionSrv, []string{
+				"role.add",
+			}, mr)).Group(func(r chi.Router) {
 				r.Post("/", mr.RoleSubmit)
 				r.Get("/new", mr.RoleCreatePage)
 			})
 
-			r.With(
-				mdw.PermitCheck(
-					mr.permissionSrv,
-					[]string{
-						"role.edit",
-					},
-				),
-			).Group(func(r chi.Router) {
+			r.With(mdw.PermitCheck(mr.permissionSrv, []string{
+				"role.edit",
+			}, mr)).Group(func(r chi.Router) {
 				r.Get("/{id}/edit", mr.RoleEditPage)
 				r.Post("/{id}/edit", mr.RoleEditSubmit)
 			})
@@ -94,15 +66,10 @@ func (mr *ManageResource) Routes() http.Handler {
 
 		// r.Get("/roles", mr.RoleListPage)
 		// r.Get("/users", mr.ur.List)
-		r.With(
-			mdw.PermitCheck(
-				mr.permissionSrv,
-				[]string{
-					"manage.access",
-					"user.list_access",
-				},
-			),
-		).Get("/users", mr.ur.List)
+		r.With(mdw.PermitCheck(mr.permissionSrv, []string{
+			"manage.access",
+			"user.list_access",
+		}, mr)).Get("/users", mr.ur.List)
 	})
 
 	return rt

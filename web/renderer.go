@@ -98,7 +98,7 @@ func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, 
 	rd.doRender(w, r, name, data, http.StatusOK)
 }
 
-func (rd *Renderer) ServerError(msg string, err error, w http.ResponseWriter, r *http.Request) {
+func (rd *Renderer) ServerErrorp(msg string, err error, w http.ResponseWriter, r *http.Request) {
 	rd.Error(msg, err, w, r, http.StatusInternalServerError)
 }
 
@@ -107,7 +107,15 @@ func (rd *Renderer) ToLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rd *Renderer) NotFound(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/404", http.StatusNotFound)
+	rd.Error("", nil, w, r, http.StatusNotFound)
+}
+
+func (rd *Renderer) ServerError(w http.ResponseWriter, r *http.Request) {
+	rd.Error("", nil, w, r, http.StatusInternalServerError)
+}
+
+func (rd *Renderer) Forbidden(w http.ResponseWriter, r *http.Request) {
+	rd.Error("", nil, w, r, http.StatusForbidden)
 }
 
 func (rd *Renderer) GetLoginedUserId(w http.ResponseWriter, r *http.Request) int {
@@ -278,7 +286,12 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 func (rd *Renderer) getUserPermittedFrontIds(r *http.Request) []string {
 	var frontIdList []string
 	if userData, ok := r.Context().Value("user_data").(*model.User); ok {
+		if userData.Super {
+			return rd.permissionSrv.PermissionData.EnabledFrondIdList
+		}
+
 		if userData.Permissions != nil && len(userData.Permissions) > 0 {
+
 			for _, item := range userData.Permissions {
 				frontIdList = append(frontIdList, item.FrontId)
 			}

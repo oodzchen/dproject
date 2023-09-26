@@ -5,11 +5,7 @@
     {{- if permit "user" "manage" -}}
 	<fieldset>
 	    <legend>User Manage</legend>
-	    {{if permit "user" "ban"}}
-		<a href="/users/{{.Data.UserInfo.Id}}/ban">Ban</a>&nbsp;&nbsp;
-	    {{end}}
-	    {{if permit "user" "set_moderator"}}<a href="">Set as Moderator</a>&nbsp;&nbsp;{{end}}
-	    {{if permit "user" "set_admin"}}<a href="">Set as Admin</a>&nbsp;&nbsp;{{end}}
+	    {{if permit "user" "update_role"}}<a href="/users/{{.Data.UserInfo.Id}}/set_role">Update Role</a>&nbsp;&nbsp;{{end}}
 	    <hr/>
 	    <div>
 		<small>
@@ -28,8 +24,6 @@
 	    </div>
 	</fieldset>
     {{- end -}}
-
-    <h1>{{.Data.UserInfo.Name}}</h1>
 
     {{template "user_basic_info" .Data.UserInfo -}}
 
@@ -60,6 +54,7 @@
 {{end -}}
 
 {{define "user_basic_info" -}}
+    <h1>{{.Name}}</h1>
     <div class="data-list">
 	<div class="data-list__row">
             <div class="data-list__label">Joined At:</div>

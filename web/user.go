@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
+	mdw "github.com/oodzchen/dproject/middleware"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/service"
 	"github.com/pkg/errors"
@@ -38,12 +39,16 @@ func NewUserResource(renderer *Renderer) *UserResource {
 func (ur *UserResource) Routes() http.Handler {
 	rt := chi.NewRouter()
 
-	// rt.Get("/", ur.List)
-
 	rt.Route("/{userId}", func(r chi.Router) {
 		r.Get("/", ur.ItemPage)
-		r.Get("/ban", ur.BanPage)
-		r.Post("/set_role", ur.SetRole)
+
+		r.With(mdw.AuthCheck(ur.sessStore), mdw.PermitCheck(ur.permissionSrv, []string{
+			"user.update_role",
+		}, ur)).Group(func(r chi.Router) {
+			r.Get("/ban", ur.BanPage)
+			r.Get("/set_role", ur.SetRolePage)
+			r.Post("/set_role", ur.SetRole)
+		})
 	})
 
 	return rt
@@ -221,9 +226,15 @@ func (ur *UserResource) SetRole(w http.ResponseWriter, r *http.Request) {
 	roleFrontId := r.PostForm.Get("role_front_id")
 	comment := r.PostForm.Get("comment")
 
-	fmt.Println("roleFrontId: ", roleFrontId)
-	if !ur.permissionSrv.RoleData.Valid(roleFrontId) {
-		ur.Error("", errors.New("role front id dose not exist"), w, r, http.StatusBadRequest)
+	// fmt.Println("roleFrontId: ", roleFrontId)
+	// role, err := ur.store.Role.Item(int)
+	// if !ur.permissionSrv.RoleData.Valid(roleFrontId) {
+	// 	ur.Error("", errors.New("role front id dose not exist"), w, r, http.StatusBadRequest)
+	// 	return
+	// }
+
+	if strings.TrimSpace(roleFrontId) == "" {
+		ur.Error("", errors.New("role id is required"), w, r, http.StatusBadRequest)
 		return
 	}
 
@@ -253,7 +264,75 @@ func (ur *UserResource) SetRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//
-
 	http.Redirect(w, r, fmt.Sprintf("/users/%d", user.Id), http.StatusFound)
+}
+
+func (ur *UserResource) SetRolePage(w http.ResponseWriter, r *http.Request) {
+	userId, err := strconv.Atoi(chi.URLParam(r, "userId"))
+	if err != nil {
+		ur.Error("", errors.WithStack(err), w, r, http.StatusBadRequest)
+		return
+	}
+
+	// roleFrontId := r.URL.Query().Get("role_id")
+
+	user, err := ur.store.User.Item(userId)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			ur.Error("", nil, w, r, http.StatusNotFound)
+		} else {
+			ur.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	roleList, err := ur.store.Role.List(1, 999)
+	if err != nil {
+		ur.Error("", err, w, r, http.StatusInternalServerError)
+		return
+	}
+
+	// fmt.Println("roleList: ", roleList)
+
+	// if user.RoleFrontId == model.DefaultUserRoleBanned {
+	// 	ur.Session("one", w, r).Flash("Already banned")
+	// 	http.Redirect(w, r, fmt.Sprintf("/users/%d", user.Id), http.StatusFound)
+	// 	return
+	// }
+
+	// var roleName string
+
+	// if strings.TrimSpace(roleFrontId) != "" {
+	// 	if ur.permissionSrv.RoleData.Valid(roleFrontId) {
+	// 		roleName = ur.permissionSrv.RoleData.Get(config.RoleId(roleFrontId)).Name
+	// 	} else {
+	// 		ur.Error("", errors.New("role id dose not exist"), w, r, http.StatusBadRequest)
+	// 		return
+	// 	}
+	// }
+
+	type pageData struct {
+		UserData *model.User
+		// RoleFrontId string
+		// RoleName    string
+		// RoleData *config.RoleData
+		RoleList []*model.Role
+	}
+
+	ur.Render(w, r, "user_role_form", &PageData{
+		Title: "Update role of " + user.Name,
+		Data: &pageData{
+			UserData: user,
+			// RoleFrontId: roleFrontId,
+			// RoleName:    roleName,
+			// RoleData: ur.permissionSrv.RoleData,
+			RoleList: roleList,
+		},
+		BreadCrumbs: []*BreadCrumb{
+			{
+				fmt.Sprintf("/users/%d", user.Id),
+				user.Name,
+			},
+		},
+	})
 }
