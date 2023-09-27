@@ -43,10 +43,10 @@ func (mr *MainResource) Routes() http.Handler {
 
 	rt.Get("/", mr.articleRs.List)
 	rt.Get("/register", mr.RegisterPage)
-	rt.Post("/register", mr.Register)
+	rt.With(mdw.UserLogger(mr.uLogger, "register", "", mdw.UserLoggerEmpty)).Post("/register", mr.Register)
 	rt.Get("/login", mr.LoginPage)
-	rt.With(mdw.UserLogger()).Post("/login", mr.Login)
-	rt.With(mdw.AuthCheck(mr.sessStore)).Post("/logout", mr.Logout)
+	rt.With(mdw.UserLogger(mr.uLogger, "login", "", mdw.UserLoggerEmpty)).Post("/login", mr.Login)
+	rt.With(mdw.AuthCheck(mr.sessStore), mdw.UserLogger(mr.uLogger, "logout", "", mdw.UserLoggerEmpty)).Post("/logout", mr.Logout)
 
 	rt.Route("/settings", func(r chi.Router) {
 		r.Get("/", mr.SettingsPage)
@@ -55,7 +55,10 @@ func (mr *MainResource) Routes() http.Handler {
 		r.With(mdw.AuthCheck(mr.sessStore), mdw.PermitCheck(mr.permissionSrv, []string{
 			"user.update_intro_mine",
 			// "user.update_intro_others",
-		}, mr)).Post("/account", mr.SaveAccountSettings)
+		}, mr), mdw.UserLogger(mr.uLogger, "update_introduction", "user", func(r *http.Request) (targetId int, details string) {
+			introduction := r.FormValue("introduction")
+			return 0, introduction
+		})).Post("/account", mr.SaveAccountSettings)
 		r.Get("/ui", mr.SettingsUIPage)
 		r.Post("/ui", mr.SaveUISettings)
 	})

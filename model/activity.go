@@ -2,7 +2,6 @@ package model
 
 import (
 	"errors"
-	"fmt"
 	"time"
 )
 
@@ -28,31 +27,31 @@ type Activity struct {
 	Detail     string
 }
 
-func activityValidErr(str string) error {
+func ActivityValidErr(str string) error {
 	return errors.Join(ErrValidActivityFailed, errors.New(str))
 }
 
-func (act *Activity) Valid() error {
-	var lackedField string
-	if act.UserId == 0 {
-		lackedField = "user id"
-	}
+// func (act *Activity) Valid() error {
+// 	var lackedField string
+// 	if act.UserId == 0 {
+// 		lackedField = "user id"
+// 	}
 
-	if act.IpAddr == "" {
-		lackedField = "IP address"
-	}
+// 	if act.IpAddr == "" {
+// 		lackedField = "IP address"
+// 	}
 
-	if act.Type == "" {
-		lackedField = "action type"
-	}
+// 	if act.Type == "" {
+// 		lackedField = "action type"
+// 	}
 
-	if act.Action == "" {
-		lackedField = "action"
-	}
+// 	if act.Action == "" {
+// 		lackedField = "action"
+// 	}
 
-	if len(lackedField) > 0 {
-		return activityValidErr(fmt.Sprintf("%s is required", lackedField))
-	}
+// 	if len(lackedField) > 0 {
+// 		return ActivityValidErr(fmt.Sprintf("%s is required", lackedField))
+// 	}
 
-	return nil
-}
+// 	return nil
+// }

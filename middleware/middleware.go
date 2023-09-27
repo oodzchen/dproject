@@ -109,14 +109,48 @@ func PermitCheck(permissionSrv *service.Permission, needPermissionIds []string, 
 	}
 }
 
-func UserLogger() func(http.Handler) http.Handler {
+type UserLoggerFn func(*http.Request) (targetId int, details string)
+
+var UserLoggerEmpty UserLoggerFn = func(r *http.Request) (int, string) {
+	return 0, ""
+}
+
+func UserLogger(uLogger *service.UserLogger, action, targetModel string, uHandler UserLoggerFn) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// fmt.Println("in middleware test before http")
 			next.ServeHTTP(w, r)
-			fmt.Println("in middleware test after http")
+			// fmt.Println("in middleware test after http")
 			userData := r.Context().Value("user_data")
-			fmt.Println("user data: ", userData)
+
+			var user *model.User
+			// fmt.Println("user data: ", userData)
+			if u, ok := userData.(*model.User); ok {
+				user = u
+			} else {
+				user = nil
+			}
+
+			var targetId int
+			var details string
+
+			if uHandler != nil {
+				targetId, details = uHandler(r)
+			}
+
+			go func() {
+				err := uLogger.Log(user, action, targetModel, func(r *http.Request) *service.UserLogData {
+					return &service.UserLogData{
+						TargetId:   targetId,
+						Details:    details,
+						DeviceInfo: r.UserAgent(),
+						IPAddr:     r.RemoteAddr,
+					}
+				}, r)
+				if err != nil {
+					fmt.Println("user activity logger error:", err)
+				}
+			}()
 		})
 	}
 }

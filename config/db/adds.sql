@@ -49,7 +49,7 @@ CREATE TABLE user_roles (
     UNIQUE(user_id)
 );
 
-CREATE TYPE activity_type AS ENUM ('user', 'manage');
+CREATE TYPE activity_type AS ENUM ('user', 'manage', 'anonymous');
 
 CREATE TABLE user_activities (
     id SERIAL PRIMARY KEY,
@@ -58,7 +58,7 @@ CREATE TABLE user_activities (
     action VARCHAR(255) NOT NULL,
     target_model VARCHAR(255),
     target_id INTEGER,
-    created_at TIMESTAMP NOT DEFAULT NOW(),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     ip_address VARCHAR(255) NOT NULL,
     device_info VARCHAR(255),
     details TEXT
