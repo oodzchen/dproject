@@ -4,10 +4,10 @@ role_id_list:
   - moderator
   - admin
 data:
-  common_user:
-    name: Common User
-    adapt_id: common_user # adapt_id is used to adapt with backend role front id
-    sub_roles:
+  base:
+    type: group
+    name: Base
+    adapt_id: base # adapt_id is used to adapt with backend role front id
     permissions:
       - article.create # backend permission front id
       - article.reply
@@ -24,19 +24,12 @@ data:
       - reply.delete_mine
       - reply.vote_up
       - user.update_intro_mine
-  
-  banned_user:
-    name: Banned User
-    adapt_id: banned_user
-    sub_roles:
+
+  moderate:
+    type: group
+    name: Moderate
+    adapt_id: moderate
     permissions:
-      
-  moderator:
-    name: Moderator
-    adapt_id: moderator
-    sub_roles:
-      - common_user
-    permissions:  
       - article.edit_others
       - article.delete_others
       - reply.edit_others
@@ -44,12 +37,11 @@ data:
       - user.manage
       - user.ban
       - user.update_intro_others
-  
-  admin:
-    name: Admin
-    adapt_id: admin
-    sub_roles:
-      - moderator
+
+  site_manage:
+    type: group
+    name: Site Manage
+    adapt_id: site_manage
     permissions:
       - user.list_access
       - user.set_moderator
@@ -59,5 +51,38 @@ data:
       - role.access
       - role.add
       - role.edit
+      
+  common_user:
+    type: role
+    name: Common User
+    adapt_id: common_user
+    groups:
+      - base
+    permissions:
   
+  banned_user:
+    type: role
+    name: Banned User
+    adapt_id: banned_user
+    groups:
+    permissions:
+      
+  moderator:
+    type: role
+    name: Moderator
+    adapt_id: moderator
+    groups:
+      - base
+      - moderate
+    permissions:
   
+  admin:
+    type: role
+    name: Admin
+    adapt_id: admin
+    groups:
+      - base
+      - moderate
+      - site_manage
+    permissions:
+

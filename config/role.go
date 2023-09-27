@@ -14,15 +14,17 @@ const (
 )
 
 type RoleItem struct {
-	Name        string      `yaml:"name"`
-	AdaptId     string      `yaml:"adapt_id"`
-	Permissions []string    `yaml:"permissions,flow"`
-	Type        RoleType    `yaml:"type"`
-	SubRoles    []*RoleItem `yaml:"sub_roles,flow"`
+	Type        RoleType `yaml:"type"`
+	Name        string   `yaml:"name"`
+	AdaptId     string   `yaml:"adapt_id"`
+	Permissions []string `yaml:"permissions,flow"`
+	Groups      []string `yaml:"groups,flow"`
 }
 
 type RoleId string
+
 type RoleDataMap map[RoleId]*RoleItem
+
 type RoleData struct {
 	RoleIdList []RoleId `yaml:"role_id_list,flow"`
 	Data       RoleDataMap
