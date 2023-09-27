@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -44,7 +45,7 @@ func (mr *MainResource) Routes() http.Handler {
 	rt.Get("/register", mr.RegisterPage)
 	rt.Post("/register", mr.Register)
 	rt.Get("/login", mr.LoginPage)
-	rt.Post("/login", mr.Login)
+	rt.With(mdw.UserLogger()).Post("/login", mr.Login)
 	rt.With(mdw.AuthCheck(mr.sessStore)).Post("/logout", mr.Logout)
 
 	rt.Route("/settings", func(r chi.Router) {
@@ -132,8 +133,8 @@ func (mr *MainResource) LoginPage(w http.ResponseWriter, r *http.Request) {
 	referer := r.Referer()
 	refererUrl, _ := url.Parse(referer)
 
-	fmt.Println("exist target_url: ", targetUrl)
-	fmt.Println("target_url is empty string: ", targetUrl == "")
+	// fmt.Println("exist target_url: ", targetUrl)
+	// fmt.Println("target_url is empty string: ", targetUrl == "")
 
 	if (targetUrl == nil || targetUrl == "") && IsRegisterdPage(refererUrl, mr.router) {
 		// fmt.Println("Matched!", "target:", referer)
@@ -228,6 +229,9 @@ func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, email, p
 		mr.Error("", err, w, r, http.StatusInternalServerError)
 		return
 	}
+
+	ctx := context.WithValue(r.Context(), "user_data", user)
+	*r = *r.WithContext(ctx)
 }
 
 func (mr *MainResource) LoginDebug(w http.ResponseWriter, r *http.Request) {

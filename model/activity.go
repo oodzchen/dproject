@@ -1,0 +1,58 @@
+package model
+
+import (
+	"errors"
+	"fmt"
+	"time"
+)
+
+type ActivityType string
+
+const (
+	ActivityTypeUser      ActivityType = "user"
+	ActivityTypeManage                 = "manage"
+	ActivityTypeAnonymous              = "anonymous"
+)
+
+type Activity struct {
+	Id         int
+	UserId     int
+	UserName   string
+	Type       ActivityType
+	Action     string
+	TargetId   int
+	Target     any
+	CreatedAt  *time.Time
+	IpAddr     string
+	DeviceInfo string
+	Detail     string
+}
+
+func activityValidErr(str string) error {
+	return errors.Join(ErrValidActivityFailed, errors.New(str))
+}
+
+func (act *Activity) Valid() error {
+	var lackedField string
+	if act.UserId == 0 {
+		lackedField = "user id"
+	}
+
+	if act.IpAddr == "" {
+		lackedField = "IP address"
+	}
+
+	if act.Type == "" {
+		lackedField = "action type"
+	}
+
+	if act.Action == "" {
+		lackedField = "action"
+	}
+
+	if len(lackedField) > 0 {
+		return activityValidErr(fmt.Sprintf("%s is required", lackedField))
+	}
+
+	return nil
+}

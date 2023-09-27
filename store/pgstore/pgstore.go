@@ -90,3 +90,11 @@ func (pg *PGStore) NewPermissionStore() (any, error) {
 	}
 	return &Permission{pgDB.Pool}, nil
 }
+
+func (pg *PGStore) NewActivity() (any, error) {
+	err := CheckDB(false)
+	if err != nil {
+		return nil, err
+	}
+	return &Activity{pgDB.Pool}, nil
+}

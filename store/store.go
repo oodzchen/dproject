@@ -9,6 +9,7 @@ type Store struct {
 	User       UserStore
 	Role       RoleStore
 	Permission PermissionStore
+	Activity   ActivityStore
 }
 
 type DBStore interface {
@@ -16,6 +17,7 @@ type DBStore interface {
 	NewUserStore() (any, error)
 	NewPermissionStore() (any, error)
 	NewRoleStore() (any, error)
+	NewActivity() (any, error)
 }
 
 type ArticleStore interface {
@@ -75,11 +77,17 @@ type RoleStore interface {
 	Delete(int) error
 }
 
+type ActivityStore interface {
+	List(userId int, actType, action string, page, pageSize int) ([]*model.Activity, error)
+	Create(userId int, actType, action, targetModel string, targetId int, ipAddr, deviceInfo, details string) (int, error)
+}
+
 func New(dbStore DBStore) (*Store, error) {
 	article, err := dbStore.NewArticleStore()
 	user, err := dbStore.NewUserStore()
 	permission, err := dbStore.NewPermissionStore()
 	role, err := dbStore.NewRoleStore()
+	activity, err := dbStore.NewActivity()
 
 	if err != nil {
 		return nil, err
@@ -89,11 +97,13 @@ func New(dbStore DBStore) (*Store, error) {
 	userStore := user.(UserStore)
 	permissionStore := permission.(PermissionStore)
 	roleStore := role.(RoleStore)
+	activityStore := activity.(ActivityStore)
 
 	return &Store{
 		Article:    articleStore,
 		User:       userStore,
 		Role:       roleStore,
 		Permission: permissionStore,
+		Activity:   activityStore,
 	}, nil
 }

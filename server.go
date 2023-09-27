@@ -73,7 +73,11 @@ func Service(c *ServiceConfig) http.Handler {
 	sessStore.Options.Secure = !utils.IsDebug()
 	sessStore.Options.SameSite = http.SameSiteLaxMode
 
-	renderer := web.NewRenderer(baseTmpl, sessStore, r, c.store, c.permisisonSrv)
+	userLogger := &service.UserLogger{
+		Store: c.store,
+	}
+
+	renderer := web.NewRenderer(baseTmpl, sessStore, r, c.store, c.permisisonSrv, userLogger)
 
 	articleResource := web.NewArticleResource(renderer)
 	userResource := web.NewUserResource(renderer)

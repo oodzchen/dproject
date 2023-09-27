@@ -82,15 +82,17 @@ type Renderer struct {
 	store     *store.Store
 	// permission *config.PermissionData
 	permissionSrv *service.Permission
+	uLogger       *service.UserLogger
 }
 
-func NewRenderer(tmpl *template.Template, sessStore *sessions.CookieStore, router *chi.Mux, store *store.Store, permissionSrv *service.Permission) *Renderer {
+func NewRenderer(tmpl *template.Template, sessStore *sessions.CookieStore, router *chi.Mux, store *store.Store, permissionSrv *service.Permission, userLogger *service.UserLogger) *Renderer {
 	return &Renderer{
 		tmpl,
 		sessStore,
 		router,
 		store,
 		permissionSrv,
+		userLogger,
 	}
 }
 

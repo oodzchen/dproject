@@ -26,6 +26,7 @@ var (
 	ErrValidArticleFailed    = errors.New("article validation failed")
 	ErrValidPermissionFailed = errors.New("permission validation failed")
 	ErrValidRoleFailed       = errors.New("role validation failed")
+	ErrValidActivityFailed   = errors.New("activity validation failed")
 
 	ErrUserNotExist = errors.New("user dose not exist")
 )

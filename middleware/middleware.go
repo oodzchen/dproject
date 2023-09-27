@@ -69,13 +69,23 @@ func AuthCheck(sessStore *sessions.CookieStore) func(http.Handler) http.Handler 
 	}
 }
 
-func PermitCheck(permissionSrv *service.Permission, permissionIdList []string, renderer any) func(http.Handler) http.Handler {
+func toForbiddenPage(renderer any, w http.ResponseWriter, r *http.Request) {
+	if v, ok := renderer.(Renderer); ok {
+		v.Forbidden(w, r)
+	} else {
+		http.Redirect(w, r, "/403", http.StatusFound)
+	}
+}
+
+// User must have at least one permisison id in needPermissionIds
+func PermitCheck(permissionSrv *service.Permission, needPermissionIds []string, renderer any) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// fmt.Printf("r.URL.Path: %s\n", r.URL.Path)
-			// fmt.Printf("r.Method: %s\n", r.Method)
-			if len(permissionIdList) > 0 {
-				for _, permissionId := range permissionIdList {
+			if len(needPermissionIds) == 0 {
+				toForbiddenPage(renderer, w, r)
+				return
+			} else {
+				for _, permissionId := range needPermissionIds {
 					moduleAction := strings.Split(permissionId, ".")
 					if len(moduleAction) != 2 {
 						fmt.Println("permission id error:", permissionId)
@@ -88,18 +98,25 @@ func PermitCheck(permissionSrv *service.Permission, permissionIdList []string, r
 					// fmt.Println("module", module)
 					// fmt.Println("action", action)
 
-					if !permissionSrv.PermissionData.Permit(module, action) {
-						if v, ok := renderer.(Renderer); ok {
-							v.Forbidden(w, r)
-						} else {
-							http.Redirect(w, r, "/403", http.StatusFound)
-						}
-
+					if permissionSrv.PermissionData.Permit(module, action) {
+						next.ServeHTTP(w, r)
 						return
 					}
 				}
 			}
+			toForbiddenPage(renderer, w, r)
+		})
+	}
+}
+
+func UserLogger() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// fmt.Println("in middleware test before http")
 			next.ServeHTTP(w, r)
+			fmt.Println("in middleware test after http")
+			userData := r.Context().Value("user_data")
+			fmt.Println("user data: ", userData)
 		})
 	}
 }

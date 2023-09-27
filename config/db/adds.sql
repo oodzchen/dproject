@@ -49,14 +49,17 @@ CREATE TABLE user_roles (
     UNIQUE(user_id)
 );
 
-CREATE TABLE user_activity (
+CREATE TYPE activity_type AS ENUM ('user', 'manage');
+
+CREATE TABLE user_activities (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id),
-    type VARCHAR(255) NOT NULL,
+    type activity_type NOT NULL,
+    action VARCHAR(255) NOT NULL,
     target_model VARCHAR(255),
     target_id INTEGER,
     created_at TIMESTAMP NOT DEFAULT NOW(),
-    ip_address VARCHAR(255),
+    ip_address VARCHAR(255) NOT NULL,
     device_info VARCHAR(255),
     details TEXT
 );
