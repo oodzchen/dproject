@@ -36,7 +36,7 @@
 	{{- end -}}
     </ul>
 
-    {{ $pagiData := dict "currPage" .Data.CurrPage "totalPage" .Data.TotalPage "pathPrefix" "/users"  }}
+    {{ $pagiData := dict "currPage" .Data.CurrPage "totalPage" .Data.TotalPage "pathPrefix" "/manage/users"  }}
     {{ template "pagination" $pagiData }}    
 
     {{template "foot" .}}

@@ -47,7 +47,9 @@
 			{{- placehold .FormattedPermissions "<i class=\"text-lighten-2\">No permissions</i>" -}}
 		    </td>
 		    <td>
-			<a href="/manage/roles/{{$role.Id}}/edit">Edit</a>&nbsp;&nbsp;
+			{{- if not .IsDefault -}}
+			    <a href="/manage/roles/{{$role.Id}}/edit">Edit</a>&nbsp;&nbsp;
+			{{- end -}}
 		    </td>
 		</tr>
 	    {{- end -}}

@@ -286,10 +286,26 @@ func (ur *UserResource) SetRolePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	roleList, err := ur.store.Role.List(1, 999)
+	wholeRoleList, err := ur.store.Role.List(1, 999)
 	if err != nil {
 		ur.Error("", err, w, r, http.StatusInternalServerError)
 		return
+	}
+
+	var roleList []*model.Role
+
+	canSetModerate := ur.permissionSrv.PermissionData.Permit("user", "set_moderator")
+	canSetAdmin := ur.permissionSrv.PermissionData.Permit("user", "set_admin")
+	for _, item := range wholeRoleList {
+		if item.FrontId == "moderator" && !canSetModerate {
+			continue
+		}
+
+		if item.FrontId == "admin" && !canSetAdmin {
+			continue
+		}
+
+		roleList = append(roleList, item)
 	}
 
 	// fmt.Println("roleList: ", roleList)

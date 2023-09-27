@@ -8,23 +8,14 @@ import (
 
 type RoleType string
 
-const (
-	RoleTypeGroup string = "group"
-	RoleTypeRole         = "role"
-)
-
 type RoleItem struct {
-	Type        RoleType `yaml:"type"`
 	Name        string   `yaml:"name"`
 	AdaptId     string   `yaml:"adapt_id"`
 	Permissions []string `yaml:"permissions,flow"`
-	Groups      []string `yaml:"groups,flow"`
 }
 
 type RoleId string
-
 type RoleDataMap map[RoleId]*RoleItem
-
 type RoleData struct {
 	RoleIdList []RoleId `yaml:"role_id_list,flow"`
 	Data       RoleDataMap
