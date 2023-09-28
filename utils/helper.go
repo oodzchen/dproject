@@ -23,12 +23,12 @@ import (
 
 // Print data as JSON string with prefix
 func PrintJSONf(prefix string, data any) {
-	str := SprintJSONf(data)
+	str := SprintJSONf(data, prefix, "  ")
 	fmt.Printf("%s%s\n", prefix, str)
 }
 
-func SprintJSONf(data any) string {
-	jsonStr, err := json.MarshalIndent(data, "", "  ")
+func SprintJSONf(data any, prefix, indent string) string {
+	jsonStr, err := json.MarshalIndent(data, prefix, indent)
 	if err != nil {
 		fmt.Printf("utils.PrintJSONf error: %v", err)
 		return ""

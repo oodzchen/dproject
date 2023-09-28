@@ -10,6 +10,7 @@ import (
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/service"
 	"github.com/oodzchen/dproject/store"
+	"github.com/oodzchen/dproject/utils"
 	"github.com/pkg/errors"
 )
 
@@ -109,37 +110,51 @@ func PermitCheck(permissionSrv *service.Permission, needPermissionIds []string, 
 	}
 }
 
-type UserLoggerFn func(*http.Request) (targetId int, details string)
+type UserLoggerFn func(w http.ResponseWriter, r *http.Request) (targetId int)
 
-var UserLoggerEmpty UserLoggerFn = func(r *http.Request) (int, string) {
-	return 0, ""
+var (
+	ULogEmpty UserLoggerFn = func(w http.ResponseWriter, r *http.Request) int {
+		return 0
+	}
+
+	ULogLoginedUserId = func(w http.ResponseWriter, r *http.Request) (targetId int) {
+		u, err := getLoginedUserData(r)
+		if err != nil {
+			return 0
+		}
+
+		return u.Id
+	}
+)
+
+func getLoginedUserData(r *http.Request) (*model.User, error) {
+	userData := r.Context().Value("user_data")
+
+	// fmt.Println("user data: ", userData)
+	if u, ok := userData.(*model.User); ok {
+		return u, nil
+	}
+	return nil, errors.New("no user data in request context")
 }
 
-func UserLogger(uLogger *service.UserLogger, action, targetModel string, uHandler UserLoggerFn) func(http.Handler) http.Handler {
+func UserLogger(uLogger *service.UserLogger, actType model.ActivityType, action model.AcAction, targetModel model.AcModel, uHandler UserLoggerFn) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// fmt.Println("in middleware test before http")
 			next.ServeHTTP(w, r)
 			// fmt.Println("in middleware test after http")
-			userData := r.Context().Value("user_data")
-
-			var user *model.User
-			// fmt.Println("user data: ", userData)
-			if u, ok := userData.(*model.User); ok {
-				user = u
-			} else {
-				user = nil
-			}
+			user, _ := getLoginedUserData(r)
+			fmt.Println("user data: ", user)
 
 			var targetId int
-			var details string
 
 			if uHandler != nil {
-				targetId, details = uHandler(r)
+				targetId = uHandler(w, r)
 			}
 
 			go func() {
-				err := uLogger.Log(user, action, targetModel, func(r *http.Request) *service.UserLogData {
+				err := uLogger.Log(user, actType, action, targetModel, func(r *http.Request) *service.UserLogData {
+					details := utils.SprintJSONf(r.PostForm, "", "")
 					return &service.UserLogData{
 						TargetId:   targetId,
 						Details:    details,

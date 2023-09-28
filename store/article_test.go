@@ -20,12 +20,6 @@ func connectDB() (*pgstore.PGStore, error) {
 
 	appCfg := config.Config
 
-	// fmt.Printf("App config: %#v\n", appCfg)
-	// if appCfg.Debug {
-	// 	utils.PrintJSONf("App config:\n", appCfg)
-	// }
-	// fmt.Println("DSN: ", os.Getenv("DB_DSN"))
-
 	pg := pgstore.New(&pgstore.DBConfig{
 		DSN: appCfg.DB.GetDSN(),
 	})

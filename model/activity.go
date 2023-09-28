@@ -11,6 +11,24 @@ const (
 	ActivityTypeUser      ActivityType = "user"
 	ActivityTypeManage                 = "manage"
 	ActivityTypeAnonymous              = "anonymous"
+	ActivityTypeDev                    = "dev"
+)
+
+type AcAction string
+
+const (
+	AcActionRegister   AcAction = "register"
+	AcActionLogin               = "login"
+	AcActionLogout              = "logout"
+	AcActionUpdateInro          = "update_intro"
+)
+
+type AcModel string
+
+const (
+	AcModelEmpty   AcModel = ""
+	AcModelUser            = "user"
+	AcModelArticle         = "article"
 )
 
 type Activity struct {

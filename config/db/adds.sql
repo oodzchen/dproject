@@ -49,12 +49,12 @@ CREATE TABLE user_roles (
     UNIQUE(user_id)
 );
 
-CREATE TYPE activity_type AS ENUM ('user', 'manage', 'anonymous');
+-- CREATE TYPE activity_type AS ENUM ('user', 'manage', 'anonymous');
 
 CREATE TABLE user_activities (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id),
-    type activity_type NOT NULL,
+    type VARCHAR(255) NOT NULL,
     action VARCHAR(255) NOT NULL,
     target_model VARCHAR(255),
     target_id INTEGER,

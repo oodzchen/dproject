@@ -118,7 +118,7 @@ func TestGenArticleTree(t *testing.T) {
 		t.Run(tt.desc, func(t *testing.T) {
 			got, _ := genArticleTree(tt.root, tt.replies)
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("want\n%+v, \nbut got\n%+v", utils.SprintJSONf(tt.want), utils.SprintJSONf(got))
+				t.Errorf("want\n%+v, \nbut got\n%+v", utils.SprintJSONf(tt.want, "", "  "), utils.SprintJSONf(got, "", "  "))
 			}
 		})
 	}

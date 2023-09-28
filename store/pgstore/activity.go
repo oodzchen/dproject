@@ -78,7 +78,8 @@ func (a *Activity) Create(userId int, actType, action, targetModel string, targe
 		`INSERT INTO user_activities
 (user_id, type, action, target_model, target_id, ip_address, device_info, details)
 VALUES
-($1, $2, $3, $4, $5, $6, $7, $8)`,
+($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING (id)`,
 		userId,
 		actType,
 		action,
