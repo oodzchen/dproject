@@ -25,6 +25,7 @@ type userProfile struct {
 	Posts           []*model.Article
 	CurrTab         service.UserListType
 	PermissionNames []string
+	Activities      []*model.Activity
 }
 
 func NewUserResource(renderer *Renderer) *UserResource {
@@ -45,9 +46,11 @@ func (ur *UserResource) Routes() http.Handler {
 		r.With(mdw.AuthCheck(ur.sessStore), mdw.PermitCheck(ur.permissionSrv, []string{
 			"user.update_role",
 		}, ur)).Group(func(r chi.Router) {
-			r.Get("/ban", ur.BanPage)
+			// r.Get("/ban", ur.BanPage)
 			r.Get("/set_role", ur.SetRolePage)
-			r.Post("/set_role", ur.SetRole)
+			r.With(mdw.UserLogger(
+				ur.uLogger, model.ActivityTypeManage, model.AcActionSetRole, model.AcModelUser, mdw.ULogLoginedUserId),
+			).Post("/set_role", ur.SetRole)
 		})
 	})
 
@@ -142,7 +145,18 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postList, err := ur.userSrv.GetPosts(userId, service.UserListType(tab))
+	var postList []*model.Article
+	var activityList []*model.Activity
+	if tab != "activity" {
+		postList, err = ur.userSrv.GetPosts(userId, service.UserListType(tab))
+	} else {
+		if !ur.permissionSrv.PermissionData.Permit("user", "access_activity") {
+			ur.Error("", nil, w, r, http.StatusForbidden)
+			return
+		}
+		activityList, err = ur.store.Activity.List(user.Id, "", "", 1, 999)
+
+	}
 	if err != nil {
 		ur.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
 		return
@@ -151,6 +165,10 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 	for _, article := range postList {
 		article.UpdateDisplayTitle()
 		article.GenSummary(200)
+	}
+
+	for _, activity := range activityList {
+		activity.Format()
 	}
 
 	var permissionNames []string
@@ -165,6 +183,7 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 			Posts:           postList,
 			CurrTab:         service.UserListType(tab),
 			PermissionNames: permissionNames,
+			Activities:      activityList,
 		},
 		BreadCrumbs: []*BreadCrumb{
 			{

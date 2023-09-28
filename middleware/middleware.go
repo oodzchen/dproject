@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/sessions"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/service"
@@ -118,12 +120,35 @@ var (
 	}
 
 	ULogLoginedUserId = func(w http.ResponseWriter, r *http.Request) (targetId int) {
-		u, err := getLoginedUserData(r)
+		id, err := strconv.Atoi(chi.URLParam(r, "userId"))
 		if err != nil {
 			return 0
 		}
+		return id
+	}
 
-		return u.Id
+	ULogRoleId = func(w http.ResponseWriter, r *http.Request) (targetId int) {
+		id, err := strconv.Atoi(chi.URLParam(r, "roleId"))
+		if err != nil {
+			return 0
+		}
+		return id
+	}
+
+	ULogArticleId = func(w http.ResponseWriter, r *http.Request) (targetId int) {
+		articleIdStr := r.Context().Value("article_id")
+		articleId, ok := articleIdStr.(int)
+		if !ok {
+			id, err := strconv.Atoi(chi.URLParam(r, "articleId"))
+			if err != nil {
+				return 0
+			}
+			return id
+		}
+
+		fmt.Println("articleId: ", articleId)
+
+		return articleId
 	}
 )
 
@@ -144,7 +169,7 @@ func UserLogger(uLogger *service.UserLogger, actType model.ActivityType, action 
 			next.ServeHTTP(w, r)
 			// fmt.Println("in middleware test after http")
 			user, _ := getLoginedUserData(r)
-			fmt.Println("user data: ", user)
+			// fmt.Println("user data: ", user)
 
 			var targetId int
 
@@ -154,12 +179,20 @@ func UserLogger(uLogger *service.UserLogger, actType model.ActivityType, action 
 
 			go func() {
 				err := uLogger.Log(user, actType, action, targetModel, func(r *http.Request) *service.UserLogData {
-					details := utils.SprintJSONf(r.PostForm, "", "")
+					postData := make(map[string]any)
+					for k, v := range r.PostForm {
+						if k == "tk" {
+							continue
+						}
+						postData[k] = v
+					}
+
+					details := utils.SprintJSONf(postData, "", "")
 					return &service.UserLogData{
 						TargetId:   targetId,
 						Details:    details,
 						DeviceInfo: r.UserAgent(),
-						IPAddr:     r.RemoteAddr,
+						IPAddr:     strings.Split(r.RemoteAddr, ":")[0],
 					}
 				}, r)
 				if err != nil {

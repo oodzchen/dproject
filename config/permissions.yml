@@ -81,6 +81,10 @@ data:
       name: Set User as Admin
       adapt_id: user.set_admin
       enabled: false
+    access_activity:
+      name: Access User Activity
+      adapt_id: user.access_activity
+      enabled: false
 
   manage:
     access:

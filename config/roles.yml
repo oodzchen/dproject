@@ -89,9 +89,9 @@ data:
       
       - user.list_access
       - user.set_moderator
+      - user.access_activity
       - manage.access
       - permission.access
       - role.access
       - role.add
       - role.edit
-  

@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -38,7 +39,7 @@ func (ar *ArticleResource) Routes() http.Handler {
 	rt.Get("/", ar.List)
 	rt.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
 		"article.create",
-	}, ar),
+	}, ar), mdw.UserLogger(ar.uLogger, model.ActivityTypeUser, model.AcActionCreateArticle, model.AcModelArticle, mdw.ULogArticleId),
 	).Post("/", ar.Submit)
 
 	rt.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
@@ -46,7 +47,7 @@ func (ar *ArticleResource) Routes() http.Handler {
 	}, ar),
 	).Get("/new", ar.FormPage)
 
-	rt.Route("/{id}", func(r chi.Router) {
+	rt.Route("/{articleId}", func(r chi.Router) {
 		r.Get("/", ar.Item)
 
 		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
@@ -54,7 +55,9 @@ func (ar *ArticleResource) Routes() http.Handler {
 			// "article.edit_others",
 		}, ar)).Group(func(r chi.Router) {
 			r.Get("/edit", ar.FormPage)
-			r.Post("/edit", ar.Update)
+			r.With(mdw.UserLogger(
+				ar.uLogger, model.ActivityTypeUser, model.AcActionEditArticle, model.AcModelArticle, mdw.ULogArticleId),
+			).Post("/edit", ar.Update)
 		})
 
 		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
@@ -62,7 +65,9 @@ func (ar *ArticleResource) Routes() http.Handler {
 			// "article.delete_others",
 		}, ar)).Group(func(r chi.Router) {
 			r.Get("/delete", ar.DeletePage)
-			r.Post("/delete", ar.Delete)
+			r.With(mdw.UserLogger(
+				ar.uLogger, model.ActivityTypeUser, model.AcActionDeleteArticle, model.AcModelArticle, mdw.ULogArticleId),
+			).Post("/delete", ar.Delete)
 		})
 
 		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
@@ -72,15 +77,21 @@ func (ar *ArticleResource) Routes() http.Handler {
 		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
 			"article.vote_up",
 			"article.vote_down",
-		}, ar)).Post("/vote", ar.Vote)
+		}, ar), mdw.UserLogger(
+			ar.uLogger, model.ActivityTypeUser, model.AcActionVoteArticle, model.AcModelArticle, mdw.ULogArticleId),
+		).Post("/vote", ar.Vote)
 
 		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
 			"article.save",
-		}, ar)).Post("/save", ar.Save)
+		}, ar), mdw.UserLogger(
+			ar.uLogger, model.ActivityTypeUser, model.AcActionSaveArticle, model.AcModelArticle, mdw.ULogArticleId),
+		).Post("/save", ar.Save)
 
 		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
 			"article.react",
-		}, ar)).Post("/react", ar.React)
+		}, ar), mdw.UserLogger(
+			ar.uLogger, model.ActivityTypeUser, model.AcActionReactArticle, model.AcModelArticle, mdw.ULogArticleId),
+		).Post("/react", ar.React)
 	})
 
 	return rt
@@ -179,7 +190,7 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "articleId")
 	var pageTitle string
 	var data *model.Article
 
@@ -281,6 +292,9 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 
 	ssOne := ar.Session("one", w, r)
 
+	ctx := context.WithValue(r.Context(), "article_id", id)
+	*r = *r.WithContext(ctx)
+
 	ssOne.Flash("Content published successfully")
 
 	if isReply && ssOne.GetStringValue("prev_url") != "" {
@@ -362,7 +376,7 @@ const (
 )
 
 func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pageType ArticlePageType) {
-	idParam := chi.URLParam(r, "id")
+	idParam := chi.URLParam(r, "articleId")
 	sortType := r.URL.Query().Get("sort")
 	pageQ := r.URL.Query().Get("page")
 	page, _ := strconv.Atoi(pageQ)
@@ -593,7 +607,7 @@ func (ar *ArticleResource) DeletePage(w http.ResponseWriter, r *http.Request) {
 func (ar *ArticleResource) ReplyPage(w http.ResponseWriter, r *http.Request) {
 	ar.SavePrevPage(w, r)
 	ar.handleItem(w, r, ArticlePageReply)
-	// http.Redirect(w, r, fmt.Sprintf("/articles/%s", chi.URLParam(r, "id")), http.StatusFound)
+	// http.Redirect(w, r, fmt.Sprintf("/articles/%s", chi.URLParam(r, "articleId")), http.StatusFound)
 }
 
 func (ar *ArticleResource) Vote(w http.ResponseWriter, r *http.Request) {
@@ -605,7 +619,7 @@ func (ar *ArticleResource) Vote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	articleIdS := chi.URLParam(r, "id")
+	articleIdS := chi.URLParam(r, "articleId")
 	articleId, err := strconv.Atoi(articleIdS)
 	if err != nil {
 		ar.Error("", errors.New("get article id failed"), w, r, http.StatusBadRequest)
@@ -638,7 +652,7 @@ func (ar *ArticleResource) Vote(w http.ResponseWriter, r *http.Request) {
 func (ar *ArticleResource) Save(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
-	articleIdS := chi.URLParam(r, "id")
+	articleIdS := chi.URLParam(r, "articleId")
 	articleId, err := strconv.Atoi(articleIdS)
 	if err != nil {
 		ar.Error("", errors.New("get article id failed"), w, r, http.StatusBadRequest)
@@ -670,7 +684,7 @@ func (ar *ArticleResource) Save(w http.ResponseWriter, r *http.Request) {
 func (ar *ArticleResource) React(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
-	articleIdS := chi.URLParam(r, "id")
+	articleIdS := chi.URLParam(r, "articleId")
 	articleId, err := strconv.Atoi(articleIdS)
 	if err != nil {
 		ar.Error("", errors.New("get article id failed"), w, r, http.StatusBadRequest)

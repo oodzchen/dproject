@@ -61,7 +61,7 @@ CREATE RULE post_del_protect AS ON DELETE TO posts DO INSTEAD NOTHING;
 -- 用户样例数据
 INSERT INTO users (email, password, name, introduction, super_admin)
 VALUES
-('chenlin7788@gmail.com', :user_default_password, 'anonymous', 'Anonymous placeholder', true),
+('chenlin7788@gmail.com', :user_default_password, 'anonymous', 'Anonymous placeholder', false),
 ('oodzchen@gmail.com', :user_default_password, '欧辰', '这是欧辰的自我介绍', true),
 ('zhangsan@example.com', :user_default_password, '张三', '这是张三的自我介绍', false),
 ('lisi@example.com', :user_default_password, '李四', '这是李四的自我介绍', false),

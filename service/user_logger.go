@@ -40,8 +40,8 @@ func (ul *UserLogger) Log(u *model.User, actType model.ActivityType, action mode
 
 	logData := handler(r)
 
-	fmt.Println("userId :", userId)
-	fmt.Printf("logger data: %#v\n", logData)
+	// fmt.Println("userId :", userId)
+	// fmt.Printf("logger data: %#v\n", logData)
 
 	_, err := ul.Store.Activity.Create(userId, string(actType), string(action), string(targetModel), logData.TargetId, logData.IPAddr, logData.DeviceInfo, logData.Details)
 	if err != nil {

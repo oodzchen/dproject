@@ -52,15 +52,19 @@ func (mr *ManageResource) Routes() http.Handler {
 			r.With(mdw.PermitCheck(mr.permissionSrv, []string{
 				"role.add",
 			}, mr)).Group(func(r chi.Router) {
-				r.Post("/", mr.RoleSubmit)
+				r.With(mdw.UserLogger(
+					mr.uLogger, model.ActivityTypeManage, model.AcActionAddRole, model.AcModelEmpty, mdw.ULogEmpty),
+				).Post("/", mr.RoleSubmit)
 				r.Get("/new", mr.RoleCreatePage)
 			})
 
 			r.With(mdw.PermitCheck(mr.permissionSrv, []string{
 				"role.edit",
 			}, mr)).Group(func(r chi.Router) {
-				r.Get("/{id}/edit", mr.RoleEditPage)
-				r.Post("/{id}/edit", mr.RoleEditSubmit)
+				r.Get("/{roleId}/edit", mr.RoleEditPage)
+				r.With(mdw.UserLogger(
+					mr.uLogger, model.ActivityTypeManage, model.AcActionEditRole, model.AcModelRole, mdw.ULogRoleId),
+				).Post("/{roleId}/edit", mr.RoleEditSubmit)
 			})
 		})
 
@@ -447,7 +451,7 @@ func (mr *ManageResource) getFilteredPermissionList(w http.ResponseWriter, r *ht
 }
 
 func (mr *ManageResource) RoleEditPage(w http.ResponseWriter, r *http.Request) {
-	roleIdStr := chi.URLParam(r, "id")
+	roleIdStr := chi.URLParam(r, "roleId")
 	// fmt.Println("roleId: ", roleIdStr)
 
 	roleId, err := strconv.Atoi(roleIdStr)
@@ -496,7 +500,7 @@ func (mr *ManageResource) RoleEditPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (mr *ManageResource) RoleEditSubmit(w http.ResponseWriter, r *http.Request) {
-	roleIdStr := chi.URLParam(r, "id")
+	roleIdStr := chi.URLParam(r, "roleId")
 	// fmt.Println("roleId: ", roleIdStr)
 
 	roleId, err := strconv.Atoi(roleIdStr)

@@ -8,14 +8,16 @@ import (
 type UserListType string
 
 const (
-	UserListAll     UserListType = "all"
-	UserListSaved                = "saved"
-	UserListArticle              = "article"
-	UserListReply                = "reply"
+	UserListAll      UserListType = "all"
+	UserListSaved                 = "saved"
+	UserListArticle               = "article"
+	UserListReply                 = "reply"
+	UserListActivity              = "activity"
 )
 
 var AuthRequiedUserTabMap = map[UserListType]bool{
-	UserListSaved: true,
+	UserListSaved:    true,
+	UserListActivity: true,
 }
 
 func CheckUserTabAuthRequired(tab UserListType) bool {

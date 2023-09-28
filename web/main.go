@@ -55,13 +55,13 @@ func (mr *MainResource) Routes() http.Handler {
 		r.With(mdw.AuthCheck(mr.sessStore), mdw.PermitCheck(mr.permissionSrv, []string{
 			"user.update_intro_mine",
 			// "user.update_intro_others",
-		}, mr), mdw.UserLogger(mr.uLogger, model.ActivityTypeUser, model.AcActionUpdateInro, model.AcModelUser, mdw.ULogLoginedUserId)).Post("/account", mr.SaveAccountSettings)
+		}, mr), mdw.UserLogger(mr.uLogger, model.ActivityTypeUser, model.AcActionUpdateInro, model.AcModelEmpty, mdw.ULogEmpty)).Post("/account", mr.SaveAccountSettings)
 		r.Get("/ui", mr.SettingsUIPage)
 		r.Post("/ui", mr.SaveUISettings)
 	})
 
 	if config.Config.Debug {
-		rt.With(mdw.UserLogger(mr.uLogger, model.ActivityTypeDev, model.AcActionLogin, model.AcModelUser, mdw.ULogLoginedUserId)).Post("/login_debug", mr.LoginDebug)
+		rt.With(mdw.UserLogger(mr.uLogger, model.ActivityTypeDev, model.AcActionLogin, model.AcModelEmpty, mdw.ULogEmpty)).Post("/login_debug", mr.LoginDebug)
 	}
 
 	return rt

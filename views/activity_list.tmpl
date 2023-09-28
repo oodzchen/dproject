@@ -1,0 +1,26 @@
+{{- define "activity_list" -}}
+    <style>
+     .activity-list .activity-list__info{
+	 margin-left: 1rem;
+	 padding: 4px 10px;
+	 background: var(--text-bg);
+	 font-size: 0.8rem;
+     }
+    </style>
+    <ul class="activity-list">
+	{{- range . -}}
+	    <li>
+		<div>
+		    {{.FormattedText}}
+		</div>
+		<div class="activity-list__info">
+		    <b>IP Address</b>: {{.IpAddr}}
+		    <br/>
+		    <b>Device Info</b>: {{.DeviceInfo}}
+		    <br/>
+		    <b>Details</b>: {{.Details}}
+		</div>
+	    </li>
+	{{- end -}}
+    </ul>
+{{- end -}}

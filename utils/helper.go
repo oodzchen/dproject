@@ -23,7 +23,7 @@ import (
 
 // Print data as JSON string with prefix
 func PrintJSONf(prefix string, data any) {
-	str := SprintJSONf(data, prefix, "  ")
+	str := SprintJSONf(data, "", "  ")
 	fmt.Printf("%s%s\n", prefix, str)
 }
 

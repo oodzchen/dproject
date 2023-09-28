@@ -29,11 +29,17 @@
 
     {{- $data := .Data -}}
     {{- $tabs := list "all" "article" "reply" -}}
-    {{- $tabsMap := dict "all" "All" "article" "Articles" "reply" "Replies" "saved" "Saved" -}}
+    {{- $tabsMap := dict "all" "All" "article" "Articles" "reply" "Replies" "saved" "Saved" "activity" "Activity" -}}
 
-    {{- if and .LoginedUser (eq .LoginedUser.Id .Data.UserInfo.Id) -}}
-	{{- $tabs = append $tabs "saved" -}}
-    {{- end -}}
+    {{- if .LoginedUser -}}
+	{{- if eq .LoginedUser.Id .Data.UserInfo.Id -}}
+	    {{- $tabs = append $tabs "saved" -}}
+	{{- end -}}
+
+	{{- if permit "user" "access_activity" -}}
+	    {{- $tabs = append $tabs "activity" -}}
+	{{- end -}}
+{{- end -}}
 
     <div class="tabs">
 	{{- range $tabs -}}
@@ -41,12 +47,12 @@
 	{{- end -}}
     </div>
 
-    {{- if .Data.Posts -}}
-	{{template "post_list" .Data.Posts -}}
+    {{- if eq $data.CurrTab "activity" -}}
+	{{template "activity_list" .Data.Activities -}}
+	{{- placehold .Data.Activities "<i class='text-lighten-2'>No data</i>" -}}
     {{- else -}}
-	<div>
-	    <i class="text-lighten-2">No data</i>
-	</div>
+	{{template "post_list" .Data.Posts -}}
+	{{- placehold .Data.Posts "<i class='text-lighten-2'>No data</i>" -}}
     {{- end -}}
 
     {{template "foot" . -}}
@@ -59,7 +65,7 @@
 	<div class="data-list__row">
             <div class="data-list__label">Joined At:</div>
             <div class="data-list__content">
-		{{timeFormat .RegisteredAt "YYYY/MM/DD"}}
+		<time title="{{.RegisteredAt}}">{{timeFormat .RegisteredAt "YYYY/MM/DD"}}</time>
 	    </div>
 	</div>
 	{{if .Introduction -}}
