@@ -181,7 +181,7 @@ func UserLogger(uLogger *service.UserLogger, actType model.ActivityType, action 
 				err := uLogger.Log(user, actType, action, targetModel, func(r *http.Request) *service.UserLogData {
 					postData := make(map[string]any)
 					for k, v := range r.PostForm {
-						if k == "tk" {
+						if k == "tk" || k == "password" {
 							continue
 						}
 						postData[k] = v
