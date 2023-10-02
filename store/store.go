@@ -78,7 +78,7 @@ type RoleStore interface {
 }
 
 type ActivityStore interface {
-	List(userId int, actType, action string, page, pageSize int) ([]*model.Activity, error)
+	List(userId int, userName, actType, action string, page, pageSize int) ([]*model.Activity, int, error)
 	Create(userId int, actType, action, targetModel string, targetId int, ipAddr, deviceInfo, details string) (int, error)
 }
 

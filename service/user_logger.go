@@ -19,12 +19,12 @@ type UserLogData struct {
 
 type UserLogHandler func(r *http.Request) *UserLogData
 
-func (ul *UserLogger) Log(u *model.User, actType model.ActivityType, action model.AcAction, targetModel model.AcModel, handler UserLogHandler, r *http.Request) error {
+func (ul *UserLogger) Log(u *model.User, actType model.AcType, action model.AcAction, targetModel model.AcModel, handler UserLogHandler, r *http.Request) error {
 	var userId int
 
 	if u == nil {
 		userId = 1
-		actType = model.ActivityTypeAnonymous
+		actType = model.AcTypeAnonymous
 	} else {
 		userId = u.Id
 	}

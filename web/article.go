@@ -39,7 +39,7 @@ func (ar *ArticleResource) Routes() http.Handler {
 	rt.Get("/", ar.List)
 	rt.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
 		"article.create",
-	}, ar), mdw.UserLogger(ar.uLogger, model.ActivityTypeUser, model.AcActionCreateArticle, model.AcModelArticle, mdw.ULogArticleId),
+	}, ar), mdw.UserLogger(ar.uLogger, model.AcTypeUser, model.AcActionCreateArticle, model.AcModelArticle, mdw.ULogArticleId),
 	).Post("/", ar.Submit)
 
 	rt.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
@@ -56,7 +56,7 @@ func (ar *ArticleResource) Routes() http.Handler {
 		}, ar)).Group(func(r chi.Router) {
 			r.Get("/edit", ar.FormPage)
 			r.With(mdw.UserLogger(
-				ar.uLogger, model.ActivityTypeUser, model.AcActionEditArticle, model.AcModelArticle, mdw.ULogArticleId),
+				ar.uLogger, model.AcTypeUser, model.AcActionEditArticle, model.AcModelArticle, mdw.ULogArticleId),
 			).Post("/edit", ar.Update)
 		})
 
@@ -66,7 +66,7 @@ func (ar *ArticleResource) Routes() http.Handler {
 		}, ar)).Group(func(r chi.Router) {
 			r.Get("/delete", ar.DeletePage)
 			r.With(mdw.UserLogger(
-				ar.uLogger, model.ActivityTypeUser, model.AcActionDeleteArticle, model.AcModelArticle, mdw.ULogArticleId),
+				ar.uLogger, model.AcTypeUser, model.AcActionDeleteArticle, model.AcModelArticle, mdw.ULogArticleId),
 			).Post("/delete", ar.Delete)
 		})
 
@@ -78,19 +78,19 @@ func (ar *ArticleResource) Routes() http.Handler {
 			"article.vote_up",
 			"article.vote_down",
 		}, ar), mdw.UserLogger(
-			ar.uLogger, model.ActivityTypeUser, model.AcActionVoteArticle, model.AcModelArticle, mdw.ULogArticleId),
+			ar.uLogger, model.AcTypeUser, model.AcActionVoteArticle, model.AcModelArticle, mdw.ULogArticleId),
 		).Post("/vote", ar.Vote)
 
 		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
 			"article.save",
 		}, ar), mdw.UserLogger(
-			ar.uLogger, model.ActivityTypeUser, model.AcActionSaveArticle, model.AcModelArticle, mdw.ULogArticleId),
+			ar.uLogger, model.AcTypeUser, model.AcActionSaveArticle, model.AcModelArticle, mdw.ULogArticleId),
 		).Post("/save", ar.Save)
 
 		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
 			"article.react",
 		}, ar), mdw.UserLogger(
-			ar.uLogger, model.ActivityTypeUser, model.AcActionReactArticle, model.AcModelArticle, mdw.ULogArticleId),
+			ar.uLogger, model.AcTypeUser, model.AcActionReactArticle, model.AcModelArticle, mdw.ULogArticleId),
 		).Post("/react", ar.React)
 	})
 

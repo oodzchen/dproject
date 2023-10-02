@@ -14,6 +14,8 @@
 		    {{.FormattedText}}
 		</div>
 		<div class="activity-list__info">
+		    <b>Type</b>: {{.Type}}
+		    <br/>
 		    <b>IP Address</b>: {{.IpAddr}}
 		    <br/>
 		    <b>Device Info</b>: {{.DeviceInfo}}
@@ -22,5 +24,7 @@
 		</div>
 	    </li>
 	{{- end -}}
+
+	{{- placehold . "<i class='text-lighten-2'>No data</i>" -}}
     </ul>
 {{- end -}}

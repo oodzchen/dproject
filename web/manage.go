@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -53,7 +54,7 @@ func (mr *ManageResource) Routes() http.Handler {
 				"role.add",
 			}, mr)).Group(func(r chi.Router) {
 				r.With(mdw.UserLogger(
-					mr.uLogger, model.ActivityTypeManage, model.AcActionAddRole, model.AcModelEmpty, mdw.ULogEmpty),
+					mr.uLogger, model.AcTypeManage, model.AcActionAddRole, model.AcModelEmpty, mdw.ULogEmpty),
 				).Post("/", mr.RoleSubmit)
 				r.Get("/new", mr.RoleCreatePage)
 			})
@@ -63,7 +64,7 @@ func (mr *ManageResource) Routes() http.Handler {
 			}, mr)).Group(func(r chi.Router) {
 				r.Get("/{roleId}/edit", mr.RoleEditPage)
 				r.With(mdw.UserLogger(
-					mr.uLogger, model.ActivityTypeManage, model.AcActionEditRole, model.AcModelRole, mdw.ULogRoleId),
+					mr.uLogger, model.AcTypeManage, model.AcActionEditRole, model.AcModelRole, mdw.ULogRoleId),
 				).Post("/{roleId}/edit", mr.RoleEditSubmit)
 			})
 		})
@@ -74,6 +75,10 @@ func (mr *ManageResource) Routes() http.Handler {
 			"manage.access",
 			"user.list_access",
 		}, mr)).Get("/users", mr.ur.List)
+
+		r.With(mdw.PermitCheck(mr.permissionSrv, []string{
+			"activity.access",
+		}, mr)).Get("/activities", mr.ActivityList)
 	})
 
 	return rt
@@ -575,4 +580,80 @@ func (mr *ManageResource) RoleEditSubmit(w http.ResponseWriter, r *http.Request)
 
 	http.Redirect(w, r, "/manage/roles", http.StatusFound)
 
+}
+
+func (mr *ManageResource) ActivityList(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	userName := query.Get("username")
+	actType := query.Get("type")
+	action := query.Get("action")
+	pageStr := query.Get("page")
+	pageSizeStr := query.Get("page_size")
+
+	page, _ := strconv.Atoi(pageStr)
+	pageSize, _ := strconv.Atoi(pageSizeStr)
+
+	if page < DefaultPage {
+		page = DefaultPage
+	}
+
+	if pageSize < DefaultPageSize {
+		pageSize = DefaultPageSize
+	}
+
+	userName = strings.TrimSpace(userName)
+	actType = strings.TrimSpace(actType)
+	action = strings.TrimSpace(action)
+
+	list, total, err := mr.store.Activity.List(0, userName, actType, action, page, pageSize)
+	if err != nil {
+		mr.Error("", err, w, r, http.StatusInternalServerError)
+		return
+	}
+
+	for _, item := range list {
+		item.Format()
+	}
+
+	type QueryData struct {
+		UserName, Type, Action string
+		Total, Page, TotalPage int
+	}
+
+	type QctivityPageData struct {
+		List            []*model.Activity
+		AcTypeOptions   []*model.OptionItem
+		AcActionOptions []*model.OptionItem
+		Query           *QueryData
+	}
+
+	// acTypeVals := model.AcTypeValues()
+	var acTypeStrEnums []model.StringEnum
+	for _, item := range model.AcTypeValues() {
+		acTypeStrEnums = append(acTypeStrEnums, item)
+	}
+	acTypeOptons := model.ConvertEnumToOPtions(acTypeStrEnums, true)
+
+	var acActionStrEnums []model.StringEnum
+	for _, item := range model.AcActionValues() {
+		acActionStrEnums = append(acActionStrEnums, item)
+	}
+	acActionOptons := model.ConvertEnumToOPtions(acActionStrEnums, true)
+
+	mr.Render(w, r, "activity", &PageData{
+		Title: "Activity - Manage",
+		Data: &QctivityPageData{
+			List:            list,
+			AcTypeOptions:   acTypeOptons,
+			AcActionOptions: acActionOptons,
+			Query: &QueryData{
+				UserName:  userName,
+				Type:      actType,
+				Action:    action,
+				Total:     total,
+				Page:      page,
+				TotalPage: CeilInt(total, pageSize),
+			},
+		},
+	})
 }

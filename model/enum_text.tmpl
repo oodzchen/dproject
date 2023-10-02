@@ -1,0 +1,16 @@
+var _{{.enum.Name}}TextMap = map[{{.enum.Name}}]string{
+{{- range $rIndex, $value := .enum.Values }}
+    {{$value.PrefixedName}}:      "{{$value.Comment}}",
+{{- end }}
+}
+
+func (x {{.enum.Name}}) Text(upCaseHead bool) string {
+	text := _{{.enum.Name}}TextMap[x]
+	if upCaseHead {
+		text = strings.ToUpper(text[:1]) + text[1:]
+	} else {
+		text = strings.ToLower(text[:1]) + text[1:]
+	}
+	return text
+}
+

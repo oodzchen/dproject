@@ -13,16 +13,14 @@ type Activity struct {
 	dbPool *pgxpool.Pool
 }
 
-// List(userId int, actType string, page, pageSize int) ([]*model.Activity, error)
-// Create(userId int, actType, targetModel string, targetId int, ipAddr, deviceInfo, details string) (int, error)
+func (a *Activity) List(userId int, userName, actType, action string, page, pageSize int) ([]*model.Activity, int, error) {
+	sqlStr := `SELECT ua.id, ua.user_id, u.name as user_name, ua.type, ua.action, ua.target_model, ua.target_id, ua.ip_address, ua.device_info, ua.details, ua.created_at, COUNT(*) OVER() AS total
+FROM activities ua
+LEFT JOIN users u ON u.id = ua.user_id`
 
-func (a *Activity) List(userId int, actType, action string, page, pageSize int) ([]*model.Activity, error) {
-	sqlStr := `SELECT ua.id, ua.user_id, u.name as user_name, ua.type, ua.action, ua.target_model, ua.target_id, ua.ip_address, ua.device_info, ua.details, ua.created_at
-FROM user_activities ua
-LEFT JOIN users u ON u.id = user_id
-`
 	var args []any
 	var conditions []string
+	conditionCount := 0
 	if page < 1 {
 		page = defaultPage
 	}
@@ -30,32 +28,47 @@ LEFT JOIN users u ON u.id = user_id
 		pageSize = defaultPageSize
 	}
 
-	args = append(args, userId)
-	conditions = append(conditions, fmt.Sprintf("user_id = $%d", len(args)))
+	if userId > 0 {
+		args = append(args, userId)
+		conditions = append(conditions, fmt.Sprintf("ua.user_id = $%d", len(args)))
+		conditionCount += 1
+	}
+
+	if len(userName) > 0 {
+		bluredUserName := fmt.Sprintf("%s%s%s", "%%", userName, "%%")
+		args = append(args, bluredUserName)
+		sqlStr += fmt.Sprintf(" INNER JOIN users u1 ON u1.name ILIKE $%d AND u1.id = ua.user_id ", len(args))
+	}
 
 	if actType != "" {
 		args = append(args, actType)
-		conditions = append(conditions, fmt.Sprintf("type = $%d", len(args)))
+		conditions = append(conditions, fmt.Sprintf("ua.type = $%d", len(args)))
+		conditionCount += 1
 	}
 
 	if action != "" {
 		args = append(args, action)
-		conditions = append(conditions, fmt.Sprintf("aciton = $%d", len(args)))
+		conditions = append(conditions, fmt.Sprintf("ua.action = $%d", len(args)))
+		conditionCount += 1
 	}
-	sqlStr += ` WHERE ` + strings.Join(conditions, " AND ")
+
+	if conditionCount > 0 {
+		sqlStr += ` WHERE ` + strings.Join(conditions, " AND ")
+	}
 
 	args = append(args, pageSize*(page-1), pageSize)
-	sqlStr += fmt.Sprintf(" ORDER BY created_at DESC OFFSET $%d LIMIT $%d", len(args)-1, len(args))
+	sqlStr += fmt.Sprintf(" ORDER BY ua.created_at DESC OFFSET $%d LIMIT $%d", len(args)-1, len(args))
 
-	// fmt.Println("activity list sqlStr: ", sqlStr)
-	// fmt.Println("activity list args: ", args)
+	fmt.Println("activity list sqlStr: ", sqlStr)
+	fmt.Println("activity list args: ", args)
 
 	rows, err := a.dbPool.Query(context.Background(), sqlStr, args...)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	var list []*model.Activity
+	var total int
 	for rows.Next() {
 		var item model.Activity
 		// id, user_id, type, action, target_model, target_id, ip_address, device_info, details, created_at
@@ -71,23 +84,26 @@ LEFT JOIN users u ON u.id = user_id
 			&item.DeviceInfo,
 			&item.Details,
 			&item.CreatedAt,
+			&total,
 		)
 
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 
 		list = append(list, &item)
 	}
 
-	return list, nil
+	fmt.Println("total: ", total)
+
+	return list, total, nil
 }
 
 func (a *Activity) Create(userId int, actType, action, targetModel string, targetId int, ipAddr, deviceInfo, details string) (int, error) {
 	var id int
 	err := a.dbPool.QueryRow(
 		context.Background(),
-		`INSERT INTO user_activities
+		`INSERT INTO activities
 (user_id, type, action, target_model, target_id, ip_address, device_info, details)
 VALUES
 ($1, $2, $3, $4, $5, $6, $7, $8)

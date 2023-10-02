@@ -13,6 +13,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	DefaultPage     int = 1
+	DefaultPageSize int = 50
+)
+
 // func HandleGetSessionErr(err error) {
 // 	if err != nil {
 // 		fmt.Printf("get session error: %v\n", err)

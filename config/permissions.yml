@@ -111,4 +111,9 @@ data:
       name: Edit Role
       adapt_id: role.edit
       enabled: false
-      
+
+  activity:
+    access:
+      name: Access Activities
+      adapt_id: activity.access
+      enabled: false

@@ -49,10 +49,8 @@
 
     {{- if eq $data.CurrTab "activity" -}}
 	{{template "activity_list" .Data.Activities -}}
-	{{- placehold .Data.Activities "<i class='text-lighten-2'>No data</i>" -}}
     {{- else -}}
 	{{template "post_list" .Data.Posts -}}
-	{{- placehold .Data.Posts "<i class='text-lighten-2'>No data</i>" -}}
     {{- end -}}
 
     {{template "foot" . -}}
@@ -90,6 +88,7 @@
 		<div style="margin: 6px 0 12px;white-space: break-spaces;">{{.Summary}}{{if ne .Content .Summary}} ...{{end}}</div>
 	    </li>
 	{{end -}}
+	{{- placehold . "<i class='text-lighten-2'>No data</i>" -}}
     </ul>
 {{end -}}
 

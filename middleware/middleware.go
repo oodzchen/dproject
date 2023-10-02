@@ -162,7 +162,7 @@ func getLoginedUserData(r *http.Request) (*model.User, error) {
 	return nil, errors.New("no user data in request context")
 }
 
-func UserLogger(uLogger *service.UserLogger, actType model.ActivityType, action model.AcAction, targetModel model.AcModel, uHandler UserLoggerFn) func(http.Handler) http.Handler {
+func UserLogger(uLogger *service.UserLogger, actType model.AcType, action model.AcAction, targetModel model.AcModel, uHandler UserLoggerFn) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// fmt.Println("in middleware test before http")

@@ -1,0 +1,52 @@
+{{define "activity" -}}
+    {{template "head" . -}}
+    <style>
+     .filter-box{
+	 display: flex;
+     }
+     .filter-box .filter-box__item{
+	 display: flex;
+	 margin-right: 10px;
+     }
+     .filter-box .filter-box__label{
+	 padding-right: 4px;
+     }
+    </style>
+
+    {{- $data := .Data -}}
+    <form class="filter-box" action="/manage/activities" method="GET">
+	<div class="filter-box__item">
+	    <div class="filter-box__label">User Name:</div>
+	    <input name="username" type="text" value="{{.Data.Query.UserName}}"/>
+	</div>
+	<div class="filter-box__item">
+	    <div class="filter-box__label">Type:</div>
+	    <select name="type" autocomplete="off">
+		<option value=""></option>
+		{{- range .Data.AcTypeOptions -}}
+		    <option value="{{.Value}}" {{if eq .Value $data.Query.Type}}selected{{end}}>{{.Name}}</option>
+		{{- end -}}
+	    </select>
+	</div>
+	<div class="filter-box__item">
+	    <div class="filter-box__label">Action:</div>
+	    <select name="action" autocomplete="off">
+		<option value=""></option>
+		{{- range .Data.AcActionOptions -}}
+		    <option value="{{.Value}}" {{if eq .Value $data.Query.Action}}selected{{end}}>{{.Name}}</option>
+		{{- end -}}
+	    </select>
+	</div>
+	<button type="reset" onclick="location='/manage/activities'">Reset</button>&nbsp;&nbsp;
+	<button type="submit">Search</button>
+    </form>
+
+    <hr/>
+
+    {{- template "activity_list" .Data.List -}}
+
+    {{- $pagiData := dict "currPage" .Data.Query.Page "totalPage" .Data.Query.TotalPage "pathPrefix" "/manage/activities"  -}}
+    {{- template "pagination" $pagiData -}}
+
+    {{template "foot" -}}
+{{end -}}

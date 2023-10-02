@@ -95,3 +95,4 @@ data:
       - role.access
       - role.add
       - role.edit
+      - activity.access

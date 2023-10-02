@@ -20,12 +20,17 @@ type UserResource struct {
 	// store *store.Store
 }
 
+type queryData struct {
+	Total, Page, TotalPage int
+}
+
 type userProfile struct {
 	UserInfo        *model.User
 	Posts           []*model.Article
 	CurrTab         service.UserListType
 	PermissionNames []string
 	Activities      []*model.Activity
+	Query           *queryData
 }
 
 func NewUserResource(renderer *Renderer) *UserResource {
@@ -49,7 +54,7 @@ func (ur *UserResource) Routes() http.Handler {
 			// r.Get("/ban", ur.BanPage)
 			r.Get("/set_role", ur.SetRolePage)
 			r.With(mdw.UserLogger(
-				ur.uLogger, model.ActivityTypeManage, model.AcActionSetRole, model.AcModelUser, mdw.ULogLoginedUserId),
+				ur.uLogger, model.AcTypeManage, model.AcActionSetRole, model.AcModelUser, mdw.ULogLoginedUserId),
 			).Post("/set_role", ur.SetRole)
 		})
 	})
@@ -119,6 +124,19 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 
+	pageStr := r.URL.Query().Get("page")
+	pageSizeStr := r.URL.Query().Get("page_size")
+	page, _ := strconv.Atoi(pageStr)
+	pageSize, _ := strconv.Atoi(pageSizeStr)
+
+	if page < DefaultPage {
+		page = DefaultPage
+	}
+
+	if pageSize < DefaultPageSize {
+		pageSize = DefaultPageSize
+	}
+
 	userId, err := strconv.Atoi(chi.URLParam(r, "userId"))
 	if err != nil {
 		ur.Error("", errors.WithStack(err), w, r, http.StatusBadRequest)
@@ -147,6 +165,7 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 
 	var postList []*model.Article
 	var activityList []*model.Activity
+	var total int
 	if tab != "activity" {
 		postList, err = ur.userSrv.GetPosts(userId, service.UserListType(tab))
 	} else {
@@ -154,8 +173,7 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 			ur.Error("", nil, w, r, http.StatusForbidden)
 			return
 		}
-		activityList, err = ur.store.Activity.List(user.Id, "", "", 1, 999)
-
+		activityList, total, err = ur.store.Activity.List(user.Id, "", "", "", page, pageSize)
 	}
 	if err != nil {
 		ur.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
@@ -184,6 +202,11 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 			CurrTab:         service.UserListType(tab),
 			PermissionNames: permissionNames,
 			Activities:      activityList,
+			Query: &queryData{
+				Total:     total,
+				Page:      page,
+				TotalPage: CeilInt(total, pageSize),
+			},
 		},
 		BreadCrumbs: []*BreadCrumb{
 			{

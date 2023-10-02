@@ -3,8 +3,12 @@
     {{template "head" . -}}
 
     <style>
+     .article-list .article-list__title{
+	 font-size: 1.2rem;
+     }
      .article-list .article-list__summary{
 	 font-size: 0.8rem;
+	 color: var(--text-lighten-2);
      }
     </style>
     
@@ -25,7 +29,7 @@
 	{{- placehold .Data.Articles "<i class='text-lighten'>No data</i>" -}}
 	{{range $idx, $item := .Data.Articles -}}
 	    <li>
-		<a {{if eq $idx 0}}id="article-list-head"{{end}} href="/articles/{{$item.Id}}">{{$item.DisplayTitle}}</a>
+		<a class="article-list__title" {{if eq $idx 0}}id="article-list-head"{{end}} href="/articles/{{$item.Id}}">{{$item.DisplayTitle}}</a>
 		<br/>
 		<small class="text-lighten-3">By <a class="text-lighten-3" href="/users/{{$item.AuthorId}}">{{$item.AuthorName}}</a> <time title="{{$item.CreatedAt}}">{{timeAgo $item.CreatedAt}}</time> | vote score {{$item.VoteScore}}&nbsp;
 		    {{- if $debug -}}
@@ -33,7 +37,7 @@
 			| participate {{$item.ParticipateCount}}
 		    {{- end -}}
 		</small>
-		<div class="article-list__summary" class="text-lighten-2">{{$item.Summary}}{{if ne $item.Summary $item.Content}} ...{{end}}</div>
+		<!-- <div class="article-list__summary" class="text-lighten-2">{{$item.Summary}}{{if ne $item.Summary $item.Content}} ...{{end}}</div> -->
 		<div class="article-operation">
 		    <small>
 			<form class="vote-form{{if and $currUser (eq $item.CurrUserState.VoteType "up")}} voted{{end}}" action="/articles/{{$item.Id}}/vote" method="POST">
