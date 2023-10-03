@@ -1,7 +1,6 @@
 package web
 
 import (
-	"fmt"
 	"net/http"
 	"sort"
 	"strconv"
@@ -405,7 +404,7 @@ func (mr *ManageResource) RoleSubmit(w http.ResponseWriter, r *http.Request) {
 
 	// _, err = mr.store.Role.Create(role.FrontId, role.Name, permissionIds)
 
-	fmt.Println("permissionFrontIds: ", permissionFrontIds)
+	// fmt.Println("permissionFrontIds: ", permissionFrontIds)
 	_, err = mr.store.Role.CreateWithFrontId(role.FrontId, role.Name, permissionFrontIds)
 
 	if err != nil {

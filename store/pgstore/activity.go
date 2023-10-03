@@ -59,8 +59,8 @@ LEFT JOIN users u ON u.id = ua.user_id`
 	args = append(args, pageSize*(page-1), pageSize)
 	sqlStr += fmt.Sprintf(" ORDER BY ua.created_at DESC OFFSET $%d LIMIT $%d", len(args)-1, len(args))
 
-	fmt.Println("activity list sqlStr: ", sqlStr)
-	fmt.Println("activity list args: ", args)
+	// fmt.Println("activity list sqlStr: ", sqlStr)
+	// fmt.Println("activity list args: ", args)
 
 	rows, err := a.dbPool.Query(context.Background(), sqlStr, args...)
 	if err != nil {
