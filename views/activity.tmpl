@@ -55,6 +55,10 @@
 
     <hr/>
 
+    <div>
+	<b>{{.Data.Query.Total}} activities</b>
+    </div>
+
     {{- template "activity_list" .Data.List -}}
 
     {{- $pagiData := dict "currPage" .Data.Query.Page "totalPage" .Data.Query.TotalPage "pathPrefix" "/manage/activities"  -}}

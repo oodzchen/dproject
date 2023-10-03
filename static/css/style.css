@@ -1,0 +1,442 @@
+:root{
+    --font-size: 16px;
+    --tip-bg: #E5E4BE;
+    --theme-color: #2F71AC;
+    --theme-color-darken: #5050DC;
+    --border-color-active: var(--theme-color);
+    --reply-indent-size: 2rem;
+}
+:root[data-theme="light"] {
+    color-scheme: light;
+    --text: black;
+    --background-hover: #FAFAFA;
+
+    --text-bg: #E8F4FF;
+    
+    --text-with-background: black;
+    --text-lighten: #333;
+    --text-lighten-2: #666;
+    --text-lighten-3: #999;
+
+    --link: #1111FE;
+    --link-visited: #9A3D9A;
+    --link-active: #CE3535;
+
+    --border-color: #CCC;
+}
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --theme-color: #74BCFB;
+    --theme-color-darken: #8C8CDC;
+    --text: white;
+    --background-hover: #383A45;
+
+    --text-bg: #2E3841;
+    
+    --text-with-background: black;
+    --text-lighten: #DDD;
+    --text-lighten-2: #CCC;
+    --text-lighten-3: #AAA;
+
+    --link: #A3A3FF;
+    --link-visited: #A35FA3;
+    --link-active: #EE7C7C;
+
+    --border-color: #666;
+}
+h1{
+    margin-bottom: 0.6rem;
+}
+a {
+    text-decoration: none;
+    color: var(--link);
+}
+a:active{
+    color: var(--link-active);
+}
+a:visited{
+    color: var(--link-visited);
+}
+a:hover,
+a:focus-visible{
+    text-decoration: underline;
+}
+
+input,
+textarea,
+button{
+    font-size: var(--font-size)
+}
+
+*:disabled{
+    cursor: not-allowed!important;
+}
+
+input[type="text"],
+textarea{
+    max-width: 1000px;
+}
+
+html{
+    font-size: var(--font-size)
+}
+html,body{
+    background: var(--background);
+    color: var(--text);
+}
+body{
+    margin: 0 auto;
+    padding: 10px 12px;
+    font-family: Helvetica, sans-serif, Noto Sans, Microsoft YaHei, Microsoft JhengHei, PingFang, Noto Color Emoji;
+}
+
+hr{
+    border-color: var(--border-color);
+}
+
+label[for]{
+    white-space: nowrap;
+}
+
+.table-data{
+    border: 1px solid var(--border-color);
+    border-collapse: collapse;
+}
+
+.table-data thead th{
+    background: var(--text-bg);
+}
+
+.table-data th,
+.table-data td{
+    border: 1px solid var(--border-color);
+    padding: 4px 12px;
+}
+
+a.brand{
+    display: inline-block;
+    font-size: 1.2rem;
+    color: var(--theme-color) !important;
+}
+a.brand b{
+    color: var(--theme-color) !important;
+}
+.slogan{
+    font-size: 0.8rem;
+}
+.text-lighten,
+a.text-lighten{
+    color: var(--text-lighten)
+}
+.text-lighten-2,
+a.text-lighten-2{
+    color: var(--text-lighten-2)
+}
+.text-lighten-3,
+a.text-lighten-3{
+    color: var(--text-lighten-3)
+}
+.page-tip{
+    display:flex;
+    padding: 10px;
+    margin-bottom: 10px;
+    justify-content:space-between;
+    background-color: var(--tip-bg);
+    color: var(--text-with-background)
+}
+.page-tip a{
+    color: var(--text-with-background)
+}
+.article-list{
+    padding-left: 2rem;
+}
+.article-list li{
+    margin-bottom: 10px;
+}
+.article-list li a:active,
+.article-list li a:focus{
+    border: 1px dashed #ccc;
+}
+.skip-button{
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 0;
+    line-height: 2.4rem;
+    background: var(--background);
+    text-align: center;
+    overflow: hidden;
+}
+.skip-button:focus-visible{
+    height: auto;
+    outline: 1px solid blue;
+    text-decoration: underline;
+}
+.tabs{
+    padding: 4px 10px 0;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 10px
+}
+.tabs .tab{
+    display: inline-block;
+    padding: 0 10px 4px;
+    margin-bottom: -1px;
+    line-height: 28px;
+    color: var(--text-lighten);
+    font-size: 0.9rem;
+}
+.tabs .tab.active{
+    color: var(--text-color);
+    border-bottom: 2px solid var(--border-color-active);
+}
+
+.page-tab{
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px 0;
+}
+.page-tab .tabs{
+    border-bottom: none;
+    margin-bottom: -1px;
+}
+.page-tab .page-tab__btn{
+    line-height: 32px;
+    font-size: 0.9rem;
+}
+
+.data-list{
+    display: table;
+    width: 100%;
+}
+.data-list .data-list__row{
+    display: table-row;
+}
+.data-list .data-list__label,
+.data-list .data-list__content{
+    display: table-cell;
+    padding-bottom: 10px;
+    vertical-align: top;
+}
+.data-list .data-list__label{
+    width: 7rem;
+    text-align: right;
+    padding-right: 6px;
+    box-sizing: border-box;
+}
+.data-list .data-list__content{
+    text-align: left;
+    line-height: 1.2;
+}
+.form .form__row{
+    margin-bottom: 12px;
+}
+.form .form__row > .form__label{
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
+}
+.form .form__row:last-child{
+    margin-bottom: 0;
+}
+.vote-form{
+    display: inline-block;
+    padding: 0;
+    margin: 0;
+    vertical-align: text-bottom;
+    line-height: 0;
+}
+.vote-form button[type="submit"]{
+    display: inline-block;
+    padding: 0;
+    border: none;
+    line-height: 1;
+    vertical-align: text-top;
+    font-size: 1rem;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-lighten-2);
+}
+.vote-form button[type="submit"]:hover,
+.vote-form button[type="submit"]:hover svg{
+    color: var(--text-lighten-3);
+}
+.vote-form.voted button[type="submit"],
+.vote-form.voted button[type="submit"] svg{
+    color: var(--theme-color);
+}
+.btn-vote--up,
+.btn-vote--down{
+    position: relative;
+}
+.btn-vote--up{
+    top: 1px;
+}
+.btn-vote--down{
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+}
+
+.article-operation{
+    display: flex;
+    justify-content: space-between;
+}
+.article-operation,
+.article-operation a,
+.article-operation svg,
+.article-operation button[type="submit"]{
+    color: var(--text-lighten-2);
+    
+}
+
+.article-operation svg,
+.article-operation a{
+    display: inline-block;
+    vertical-align: baseline;
+}
+.article-operation svg{
+    vertical-align: -1px;
+}
+
+.article-operation .btn-form{
+    display: inline;
+    margin: 0;
+    padding: 0;
+}
+
+.btn-link,
+.article-operation .btn-form button[type="submit"]{
+    appearance: none;
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+    vertical-align: inherit;
+}
+
+.btn-link:hover,
+.article-operation .btn-form button[type="submit"]:hover{
+    text-decoration: underline;
+}
+
+.article-reacts{
+    display: inline-block;
+    vertical-align: baseline;
+}
+.article-reacts form>span{
+    cursor: pointer;
+}
+
+.article-operation .btn-react{
+    position: relative;
+    padding: 0 4px;
+    margin-right: 4px;
+    vertical-align: baseline;
+}
+.article-operation .btn-react:last-child{
+    margin-right: 0;
+}
+.article-operation .btn-react > a,
+.article-operation .btn-react > span,
+.article-operation .btn-react > label,
+.article-operation .btn-react > a > svg{
+    white-space: nowrap;
+    position: relative;
+    z-index: 2;
+}
+.article-operation .btn-react select{
+    position: absolute;
+    right: 0;
+    top: 0;
+    appearance: none;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    border: none;
+    z-index: 10;
+    background: transparent;
+    cursor: pointer;
+}
+
+.article-operation .btn-form{
+    display: inline-block;
+}
+
+.article-operation .btn-react.btn-react--selected{
+    border: 1px solid var(--theme-color);
+    border-radius: 1rem;
+    text-align: center;
+}
+
+.article-placeholder{
+    padding: 4px 0;
+    cursor: pointer;
+}
+
+.card{
+    margin:12px 0 12px;
+    padding:10px;
+    border:1px solid #ccc;
+}
+
+@media (max-width: 750px){
+    :root{
+	--reply-indent-size: 1rem;
+    }
+}
+
+.top-nav {
+    display: flex;
+    justify-content: space-between;
+    /* flex-wrap: wrap; */
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+.nav-menu{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: 50%;
+}
+.nav-menu li{
+    vertical-align: middle;
+    
+    line-height: 1.2rem;
+}
+.nav-menu li a,
+.nav-menu li b,
+.nav-menu li .btn-link{
+    color: var(--text-lighten);
+}
+.nav-menu.nav-menu--left{
+    flex: 1 0 auto;
+}
+.nav-menu.nav-menu--right{
+    justify-content: flex-end;
+    text-align: right;
+}
+.nav-menu.nav-menu--right li{
+    margin-left: 10px;
+}
+.nav-menu.nav-menu--right li:first-child{
+    margin-left: 0;
+}
+.nav-menu.nav-menu--right li{
+    margin-left: 10px;
+}
+.nav-menu.nav-menu--left li{
+    margin-right: 10px;
+}
+.nav-menu.nav-menu--left li:last-child{
+    margin-right: 0;
+}

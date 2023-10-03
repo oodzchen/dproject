@@ -31,12 +31,12 @@
 
     {{- if eq .Data.PageKey "ui" -}}
 	<form class="form" method="POST" action="/settings/ui">
-	    {{$themeDict := dict "light" "Light" "dark" "Dark" "system" "OS Default (Must enable JavaScript)"}}
-	    {{$themes := list "light" "dark" "system"}}
-	    {{$contentLayoutDict := dict "full" "Full" "centered" "Centered"}}
-	    {{$contentLayouts := list "centered" "full"}}
-	    {{$settings := .UISettings}}
-	    {{.CSRFField}}
+	    {{- $themeDict := dict "light" "Light" "dark" "Dark" "system" "OS Default (Must enable JavaScript)"}}
+	    {{- $themes := list "light" "dark" "system"}}
+	    {{- $contentLayoutDict := dict "full" "Full" "centered" "Centered"}}
+	    {{- $contentLayouts := list "centered" "full"}}
+	    {{- $settings := .UISettings}}
+	    {{- .CSRFField}}
 	    <div class="form__row">
 		<label class="form__label" for="theme-options">Theme:</label>
 		<div id="theme-options">
