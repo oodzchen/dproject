@@ -24,15 +24,15 @@ func NewMock(cfg *config.AppConfig) *Mock {
 func (mc *Mock) Register(data *TestUser) chp.Tasks {
 	return chp.Tasks{
 		chp.Navigate(mc.ServerURL),
-		chp.WaitVisible(`body>footer`),
+		mc.WaitFooterReady(),
 		chp.Click(`ul.nav-menu:nth-child(2) > li > a[href^="/register"]`, chp.NodeNotVisible),
-		chp.WaitVisible(`body>footer`),
-		chp.WaitVisible(`input[name="email"]`),
+		mc.WaitFooterReady(),
+		chp.WaitReady(`input[name="email"]`),
 		chp.SetValue(`input[name="email"]`, data.Email),
 		chp.SetValue(`input[name="password"]`, mc.TestingPWD),
 		chp.SetValue(`input[name="username"]`, data.Name),
 		chp.Click(`body>form>button[type="submit"]`),
-		chp.WaitVisible(`body>footer`),
+		mc.WaitFooterReady(),
 	}
 }
 
@@ -40,19 +40,19 @@ func (mc *Mock) Login(data *TestUser) chp.Tasks {
 	// Logln("login user: ", data)
 	return chp.Tasks{
 		chp.Navigate(mc.ServerURL),
-		chp.WaitVisible(`body>footer`),
+		mc.WaitFooterReady(),
 		chp.Click(`ul.nav-menu:nth-child(2) > li > a[href^="/login"]`),
 		chp.SetValue(`input[name="email"]`, data.Email),
 		chp.SetValue(`input[name="password"]`, mc.TestingPWD),
 		chp.Click(`#login-form>button[type="submit"]`),
-		chp.WaitVisible(`body>footer`),
+		mc.WaitFooterReady(),
 	}
 }
 
 func (mc *Mock) Logout() chp.Tasks {
 	return chp.Tasks{
 		chp.Click(`ul.nav-menu:nth-child(2) > li > form[action="/logout"] > button[type="submit"]`),
-		chp.WaitVisible(`body>footer`),
+		mc.WaitFooterReady(),
 	}
 }
 
@@ -75,11 +75,11 @@ func (mc *Mock) CreateArticle(a *TestArticle) chp.Tasks {
 	var result string
 	return chp.Tasks{
 		chp.Click(`ul.nav-menu:nth-child(2) > li > a[href^="/articles/new"]`),
-		chp.WaitVisible(`body>footer`),
+		mc.WaitFooterReady(),
 		chp.SetValue(`#title`, a.Title),
 		chp.SetValue(`#content`, a.Content),
 		chp.Click(`body>form>button[type="submit"]`),
-		chp.WaitVisible(`body>footer`),
+		mc.WaitFooterReady(),
 		chp.TextContent(`body>article>h1`, &result),
 		chp.ActionFunc(func(ctx context.Context) error {
 			// Logln("\nnew article: ", a.Title)

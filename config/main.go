@@ -25,7 +25,7 @@ type AppConfig struct {
 }
 
 func (ac *AppConfig) GetServerURL() string {
-	return fmt.Sprintf("http://%s:%d", "localhost", ac.AppPort)
+	return fmt.Sprintf("http://%s:%d", "localhost", ac.AppOuterPort)
 }
 
 // Get app host as host:port

@@ -70,6 +70,8 @@ func main() {
 
 	mock = mt.NewMock(cfg)
 
+	fmt.Printf("Server URL: %s\n", mock.ServerURL)
+
 	opts := append(chp.DefaultExecAllocatorOptions[:],
 		chp.DisableGPU,
 		chp.UserDataDir(dir),
@@ -89,7 +91,7 @@ func main() {
 	err = runTasks("visit article and get content", ctx,
 		chp.Navigate(mock.ServerURL),
 		mock.WaitFooterReady(),
-		chp.Click(`ol>li:first-child>a`, chp.NodeVisible),
+		chp.Click(`ol>li:first-child>a`, chp.NodeReady),
 		mock.WaitFooterReady(),
 		chp.TextContent(`body>article>section`, &content),
 		chp.ActionFunc(func(ctx context.Context) error {
@@ -104,9 +106,9 @@ func main() {
 	err = runTasks("add new as anonymous", ctx,
 		chp.Navigate(mock.ServerURL),
 		mock.WaitFooterReady(),
-		chp.Click(`ul.nav-menu:nth-child(2) > li > a[href^="/articles/new"]`, chp.NodeVisible),
+		chp.Click(`ul.nav-menu:nth-child(2) > li > a[href^="/articles/new"]`, chp.NodeReady),
 		mock.WaitFooterReady(),
-		chp.WaitVisible(`#password`, chp.ByID),
+		chp.WaitReady(`#password`, chp.ByID),
 	)
 	mt.LogFailed(err)
 
