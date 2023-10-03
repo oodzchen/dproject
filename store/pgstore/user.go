@@ -27,7 +27,7 @@ func (u *User) List(page, pageSize int, oldest bool) ([]*model.User, error) {
 
 	rows, err := u.dbPool.Query(
 		context.Background(),
-		`SELECT u.id, u.name, u.email, u.created_at, COALESCE(u.introduction, ''),
+		`SELECT u.id, u.username, u.email, u.created_at, COALESCE(u.introduction, ''),
 COALESCE(r.name, '') as role_name, COALESCE(r.front_id, '') AS role_front_id,
 COALESCE(p.id, 0) AS p_id, COALESCE(p.name, '') AS p_name, COALESCE(p.front_id, '') AS p_front_id, COALESCE(p.module, 'user') AS p_module, COALESCE(p.created_at, NOW()) AS p_created_at
 FROM users u
@@ -112,7 +112,7 @@ func (u *User) Count() (int, error) {
 func (u *User) Create(email, password, name string, roleFrontId string) (int, error) {
 	// fmt.Printf("user.create item: %+v\n", item)
 	var id int
-	err := u.dbPool.QueryRow(context.Background(), "INSERT INTO users (email, password, name) VALUES ($1, $2, $3) RETURNING (id)",
+	err := u.dbPool.QueryRow(context.Background(), "INSERT INTO users (email, password, username) VALUES ($1, $2, $3) RETURNING (id)",
 		email,
 		password,
 		name).Scan(&id)
@@ -176,7 +176,7 @@ func (u *User) Update(item *model.User, fieldNames []string) (int, error) {
 func (u *User) Item(id int) (*model.User, error) {
 	// fmt.Println("userId: ", id)
 
-	sqlStr := `SELECT u.id, u.name, u.email, u.created_at, u.super_admin, COALESCE(u.introduction, '') as introduction,
+	sqlStr := `SELECT u.id, u.username, u.email, u.created_at, u.super_admin, COALESCE(u.introduction, '') as introduction,
 COALESCE(r.name, '') as role_name, COALESCE(r.front_id, '') AS role_front_id,
 COALESCE(p.id, 0) AS p_id, COALESCE(p.name, '') AS p_name, COALESCE(p.front_id, '') AS p_front_id, COALESCE(p.module, 'user') AS p_module, COALESCE(p.created_at, NOW()) AS p_created_at
 FROM users u
@@ -289,7 +289,7 @@ p.created_at,
 p.updated_at,
 p.reply_to,
 p.author_id,
-u.name AS author_name,
+u.username AS author_name,
 p.depth,
 p3.title AS root_article_title
 FROM posts p
@@ -355,7 +355,7 @@ p.created_at,
 p.updated_at,
 p.reply_to,
 p.author_id,
-u.name AS author_name,
+u.username AS author_name,
 p.depth,
 p3.title AS root_article_title
 FROM post_saves ps

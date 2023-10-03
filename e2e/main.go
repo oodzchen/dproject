@@ -145,7 +145,7 @@ func main() {
 		mock.Login(newUser),
 		chp.TextContent(`ul.nav-menu:nth-child(2) > li > a[href^="/users/"]`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
-			if len(resultText) == 0 || resultText != newUser.Name {
+			if len(resultText) == 0 {
 				return errors.New("user name incorrect")
 			}
 			return nil

@@ -12,13 +12,14 @@ CREATE TABLE users (
 id SERIAL PRIMARY KEY,
 email VARCHAR(255) NOT NULL,
 password VARCHAR(255) NOT NULL,
-name VARCHAR(255) NOT NULL,
+username VARCHAR(255) NOT NULL,
 introduction TEXT,
 created_at TIMESTAMP NOT NULL DEFAULT NOW(),
 super_admin BOOLEAN NOT NULL DEFAULT false,
 deleted BOOLEAN NOT NULL DEFAULT false,
 banned BOOLEAN NOT NULL DEFAULT false,
-UNIQUE(email)
+UNIQUE(email),
+UNIQUE(username)
 );
 
 -- 创建文章数据表格
@@ -59,14 +60,14 @@ CREATE RULE post_del_protect AS ON DELETE TO posts DO INSTEAD NOTHING;
 
 -- 插入样例数据
 -- 用户样例数据
-INSERT INTO users (email, password, name, introduction, super_admin)
+INSERT INTO users (email, password, username, introduction, super_admin)
 VALUES
 ('chenlin7788@gmail.com', :user_default_password, 'anonymous', 'Anonymous placeholder', false),
-('oodzchen@gmail.com', :user_default_password, '欧辰', '这是欧辰的自我介绍', true),
-('zhangsan@example.com', :user_default_password, '张三', '这是张三的自我介绍', false),
-('lisi@example.com', :user_default_password, '李四', '这是李四的自我介绍', false),
-('wangwu@example.com', :user_default_password, '王五', '这是王五的自我介绍', false),
-('mazi@example.com', :user_default_password, '麻子', '这是麻子的自我介绍', false);
+('oodzchen@gmail.com', :user_default_password, 'oodzchen', '这是欧辰的自我介绍', true),
+('zhangsan@example.com', :user_default_password, 'zhangsan', '这是张三的自我介绍', false),
+('lisi@example.com', :user_default_password, 'lisi', '这是李四的自我介绍', false),
+('wangwu@example.com', :user_default_password, 'wangwu', '这是王五的自我介绍', false),
+('mazi@example.com', :user_default_password, 'mazi', '这是麻子的自我介绍', false);
 
 -- -- 文章样例
 -- INSERT INTO posts (title, content, author_id)

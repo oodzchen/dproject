@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"strings"
 
 	"github.com/brianvoe/gofakeit/v6"
 )
@@ -19,9 +20,24 @@ type TestArticle struct {
 }
 
 func GenUser() *TestUser {
+	username := []string{
+		gofakeit.FirstName(),
+		gofakeit.MiddleName(),
+		gofakeit.LastName(),
+	}
+
+	rand := rand.Intn(100)
+
+	name := strings.Join(username, "")
+	if rand%3 == 0 {
+		name = ""
+	} else if rand%5 == 0 {
+		name = strings.Join(username, ".")
+	}
+
 	return &TestUser{
 		Email: gofakeit.Email(),
-		Name:  gofakeit.Name(),
+		Name:  name,
 	}
 }
 

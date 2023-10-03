@@ -19,7 +19,7 @@ type Article struct {
 
 func (a *Article) List(page, pageSize, userId int) ([]*model.Article, error) {
 	sqlStr := `
-SELECT tp.id, tp.title, u.name as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, tp.depth, p2.title as root_article_title, (
+SELECT tp.id, tp.title, u.username as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, tp.depth, p2.title as root_article_title, (
 	WITH RECURSIVE replies AS (
 	   SELECT id
 	   FROM posts
@@ -218,7 +218,7 @@ func (a *Article) Update(item *model.Article, fieldNames []string) (int, error) 
 
 func (a *Article) Item(id, userId int) (*model.Article, error) {
 	sqlStr := `
-SELECT p.id, p.title, u.name AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title as root_article_title, (
+SELECT p.id, p.title, u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title as root_article_title, (
 	WITH RECURSIVE replies AS (
 	   SELECT id
 	   FROM posts
@@ -340,7 +340,7 @@ WITH RECURSIVE articleTree AS (
      ON p.reply_to = ar.id
      WHERE ar.cur_depth < $2
 )
-SELECT ar.id, ar.title, u.name as author_name, ar.author_id, ar.content, ar.created_at, ar.updated_at, ar.deleted, ar.reply_to, ar.depth, ar.root_article_id, p2.title as root_article_title, (
+SELECT ar.id, ar.title, u.username as author_name, ar.author_id, ar.content, ar.created_at, ar.updated_at, ar.deleted, ar.reply_to, ar.depth, ar.root_article_id, p2.title as root_article_title, (
 	WITH RECURSIVE replies AS (
 	   SELECT id
 	   FROM posts

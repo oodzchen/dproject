@@ -14,7 +14,7 @@ type Activity struct {
 }
 
 func (a *Activity) List(userId int, userName, actType, action string, page, pageSize int) ([]*model.Activity, int, error) {
-	sqlStr := `SELECT ua.id, ua.user_id, u.name as user_name, ua.type, ua.action, ua.target_model, ua.target_id, ua.ip_address, ua.device_info, ua.details, ua.created_at, COUNT(*) OVER() AS total
+	sqlStr := `SELECT ua.id, ua.user_id, u.username as user_name, ua.type, ua.action, ua.target_model, ua.target_id, ua.ip_address, ua.device_info, ua.details, ua.created_at, COUNT(*) OVER() AS total
 FROM activities ua
 LEFT JOIN users u ON u.id = ua.user_id`
 

@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/store"
+	"github.com/oodzchen/dproject/utils"
 )
 
 type UserListType string
@@ -38,6 +39,11 @@ func (u *User) Register(email string, password string, name string) (int, error)
 	}
 
 	user.TrimSpace()
+
+	if user.Name == "" {
+		user.Name = utils.ExtractNameFromEmail(user.Email)
+	}
+
 	user.Sanitize()
 	err := user.Valid()
 	if err != nil {

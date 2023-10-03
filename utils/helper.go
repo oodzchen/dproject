@@ -3,9 +3,15 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/oodzchen/dproject/config"
 )
+
+const ReUsernameStr = `^[a-zA-Z0-9][a-zA-Z0-9._-]+[a-zA-Z0-9]$`
+const ReUsernameMiddleStr = `^[a-zA-Z0-9._-]+$`
+const ReUsernameEdgeStr = `^[a-zA-Z0-9]+$`
 
 // func GetSiteHost() string {
 // 	// domain := os.Getenv("DOMAIN_NAME")
@@ -42,4 +48,40 @@ func GetReplyDepthSize() int {
 
 func IsDebug() bool {
 	return config.Config.Debug
+}
+
+func ExtractNameFromEmail(email string) string {
+	name := strings.Split(email, "@")[0]
+	reUsername := regexp.MustCompile(ReUsernameStr)
+	reUsernameMiddle := regexp.MustCompile(ReUsernameMiddleStr)
+	reUsernameEdge := regexp.MustCompile(ReUsernameEdgeStr)
+
+	var res []string
+	if reUsername.Match([]byte(name)) {
+		return name
+	} else {
+		if !reUsernameEdge.Match([]byte(name[:1])) {
+			name = name[1:]
+			if len(name) < 1 {
+				return ""
+			}
+		}
+
+		if !reUsernameEdge.Match([]byte(name[len(name)-1:])) {
+			name = name[:len(name)-1]
+			if len(name) < 1 {
+				return ""
+			}
+		}
+
+		for _, rune := range name {
+			if reUsernameMiddle.Match([]byte(string(rune))) {
+				res = append(res, string(rune))
+			} else {
+				res = append(res, ".")
+			}
+		}
+	}
+
+	return strings.Join(res, "")
 }

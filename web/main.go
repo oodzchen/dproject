@@ -43,10 +43,16 @@ func (mr *MainResource) Routes() http.Handler {
 
 	rt.Get("/", mr.articleRs.List)
 	rt.Get("/register", mr.RegisterPage)
-	rt.With(mdw.UserLogger(mr.uLogger, model.AcTypeUser, model.AcActionRegister, model.AcModelEmpty, mdw.ULogEmpty)).Post("/register", mr.Register)
+	rt.With(mdw.UserLogger(
+		mr.uLogger, model.AcTypeUser, model.AcActionRegister, model.AcModelEmpty, mdw.ULogEmpty),
+	).Post("/register", mr.Register)
 	rt.Get("/login", mr.LoginPage)
-	rt.With(mdw.UserLogger(mr.uLogger, model.AcTypeUser, model.AcActionLogin, model.AcModelEmpty, mdw.ULogEmpty)).Post("/login", mr.Login)
-	rt.With(mdw.AuthCheck(mr.sessStore), mdw.UserLogger(mr.uLogger, model.AcTypeUser, model.AcActionLogout, "", mdw.ULogEmpty)).Post("/logout", mr.Logout)
+	rt.With(mdw.UserLogger(
+		mr.uLogger, model.AcTypeUser, model.AcActionLogin, model.AcModelEmpty, mdw.ULogEmpty),
+	).Post("/login", mr.Login)
+	rt.With(mdw.AuthCheck(mr.sessStore), mdw.UserLogger(
+		mr.uLogger, model.AcTypeUser, model.AcActionLogout, "", mdw.ULogEmpty),
+	).Post("/logout", mr.Logout)
 
 	rt.Route("/settings", func(r chi.Router) {
 		r.Get("/", mr.SettingsPage)
@@ -97,7 +103,7 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 		} else if errors.As(err, &pgErr) && pgErr.Code == PGErrUniqueViolation {
 			// fmt.Println(pgErr.Code)
 			// fmt.Println(pgErr.Message)
-			mr.Error("the eamil already been registered", model.NewAppError(err, model.ErrAlreadyRegistered), w, r, http.StatusBadRequest)
+			mr.Error("the eamil or username already exists", model.NewAppError(err, model.ErrAlreadyRegistered), w, r, http.StatusBadRequest)
 		} else {
 			mr.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
 		}

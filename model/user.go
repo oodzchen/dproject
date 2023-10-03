@@ -77,7 +77,8 @@ func (u *User) Valid() error {
 		return userValidErr("email format error")
 	}
 
-	reUsername := regexp.MustCompile(`^[\p{L}\p{N}\s]+$`)
+	// reUsername := regexp.MustCompile(`^[\p{L}\p{N}\s]+$`)
+	reUsername := regexp.MustCompile(utils.ReUsernameStr)
 	if !reUsername.Match([]byte(u.Name)) {
 		return userValidErr("username format error")
 	}
