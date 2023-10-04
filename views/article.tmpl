@@ -482,14 +482,9 @@
 {{- end -}}
 
 {{define "article_reply_form" -}}
-    {{$inputName := "reply_to" -}}
-    {{if not .article -}}
-	{{$inputName = "reply_to_tpl" -}}
-    {{- end -}}
-    <form id="reply_form{{if not .article}}_tpl{{- end}}" class="reply_form" method="post" action="/articles" style="{{if not .article}}display:none;{{- end}}margin-top: 20px" onkeyup="onReplyFormKeyUp(event, this)">
+    <form id="reply_form" class="reply_form" method="POST" action="/articles/{{.article.Id}}/reply" style="{{if not .article}}display:none;{{- end}}margin-top: 20px" onkeyup="onReplyFormKeyUp(event, this)">
 	{{.CSRFField -}}
 	<input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
-	<input id="{{$inputName}}" name="{{$inputName}}" type="hidden" value="{{if .article}}{{.article.Id}}{{- end}}"/>
 	<textarea required cols="30" id="content" name="content" rows="10" style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box;"></textarea>
 
 	<div class="reply-form-bottom">

@@ -135,20 +135,24 @@ var (
 		return id
 	}
 
-	ULogArticleId = func(w http.ResponseWriter, r *http.Request) (targetId int) {
+	ULogNewArticleId = func(w http.ResponseWriter, r *http.Request) (targetId int) {
 		articleIdStr := r.Context().Value("article_id")
 		articleId, ok := articleIdStr.(int)
 		if !ok {
-			id, err := strconv.Atoi(chi.URLParam(r, "articleId"))
-			if err != nil {
-				return 0
-			}
-			return id
+			return 0
 		}
 
-		fmt.Println("articleId: ", articleId)
+		// fmt.Println("articleId: ", articleId)
 
 		return articleId
+	}
+
+	ULogURLArticleId = func(w http.ResponseWriter, r *http.Request) (targetId int) {
+		id, err := strconv.Atoi(chi.URLParam(r, "articleId"))
+		if err != nil {
+			return 0
+		}
+		return id
 	}
 )
 

@@ -27,6 +27,9 @@ const (
 	// AcActionCreateArticle is a AcAction of type create_article.
 	// Create article
 	AcActionCreateArticle AcAction = "create_article"
+	// AcActionReplyArticle is a AcAction of type reply_article.
+	// Reply to article
+	AcActionReplyArticle AcAction = "reply_article"
 	// AcActionEditArticle is a AcAction of type edit_article.
 	// Edit article
 	AcActionEditArticle AcAction = "edit_article"
@@ -61,6 +64,7 @@ var _AcActionNames = []string{
 	string(AcActionLogout),
 	string(AcActionUpdateIntro),
 	string(AcActionCreateArticle),
+	string(AcActionReplyArticle),
 	string(AcActionEditArticle),
 	string(AcActionDeleteArticle),
 	string(AcActionSaveArticle),
@@ -86,6 +90,7 @@ func AcActionValues() []AcAction {
 		AcActionLogout,
 		AcActionUpdateIntro,
 		AcActionCreateArticle,
+		AcActionReplyArticle,
 		AcActionEditArticle,
 		AcActionDeleteArticle,
 		AcActionSaveArticle,
@@ -115,6 +120,7 @@ var _AcActionValue = map[string]AcAction{
 	"logout":         AcActionLogout,
 	"update_intro":   AcActionUpdateIntro,
 	"create_article": AcActionCreateArticle,
+	"reply_article":  AcActionReplyArticle,
 	"edit_article":   AcActionEditArticle,
 	"delete_article": AcActionDeleteArticle,
 	"save_article":   AcActionSaveArticle,
@@ -139,6 +145,7 @@ var _AcActionTextMap = map[AcAction]string{
 	AcActionLogout:        "Logout",
 	AcActionUpdateIntro:   "Update introduction",
 	AcActionCreateArticle: "Create article",
+	AcActionReplyArticle:  "Reply to article",
 	AcActionEditArticle:   "Edit article",
 	AcActionDeleteArticle: "Delete article",
 	AcActionSaveArticle:   "Save article",

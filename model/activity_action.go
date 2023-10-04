@@ -10,6 +10,7 @@ ENUM(
    logout, // Logout
    update_intro, // Update introduction
    create_article, // Create article
+   reply_article, // Reply to article
    edit_article, // Edit article
    delete_article, // Delete article
    save_article, // Save article

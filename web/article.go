@@ -39,7 +39,7 @@ func (ar *ArticleResource) Routes() http.Handler {
 	rt.Get("/", ar.List)
 	rt.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
 		"article.create",
-	}, ar), mdw.UserLogger(ar.uLogger, model.AcTypeUser, model.AcActionCreateArticle, model.AcModelArticle, mdw.ULogArticleId),
+	}, ar), mdw.UserLogger(ar.uLogger, model.AcTypeUser, model.AcActionCreateArticle, model.AcModelArticle, mdw.ULogNewArticleId),
 	).Post("/", ar.Submit)
 
 	rt.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
@@ -56,7 +56,7 @@ func (ar *ArticleResource) Routes() http.Handler {
 		}, ar)).Group(func(r chi.Router) {
 			r.Get("/edit", ar.FormPage)
 			r.With(mdw.UserLogger(
-				ar.uLogger, model.AcTypeUser, model.AcActionEditArticle, model.AcModelArticle, mdw.ULogArticleId),
+				ar.uLogger, model.AcTypeUser, model.AcActionEditArticle, model.AcModelArticle, mdw.ULogURLArticleId),
 			).Post("/edit", ar.Update)
 		})
 
@@ -66,31 +66,36 @@ func (ar *ArticleResource) Routes() http.Handler {
 		}, ar)).Group(func(r chi.Router) {
 			r.Get("/delete", ar.DeletePage)
 			r.With(mdw.UserLogger(
-				ar.uLogger, model.AcTypeUser, model.AcActionDeleteArticle, model.AcModelArticle, mdw.ULogArticleId),
+				ar.uLogger, model.AcTypeUser, model.AcActionDeleteArticle, model.AcModelArticle, mdw.ULogURLArticleId),
 			).Post("/delete", ar.Delete)
 		})
 
 		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
 			"article.reply",
-		}, ar)).Get("/reply", ar.ReplyPage)
+		}, ar)).Group(func(r chi.Router) {
+			r.Get("/reply", ar.ReplyPage)
+			r.With(
+				mdw.UserLogger(ar.uLogger, model.AcTypeUser, model.AcActionReplyArticle, model.AcModelArticle, mdw.ULogURLArticleId),
+			).Post("/reply", ar.SubmitReply)
+		})
 
 		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
 			"article.vote_up",
 			"article.vote_down",
 		}, ar), mdw.UserLogger(
-			ar.uLogger, model.AcTypeUser, model.AcActionVoteArticle, model.AcModelArticle, mdw.ULogArticleId),
+			ar.uLogger, model.AcTypeUser, model.AcActionVoteArticle, model.AcModelArticle, mdw.ULogURLArticleId),
 		).Post("/vote", ar.Vote)
 
 		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
 			"article.save",
 		}, ar), mdw.UserLogger(
-			ar.uLogger, model.AcTypeUser, model.AcActionSaveArticle, model.AcModelArticle, mdw.ULogArticleId),
+			ar.uLogger, model.AcTypeUser, model.AcActionSaveArticle, model.AcModelArticle, mdw.ULogURLArticleId),
 		).Post("/save", ar.Save)
 
 		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
 			"article.react",
 		}, ar), mdw.UserLogger(
-			ar.uLogger, model.AcTypeUser, model.AcActionReactArticle, model.AcModelArticle, mdw.ULogArticleId),
+			ar.uLogger, model.AcTypeUser, model.AcActionReactArticle, model.AcModelArticle, mdw.ULogURLArticleId),
 		).Post("/react", ar.React)
 	})
 
@@ -236,7 +241,7 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
+func (ar *ArticleResource) handleSubmit(w http.ResponseWriter, r *http.Request, isReply bool) {
 	err := r.ParseForm()
 	if err != nil {
 		ar.Error("", err, w, r, http.StatusBadRequest)
@@ -245,18 +250,22 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 
 	title := r.Form.Get("title")
 	content := r.Form.Get("content")
-	paramReplyTo := r.Form.Get("reply_to")
+	paramReplyTo := chi.URLParam(r, "articleId")
 
-	var isReply bool
 	var replyTo int
-	if paramReplyTo != "" {
-		num, err := strconv.Atoi(paramReplyTo)
-		if err != nil {
+	if isReply {
+		if paramReplyTo == "" {
 			ar.Error("", err, w, r, http.StatusBadRequest)
 			return
+		} else {
+			num, err := strconv.Atoi(paramReplyTo)
+			if err != nil {
+				ar.Error("", err, w, r, http.StatusBadRequest)
+				return
+			}
+			replyTo = num
+			isReply = replyTo > 0
 		}
-		replyTo = num
-		isReply = replyTo > 0
 	}
 
 	authorId, err := GetLoginUserId(ar.sessStore, w, r)
@@ -302,6 +311,14 @@ func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
 	} else {
 		http.Redirect(w, r, fmt.Sprintf("/articles/%d", id), http.StatusFound)
 	}
+}
+
+func (ar *ArticleResource) Submit(w http.ResponseWriter, r *http.Request) {
+	ar.handleSubmit(w, r, false)
+}
+
+func (ar *ArticleResource) SubmitReply(w http.ResponseWriter, r *http.Request) {
+	ar.handleSubmit(w, r, true)
 }
 
 func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
