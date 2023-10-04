@@ -184,6 +184,11 @@ func UserLogger(uLogger *service.UserLogger, actType model.AcType, action model.
 						if k == "tk" || k == "password" {
 							continue
 						}
+						for idx, str := range v {
+							if len(str) > 200 {
+								v[idx] = str[:200] + "..."
+							}
+						}
 						postData[k] = v
 					}
 
