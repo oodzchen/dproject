@@ -31,6 +31,8 @@ jobs:
           DB_PORT: ${{ secrets.DB_PORT }}
           DOMAIN_NAME: "localhost"
           APP_LOCAL_HOST: "172.17.0.1"
+          APP_PORT: ${{ vars.APP_PORT }}
+          APP_OUTER_PORT: ${{ vars.APP_OUTER_PORT }}
       run: ./scripts/pre_test.sh
 
     - run: docker compose --env-file ./.env.testing -f ./docker-compose.dev.yml pull
