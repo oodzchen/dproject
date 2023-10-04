@@ -12,10 +12,12 @@
      }
     </style>
     
-    {{$debug := .Debug -}}
-    {{$data := .Data -}}
+    {{- $debug := .Debug -}}
+    {{- $data := .Data -}}
     {{- $sortTabs := list "list_best" "latest" "list_hot" -}}
     {{- $sortTabMap := dict "list_best" "Best" "latest" "Latest" "list_hot" "Hot" -}}
+    {{- $showSummary := false -}}
+    {{- $showOperation := false -}}
     <div class="tabs">
 	{{- range $sortTabs -}}
 	    <a class="tab{{if eq $data.SortType .}} active{{end}}" title="{{get $sortTabMap .}}" href="/articles{{if ne . "list_best"}}?sort={{.}}{{end}}">{{get $sortTabMap .}}</a>
@@ -37,25 +39,27 @@
 			| participate {{$item.ParticipateCount}}
 		    {{- end -}}
 		</small>
-		<!-- <div class="article-list__summary" class="text-lighten-2">{{$item.Summary}}{{if ne $item.Summary $item.Content}} ...{{end}}</div> -->
-		<div class="article-operation">
-		    <small>
-			<form class="vote-form{{if and $currUser (eq $item.CurrUserState.VoteType "up")}} voted{{end}}" action="/articles/{{$item.Id}}/vote" method="POST">
-			    {{$csrfField}}
-			    <input name="type" type="hidden" value="up"/>
-			    <button {{if not (permit "article" "vote_up")}}disabled{{end}} class="btn-vote--up" type="submit" title="Upvote"><svg width="14" viewBox="0 1 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1 21h22L12 2"/></svg></button>
-			</form>
-			{{- if gt $item.VoteScore 0 -}}
-			    <span class="article-list__vote-score">{{$item.VoteScore}}</span>
-			{{- end -}}
-			&nbsp;&nbsp;
-			{{- if eq $item.TotalReplyCount 0 -}}
-			    <a href="/articles/{{$item.Id}}">Discuss</a>
-			{{- else -}}
-			    <a href="/articles/{{$item.Id}}#replies">{{local "ReplyNum" "Count" $item.TotalReplyCount}}</a>
-			{{- end -}}
-		    </small>
-		</div>
+		{{- if $showSummary -}}<div class="article-list__summary" class="text-lighten-2">{{$item.Summary}}{{if ne $item.Summary $item.Content}} ...{{end}}</div>{{- end -}}
+		{{- if $showOperation -}}
+		    <div class="article-operation">
+			<small>
+			    <form class="vote-form{{if and $currUser (eq $item.CurrUserState.VoteType "up")}} voted{{end}}" action="/articles/{{$item.Id}}/vote" method="POST">
+				{{$csrfField}}
+				<input name="type" type="hidden" value="up"/>
+				<button {{if not (permit "article" "vote_up")}}disabled{{end}} class="btn-vote--up" type="submit" title="Upvote"><svg width="14" viewBox="0 1 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1 21h22L12 2"/></svg></button>
+			    </form>
+			    {{- if gt $item.VoteScore 0 -}}
+				<span class="article-list__vote-score">{{$item.VoteScore}}</span>
+			    {{- end -}}
+			    &nbsp;&nbsp;
+			    {{- if eq $item.TotalReplyCount 0 -}}
+				<a href="/articles/{{$item.Id}}">Discuss</a>
+			    {{- else -}}
+				<a href="/articles/{{$item.Id}}#replies">{{local "ReplyNum" "Count" $item.TotalReplyCount}}</a>
+			    {{- end -}}
+			</small>
+		    </div>
+		{{- end -}}
 	    </li>
 	{{end -}}
     </ol>

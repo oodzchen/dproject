@@ -2,24 +2,48 @@
 
     {{template "head" . -}}
 
-    <form method="post" action="/register">
+    <form class="form" method="post" action="/register">
 	{{.CSRFField -}}
-	<table>
-	    <tbody>
-		<tr>
-		    <td><label for="email">Email:</label></td>
-		    <td><input required name="email" id="email" type="email"/> (Required)</td>
-		</tr>
-		<tr>
-		    <td><label for="password">Password:</label></td>
-		    <td><input required name="password" id="password" type="password" /> (Required)</td>
-		</tr>
-		<tr>
-		    <td><label for="username">Name:</label></td>
-		    <td><input name="username" id="username" type="text"/> (Optional)</td>
-		</tr>
-	    </tbody>
-	</table>
+	<div class="form__row">
+	    <label class="form__label" for="email">Email:</label>
+	    <input required name="email" id="email" type="email"/>
+	</div>
+	<div class="form__row">
+	    <label class="form__label" for="password">Password:</label>
+	    <input required name="password" id="password" type="password" />
+	    <br/>
+	    <small class="text-lighten-2">Password must be at least 8 characters long and contain a combination of numbers, letters, and special characters.</small>
+	</div>
+	<div class="form__row">
+	    <label class="form__label" for="username">Username:</label>
+	    <input name="username" id="username" type="text"/>
+	    <br/>
+	    <small class="text-lighten-2">Default to using the username from the email. Username can only consist of numbers, letters, and characters _.-, and cannot begin or end with a symbol.</small>
+	</div>
+	<!-- <table>
+	     <tbody>
+	     <tr>
+	     <td><label for="email">Email:</label></td>
+	     <td><input required name="email" id="email" type="email"/> <span class="text-lighten-2">(Required)</span></td>
+	     </tr>
+	     <tr>
+	     <td><label for="password">Password:</label></td>
+	     <td>
+	     <input required name="password" id="password" type="password" /> <span class="text-lighten-2">(Required)</span>
+	     <br/>
+	     <small class="text-lighten-2">Password must be at least 8 characters long and contain a combination of numbers, letters, and special characters.</small>
+	     </td>
+	     </tr>
+	     <tr>
+	     <td><label for="username">Username:</label></td>
+	     <td>
+	     <input name="username" id="username" type="text"/> <span class="text-lighten-2">(Optional, default to using the username from the email)</span>
+	     <br/>
+	     <small class="text-lighten-2">Username can only consist of numbers, letters, and characters _.-, and cannot begin or end with a symbol.</small>
+	     </td>
+	     </tr>
+	     </tbody>
+	     </table> -->
 	<br/>
 	<div>
 	    Already have an account? Please <a href="/login">log in</a> directly.

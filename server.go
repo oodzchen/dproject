@@ -13,6 +13,7 @@ import (
 	"github.com/go-chi/httprate"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
+	"github.com/oodzchen/dproject/config"
 	mdw "github.com/oodzchen/dproject/middleware"
 	"github.com/oodzchen/dproject/service"
 	"github.com/oodzchen/dproject/store"
@@ -66,7 +67,7 @@ func Service(c *ServiceConfig) http.Handler {
 	r.Use(middleware.AllowContentType("application/x-www-form-urlencoded"))
 	r.Use(middleware.Compress(5, "text/html", "text/css", "text/plain", "text/javascript"))
 	r.Use(middleware.GetHead)
-	r.Use(middleware.RedirectSlashes)
+	// r.Use(middleware.RedirectSlashes)
 
 	sessStore := sessions.NewCookieStore([]byte(c.sessSecret))
 	sessStore.Options.HttpOnly = true
@@ -114,9 +115,9 @@ func Service(c *ServiceConfig) http.Handler {
 		mainResource.Error("", nil, w, r, http.StatusMethodNotAllowed)
 	})
 
-	// if config.Config.Debug {
-	// 	r.Mount("/debug", middleware.Profiler())
-	// }
+	if config.Config.Debug {
+		r.Mount("/debug", middleware.Profiler())
+	}
 
 	// FileServer(r, "/static", http.Dir("./static"))
 	// r.Get("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {

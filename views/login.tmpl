@@ -2,21 +2,16 @@
 
     {{template "head" . -}}
 
-    <form id="login-form" method="post" action="/login">
+    <form class="form" id="login-form" method="post" action="/login">
 	{{.CSRFField -}}
-	<table>
-	    <tbody>
-		<tr>
-		    <td><label for="email">Email:</label></td>
-		    <td><input required name="email" id="email" type="email"/></td>
-		</tr>
-		<tr>
-		    <td><label for="password">Password:</label></td>
-		    <td><input required name="password" id="password" type="password"/></td>
-		</tr>
-	    </tbody>
-	</table>
-	<br/>
+	<div class="form__row">
+	    <label class="form__label" for="email">Email:</label>
+	    <input required name="email" id="email" type="email"/>
+	</div>
+	<div class="form__row">
+	    <label class="form__label" for="password">Password:</label>
+	    <input required name="password" id="password" type="password"/>
+	</div>
 	<div>
 	    <a href="/register">Create a new account</a>
 	</div>

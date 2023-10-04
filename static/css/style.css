@@ -65,16 +65,13 @@ a:focus-visible{
 input,
 textarea,
 button{
-    font-size: var(--font-size)
+    box-sizing: border-box;
+    max-width: calc(100vw - 24px);
+    font-size: var(--font-size);
 }
 
 *:disabled{
     cursor: not-allowed!important;
-}
-
-input[type="text"],
-textarea{
-    max-width: 1000px;
 }
 
 html{

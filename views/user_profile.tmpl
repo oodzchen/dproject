@@ -78,7 +78,12 @@
 {{end -}}
 
 {{define "post_list" -}}
-    <ul>
+    <style>
+     .post-list{
+	 padding-left: 1rem;
+     }
+    </style>
+    <ul class="post-list">
 	{{range . -}}
 	    <li>
 		<div>
