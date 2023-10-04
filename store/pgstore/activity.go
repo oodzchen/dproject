@@ -37,7 +37,7 @@ LEFT JOIN users u ON u.id = ua.user_id`
 	if len(userName) > 0 {
 		bluredUserName := fmt.Sprintf("%s%s%s", "%%", userName, "%%")
 		args = append(args, bluredUserName)
-		sqlStr += fmt.Sprintf(" INNER JOIN users u1 ON u1.name ILIKE $%d AND u1.id = ua.user_id ", len(args))
+		sqlStr += fmt.Sprintf(" INNER JOIN users u1 ON u1.username ILIKE $%d AND u1.id = ua.user_id ", len(args))
 	}
 
 	if actType != "" {

@@ -34,7 +34,7 @@
 	<div class="filter-box__item">
 	    <div class="filter-box__label">Type:</div>
 	    <select name="type" autocomplete="off">
-		<option value=""></option>
+		<option value="">All</option>
 		{{- range .Data.AcTypeOptions -}}
 		    <option value="{{.Value}}" {{if eq .Value $data.Query.Type}}selected{{end}}>{{.Name}}</option>
 		{{- end -}}
@@ -43,7 +43,7 @@
 	<div class="filter-box__item">
 	    <div class="filter-box__label">Action:</div>
 	    <select name="action" autocomplete="off">
-		<option value=""></option>
+		<option value="">All</option>
 		{{- range .Data.AcActionOptions -}}
 		    <option value="{{.Value}}" {{if eq .Value $data.Query.Action}}selected{{end}}>{{.Name}}</option>
 		{{- end -}}
