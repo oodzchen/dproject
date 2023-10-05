@@ -22,6 +22,9 @@ UNIQUE(email),
 UNIQUE(username)
 );
 
+CREATE UNIQUE INDEX idx_unique_username
+ON users (LOWER(username));
+
 -- 创建文章数据表格
 CREATE TABLE posts (
 id SERIAL PRIMARY KEY,
@@ -58,8 +61,7 @@ ALTER TABLE posts ADD CONSTRAINT posts_reply_to_title_check CHECK (
 
 CREATE RULE post_del_protect AS ON DELETE TO posts DO INSTEAD NOTHING;
 
--- 插入样例数据
--- 用户样例数据
+
 INSERT INTO users (email, password, username, introduction, super_admin)
 VALUES
 ('chenlin7788@gmail.com', :user_default_password, 'anonymous', 'Anonymous placeholder', false),
