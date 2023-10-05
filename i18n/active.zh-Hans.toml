@@ -1,0 +1,79 @@
+[Activity]
+hash = "sha1-e58f7f889902c81b8879128fede278022f0e459c"
+other = "操作记录"
+
+[AddNew]
+hash = "sha1-6403f2b7eb2aaafe6de34cbf2a029b01afebc512"
+other = "添加"
+
+[Best]
+hash = "sha1-77003d07271f14977f2cf290c9d16c81e05ab6dd"
+other = "最佳"
+
+[BtnClose]
+hash = "sha1-bbfa773e5a63a5ea58c9b6207e608ca0120e592a"
+other = "关闭"
+
+[Discuss]
+hash = "sha1-1b7949a7060ddc9ee6e31e42f7c8b0e281f45dc9"
+other = "讨论"
+
+[Hot]
+hash = "sha1-8c948d7947e0c20b3e2bc9c63fea2eaec504e113"
+other = "热门"
+
+[Latest]
+hash = "sha1-decd7ca8001063374c7a24698a6adbc6c4552498"
+other = "最新"
+
+[Login]
+hash = "sha1-4e5a2893bdcc7d239c1db72e4c4ffbe4bea73174"
+other = "登录"
+
+[Logout]
+hash = "sha1-e43d612e11f1568f2373e719d4c4b08dcecdc7cc"
+other = "退出"
+
+[Participate]
+hash = "sha1-37359838b12b097116ebcd735b4aeb0844331d8f"
+other = "{{.ParticipateNum}}个参与者"
+
+[Permission]
+hash = "sha1-d06d55570938d12f87db3bf2b48caa9de22d9c67"
+other = "权限"
+
+[PublishInfo]
+hash = "sha1-2e797614056adab5547badda6b409f49715cb186"
+other = "由{{.Username}}发布于{{.TimeAgo}}"
+
+[Register]
+hash = "sha1-d672995a14650d0e018026b64f297663d8c71c8d"
+other = "注册"
+
+[ReplyNum]
+hash = "sha1-2cbee60b1478eae565b6780bee631ab1100e8954"
+other = "{{.Count}}回复"
+
+[Role]
+hash = "sha1-47dcc27d6e87ece8baebe7e3877a261a5467093d"
+other = "角色"
+
+[Settings]
+hash = "sha1-c7f73bb54d928922c3838bb789ee9fb8a5b1eb37"
+other = "设置"
+
+[UISaveSuccess]
+hash = "sha1-3ae42a48d3578bbecbca8c0feb1381ec16c2c957"
+other = "界面设置保存成功"
+
+[User]
+hash = "sha1-57f2b181d0a5e79a147ea1cdf41457f58dbbb3c9"
+other = "用户"
+
+[VoteScore]
+hash = "sha1-95d1da928c93d0ca9f610316e1f38b752b6eb35c"
+other = "分数{{.VoteScore}}"
+
+[Weight]
+hash = "sha1-c3c6f9c00570e41e9c3305fce571e511593c5eb4"
+other = "权重{{.Weight}}"

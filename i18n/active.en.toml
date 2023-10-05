@@ -1,0 +1,41 @@
+AddNew = "New"
+Best = "Best"
+BtnClose = "Close"
+Discuss = "discuss"
+Hot = "Hot"
+Latest = "Latest"
+Login = "Login"
+Logout = "Logout"
+PublishInfo = "By {{.Username}} {{.TimeAgo}}"
+Register = "Register"
+UISaveSuccess = "UI settings successfully saved"
+VoteScore = "vote score {{.VoteScore}}"
+Weight = "weight {{.Weight}}"
+
+[Activity]
+one = "Activity"
+other = "Activities"
+
+[Participate]
+one = "{{.ParticipateNum}} participate"
+other = "{{.ParticipateNum}} participates"
+
+[Permission]
+one = "Permission"
+other = "Permissions"
+
+[ReplyNum]
+one = "{{.Count}} reply"
+other = "{{.Count}} replies"
+
+[Role]
+one = "Role"
+other = "Roles"
+
+[Settings]
+one = "Setting"
+other = "Settings"
+
+[User]
+one = "User"
+other = "Users"

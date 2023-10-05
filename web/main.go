@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"encoding/gob"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -11,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/oodzchen/dproject/config"
+	i18nc "github.com/oodzchen/dproject/i18n"
 	mdw "github.com/oodzchen/dproject/middleware"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/service"
@@ -274,7 +276,6 @@ func (mr *MainResource) doLogout(w http.ResponseWriter, r *http.Request) {
 	ClearSession(sess, w, r)
 
 	mr.permissionSrv.ResetPermissionData()
-
 	// sess.Options.MaxAge = -1
 	// err = sess.Save(r, w)
 	// if err != nil {
@@ -293,32 +294,29 @@ func (mr *MainResource) doLogout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (mr *MainResource) SaveUISettings(w http.ResponseWriter, r *http.Request) {
+	lang := r.PostForm.Get("lang")
 	theme := r.PostForm.Get("theme")
 	contentLayout := r.PostForm.Get("content_layout")
 
 	// fmt.Printf("post theme: %s\n", theme)
 
 	localSess := mr.Session("local", w, r)
+	if lang, err := model.ParseLang(lang); err == nil {
+		i18nc.SwitchLang(string(lang))
+		gob.Register(model.Lang(""))
+		localSess.SetValue("lang", lang)
+	}
+
 	if regexp.MustCompile(`^light|dark|system$`).Match([]byte(theme)) {
-		localSess.Raw.Options.HttpOnly = false
-		localSess.Raw.Options.Path = "/"
-		localSess.Raw.Options.SameSite = http.SameSiteLaxMode
-		localSess.Raw.Options.Secure = !utils.IsDebug()
-		localSess.Raw.Options.MaxAge = 0
 		localSess.SetValue("page_theme", theme)
 	}
 
 	if regexp.MustCompile(`^full|centered$`).Match([]byte(contentLayout)) {
-		localSess.Raw.Options.HttpOnly = false
-		localSess.Raw.Options.Path = "/"
-		localSess.Raw.Options.SameSite = http.SameSiteLaxMode
-		localSess.Raw.Options.Secure = !utils.IsDebug()
-		localSess.Raw.Options.MaxAge = 0
 		localSess.SetValue("page_content_layout", contentLayout)
 	}
 
 	oneSess := mr.Session("one", w, r)
-	oneSess.Raw.AddFlash("UI settings successfully saved")
+	oneSess.Raw.AddFlash(i18nc.MustLocalize("UISaveSuccess", "", 0))
 	oneSess.Raw.Save(r, w)
 
 	http.Redirect(w, r, "/settings/ui", http.StatusFound)
@@ -340,8 +338,9 @@ const (
 )
 
 type SettingsPageData struct {
-	PageKey     SettingsPageKey
-	AccountData *model.User
+	PageKey         SettingsPageKey
+	AccountData     *model.User
+	LanguageOptions []*model.OptionItem
 }
 
 func (mr *MainResource) handleSettingsPage(w http.ResponseWriter, r *http.Request, pageKey SettingsPageKey) {
@@ -350,9 +349,16 @@ func (mr *MainResource) handleSettingsPage(w http.ResponseWriter, r *http.Reques
 		SettingsPageKeyAccount: "Account",
 	}
 
-	pageData := &SettingsPageData{
-		PageKey: pageKey,
+	var langStrEnums []model.StringEnum
+	for _, item := range model.LangValues() {
+		langStrEnums = append(langStrEnums, item)
 	}
+	langOptions := model.ConvertEnumToOPtions(langStrEnums, true)
+	pageData := &SettingsPageData{
+		PageKey:         pageKey,
+		LanguageOptions: langOptions,
+	}
+
 	if pageKey == SettingsPageKeyAccount {
 		userId := mr.Session("one", w, r).GetValue("user_id")
 		// fmt.Println("user id: ", userId)

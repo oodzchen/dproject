@@ -37,6 +37,7 @@ const (
 // }
 
 type UISettings struct {
+	Lang          model.Lang
 	Theme         string
 	ContentLayout string
 }
@@ -47,18 +48,18 @@ type BreadCrumb struct {
 }
 
 type PageData struct {
-	Title           string
-	Data            any
-	TipMsg          []string
-	LoginedUser     *model.User
-	JSONStr         string
-	CSRFField       string
-	UISettings      *UISettings
-	RoutePath       string
-	Debug           bool
-	DebugUsers      []*model.User
-	BreadCrumbs     []*BreadCrumb
-	I18nData        map[string]any
+	Title       string
+	Data        any
+	TipMsg      []string
+	LoginedUser *model.User
+	JSONStr     string
+	CSRFField   string
+	UISettings  *UISettings
+	RoutePath   string
+	Debug       bool
+	DebugUsers  []*model.User
+	BreadCrumbs []*BreadCrumb
+	// I18nData        map[string]any
 	BrandName       string
 	BrandDomainName string
 	Slogan          string
@@ -66,15 +67,15 @@ type PageData struct {
 	PermissionEnabledList []string
 }
 
-func (pd *PageData) AddI18nData(data map[string]any) {
-	if pd.I18nData != nil {
-		for k, v := range data {
-			pd.I18nData[k] = v
-		}
-	} else {
-		pd.I18nData = data
-	}
-}
+// func (pd *PageData) AddI18nData(data map[string]any) {
+// 	if pd.I18nData != nil {
+// 		for k, v := range data {
+// 			pd.I18nData[k] = v
+// 		}
+// 	} else {
+// 		pd.I18nData = data
+// 	}
+// }
 
 type Renderer struct {
 	tmpl      *template.Template
@@ -208,15 +209,21 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 
 	localSess := rd.Session("local", w, r)
 	uiSettings := &UISettings{}
-	uiSettingsKeys := []string{"page_theme", "page_content_layout"}
+	uiSettingsKeys := []string{"lang", "page_theme", "page_content_layout"}
 	for _, key := range uiSettingsKeys {
 		sessVal := localSess.GetValue(key)
 		switch key {
+		case "lang":
+			if lang, ok := sessVal.(model.Lang); ok {
+				uiSettings.Lang = lang
+			} else {
+				uiSettings.Lang = model.LangEn
+			}
 		case "page_theme":
 			if theme, ok := sessVal.(string); ok {
 				uiSettings.Theme = theme
 			} else {
-				uiSettings.Theme = PageThemeLight
+				uiSettings.Theme = PageThemeSystem
 			}
 		case "page_content_layout":
 			if layout, ok := sessVal.(string); ok {

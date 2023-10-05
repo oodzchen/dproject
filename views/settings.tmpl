@@ -38,6 +38,14 @@
 	    {{- $settings := .UISettings}}
 	    {{- .CSRFField}}
 	    <div class="form__row">
+		<label class="form__label" for="lang">Language:</label>
+		<select id="lang" name="lang">
+		    {{- range .Data.LanguageOptions -}}
+			<option {{if eq $settings.Lang .Value}}selected{{end}} value="{{.Value}}">{{.Name}}</option>
+		    {{- end -}}
+		</select>
+	    </div>
+	    <div class="form__row">
 		<label class="form__label" for="theme-options">Theme:</label>
 		<div id="theme-options">
 		    {{range $themes -}}

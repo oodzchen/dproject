@@ -41,7 +41,10 @@ func main() {
 	}
 	// fmt.Println("DSN: ", os.Getenv("DB_DSN"))
 
-	i18nc.Init()
+	langFiles := []string{
+		"./i18n/active.zh-Hans.toml",
+	}
+	i18nc.Init(langFiles)
 
 	permissionData, err := config.ParsePermissionData("./config/permissions.yml")
 	if err != nil {

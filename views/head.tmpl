@@ -3,7 +3,7 @@
     {{- $bgColorDark := "#282A36" -}}
     {{- $colorThemeMap := dict "light" $bgColorLight "dark" $bgColorDark -}}
     <!DOCTYPE html>
-    <html lang="en" {{if .UISettings}}data-theme="{{.UISettings.Theme}}"{{end}}>
+    <html lang="{{.UISettings.Lang}}" data-theme="{{.UISettings.Theme}}">
 	<head>
 	    <meta charset="UTF-8">
 	    <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -49,23 +49,23 @@
 		</ul>
 		<ul class="nav-menu nav-menu--right">
 		    {{- if permit "article" "create" -}}
-			<li><a href="/articles/new">&plus;New</a></li>
+			<li><a href="/articles/new">&plus;{{local "AddNew"}}</a></li>
 		    {{- end -}}
 		    {{if .LoginedUser -}}
 			<li><a href="/users/{{.LoginedUser.Id}}">{{.LoginedUser.Name}}</a></li>
 			<li>
 			    <form action="/logout" method="POST" style="display: inline">
 				{{.CSRFField}}
-				<button class="btn-link" type="submit">Logout</button>
+				<button class="btn-link" type="submit">{{local "Logout"}}</button>
 			    </form>
 			    <!-- <a href="/logout">Logout</a> -->
 			</li>
 		    {{else -}}
-			<li><a href="/register">Register</a></li>
-			<li><a href="/login">Login</a></li>
+			<li><a href="/register">{{local "Register"}}</a></li>
+			<li><a href="/login">{{local "Login"}}</a></li>
 		    {{end -}}
 		    <li>
-			<a href="/settings">Settings</a>
+			<a href="/settings">{{local "Settings" "Count" 2}}</a>
 		    </li>
 		</ul>
 	    </nav>
@@ -73,10 +73,10 @@
 		<nav class="top-nav">
 		    <ul class="nav-menu nav-menu--left">
 			{{- if and .LoginedUser (permit "manage" "access") -}}
-			    <li><a href="/manage/permissions">Permission</a></li>
-			    <li><a href="/manage/roles">Role</a></li>
-			    <li><a href="/manage/users">Users</a></li>
-			    <li><a href="/manage/activities">Activity</a></li>
+			    <li><a href="/manage/permissions">{{local "Permission" "Count" 2}}</a></li>
+			    <li><a href="/manage/roles">{{local "Role" "Count" 2}}</a></li>
+			    <li><a href="/manage/users">{{local "User" "Count" 2}}</a></li>
+			    <li><a href="/manage/activities">{{local "Activity" "Count" 2}}</a></li>
 			{{- end -}}
 		    </ul>
 		    <ul class="nav-menu nav-menu--right">
@@ -101,7 +101,7 @@
 	    {{range .TipMsg -}}
 		<div id="page-tip" class="page-tip">
 		    <span>{{.}}</span>
-		    <a href="" id="page-tip-close">&nbsp;&times;&nbsp;</a>
+		    <a href="" title="{{local "BtnClose"}}" id="page-tip-close">&nbsp;&times;&nbsp;</a>
 		</div>
 	    {{end -}}
 {{- end -}}

@@ -19,6 +19,8 @@ var TmplFuncs = template.FuncMap{
 	"local":      i18nLocalize,
 	"placehold":  placehold,
 	"joinStrArr": joinStrArr,
+	"upHead":     upCaseHead,
+	"downHead":   downCaseHead,
 }
 
 func joinStrArr(arr []string, sep string) string {
@@ -61,7 +63,6 @@ func i18nLocalize(id string, data ...any) string {
 				default:
 					// fmt.Println("Count data type: ", reflect.TypeOf(v))
 					tplData[item] = 0
-
 				}
 			} else {
 				tplData[item] = data[idx+1]
@@ -88,4 +89,12 @@ func placehold(data any, placeholcer string) string {
 	default:
 		return ""
 	}
+}
+
+func upCaseHead(str string, runeNum int) string {
+	return strings.ToUpper(str[:runeNum]) + str[runeNum:]
+}
+
+func downCaseHead(str string, runeNum int) string {
+	return strings.ToLower(str[:runeNum]) + str[runeNum:]
 }
