@@ -31,7 +31,7 @@
 
     {{- if eq .Data.PageKey "ui" -}}
 	<form class="form" method="POST" action="/settings/ui">
-	    {{- $themeDict := dict "light" "Light" "dark" "Dark" "system" "OS Default (Must enable JavaScript)"}}
+	    {{- $themeDict := dict "light" "Light" "dark" "Dark" "system" "OS Default"}}
 	    {{- $themes := list "light" "dark" "system"}}
 	    {{- $contentLayoutDict := dict "full" "Full" "centered" "Centered"}}
 	    {{- $contentLayouts := list "centered" "full"}}
@@ -41,7 +41,7 @@
 		<label class="form__label" for="theme-options">Theme:</label>
 		<div id="theme-options">
 		    {{range $themes -}}
-			<span {{if eq . "system"}}style="display:none"{{- end -}}><label><input name="theme" required autocomplete="off" id="{{.}}" {{if eq . "system"}}disabled{{- end -}} {{if and $settings (eq $settings.Theme .)}}checked{{end}} type="radio" value="{{.}}"/> {{get $themeDict .}}</label></span>&nbsp;&nbsp;
+			<span><label><input name="theme" required autocomplete="off" id="{{.}}" {{if and $settings (eq $settings.Theme .)}}checked{{end}} type="radio" value="{{.}}"/> {{get $themeDict .}} {{if eq . "system"}}<span class="noscript-inline"><noscript>(Must enable JavaScript)</noscript></span>{{end}}</label></span>&nbsp;&nbsp;
 		    {{- end -}}
 		</div>
 	    </div>

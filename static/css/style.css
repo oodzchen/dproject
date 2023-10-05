@@ -437,3 +437,8 @@ a.text-lighten-3{
 .nav-menu.nav-menu--left li:last-child{
     margin-right: 0;
 }
+
+.noscript-inline,
+.noscript-inline>*{
+    display: inline;
+}
