@@ -3,6 +3,7 @@ package model
 import (
 	"errors"
 	"fmt"
+	"html"
 	"regexp"
 	"strings"
 	"time"
@@ -41,9 +42,9 @@ func (u *User) FormatNullVals() {
 	}
 }
 
-func (u *User) Sanitize() {
-	p := bluemonday.NewPolicy()
-	u.Introduction = p.Sanitize(u.Introduction)
+func (u *User) Sanitize(p *bluemonday.Policy) {
+	// u.Introduction = p.Sanitize(u.Introduction)
+	u.Introduction = html.EscapeString(u.Introduction)
 }
 
 func userValidErr(str string) error {

@@ -3,6 +3,7 @@ package model
 import (
 	"errors"
 	"fmt"
+	"html"
 	"math"
 	"regexp"
 	"sort"
@@ -267,10 +268,11 @@ func (a *Article) TransformNewlines() {
 	a.Content = re.ReplaceAllString(a.Content, "<br/>")
 }
 
-func (a *Article) Sanitize() {
-	p := bluemonday.NewPolicy()
+func (a *Article) Sanitize(p *bluemonday.Policy) {
+	// a.Title = p.Sanitize(a.Title)
+	// a.Content = p.Sanitize(a.Content)
 	a.Title = p.Sanitize(a.Title)
-	a.Content = p.Sanitize(a.Content)
+	a.Content = html.EscapeString(a.Content)
 }
 
 func articleValidErr(str string) error {

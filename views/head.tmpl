@@ -23,15 +23,9 @@
 	     :root[data-theme="dark"] {
 		 --background: {{$bgColorDark}};
 	     }
-
-	     body{
-		 {{- if and .UISettings (eq .UISettings.ContentLayout "centered") -}}
-		 max-width: 1000px;
-		 {{- end -}}
-	     }
 	    </style>
 	</head>
-	<body>
+	<body {{if and .UISettings (eq .UISettings.ContentLayout "centered") -}}style="max-width:1000px"{{end}}>
 	    {{- if or (eq .RoutePath "/") (eq .RoutePath "/articles") -}}
 		<a id="skip-button" class="skip-button" tab-index="0" href="#article-list-head">Skip To Content</a>
 	    {{- end -}}
@@ -90,7 +84,7 @@
 			    <li>
 				<form action="/login_debug" method="post">
 				    {{.CSRFField}}
-				    <select id="debug-user" name="debug-user-email" onchange="this.parentNode.submit()">
+				    <select id="debug-user" name="debug-user-email">
 					{{- $loginedUser := .LoginedUser -}}
 					{{- range .DebugUsers -}}
 					    <option value="{{.Email}}" {{if eq $loginedUser.Email .Email}}selected{{end}}>{{.Name}}</option>
@@ -107,7 +101,7 @@
 	    {{range .TipMsg -}}
 		<div id="page-tip" class="page-tip">
 		    <span>{{.}}</span>
-		    <a href="" onclick="javascript:this.parentNode.remove();return false;">&nbsp;&times;&nbsp;</a>
+		    <a href="" id="page-tip-close">&nbsp;&times;&nbsp;</a>
 		</div>
 	    {{end -}}
 {{- end -}}

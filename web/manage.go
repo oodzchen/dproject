@@ -188,7 +188,6 @@ func (mr *ManageResource) PermissionSubmit(w http.ResponseWriter, r *http.Reques
 	}
 
 	permission.TrimSpace()
-	// permission.Sanitize()
 
 	moduleValid := mr.permissionSrv.PermissionData.Valid(module)
 	if !moduleValid {

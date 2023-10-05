@@ -49,7 +49,7 @@
 		{{- end -}}
 	    </select>
 	</div>
-	<button type="reset" onclick="location='/manage/activities'">Reset</button>&nbsp;&nbsp;
+	<button type="reset" class="btn-reset" data-reset-path="/manage/activities">Reset</button>&nbsp;&nbsp;
 	<button type="submit">Search</button>
     </form>
 
@@ -64,5 +64,5 @@
     {{- $pagiData := dict "currPage" .Data.Query.Page "totalPage" .Data.Query.TotalPage "pathPrefix" "/manage/activities"  -}}
     {{- template "pagination" $pagiData -}}
 
-    {{template "foot" -}}
+    {{template "foot" . -}}
 {{end -}}

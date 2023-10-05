@@ -33,7 +33,8 @@ func NewMainResource(renderer *Renderer, ar *ArticleResource) *MainResource {
 		renderer,
 		ar,
 		&service.User{
-			Store: renderer.store,
+			Store:         renderer.store,
+			SantizePolicy: renderer.sanitizePolicy,
 		},
 	}
 }
@@ -61,7 +62,9 @@ func (mr *MainResource) Routes() http.Handler {
 		r.With(mdw.AuthCheck(mr.sessStore), mdw.PermitCheck(mr.permissionSrv, []string{
 			"user.update_intro_mine",
 			// "user.update_intro_others",
-		}, mr), mdw.UserLogger(mr.uLogger, model.AcTypeUser, model.AcActionUpdateIntro, model.AcModelEmpty, mdw.ULogEmpty)).Post("/account", mr.SaveAccountSettings)
+		}, mr),
+			mdw.UserLogger(mr.uLogger, model.AcTypeUser, model.AcActionUpdateIntro, model.AcModelEmpty, mdw.ULogEmpty),
+		).Post("/account", mr.SaveAccountSettings)
 		r.Get("/ui", mr.SettingsUIPage)
 		r.Post("/ui", mr.SaveUISettings)
 	})
@@ -394,7 +397,7 @@ func (mr *MainResource) SaveAccountSettings(w http.ResponseWriter, r *http.Reque
 			Id:           userId,
 			Introduction: introduction,
 		}
-		user.Sanitize()
+		user.Sanitize(mr.sanitizePolicy)
 		_, err := mr.store.User.Update(user, []string{"Introduction"})
 		if err != nil {
 			mr.Error("Update account failed", errors.WithStack(err), w, r, http.StatusInternalServerError)

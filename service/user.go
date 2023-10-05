@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
@@ -26,7 +27,8 @@ func CheckUserTabAuthRequired(tab UserListType) bool {
 }
 
 type User struct {
-	Store *store.Store
+	Store         *store.Store
+	SantizePolicy *bluemonday.Policy
 }
 
 // const DefaultUserRoleFrontId = "common_user"
@@ -44,7 +46,7 @@ func (u *User) Register(email string, password string, name string) (int, error)
 		user.Name = utils.ExtractNameFromEmail(user.Email)
 	}
 
-	user.Sanitize()
+	user.Sanitize(u.SantizePolicy)
 	err := user.Valid()
 	if err != nil {
 		return 0, err

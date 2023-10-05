@@ -28,7 +28,8 @@ func NewArticleResource(renderer *Renderer) *ArticleResource {
 	return &ArticleResource{
 		renderer,
 		&service.Article{
-			Store: renderer.store,
+			Store:         renderer.store,
+			SantizePolicy: renderer.sanitizePolicy,
 		},
 	}
 }
@@ -306,8 +307,11 @@ func (ar *ArticleResource) handleSubmit(w http.ResponseWriter, r *http.Request, 
 
 	ssOne.Flash("Content published successfully")
 
-	if isReply && ssOne.GetStringValue("prev_url") != "" {
-		ar.ToPrevPage(w, r)
+	if isReply {
+		// if ssOne.GetStringValue("prev_url") != ""{
+		// 	ar.ToPrevPage(w, r)
+		// }
+		http.Redirect(w, r, fmt.Sprintf("/articles/%d", replyTo), http.StatusFound)
 	} else {
 		http.Redirect(w, r, fmt.Sprintf("/articles/%d", id), http.StatusFound)
 	}
@@ -349,7 +353,7 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	article.TrimSpace()
-	article.Sanitize()
+	article.Sanitize(ar.sanitizePolicy)
 
 	err = article.Valid(true)
 	if err != nil {

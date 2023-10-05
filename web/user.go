@@ -37,7 +37,8 @@ func NewUserResource(renderer *Renderer) *UserResource {
 	return &UserResource{
 		renderer,
 		&service.User{
-			Store: renderer.store,
+			Store:         renderer.store,
+			SantizePolicy: renderer.sanitizePolicy,
 		},
 	}
 }

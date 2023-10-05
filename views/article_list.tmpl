@@ -34,6 +34,11 @@
 		<a class="article-list__title" {{if eq $idx 0}}id="article-list-head"{{end}} href="/articles/{{$item.Id}}">{{$item.DisplayTitle}}</a>
 		<br/>
 		<small class="text-lighten-3">By <a class="text-lighten-3" href="/users/{{$item.AuthorId}}">{{$item.AuthorName}}</a> <time title="{{$item.CreatedAt}}">{{timeAgo $item.CreatedAt}}</time> | vote score {{$item.VoteScore}}&nbsp;
+		    {{- if eq $item.TotalReplyCount 0 -}}
+			| <a class="text-lighten-3" href="/articles/{{$item.Id}}">discuss</a>&nbsp;
+		    {{- else -}}
+			| <a class="text-lighten-3" href="/articles/{{$item.Id}}#replies">{{local "ReplyNum" "Count" $item.TotalReplyCount}}</a>&nbsp;
+		    {{- end -}}
 		    {{- if $debug -}}
 			| weight {{$item.ListWeight}}
 			| participate {{$item.ParticipateCount}}
@@ -67,5 +72,5 @@
     {{- $pagiData := dict "currPage" .Data.CurrPage "totalPage" .Data.TotalPage "pathPrefix" "/articles"  -}}
     {{- template "pagination" $pagiData -}}
 
-    {{template "foot" -}}
+    {{template "foot" . -}}
 {{end -}}

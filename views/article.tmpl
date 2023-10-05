@@ -68,199 +68,7 @@
 	{{- $pagiData := dict "currPage" $data.article.Replies.CurrPage "totalPage" $data.article.Replies.TotalPage "pathPrefix" $prefix -}}
 	{{- template "pagination" $pagiData -}}
     {{- end -}}
-
-    <script>
-     const WIDTH_MOBILE = 750;
-     var isMobile = window.innerWidth <= WIDTH_MOBILE
-
-     window.addEventListener('resize', function(e){
-	 isMobile = window.innerWidth <= WIDTH_MOBILE
-     })
-     
-     document.documentElement.addEventListener('mouseup', function(ev){
-	 /* console.log(ev) */
-	 var replyBox = document.getElementById('replies-box')
-	 if (replyBox && !replyBox.contains(ev.target)) {
-	     removeAllActive('li', replyBox)
-	 }
-     })
-
-     var replyBox = document.getElementById('replies-box')
-     var ignoreTags = ['a', 'button', 'select']
-     if (replyBox){
-	 replyBox.addEventListener('mousedown', function(ev){
-	     /* console.log('ev', ev) */
-	     var targetTag = ev.target.tagName.toLowerCase()
-	     if (ignoreTags.indexOf(targetTag) > -1) return
-	     
-	     var row = ev.target.closest('li')
-	     if (row) {
-		 onArticleMouseDown(ev, row)
-	     }
-	 })
-     }
-
-     function removeAllActive(tagName, parentNode){
-	 var parent = parentNode || document
-	 var els = parent.getElementsByTagName(tagName)
-	 for (var i = 0; i < els.length; i++){
-	     removeClass(els[i], 'active')
-	 }
-     }
-
-     // return previous display or not
-     function toggleDisplayEl(el, toDisplay){
-	 var flag = el.style.display == 'none'
-	 if (typeof toDisplay == 'boolean'){
-	     flag = toDisplay
-	 }
-	 
-	 if (flag){
-	     el.style.display = ''
-	     return false
-	 } else {
-	     el.style.display = 'none'
-	     return true
-	 }
-     }
-     
-     function toggleDisplayContent(rowEl, toFold){
-	 var content = rowEl.getElementsByTagName('section')[0]
-	 var operation = rowEl.getElementsByClassName('article-operation')[0]
-	 var id = rowEl.getAttribute('data-id')
-	 
-	 if (content){
-	     var isDisplay = checkDisplay(content)
-	     var placeholderId = 'article_placeholder_' + id
-	     var placeholder
-
-	     var replyNumText = rowEl.getAttribute('data-reply-num-self-include-text')
-
-	     var flag = isDisplay
-	     if (typeof toFold == 'boolean'){
-		 flag = toFold
-	     }
-
-	     toggleDisplayEl(content, !flag)
-	     toggleDisplayEl(operation, !flag)
-	     
-	     if (flag){
-		 placeholder = document.createElement('div')
-		 placeholder.setAttribute('id', placeholderId)
-		 placeholder.className='article-placeholder text-lighten-2'
-		 placeholder.innerHTML = '&nbsp;&nbsp;<i>'+ replyNumText +'</i>'
-		 content.parentNode.insertBefore(placeholder, content)
-
-		 rowEl.setAttribute('data-hidden', 1)
-	     } else {
-		 placeholder = document.getElementById(placeholderId)
-		 if (placeholder) placeholder.remove()
-
-		 rowEl.removeAttribute('data-hidden')
-	     }
-	 }
-	 
-	 var child = rowEl.getElementsByTagName('ul')[0]
-	 if (child){
-	     toggleDisplayEl(child, !flag)
-	 }
-
-	 /* console.log('isMobile', isMobile) */
-
-	 if (isMobile && toFold){
-	     window.scrollTo({
-		 top: rowEl.getBoundingClientRect().top + document.documentElement.scrollTop,
-		 behavior: 'smooth'
-	     })
-	 }
-     }
-
-     function toggleActive(el){
-	 var isActive = hasClass(el, 'active')
-	 var isHidden = !!el.getAttribute("data-hidden")
-	 
-	 removeAllActive('li', document.getElementById('replies-box'))
-	 addClass(el, 'active')
-	 
-	 if (isHidden){
-	     toggleDisplayContent(el)
-	 }
-     }
-
-     function checkDisplay(el){
-	 return el.style.display != 'none'
-     }
-
-     function hasClass(el, className){
-	 return el.className.split(" ").indexOf(className) > -1
-     }
-     
-     function removeClass(el, className){
-	 if(hasClass(el, className)){
-	     el.className = el.className.replace(className, '')
-	 }
-     }
-
-     function addClass(el, className){
-	 if(!hasClass(el, className)){
-	     el.className += " " + className
-	 }
-	 
-     }
-
-     function onArticleMouseDown(ev, rowEl){
-	 function onArticleMouseUp(){
-	     /* console.log(ev, el) */
-	     event.preventDefault()
-	     event.stopPropagation()
-
-	     toggleActive(rowEl)
-
-	     // if (hasClass(rowEl, 'active')){
-		 // toggleDisplayContent(rowEl)
-	     // } else {
-		 // toggleActive(rowEl)
-	     // }
-	 }
-	 
-	 rowEl.onmouseup = onArticleMouseUp
-	 setTimeout(function(){
-	     rowEl.onmouseup = null
-	 }, 300)
-     }
-
-     function scrollToElementById(ev, id){
-	 ev.preventDefault()
-	 ev.stopPropagation()
-	 var el = document.getElementById(id)
-	 /* console.log(ev, el) */
-	 if (el){
-	     setTimeout(function(){
-		 location.hash = id
-	     }, 500)
-	     window.scrollTo({
-		 top: el.getBoundingClientRect().top + document.documentElement.scrollTop,
-		 behavior: 'smooth',
-	     })
-	 }
-     }
-
-     function onReplyFormKeyUp(ev, form) {
-	 /* console.log(ev) */
-	 if (ev.isTrusted && ev.ctrlKey && ev.code == 'Enter'){
-	     form.submit()
-	 }
-     }
-
-     function onReactChange(ev, sel) {
-	 /* console.log(sel.value) */
-	 /* sel.style.visibility = "hidden" */
-	 sel.closest('form').submit()
-	 sel.value = ""
-     }
-    </script>
-
-    {{template "foot" -}}
+    {{template "foot" . -}}
 {{- end -}}
 
 {{define "article_content" -}}
@@ -408,7 +216,7 @@
 		{{- end -}}
 
 		{{- if gt .pageDepth 1 -}}
-		    <a title="Parent" href="#ar_{{.article.ReplyTo}}" onclick="scrollToElementById(event, 'ar_{{.article.ReplyTo}}')">Parent</a>&nbsp;&nbsp;
+		    <a title="Parent" class="btn-parent" href="#ar_{{.article.ReplyTo}}">Parent</a>&nbsp;&nbsp;
 		{{- end -}}
 	    {{- end -}}
 	    {{- if and (eq .pageDepth 1) (not .isRootArticle) -}}
@@ -459,7 +267,7 @@
 			    <input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
 			    <span title="Emoji">
 				<svg width="16" viewBox="0 -2 16 16" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" d="M7.5.877a6.623 6.623 0 1 0 0 13.246A6.623 6.623 0 0 0 7.5.877ZM1.827 7.5a5.673 5.673 0 1 1 11.346 0a5.673 5.673 0 0 1-11.346 0Zm3.21 1.714a.5.5 0 1 0-.82.572A3.996 3.996 0 0 0 7.5 11.5c1.36 0 2.56-.679 3.283-1.714a.5.5 0 0 0-.82-.572A2.996 2.996 0 0 1 7.5 10.5a2.996 2.996 0 0 1-2.463-1.286Zm.338-2.364a.875.875 0 1 0 0-1.75a.875.875 0 0 0 0 1.75Zm5.125-.875a.875.875 0 1 1-1.75 0a.875.875 0 0 1 1.75 0Z" clip-rule="evenodd"/></svg>
-				<select required title="Reaction" id="react_{{$article.Id}}" name="react" autocomplete="off" onchange="onReactChange(event, this)">
+				<select required title="Reaction" class="btn-react" id="react_{{$article.Id}}" name="react" autocomplete="off">
 				    <option value="" selected hidden disabled></option>
 				    {{- range .reactOptions -}}
 					<option value="{{.}}">{{index $reactMap .}}</option>
@@ -474,7 +282,7 @@
 		{{- end -}}
 
 		{{- if gt .pageDepth 1 -}}
-		    <a title="Fold" href="javascript:void(0);" onclick="toggleDisplayContent(this.closest('li'), true)" >Fold</a>&nbsp;&nbsp;
+		    <a title="Fold" class="btn-fold" href="javascript:void(0);">Fold</a>&nbsp;&nbsp;
 		{{- end -}}
 	    {{- end -}}
 	</small>
@@ -482,7 +290,7 @@
 {{- end -}}
 
 {{define "article_reply_form" -}}
-    <form id="reply_form" class="reply_form" method="POST" action="/articles/{{.article.Id}}/reply" style="{{if not .article}}display:none;{{- end}}margin-top: 20px" onkeyup="onReplyFormKeyUp(event, this)">
+    <form id="reply_form" class="reply_form" method="POST" action="/articles/{{.article.Id}}/reply" style="{{if not .article}}display:none;{{- end}}margin-top: 20px">
 	{{.CSRFField -}}
 	<input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
 	<textarea required cols="30" id="content" name="content" rows="10" style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box;"></textarea>
@@ -517,4 +325,3 @@
 	{{- end -}}
     </ul>
 {{- end -}}
-

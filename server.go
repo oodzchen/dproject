@@ -13,6 +13,7 @@ import (
 	"github.com/go-chi/httprate"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/oodzchen/dproject/config"
 	mdw "github.com/oodzchen/dproject/middleware"
 	"github.com/oodzchen/dproject/service"
@@ -22,10 +23,11 @@ import (
 )
 
 type ServiceConfig struct {
-	sessSecret    string
-	csrfSecret    string
-	store         *store.Store
-	permisisonSrv *service.Permission
+	sessSecret     string
+	csrfSecret     string
+	store          *store.Store
+	permisisonSrv  *service.Permission
+	sanitizePolicy *bluemonday.Policy
 }
 
 // func FileServer(r chi.Router, path string, root http.FileSystem) {
@@ -78,7 +80,7 @@ func Service(c *ServiceConfig) http.Handler {
 		Store: c.store,
 	}
 
-	renderer := web.NewRenderer(baseTmpl, sessStore, r, c.store, c.permisisonSrv, userLogger)
+	renderer := web.NewRenderer(baseTmpl, sessStore, r, c.store, c.permisisonSrv, userLogger, c.sanitizePolicy)
 
 	articleResource := web.NewArticleResource(renderer)
 	userResource := web.NewUserResource(renderer)

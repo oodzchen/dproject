@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/oodzchen/dproject/config"
 	i18nc "github.com/oodzchen/dproject/i18n"
 	"github.com/oodzchen/dproject/model"
@@ -114,12 +115,16 @@ func main() {
 
 	model.InitConfidences()
 
+	sanitizePolicy := bluemonday.UGCPolicy()
+	// sanitizePolicy.AllowElements("b")
+
 	server := &http.Server{
 		Addr: addr,
 		Handler: (Service(&ServiceConfig{
-			sessSecret:    appCfg.SessionSecret,
-			store:         dataStore,
-			permisisonSrv: permissionSrv,
+			sessSecret:     appCfg.SessionSecret,
+			store:          dataStore,
+			permisisonSrv:  permissionSrv,
+			sanitizePolicy: sanitizePolicy,
 		})),
 	}
 

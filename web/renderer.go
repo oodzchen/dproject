@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/oodzchen/dproject/config"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/service"
@@ -81,11 +82,12 @@ type Renderer struct {
 	router    *chi.Mux
 	store     *store.Store
 	// permission *config.PermissionData
-	permissionSrv *service.Permission
-	uLogger       *service.UserLogger
+	permissionSrv  *service.Permission
+	uLogger        *service.UserLogger
+	sanitizePolicy *bluemonday.Policy
 }
 
-func NewRenderer(tmpl *template.Template, sessStore *sessions.CookieStore, router *chi.Mux, store *store.Store, permissionSrv *service.Permission, userLogger *service.UserLogger) *Renderer {
+func NewRenderer(tmpl *template.Template, sessStore *sessions.CookieStore, router *chi.Mux, store *store.Store, permissionSrv *service.Permission, userLogger *service.UserLogger, sp *bluemonday.Policy) *Renderer {
 	return &Renderer{
 		tmpl,
 		sessStore,
@@ -93,6 +95,7 @@ func NewRenderer(tmpl *template.Template, sessStore *sessions.CookieStore, route
 		store,
 		permissionSrv,
 		userLogger,
+		sp,
 	}
 }
 
@@ -276,8 +279,23 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 		data.JSONStr = string(jsonData)
 	}
 
+	header := w.Header()
+
+	contentSecurity := []string{
+		"default-src 'self'",
+		"img-src 'self' https://*",
+		"style-src 'self' 'unsafe-inline'",
+		"child-src 'none'",
+	}
+
+	if data.Debug {
+		contentSecurity = append(contentSecurity, "script-src 'self' 'unsafe-inline'")
+	}
+	// header.Set("Content-Type", "text/html")
+	header.Add("Content-Security-Policy", strings.Join(contentSecurity, ";"))
+
+	// fmt.Println("header", header.Values("Content-Security-Policy"))
 	w.WriteHeader(code)
-	w.Header().Set("Content-Type", "text/html")
 
 	err = rd.tmpl.ExecuteTemplate(w, name, data)
 	if err != nil {

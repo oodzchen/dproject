@@ -28,11 +28,11 @@
 	    {{- range .Data.PermissionList -}}
 	    <fieldset>
 		<legend>
-		    <input id="{{.Module}}-all" class="btn-all" type="checkbox" onchange="checkAll(event, this)" {{if $isDefault}}disabled{{end}}/>
+		    <input id="{{.Module}}-all" class="btn-check-all" type="checkbox" {{if $isDefault}}disabled{{end}}/>
 		    <label for="{{.Module}}-all"><b>{{.Module}}</b></label>
 		</legend>
 		{{- range .List -}}
-		    <input name="permissions" id="{{.FrontId}}" type="checkbox" value="{{.FrontId}}" {{if and $isEdit (has .Id $rolePermissionIdList)}}checked{{end}} onchange="onCheck(event, this)" {{if $isDefault}}disabled{{end}}/>
+		    <input name="permissions" id="{{.FrontId}}" class="btn-check-permission" type="checkbox" value="{{.FrontId}}" {{if and $isEdit (has .Id $rolePermissionIdList)}}checked{{end}} {{if $isDefault}}disabled{{end}}/>
 		    <label for="{{.FrontId}}">{{.Name}}</label>&nbsp;&nbsp;&nbsp;&nbsp;
 		{{- end -}}
 	    </fieldset>
@@ -41,40 +41,6 @@
 
 	{{if not $isDefault}}<button type="submit">Submit</button>{{end}}
     </form>
-
-    <script>
-     function checkAll(ev, el){
-	 /* console.log(event, el) */
-	 el.closest('fieldset').querySelectorAll('input[name="permissions"]').forEach(item => {
-	     /* console.log("item: ", item) */
-	     item.checked = el.checked
-	 })
-     }
-
-     function onCheck(ev, el){
-	 /* console.log(ev, el) */
-	 toggleBtnAll(el)
-     }
-
-     function toggleBtnAll(el){
-	 const allBtn = el.closest('fieldset').querySelector('input.btn-all')
-	 const inputEls = el.closest('fieldset').querySelectorAll('input[name="permissions"]')
-	 let allChecked = true
-
-	 inputEls.forEach(item => {
-	     /* console.log(item, item.checked) */
-	     if (!item.checked){
-		 allChecked = false
-	     }
-	 })
-
-	 allBtn.checked = allChecked
-     }
-
-     (function(){
-	 document.querySelectorAll('.btn-all').forEach(el => toggleBtnAll(el))
-     })()
-    </script>
 
     {{template "foot" .}}
 

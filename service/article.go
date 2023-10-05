@@ -1,12 +1,14 @@
 package service
 
 import (
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/store"
 )
 
 type Article struct {
-	Store *store.Store
+	Store         *store.Store
+	SantizePolicy *bluemonday.Policy
 }
 
 func (a *Article) Create(title, content string, authorId, replyTo int) (int, error) {
@@ -18,7 +20,7 @@ func (a *Article) Create(title, content string, authorId, replyTo int) (int, err
 	}
 
 	article.TrimSpace()
-	article.Sanitize()
+	article.Sanitize(a.SantizePolicy)
 
 	err := article.Valid(false)
 	if err != nil {
