@@ -27,3 +27,4 @@ nginx/logs/*.log
 nginx/logs/*.pid
 tls-cache
 bin
+translate.*.toml

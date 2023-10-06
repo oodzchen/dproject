@@ -121,8 +121,8 @@ func AddConfigs() {
 	})
 
 	AddLocalizeConfig(&i18n.Message{
-		ID:    "Indroduction",
-		Other: "Indroduction",
+		ID:    "Introduction",
+		Other: "Introduction",
 	})
 
 	AddLocalizeConfig(&i18n.Message{

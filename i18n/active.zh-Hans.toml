@@ -30,8 +30,8 @@ other = "讨论"
 hash = "sha1-8c948d7947e0c20b3e2bc9c63fea2eaec504e113"
 other = "热门"
 
-[Indroduction]
-hash = "sha1-db7fd696204d9ded5745861f47760df5536e3c33"
+[Introduction]
+hash = "sha1-2473e96bc614a911821242119918a241a41836d6"
 other = "介绍"
 
 [Language]
