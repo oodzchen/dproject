@@ -157,11 +157,12 @@ var _AcActionTextMap = map[AcAction]string{
 }
 
 func (x AcAction) Text(upCaseHead bool) string {
-	text := _AcActionTextMap[x]
+	text := []rune(_AcActionTextMap[x])
+	var res string
 	if upCaseHead {
-		text = strings.ToUpper(text[:1]) + text[1:]
+		res = strings.ToUpper(string(text[:1])) + string(text[1:])
 	} else {
-		text = strings.ToLower(text[:1]) + text[1:]
+		res = strings.ToLower(string(text[:1])) + string(text[1:])
 	}
-	return text
+	return res
 }

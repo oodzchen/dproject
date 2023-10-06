@@ -16,11 +16,14 @@ const (
 	// English
 	LangEn Lang = "en"
 	// LangZhHans is a Lang of type zh-Hans.
-	// Simplified Chinese
+	// 简体中文
 	LangZhHans Lang = "zh-Hans"
 	// LangZhHant is a Lang of type zh-Hant.
-	// Traditional Chinese
+	// 繁體中文
 	LangZhHant Lang = "zh-Hant"
+	// LangJp is a Lang of type jp.
+	// 日本語
+	LangJp Lang = "jp"
 )
 
 var ErrInvalidLang = fmt.Errorf("not a valid Lang, try [%s]", strings.Join(_LangNames, ", "))
@@ -29,6 +32,7 @@ var _LangNames = []string{
 	string(LangEn),
 	string(LangZhHans),
 	string(LangZhHant),
+	string(LangJp),
 }
 
 // LangNames returns a list of possible string values of Lang.
@@ -44,6 +48,7 @@ func LangValues() []Lang {
 		LangEn,
 		LangZhHans,
 		LangZhHant,
+		LangJp,
 	}
 }
 
@@ -63,6 +68,7 @@ var _LangValue = map[string]Lang{
 	"en":      LangEn,
 	"zh-Hans": LangZhHans,
 	"zh-Hant": LangZhHant,
+	"jp":      LangJp,
 }
 
 // ParseLang attempts to convert a string to a Lang.
@@ -75,16 +81,18 @@ func ParseLang(name string) (Lang, error) {
 
 var _LangTextMap = map[Lang]string{
 	LangEn:     "English",
-	LangZhHans: "Simplified Chinese",
-	LangZhHant: "Traditional Chinese",
+	LangZhHans: "简体中文",
+	LangZhHant: "繁體中文",
+	LangJp:     "日本語",
 }
 
 func (x Lang) Text(upCaseHead bool) string {
-	text := _LangTextMap[x]
+	text := []rune(_LangTextMap[x])
+	var res string
 	if upCaseHead {
-		text = strings.ToUpper(text[:1]) + text[1:]
+		res = strings.ToUpper(string(text[:1])) + string(text[1:])
 	} else {
-		text = strings.ToLower(text[:1]) + text[1:]
+		res = strings.ToLower(string(text[:1])) + string(text[1:])
 	}
-	return text
+	return res
 }

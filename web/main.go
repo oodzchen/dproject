@@ -345,8 +345,8 @@ type SettingsPageData struct {
 
 func (mr *MainResource) handleSettingsPage(w http.ResponseWriter, r *http.Request, pageKey SettingsPageKey) {
 	settingsTitleMap := map[SettingsPageKey]string{
-		SettingsPageKeyUI:      "UI",
-		SettingsPageKeyAccount: "Account",
+		SettingsPageKeyUI:      i18nc.MustLocalize("UI", "", ""),
+		SettingsPageKeyAccount: i18nc.MustLocalize("Account", "", ""),
 	}
 
 	var langStrEnums []model.StringEnum
@@ -375,13 +375,14 @@ func (mr *MainResource) handleSettingsPage(w http.ResponseWriter, r *http.Reques
 	}
 
 	// mr.Session("one-cookie", w, r).SetValue("next_url", r.Referer())
+	settingsText := i18nc.MustLocalize("Settings", "", 2)
 	mr.Render(w, r, "settings", &PageData{
-		Title: settingsTitleMap[pageKey] + " Settings",
+		Title: settingsTitleMap[pageKey] + " " + settingsText,
 		Data:  pageData,
 		BreadCrumbs: []*BreadCrumb{
 			{
 				"/settings",
-				"Settings",
+				settingsText,
 			},
 		},
 	})

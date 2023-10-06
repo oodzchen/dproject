@@ -1,3 +1,7 @@
+[Account]
+hash = "sha1-85dfa32c97d8618d1bea083609e2c8a29845abe5"
+other = "账户"
+
 [Activity]
 hash = "sha1-e58f7f889902c81b8879128fede278022f0e459c"
 other = "操作记录"
@@ -14,6 +18,10 @@ other = "最佳"
 hash = "sha1-bbfa773e5a63a5ea58c9b6207e608ca0120e592a"
 other = "关闭"
 
+[BtnSave]
+hash = "sha1-efc007a393f66cdb14d57d385822a3d9e36ef873"
+other = "保存"
+
 [Discuss]
 hash = "sha1-1b7949a7060ddc9ee6e31e42f7c8b0e281f45dc9"
 other = "讨论"
@@ -21,6 +29,14 @@ other = "讨论"
 [Hot]
 hash = "sha1-8c948d7947e0c20b3e2bc9c63fea2eaec504e113"
 other = "热门"
+
+[Indroduction]
+hash = "sha1-db7fd696204d9ded5745861f47760df5536e3c33"
+other = "介绍"
+
+[Language]
+hash = "sha1-89b86ab0e66f527166d98df92ddbcf5416ed58f6"
+other = "语言"
 
 [Latest]
 hash = "sha1-decd7ca8001063374c7a24698a6adbc6c4552498"
@@ -33,6 +49,18 @@ other = "登录"
 [Logout]
 hash = "sha1-e43d612e11f1568f2373e719d4c4b08dcecdc7cc"
 other = "退出"
+
+[PageLayout]
+hash = "sha1-cecb05a81c588637f7246e84bd611bbfe8649970"
+other = "内容布局"
+
+[PageLayoutCentered]
+hash = "sha1-6d00bb19135877d80a5920b732fd247f3f558c2e"
+other = "居中"
+
+[PageLayoutFull]
+hash = "sha1-10b28a8c1e445017f5c61e4266d4b7ad9e9a3748"
+other = "铺满"
 
 [Participate]
 hash = "sha1-37359838b12b097116ebcd735b4aeb0844331d8f"
@@ -62,13 +90,41 @@ other = "角色"
 hash = "sha1-c7f73bb54d928922c3838bb789ee9fb8a5b1eb37"
 other = "设置"
 
+[Theme]
+hash = "sha1-a797e30923ac1be590300ce6b08e63b4e6dc6688"
+other = "主题"
+
+[ThemeDark]
+hash = "sha1-ae1ef01432946b8976b9b58575b3390ab7644db2"
+other = "暗色"
+
+[ThemeLight]
+hash = "sha1-a36ef8aba22905e2d2efbf1ac1d6230d5761859d"
+other = "亮色"
+
+[ThemeSystem]
+hash = "sha1-8b97460c8967dc926f18b9e679496d859b299858"
+other = "系统默认"
+
+[ThemeSystemTip]
+hash = "sha1-279ff465b21df4aa114acd5656a2ed4fe4a7cd5b"
+other = "该功能需要启用JavaScript"
+
+[UI]
+hash = "sha1-9d57875196c613785a1eee010c55223a0f1aa821"
+other = "用户界面"
+
 [UISaveSuccess]
 hash = "sha1-3ae42a48d3578bbecbca8c0feb1381ec16c2c957"
-other = "界面设置保存成功"
+other = "用户界面设置保存成功"
 
 [User]
 hash = "sha1-57f2b181d0a5e79a147ea1cdf41457f58dbbb3c9"
 other = "用户"
+
+[Username]
+hash = "sha1-84c29015de33e5d22422382a372caba5c58f8c01"
+other = "用户名"
 
 [VoteScore]
 hash = "sha1-95d1da928c93d0ca9f610316e1f38b752b6eb35c"

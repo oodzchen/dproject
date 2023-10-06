@@ -17,15 +17,6 @@ func ConvertEnumToOPtions(values []StringEnum, upCaseHead bool) []*OptionItem {
 			Value: val,
 			Name:  val.Text(upCaseHead),
 		})
-		// if v, ok := val.(StringEnum); ok {
-		// 	options = append(options, &OptionItem{
-		// 		Value: v,
-		// 		Name:  v.Text(upCaseHead),
-		// 	})
-		// } else {
-		// 	return nil, fmt.Errorf("convert failed: %v\n", val)
-		// }
-
 	}
 
 	return options

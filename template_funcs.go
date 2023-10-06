@@ -92,9 +92,11 @@ func placehold(data any, placeholcer string) string {
 }
 
 func upCaseHead(str string, runeNum int) string {
-	return strings.ToUpper(str[:runeNum]) + str[runeNum:]
+	runeStr := []rune(str)
+	return strings.ToUpper(string(runeStr[:runeNum])) + string(runeStr[runeNum:])
 }
 
 func downCaseHead(str string, runeNum int) string {
-	return strings.ToLower(str[:runeNum]) + str[runeNum:]
+	runeStr := []rune(str)
+	return strings.ToLower(string(runeStr[:runeNum])) + string(runeStr[runeNum:])
 }

@@ -87,11 +87,12 @@ var _AcModelTextMap = map[AcModel]string{
 }
 
 func (x AcModel) Text(upCaseHead bool) string {
-	text := _AcModelTextMap[x]
+	text := []rune(_AcModelTextMap[x])
+	var res string
 	if upCaseHead {
-		text = strings.ToUpper(text[:1]) + text[1:]
+		res = strings.ToUpper(string(text[:1])) + string(text[1:])
 	} else {
-		text = strings.ToLower(text[:1]) + text[1:]
+		res = strings.ToLower(string(text[:1])) + string(text[1:])
 	}
-	return text
+	return res
 }

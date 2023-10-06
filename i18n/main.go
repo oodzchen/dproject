@@ -27,6 +27,7 @@ func Init(files []string) {
 	Localizer = i18n.NewLocalizer(Bundle, "en")
 
 	AddConfigs()
+	AddBtnConfigs()
 }
 
 func AddLocalizeConfig(message *i18n.Message) {
@@ -41,8 +42,14 @@ func AddLocalizeConfig(message *i18n.Message) {
 
 func MustLocalize(id string, templateData any, pluralcount any) string {
 	config := configs[id]
-	config.TemplateData = templateData
-	config.PluralCount = pluralcount
+
+	if templateData != "" && templateData != nil {
+		config.TemplateData = templateData
+	}
+
+	if pluralcount != "" && pluralcount != nil {
+		config.PluralCount = pluralcount
+	}
 
 	return Localizer.MustLocalize(config)
 }
@@ -50,6 +57,5 @@ func MustLocalize(id string, templateData any, pluralcount any) string {
 func SwitchLang(lang string) {
 	// fmt.Println("switch lang: ", lang)
 	Localizer = i18n.NewLocalizer(Bundle, lang)
-
 	// fmt.Println("login str:", MustLocalize("Login", "", 0))
 }

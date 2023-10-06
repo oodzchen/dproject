@@ -101,13 +101,73 @@ func AddConfigs() {
 	})
 
 	AddLocalizeConfig(&i18n.Message{
-		ID:    "BtnClose",
-		Other: "Close",
+		ID:    "UISaveSuccess",
+		Other: "UI settings successfully saved",
 	})
 
 	AddLocalizeConfig(&i18n.Message{
-		ID:    "UISaveSuccess",
-		Other: "UI settings successfully saved",
+		ID:    "Account",
+		Other: "Account",
+	})
+
+	AddLocalizeConfig(&i18n.Message{
+		ID:    "UI",
+		Other: "UI",
+	})
+
+	AddLocalizeConfig(&i18n.Message{
+		ID:    "Username",
+		Other: "Username",
+	})
+
+	AddLocalizeConfig(&i18n.Message{
+		ID:    "Indroduction",
+		Other: "Indroduction",
+	})
+
+	AddLocalizeConfig(&i18n.Message{
+		ID:    "Language",
+		Other: "Language",
+	})
+
+	AddLocalizeConfig(&i18n.Message{
+		ID:    "Theme",
+		Other: "Theme",
+	})
+
+	AddLocalizeConfig(&i18n.Message{
+		ID:    "ThemeLight",
+		Other: "Light",
+	})
+
+	AddLocalizeConfig(&i18n.Message{
+		ID:    "ThemeDark",
+		Other: "Dark",
+	})
+
+	AddLocalizeConfig(&i18n.Message{
+		ID:    "ThemeSystem",
+		Other: "OS Default",
+	})
+
+	AddLocalizeConfig(&i18n.Message{
+		ID:    "ThemeSystemTip",
+		Other: "Must enable JavaScript",
+	})
+
+	AddLocalizeConfig(&i18n.Message{
+		ID:    "PageLayout",
+		Other: "Page Layout",
+	})
+
+	AddLocalizeConfig(&i18n.Message{
+		ID:    "PageLayoutFull",
+		Other: "Full",
+	})
+
+	AddLocalizeConfig(&i18n.Message{
+		ID:    "PageLayoutCentered",
+		Other: "Centered",
 	})
 
 }
