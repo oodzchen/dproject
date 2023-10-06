@@ -23,10 +23,18 @@ type Renderer interface {
 	Forbidden(w http.ResponseWriter, r *http.Request)
 }
 
+func logSessError(sessName string, err error) {
+	if err != nil {
+		fmt.Printf("get session '%s' error: %v\n", sessName, err)
+	}
+}
+
 func FetchUserData(store *store.Store, sessStore *sessions.CookieStore, permissionSrv *service.Permission, renderer any) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			sess, _ := sessStore.Get(r, "one")
+			sess, err := sessStore.Get(r, "one")
+			logSessError("one", errors.WithStack(err))
+
 			userId := sess.Values["user_id"]
 
 			var userData *model.User
@@ -61,7 +69,9 @@ func AuthCheck(sessStore *sessions.CookieStore) func(http.Handler) http.Handler 
 			// fmt.Printf("r.Method: %s\n", r.Method)
 			if !isLogin(sessStore, w, r) {
 				if r.Method == "GET" {
-					sess, _ := sessStore.Get(r, "one")
+					sess, err := sessStore.Get(r, "one")
+					logSessError("one", errors.WithStack(err))
+
 					sess.Values["target_url"] = r.URL.Path
 					sess.Save(r, w) // error here can be ignored
 				}
@@ -216,10 +226,7 @@ func UserLogger(uLogger *service.UserLogger, actType model.AcType, action model.
 
 func getLoginUserId(sessStore *sessions.CookieStore, w http.ResponseWriter, r *http.Request) (int, error) {
 	sess, err := sessStore.Get(r, "one")
-	if err != nil {
-		fmt.Println("get session error", errors.WithStack(err))
-		return 0, err
-	}
+	logSessError("one", errors.WithStack(err))
 
 	if userId, ok := (sess.Values["user_id"]).(int); ok && userId > 0 {
 		return userId, nil
@@ -236,7 +243,9 @@ func isLogin(sessStore *sessions.CookieStore, w http.ResponseWriter, r *http.Req
 func CreateUISettingsMiddleware(sessStore *sessions.CookieStore, ic *i18nc.I18nCustom) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			localSess, _ := sessStore.Get(r, "local")
+			localSess, err := sessStore.Get(r, "local")
+			logSessError("local", errors.WithStack(err))
+
 			uiSettings := &model.UISettings{}
 			uiSettingsKeys := []string{"lang", "page_theme", "page_content_layout"}
 			acceptLang := getAcceptLang(r)
@@ -267,6 +276,8 @@ func CreateUISettingsMiddleware(sessStore *sessions.CookieStore, ic *i18nc.I18nC
 					}
 				}
 			}
+
+			// fmt.Println("uisettings in middleware: ", uiSettings)
 
 			ctx := context.WithValue(r.Context(), "ui_settings", uiSettings)
 			next.ServeHTTP(w, r.WithContext(ctx))

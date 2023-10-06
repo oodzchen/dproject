@@ -119,12 +119,6 @@ func (ur *UserResource) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
-	// sess, err := ur.sessStore.Get(r, "one")
-	// if err != nil{
-	// 	ur.Error("", err, w, r, http.StatusInternalServerError)
-	// 	return
-	// }
-
 	pageStr := r.URL.Query().Get("page")
 	pageSizeStr := r.URL.Query().Get("page_size")
 	page, _ := strconv.Atoi(pageStr)

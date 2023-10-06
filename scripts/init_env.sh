@@ -29,4 +29,4 @@ init_app_env() {
 }
 
 init_env $env_file
-init_app_env
+# init_app_env

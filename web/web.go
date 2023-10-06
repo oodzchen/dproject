@@ -30,6 +30,12 @@ const (
 // 	}
 // }
 
+func logSessError(sessName string, err error) {
+	if err != nil {
+		fmt.Printf("get session '%s' error: %v\n", sessName, err)
+	}
+}
+
 func ClearSession(sess *sessions.Session, w http.ResponseWriter, r *http.Request) {
 	if sess != nil {
 		sess.Options.MaxAge = -1
@@ -57,7 +63,7 @@ func ClearSession(sess *sessions.Session, w http.ResponseWriter, r *http.Request
 func GetLoginUserId(sessStore *sessions.CookieStore, w http.ResponseWriter, r *http.Request) (int, error) {
 	sess, err := sessStore.Get(r, "one")
 	if err != nil {
-		fmt.Println("get session error", errors.WithStack(err))
+		logSessError("one", errors.WithStack(err))
 		return 0, err
 	}
 

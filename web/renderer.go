@@ -134,6 +134,7 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	}
 
 	if uiSettings, ok := r.Context().Value("ui_settings").(*model.UISettings); ok {
+		// fmt.Println("uiSettings in renderer: ", uiSettings)
 		data.UISettings = uiSettings
 	}
 
@@ -223,8 +224,8 @@ func (rd *Renderer) getUserPermittedFrontIds(r *http.Request) []string {
 
 func (rd *Renderer) Session(name string, w http.ResponseWriter, r *http.Request) *Session {
 	sess, err := rd.sessStore.Get(r, name)
-	// HandleGetSessionErr(err)
 	if err != nil {
+		logSessError(name, errors.WithStack(err))
 		ClearSession(sess, w, r)
 	}
 	return &Session{rd, sess, w, r}

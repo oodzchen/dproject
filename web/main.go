@@ -2,7 +2,6 @@ package web
 
 import (
 	"context"
-	"encoding/gob"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -203,6 +202,7 @@ func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, email, p
 
 	sess, err := mr.sessStore.Get(r, "one")
 	if err != nil {
+		logSessError("one", errors.WithStack(err))
 		mr.Error("", err, w, r, http.StatusInternalServerError)
 		return
 	}
@@ -253,6 +253,7 @@ func (mr *MainResource) Logout(w http.ResponseWriter, r *http.Request) {
 func (mr *MainResource) doLogout(w http.ResponseWriter, r *http.Request) {
 	sess, err := mr.sessStore.Get(r, "one")
 	if err != nil {
+		logSessError("one", errors.WithStack(err))
 		mr.Error("", err, w, r, http.StatusInternalServerError)
 		return
 	}
@@ -266,28 +267,34 @@ func (mr *MainResource) SaveUISettings(w http.ResponseWriter, r *http.Request) {
 	theme := r.PostForm.Get("theme")
 	contentLayout := r.PostForm.Get("content_layout")
 
-	// fmt.Printf("post theme: %s\n", theme)
+	uiSettings := &model.UISettings{}
 
 	localSess := mr.Session("local", w, r)
 	if lang, err := model.ParseLang(lang); err == nil {
+		// fmt.Println("post lang: ", lang)
+		uiSettings.Lang = lang
 		mr.i18nCustom.SwitchLang(string(lang))
-		gob.Register(model.Lang(""))
 		localSess.SetValue("lang", lang)
 	}
 
 	if regexp.MustCompile(`^light|dark|system$`).Match([]byte(theme)) {
+		uiSettings.Theme = theme
 		localSess.SetValue("page_theme", theme)
 	}
 
 	if regexp.MustCompile(`^full|centered$`).Match([]byte(contentLayout)) {
+		uiSettings.ContentLayout = contentLayout
 		localSess.SetValue("page_content_layout", contentLayout)
 	}
 
 	oneSess := mr.Session("one", w, r)
 	oneSess.Raw.AddFlash(mr.i18nCustom.MustLocalize("UISaveSuccess", "", 0))
 	oneSess.Raw.Save(r, w)
+	// fmt.Println("uiSettings after post: ", uiSettings)
 
-	http.Redirect(w, r, "/settings/ui", http.StatusFound)
+	ctx := context.WithValue(r.Context(), "ui_settings", uiSettings)
+
+	http.Redirect(w, r.WithContext(ctx), "/settings/ui", http.StatusFound)
 }
 
 func (mr *MainResource) SettingsPage(w http.ResponseWriter, r *http.Request) {

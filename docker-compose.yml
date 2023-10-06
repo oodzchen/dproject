@@ -16,6 +16,8 @@ services:
       USER_DEFAULT_PASSWORD: $USER_DEFAULT_PASSWORD
       APP_PORT: $APP_PORT
       APP_OUTER_PORT: $APP_OUTER_PORT
+      SESSION_SECRET: $SESSION_SECRET
+      CSRF_SECRET: $CSRF_SECRET
     depends_on:
       db:
         condition: service_healthy

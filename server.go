@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/gob"
 	"net/http"
 	"os"
 	"path"
@@ -17,6 +18,7 @@ import (
 	"github.com/oodzchen/dproject/config"
 	i18nc "github.com/oodzchen/dproject/i18n"
 	mdw "github.com/oodzchen/dproject/middleware"
+	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/service"
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
@@ -56,7 +58,6 @@ func Service(c *ServiceConfig) http.Handler {
 	// fmt.Println("work directory: ", wd)
 	// fmt.Println("templates directory: ", path.Join(wd, "./views/*.tmpl"))
 	tmplPath := path.Join(wd, "./views/*.tmpl")
-
 	tmplFuncs := template.FuncMap{
 		"permit": c.permisisonSrv.PermissionData.Permit,
 		"local":  c.i18nCustom.LocalTpl,
@@ -73,6 +74,8 @@ func Service(c *ServiceConfig) http.Handler {
 	r.Use(middleware.Compress(5, "text/html", "text/css", "text/plain", "text/javascript"))
 	r.Use(middleware.GetHead)
 	// r.Use(middleware.RedirectSlashes)
+
+	gob.Register(model.Lang(""))
 
 	sessStore := sessions.NewCookieStore([]byte(c.sessSecret))
 	sessStore.Options.HttpOnly = true
@@ -94,6 +97,9 @@ func Service(c *ServiceConfig) http.Handler {
 		c.i18nCustom,
 	)
 
+	r.Use(mdw.FetchUserData(c.store, sessStore, c.permisisonSrv, renderer))
+	r.Use(mdw.CreateUISettingsMiddleware(sessStore, c.i18nCustom))
+
 	articleResource := web.NewArticleResource(renderer)
 	userResource := web.NewUserResource(renderer)
 	mainResource := web.NewMainResource(renderer, articleResource)
@@ -112,9 +118,6 @@ func Service(c *ServiceConfig) http.Handler {
 			mainResource.Error("", nil, w, r, http.StatusTooManyRequests)
 		}),
 	))
-
-	r.Use(mdw.FetchUserData(c.store, sessStore, c.permisisonSrv, renderer))
-	r.Use(mdw.CreateUISettingsMiddleware(sessStore, c.i18nCustom))
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		mainResource.Error("", nil, w, r, http.StatusNotFound)
@@ -138,6 +141,7 @@ func Service(c *ServiceConfig) http.Handler {
 	// r.Get("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 	// 	http.Redirect(w, r, "/static/favicon.ico", http.StatusFound)
 	// })
+
 	r.Mount("/", mainResource.Routes())
 	r.Mount("/articles", articleResource.Routes())
 	r.Mount("/users", userResource.Routes())

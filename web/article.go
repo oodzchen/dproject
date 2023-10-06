@@ -271,7 +271,9 @@ func (ar *ArticleResource) handleSubmit(w http.ResponseWriter, r *http.Request, 
 
 	authorId, err := GetLoginUserId(ar.sessStore, w, r)
 	if err != nil {
-		sess, _ := ar.sessStore.Get(r, "one")
+		sess, err := ar.sessStore.Get(r, "one")
+		logSessError("one", errors.WithStack(err))
+
 		var callbackUrl string
 		if isReply {
 			callbackUrl = fmt.Sprintf("/articles/%d", replyTo)
