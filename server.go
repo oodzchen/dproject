@@ -15,6 +15,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/oodzchen/dproject/config"
+	i18nc "github.com/oodzchen/dproject/i18n"
 	mdw "github.com/oodzchen/dproject/middleware"
 	"github.com/oodzchen/dproject/service"
 	"github.com/oodzchen/dproject/store"
@@ -28,6 +29,7 @@ type ServiceConfig struct {
 	store          *store.Store
 	permisisonSrv  *service.Permission
 	sanitizePolicy *bluemonday.Policy
+	i18nCustom     *i18nc.I18nCustom
 }
 
 // func FileServer(r chi.Router, path string, root http.FileSystem) {
@@ -57,6 +59,7 @@ func Service(c *ServiceConfig) http.Handler {
 
 	tmplFuncs := template.FuncMap{
 		"permit": c.permisisonSrv.PermissionData.Permit,
+		"local":  c.i18nCustom.LocalTpl,
 	}
 
 	baseTmpl := template.New("base").Funcs(TmplFuncs).Funcs(tmplFuncs).Funcs(sprig.FuncMap())
@@ -80,7 +83,16 @@ func Service(c *ServiceConfig) http.Handler {
 		Store: c.store,
 	}
 
-	renderer := web.NewRenderer(baseTmpl, sessStore, r, c.store, c.permisisonSrv, userLogger, c.sanitizePolicy)
+	renderer := web.NewRenderer(
+		baseTmpl,
+		sessStore,
+		r,
+		c.store,
+		c.permisisonSrv,
+		userLogger,
+		c.sanitizePolicy,
+		c.i18nCustom,
+	)
 
 	articleResource := web.NewArticleResource(renderer)
 	userResource := web.NewUserResource(renderer)
@@ -102,6 +114,7 @@ func Service(c *ServiceConfig) http.Handler {
 	))
 
 	r.Use(mdw.FetchUserData(c.store, sessStore, c.permisisonSrv, renderer))
+	r.Use(mdw.CreateUISettingsMiddleware(sessStore, c.i18nCustom))
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		mainResource.Error("", nil, w, r, http.StatusNotFound)

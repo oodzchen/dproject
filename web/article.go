@@ -172,7 +172,7 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		SortType     model.ArticleSortType
 	}
 
-	pageData := &PageData{
+	pageData := &model.PageData{
 		Data: &ListData{
 			list,
 			wholeArticleList.Total,
@@ -236,7 +236,7 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 
 	ar.SavePrevPage(w, r)
 
-	ar.Render(w, r, "create", &PageData{
+	ar.Render(w, r, "create", &model.PageData{
 		Title: pageTitle,
 		Data:  data,
 	})
@@ -505,7 +505,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		ReactMap     map[model.ArticleReact]string
 	}
 
-	ar.Render(w, r, "article", &PageData{Title: rootArticle.DisplayTitle, Data: &itemPageData{
+	ar.Render(w, r, "article", &model.PageData{Title: rootArticle.DisplayTitle, Data: &itemPageData{
 		rootArticle,
 		// delPage,
 		utils.GetReplyDepthSize(),

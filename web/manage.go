@@ -139,18 +139,18 @@ func (mr *ManageResource) handlePermissionList(w http.ResponseWriter, r *http.Re
 	}
 
 	title := "Permission List"
-	breadCrumbs := []*BreadCrumb{
+	breadCrumbs := []*model.BreadCrumb{
 		{
-			"/manage/permissions",
-			"Permission",
+			Path: "/manage/permissions",
+			Name: "Permission",
 		},
 	}
 
 	if pageType == PermissionPageCreate {
 		title = "Add Permission"
-		breadCrumbs = append(breadCrumbs, &BreadCrumb{
-			"",
-			"Add Permission",
+		breadCrumbs = append(breadCrumbs, &model.BreadCrumb{
+			Path: "",
+			Name: "Add Permission",
 		})
 	}
 
@@ -158,7 +158,7 @@ func (mr *ManageResource) handlePermissionList(w http.ResponseWriter, r *http.Re
 		mr.SavePrevPage(w, r)
 	}
 
-	mr.Render(w, r, "permission_list", &PageData{
+	mr.Render(w, r, "permission_list", &model.PageData{
 		Title: title,
 		Data: &PermissionListPage{
 			list,
@@ -255,16 +255,16 @@ func (mr *ManageResource) RoleListPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	title := "Role List"
-	breadCrumbs := []*BreadCrumb{
+	breadCrumbs := []*model.BreadCrumb{
 		{
-			"/manage/roles",
-			"Role",
+			Path: "/manage/roles",
+			Name: "Role",
 		},
 	}
 
 	mr.SavePrevPage(w, r)
 
-	mr.Render(w, r, "role_list", &PageData{
+	mr.Render(w, r, "role_list", &model.PageData{
 		Title: title,
 		Data: &RoleListPageData{
 			list,
@@ -306,18 +306,18 @@ func (mr *ManageResource) RoleCreatePage(w http.ResponseWriter, r *http.Request)
 
 	formattedPermissionList := formatPermissionList(filteredPermissionList, mr.permissionSrv.PermissionData.GetModuleList())
 
-	breadCrumbs := []*BreadCrumb{
+	breadCrumbs := []*model.BreadCrumb{
 		{
-			"/manage/roles",
-			"Role",
+			Path: "/manage/roles",
+			Name: "Role",
 		},
 		{
-			"",
-			"Add Role",
+			Path: "",
+			Name: "Add Role",
 		},
 	}
 
-	mr.Render(w, r, "role_form", &PageData{
+	mr.Render(w, r, "role_form", &model.PageData{
 		Title: "Add Role",
 		Data: &RoleFormPageData{
 			PermissionList: formattedPermissionList,
@@ -479,18 +479,18 @@ func (mr *ManageResource) RoleEditPage(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	breadCrumbs := []*BreadCrumb{
+	breadCrumbs := []*model.BreadCrumb{
 		{
-			"/manage/roles",
-			"Role",
+			Path: "/manage/roles",
+			Name: "Role",
 		},
 		{
-			"",
-			"Edit Role",
+			Path: "",
+			Name: "Edit Role",
 		},
 	}
 
-	mr.Render(w, r, "role_form", &PageData{
+	mr.Render(w, r, "role_form", &model.PageData{
 		Title: "Edit Role",
 		Data: &RoleFormPageData{
 			Role:                 role,
@@ -638,7 +638,7 @@ func (mr *ManageResource) ActivityList(w http.ResponseWriter, r *http.Request) {
 	}
 	acActionOptons := model.ConvertEnumToOPtions(acActionStrEnums, true)
 
-	mr.Render(w, r, "activity", &PageData{
+	mr.Render(w, r, "activity", &model.PageData{
 		Title: "Activity - Manage",
 		Data: &QctivityPageData{
 			List:            list,

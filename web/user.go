@@ -100,7 +100,7 @@ func (ur *UserResource) List(w http.ResponseWriter, r *http.Request) {
 
 	ur.SavePrevPage(w, r)
 
-	ur.Render(w, r, "user_list", &PageData{
+	ur.Render(w, r, "user_list", &model.PageData{
 		Title: "User List",
 		Data: &UserListPage{
 			list,
@@ -109,10 +109,10 @@ func (ur *UserResource) List(w http.ResponseWriter, r *http.Request) {
 			CeilInt(total, pageSize),
 			pageSize,
 		},
-		BreadCrumbs: []*BreadCrumb{
+		BreadCrumbs: []*model.BreadCrumb{
 			{
-				"/users",
-				"User List",
+				Path: "/users",
+				Name: "User List",
 			},
 		},
 	})
@@ -195,7 +195,7 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 		permissionNames = append(permissionNames, item.Name)
 	}
 
-	ur.Render(w, r, "user_item", &PageData{
+	ur.Render(w, r, "user_item", &model.PageData{
 		Title: user.Name,
 		Data: &userProfile{
 			UserInfo:        user,
@@ -209,10 +209,10 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 				TotalPage: CeilInt(total, pageSize),
 			},
 		},
-		BreadCrumbs: []*BreadCrumb{
+		BreadCrumbs: []*model.BreadCrumb{
 			{
-				fmt.Sprintf("/users/%d", user.Id),
-				user.Name,
+				Path: fmt.Sprintf("/users/%d", user.Id),
+				Name: user.Name,
 			},
 		},
 	})
@@ -245,15 +245,15 @@ func (ur *UserResource) BanPage(w http.ResponseWriter, r *http.Request) {
 		UserData *model.User
 	}
 
-	ur.Render(w, r, "user_role_form", &PageData{
+	ur.Render(w, r, "user_role_form", &model.PageData{
 		Title: "Confirm to ban " + user.Name,
 		Data: &pageData{
 			UserData: user,
 		},
-		BreadCrumbs: []*BreadCrumb{
+		BreadCrumbs: []*model.BreadCrumb{
 			{
-				fmt.Sprintf("/users/%d", user.Id),
-				user.Name,
+				Path: fmt.Sprintf("/users/%d", user.Id),
+				Name: user.Name,
 			},
 		},
 	})
@@ -378,7 +378,7 @@ func (ur *UserResource) SetRolePage(w http.ResponseWriter, r *http.Request) {
 		RoleList []*model.Role
 	}
 
-	ur.Render(w, r, "user_role_form", &PageData{
+	ur.Render(w, r, "user_role_form", &model.PageData{
 		Title: "Update role of " + user.Name,
 		Data: &pageData{
 			UserData: user,
@@ -387,10 +387,10 @@ func (ur *UserResource) SetRolePage(w http.ResponseWriter, r *http.Request) {
 			// RoleData: ur.permissionSrv.RoleData,
 			RoleList: roleList,
 		},
-		BreadCrumbs: []*BreadCrumb{
+		BreadCrumbs: []*model.BreadCrumb{
 			{
-				fmt.Sprintf("/users/%d", user.Id),
-				user.Name,
+				Path: fmt.Sprintf("/users/%d", user.Id),
+				Name: user.Name,
 			},
 		},
 	})

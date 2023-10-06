@@ -44,7 +44,8 @@ func main() {
 	langFiles := []string{
 		"./i18n/active.zh-Hans.toml",
 	}
-	i18nc.Init(langFiles)
+
+	i18nCustom := i18nc.New(langFiles)
 
 	permissionData, err := config.ParsePermissionData("./config/permissions.yml")
 	if err != nil {
@@ -128,6 +129,7 @@ func main() {
 			store:          dataStore,
 			permisisonSrv:  permissionSrv,
 			sanitizePolicy: sanitizePolicy,
+			i18nCustom:     i18nCustom,
 		})),
 	}
 

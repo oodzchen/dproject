@@ -12,7 +12,6 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/oodzchen/dproject/config"
-	i18nc "github.com/oodzchen/dproject/i18n"
 	mdw "github.com/oodzchen/dproject/middleware"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/service"
@@ -83,13 +82,13 @@ func (mr *MainResource) RegisterPage(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	mr.Render(w, r, "register", &PageData{
+	mr.Render(w, r, "register", &model.PageData{
 		Title: "Register",
 		Data:  "",
-		BreadCrumbs: []*BreadCrumb{
+		BreadCrumbs: []*model.BreadCrumb{
 			{
-				"/register",
-				"Register",
+				Path: "/register",
+				Name: "Register",
 			},
 		},
 	})
@@ -153,13 +152,13 @@ func (mr *MainResource) LoginPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mr.Session("one", w, r).SetValue("target_url", targetUrl)
-	mr.Render(w, r, "login", &PageData{
+	mr.Render(w, r, "login", &model.PageData{
 		Title: "Login",
 		Data:  "",
-		BreadCrumbs: []*BreadCrumb{
+		BreadCrumbs: []*model.BreadCrumb{
 			{
-				"/login",
-				"Login",
+				Path: "/login",
+				Name: "Login",
 			},
 		},
 	})
@@ -302,7 +301,7 @@ func (mr *MainResource) SaveUISettings(w http.ResponseWriter, r *http.Request) {
 
 	localSess := mr.Session("local", w, r)
 	if lang, err := model.ParseLang(lang); err == nil {
-		i18nc.SwitchLang(string(lang))
+		mr.i18nCustom.SwitchLang(string(lang))
 		gob.Register(model.Lang(""))
 		localSess.SetValue("lang", lang)
 	}
@@ -316,7 +315,7 @@ func (mr *MainResource) SaveUISettings(w http.ResponseWriter, r *http.Request) {
 	}
 
 	oneSess := mr.Session("one", w, r)
-	oneSess.Raw.AddFlash(i18nc.MustLocalize("UISaveSuccess", "", 0))
+	oneSess.Raw.AddFlash(mr.i18nCustom.MustLocalize("UISaveSuccess", "", 0))
 	oneSess.Raw.Save(r, w)
 
 	http.Redirect(w, r, "/settings/ui", http.StatusFound)
@@ -345,8 +344,8 @@ type SettingsPageData struct {
 
 func (mr *MainResource) handleSettingsPage(w http.ResponseWriter, r *http.Request, pageKey SettingsPageKey) {
 	settingsTitleMap := map[SettingsPageKey]string{
-		SettingsPageKeyUI:      i18nc.MustLocalize("UI", "", ""),
-		SettingsPageKeyAccount: i18nc.MustLocalize("Account", "", ""),
+		SettingsPageKeyUI:      mr.i18nCustom.MustLocalize("UI", "", ""),
+		SettingsPageKeyAccount: mr.i18nCustom.MustLocalize("Account", "", ""),
 	}
 
 	var langStrEnums []model.StringEnum
@@ -375,14 +374,14 @@ func (mr *MainResource) handleSettingsPage(w http.ResponseWriter, r *http.Reques
 	}
 
 	// mr.Session("one-cookie", w, r).SetValue("next_url", r.Referer())
-	settingsText := i18nc.MustLocalize("Settings", "", 2)
-	mr.Render(w, r, "settings", &PageData{
+	settingsText := mr.i18nCustom.MustLocalize("Settings", "", 2)
+	mr.Render(w, r, "settings", &model.PageData{
 		Title: settingsTitleMap[pageKey] + " " + settingsText,
 		Data:  pageData,
-		BreadCrumbs: []*BreadCrumb{
+		BreadCrumbs: []*model.BreadCrumb{
 			{
-				"/settings",
-				settingsText,
+				Path: "/settings",
+				Name: settingsText,
 			},
 		},
 	})

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strings"
 	"text/template"
 
@@ -22,63 +21,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	PageThemeLight  string = "light"
-	PageThemeDark          = "dark"
-	PageThemeSystem        = "system"
-)
-
-const (
-	PageContentLayoutFull     string = "full"
-	PageContentLayoutCentered        = "centered"
-)
-
-// type UserInfo struct {
-// 	Id   int
-// 	Name string
-// }
-
-type UISettings struct {
-	Lang          model.Lang
-	Theme         string
-	ContentLayout string
-}
-
-type BreadCrumb struct {
-	Path string
-	Name string
-}
-
-type PageData struct {
-	Title       string
-	Data        any
-	TipMsg      []string
-	LoginedUser *model.User
-	JSONStr     string
-	CSRFField   string
-	UISettings  *UISettings
-	RoutePath   string
-	Debug       bool
-	DebugUsers  []*model.User
-	BreadCrumbs []*BreadCrumb
-	// I18nData        map[string]any
-	BrandName       string
-	BrandDomainName string
-	Slogan          string
-	// PermissionData  *config.PermissionData
-	PermissionEnabledList []string
-}
-
-// func (pd *PageData) AddI18nData(data map[string]any) {
-// 	if pd.I18nData != nil {
-// 		for k, v := range data {
-// 			pd.I18nData[k] = v
-// 		}
-// 	} else {
-// 		pd.I18nData = data
-// 	}
-// }
-
 type Renderer struct {
 	tmpl      *template.Template
 	sessStore *sessions.CookieStore
@@ -88,9 +30,10 @@ type Renderer struct {
 	permissionSrv  *service.Permission
 	uLogger        *service.UserLogger
 	sanitizePolicy *bluemonday.Policy
+	i18nCustom     *i18nc.I18nCustom
 }
 
-func NewRenderer(tmpl *template.Template, sessStore *sessions.CookieStore, router *chi.Mux, store *store.Store, permissionSrv *service.Permission, userLogger *service.UserLogger, sp *bluemonday.Policy) *Renderer {
+func NewRenderer(tmpl *template.Template, sessStore *sessions.CookieStore, router *chi.Mux, store *store.Store, permissionSrv *service.Permission, userLogger *service.UserLogger, sp *bluemonday.Policy, ic *i18nc.I18nCustom) *Renderer {
 	return &Renderer{
 		tmpl,
 		sessStore,
@@ -99,10 +42,11 @@ func NewRenderer(tmpl *template.Template, sessStore *sessions.CookieStore, route
 		permissionSrv,
 		userLogger,
 		sp,
+		ic,
 	}
 }
 
-func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, data *PageData) {
+func (rd *Renderer) Render(w http.ResponseWriter, r *http.Request, name string, data *model.PageData) {
 	rd.doRender(w, r, name, data, http.StatusOK)
 }
 
@@ -156,7 +100,7 @@ func (rd *Renderer) Error(msg string, err error, w http.ResponseWriter, r *http.
 	var pageData errPageData
 	pageData = errPageData{0, 0, errText, prevUrl}
 
-	data := &PageData{
+	data := &model.PageData{
 		Title: errText,
 		Data:  &pageData,
 	}
@@ -174,10 +118,7 @@ func (rd *Renderer) Error(msg string, err error, w http.ResponseWriter, r *http.
 	rd.doRender(w, r, "error", data, code)
 }
 
-func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string, data *PageData, code int) {
-	// sess, err := rd.sessStore.Get(r, "one")
-	// HandleGetSessionErr(err)
-
+func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string, data *model.PageData, code int) {
 	sess := rd.Session("one", w, r).Raw
 
 	if flashes := sess.Flashes(); len(flashes) > 0 {
@@ -188,70 +129,30 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 		}
 	}
 
-	// if userId, ok := sess.Values["user_id"].(int); ok {
-	// 	// fmt.Printf("logined user id: %d\n", userId)
-	// 	// userInfo.Id = userId
-	// 	loginedUser, err := rd.store.User.Item(userId)
-	// 	if err != nil {
-	// 		fmt.Println("get logined user info failed: ", err)
-	// 	}
-
-	// 	data.LoginedUser = loginedUser
-	// }
-
 	if userData, ok := r.Context().Value("user_data").(*model.User); ok {
 		data.LoginedUser = userData
 	}
 
 	err := sess.Save(r, w)
 	if err != nil {
-		// HandleSaveSessionErr(errors.WithStack(err))
 		fmt.Printf("session save error: %+v", err)
 	}
 
-	localSess := rd.Session("local", w, r)
-	uiSettings := &UISettings{}
-	uiSettingsKeys := []string{"lang", "page_theme", "page_content_layout"}
-	acceptLang := getAcceptLang(r)
-	fmt.Println("acceptLang: ", acceptLang)
-
-	for _, key := range uiSettingsKeys {
-		sessVal := localSess.GetValue(key)
-		switch key {
-		case "lang":
-			if lang, ok := sessVal.(model.Lang); ok {
-				uiSettings.Lang = lang
-			} else {
-				uiSettings.Lang = acceptLang
-			}
-			i18nc.SwitchLang(uiSettings.Lang.String())
-		case "page_theme":
-			if theme, ok := sessVal.(string); ok {
-				uiSettings.Theme = theme
-			} else {
-				uiSettings.Theme = PageThemeSystem
-			}
-		case "page_content_layout":
-			if layout, ok := sessVal.(string); ok {
-				uiSettings.ContentLayout = layout
-			} else {
-				uiSettings.ContentLayout = PageContentLayoutCentered
-			}
-		}
+	if uiSettings, ok := r.Context().Value("ui_settings").(*model.UISettings); ok {
+		data.UISettings = uiSettings
 	}
 
-	data.UISettings = uiSettings
 	data.CSRFField = string(csrf.TemplateField(r))
 	data.RoutePath = r.URL.Path
 	data.Debug = config.Config.Debug
 	data.BrandName = config.Config.BrandName
 	data.BrandDomainName = config.Config.BrandDomainName
 	data.Slogan = config.Config.Slogan
-	// data.PermissionData = rd.permissionSrv.PermissionData
 	data.PermissionEnabledList = rd.permissionSrv.PermissionData.EnabledFrondIdList
 
 	rd.tmpl = rd.tmpl.Funcs(template.FuncMap{
 		"permit": rd.permissionSrv.PermissionData.Permit,
+		"local":  rd.i18nCustom.LocalTpl,
 	})
 
 	if data.Title != "" {
@@ -259,22 +160,6 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	} else {
 		data.Title = fmt.Sprintf("%s", config.Config.BrandName)
 	}
-
-	// data.AddI18nData(map[string]any{
-	// 	"ReplyNum": i18nc.Localizer.MustLocalize(&i18n.LocalizeConfig{
-	// 		DefaultMessage: &i18n.Message{
-	// 			ID:          "ReplyNum",
-	// 			Description: "Reply number",
-	// 			One:         "{{.Count}} reply",
-	// 			Other:       "{{.Count}} replies",
-	// 		},
-	// 		PluralCount: 0,
-	// 	}),
-	// })
-
-	// rd.tmpl = rd.tmpl.Funcs(template.FuncMap{
-
-	// })
 
 	if data.Debug {
 		users, err := rd.store.User.List(1, 50, true)
@@ -438,34 +323,4 @@ func (ss *Session) SetValue(key string, val any) {
 func (ss *Session) Flash(data any, vars ...string) {
 	ss.Raw.AddFlash(data, vars...)
 	ss.Raw.Save(ss.r, ss.w)
-}
-
-var langReMap = map[model.Lang]string{
-	model.LangZhHans: `^zh(?:-(?:(?:Hans|cmn)|(?:cmn-Hans)|(?:Hans-.*)|(?:CN|SG)))?$`,
-	model.LangZhHant: `^zh(?:-(?:(?:Hant|cmn-Hant)|(?:Hant-.*)|(?:HK|TW|MO)))?$`,
-	model.LangEn:     `^(?:en(?:-.*)?)$`,
-	model.LangJp:     `^(?:jp(?:-.*)?)$`,
-}
-
-func parseStrLang(str string) model.Lang {
-	for lang, pattern := range langReMap {
-		re := regexp.MustCompile(pattern)
-		if re.Match([]byte(str)) {
-			return lang
-		}
-	}
-
-	return model.LangEn
-}
-
-func getAcceptLang(r *http.Request) model.Lang {
-	accpetLangs := r.Header.Get("Accept-Language")
-	fmt.Println("acceptLangs: ", accpetLangs)
-	firstLang, _, found := strings.Cut(accpetLangs, ",")
-	if !found || strings.TrimSpace(firstLang) == "" {
-		fmt.Println("accept first lang: ", firstLang)
-		return model.LangEn
-	}
-
-	return parseStrLang(firstLang)
 }
