@@ -308,10 +308,11 @@ func (ar *ArticleResource) handleSubmit(w http.ResponseWriter, r *http.Request, 
 	ssOne.Flash("Content published successfully")
 
 	if isReply {
-		// if ssOne.GetStringValue("prev_url") != ""{
-		// 	ar.ToPrevPage(w, r)
-		// }
-		http.Redirect(w, r, fmt.Sprintf("/articles/%d", replyTo), http.StatusFound)
+		if ssOne.GetStringValue("prev_url") != "" {
+			ar.ToPrevPage(w, r)
+		} else {
+			http.Redirect(w, r, fmt.Sprintf("/articles/%d", replyTo), http.StatusFound)
+		}
 	} else {
 		http.Redirect(w, r, fmt.Sprintf("/articles/%d", id), http.StatusFound)
 	}

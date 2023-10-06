@@ -319,7 +319,8 @@ a.text-lighten-3{
     cursor: pointer;
     font-family: inherit;
     font-size: inherit;
-    vertical-align: inherit;
+    vertical-align: text-top;
+    line-height: 1.2;
 }
 
 .btn-link:hover,
