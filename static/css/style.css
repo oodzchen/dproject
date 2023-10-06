@@ -238,6 +238,10 @@ a.text-lighten-3{
 .form .form__row:last-child{
     margin-bottom: 0;
 }
+.form-inline{
+    display: inline;
+    vertical-align: text-bottom;
+}
 .vote-form{
     display: inline-block;
     padding: 0;

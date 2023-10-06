@@ -54,9 +54,9 @@
 		    {{if .LoginedUser -}}
 			<li><a href="/users/{{.LoginedUser.Id}}">{{.LoginedUser.Name}}</a></li>
 			<li>
-			    <form action="/logout" method="POST" style="display: inline">
+			    <form class="form-inline" action="/logout" method="POST">
 				{{.CSRFField}}
-				<button class="btn-link" type="submit">{{local "Logout"}}</button>
+				<input class="btn-link" type="submit" value="{{local "Logout"}}"/>
 			    </form>
 			    <!-- <a href="/logout">Logout</a> -->
 			</li>

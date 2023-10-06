@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"text/template"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/oodzchen/dproject/config"
+	i18nc "github.com/oodzchen/dproject/i18n"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/service"
 	"github.com/oodzchen/dproject/store"
@@ -210,6 +212,9 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	localSess := rd.Session("local", w, r)
 	uiSettings := &UISettings{}
 	uiSettingsKeys := []string{"lang", "page_theme", "page_content_layout"}
+	acceptLang := getAcceptLang(r)
+	fmt.Println("acceptLang: ", acceptLang)
+
 	for _, key := range uiSettingsKeys {
 		sessVal := localSess.GetValue(key)
 		switch key {
@@ -217,8 +222,9 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 			if lang, ok := sessVal.(model.Lang); ok {
 				uiSettings.Lang = lang
 			} else {
-				uiSettings.Lang = model.LangEn
+				uiSettings.Lang = acceptLang
 			}
+			i18nc.SwitchLang(uiSettings.Lang.String())
 		case "page_theme":
 			if theme, ok := sessVal.(string); ok {
 				uiSettings.Theme = theme
@@ -432,4 +438,34 @@ func (ss *Session) SetValue(key string, val any) {
 func (ss *Session) Flash(data any, vars ...string) {
 	ss.Raw.AddFlash(data, vars...)
 	ss.Raw.Save(ss.r, ss.w)
+}
+
+var langReMap = map[model.Lang]string{
+	model.LangZhHans: `^zh(?:-(?:(?:Hans|cmn)|(?:cmn-Hans)|(?:Hans-.*)|(?:CN|SG)))?$`,
+	model.LangZhHant: `^zh(?:-(?:(?:Hant|cmn-Hant)|(?:Hant-.*)|(?:HK|TW|MO)))?$`,
+	model.LangEn:     `^(?:en(?:-.*)?)$`,
+	model.LangJp:     `^(?:jp(?:-.*)?)$`,
+}
+
+func parseStrLang(str string) model.Lang {
+	for lang, pattern := range langReMap {
+		re := regexp.MustCompile(pattern)
+		if re.Match([]byte(str)) {
+			return lang
+		}
+	}
+
+	return model.LangEn
+}
+
+func getAcceptLang(r *http.Request) model.Lang {
+	accpetLangs := r.Header.Get("Accept-Language")
+	fmt.Println("acceptLangs: ", accpetLangs)
+	firstLang, _, found := strings.Cut(accpetLangs, ",")
+	if !found || strings.TrimSpace(firstLang) == "" {
+		fmt.Println("accept first lang: ", firstLang)
+		return model.LangEn
+	}
+
+	return parseStrLang(firstLang)
 }
