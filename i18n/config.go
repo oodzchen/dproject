@@ -170,4 +170,14 @@ func (ic *I18nCustom) AddConfigs() {
 		Other: "Centered",
 	})
 
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AccountSaveSuccess",
+		Other: "Account settings successfully saved",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AccountCreateSuccess",
+		Other: "Account created successfully",
+	})
+
 }

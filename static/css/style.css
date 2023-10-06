@@ -228,6 +228,7 @@ a.text-lighten-3{
     line-height: 1.2;
 }
 .form .form__row{
+    padding-bottom: 12px;
     margin-bottom: 12px;
 }
 .form .form__row > .form__label{

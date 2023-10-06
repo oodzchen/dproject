@@ -133,14 +133,15 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 		data.LoginedUser = userData
 	}
 
+	if uiSettings, ok := r.Context().Value("ui_settings").(*model.UISettings); ok {
+		data.UISettings = uiSettings
+	}
+
 	err := sess.Save(r, w)
 	if err != nil {
 		fmt.Printf("session save error: %+v", err)
 	}
-
-	if uiSettings, ok := r.Context().Value("ui_settings").(*model.UISettings); ok {
-		data.UISettings = uiSettings
-	}
+	// fmt.Println("currLang: ", rd.i18nCustom.CurrLang)
 
 	data.CSRFField = string(csrf.TemplateField(r))
 	data.RoutePath = r.URL.Path

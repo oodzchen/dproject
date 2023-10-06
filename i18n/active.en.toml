@@ -1,4 +1,6 @@
 Account = "Account"
+AccountCreateSuccess = "Account created successfully"
+AccountSaveSuccess = "Account settings successfully saved"
 AddNew = "New"
 Best = "Best"
 BtnClose = "Close"

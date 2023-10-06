@@ -2,6 +2,14 @@
 hash = "sha1-85dfa32c97d8618d1bea083609e2c8a29845abe5"
 other = "账户"
 
+[AccountCreateSuccess]
+hash = "sha1-ac149d993c248919bf0929ca291207f5dc184d76"
+other = "账户创建成功"
+
+[AccountSaveSuccess]
+hash = "sha1-1e1c0d37d3158bf5fa31981251bc8a57e0d0d320"
+other = "账户设置保存成功"
+
 [Activity]
 hash = "sha1-e58f7f889902c81b8879128fede278022f0e459c"
 other = "操作记录"

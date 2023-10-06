@@ -105,8 +105,6 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, model.ErrValidUserFailed) {
 			mr.Error(err.Error(), err, w, r, http.StatusBadRequest)
 		} else if errors.As(err, &pgErr) && pgErr.Code == PGErrUniqueViolation {
-			// fmt.Println(pgErr.Code)
-			// fmt.Println(pgErr.Message)
 			mr.Error("the eamil or username already exists", model.NewAppError(err, model.ErrAlreadyRegistered), w, r, http.StatusBadRequest)
 		} else {
 			mr.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
@@ -115,20 +113,7 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// log.Printf("create user success, user id: %d", id)
-
-	// sess, err := mr.sessStore.Get(r, "one")
-	// if err != nil {
-	// 	mr.Error("", err, w, r, http.StatusInternalServerError)
-	// }
-
-	// sess.AddFlash("Account registered successfully")
-	// err = sess.Save(r, w)
-	// if err != nil {
-	// 	HandleSaveSessionErr(errors.WithStack(err))
-	// }
-
-	mr.Session("one", w, r).Flash("Account registered successfully")
+	mr.Session("one", w, r).Flash(mr.i18nCustom.MustLocalize("AccountCreateSuccess", "", ""))
 
 	http.Redirect(w, r, "/login", http.StatusFound)
 }
@@ -142,7 +127,6 @@ func (mr *MainResource) LoginPage(w http.ResponseWriter, r *http.Request) {
 	targetUrl := mr.Session("one", w, r).GetValue("target_url")
 	referer := r.Referer()
 	refererUrl, _ := url.Parse(referer)
-
 	// fmt.Println("exist target_url: ", targetUrl)
 	// fmt.Println("target_url is empty string: ", targetUrl == "")
 
@@ -212,7 +196,7 @@ func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, email, p
 
 	user, err := mr.store.User.Item(id)
 	if err != nil {
-		mr.Error("internal server error", err, w, r, http.StatusInternalServerError)
+		mr.Error("", err, w, r, http.StatusInternalServerError)
 	}
 
 	mr.permissionSrv.SetLoginedUser(user)
@@ -275,21 +259,6 @@ func (mr *MainResource) doLogout(w http.ResponseWriter, r *http.Request) {
 	ClearSession(sess, w, r)
 
 	mr.permissionSrv.ResetPermissionData()
-	// sess.Options.MaxAge = -1
-	// err = sess.Save(r, w)
-	// if err != nil {
-	// 	HandleSaveSessionErr(errors.WithStack(err))
-	// }
-
-	// csrfExpiredCookie := &http.Cookie{
-	// 	Name:     "sc",
-	// 	Value:    "",
-	// 	Expires:  time.Unix(0, 0),
-	// 	HttpOnly: true,
-	// 	Secure:   !utils.IsDebug(),
-	// 	Path:     "/",
-	// }
-	// http.SetCookie(w, csrfExpiredCookie)
 }
 
 func (mr *MainResource) SaveUISettings(w http.ResponseWriter, r *http.Request) {
@@ -406,11 +375,11 @@ func (mr *MainResource) SaveAccountSettings(w http.ResponseWriter, r *http.Reque
 		user.Sanitize(mr.sanitizePolicy)
 		_, err := mr.store.User.Update(user, []string{"Introduction"})
 		if err != nil {
-			mr.Error("Update account failed", errors.WithStack(err), w, r, http.StatusInternalServerError)
+			mr.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
 		}
 
 		oneSess := mr.Session("one", w, r)
-		oneSess.Raw.AddFlash("Account settings successfully saved")
+		oneSess.Raw.AddFlash(mr.i18nCustom.MustLocalize("AccountSaveSuccess", "", ""))
 		oneSess.Raw.Save(r, w)
 
 		http.Redirect(w, r, "/settings/account", http.StatusFound)

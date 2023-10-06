@@ -82,6 +82,17 @@
      .post-list{
 	 padding-left: 1rem;
      }
+
+     .post-list li{
+	 margin-bottom: 0.5rem;
+     }
+
+     .post-list .post-list__info{
+	 padding: 4px 10px;
+	 background: var(--text-bg);
+	 font-size: 0.8rem;
+	 white-space: break-spaces;
+     }
     </style>
     <ul class="post-list">
 	{{range . -}}
@@ -90,7 +101,7 @@
 		    <a href="/articles/{{.Id}}">{{.DisplayTitle}}</a>
 		    <small><time title="{{.CreatedAt}}">{{timeAgo .CreatedAt}}</time></small>
 		</div>
-		<div style="margin: 6px 0 12px;white-space: break-spaces;">{{.Summary}}{{if ne .Content .Summary}} ...{{end}}</div>
+		<div class="post-list__info">{{.Summary}}{{if ne .Content .Summary}} ...{{end}}</div>
 	    </li>
 	{{end -}}
 	{{- placehold . "<i class='text-lighten-2'>No data</i>" -}}

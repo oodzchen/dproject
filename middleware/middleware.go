@@ -240,13 +240,13 @@ func CreateUISettingsMiddleware(sessStore *sessions.CookieStore, ic *i18nc.I18nC
 			uiSettings := &model.UISettings{}
 			uiSettingsKeys := []string{"lang", "page_theme", "page_content_layout"}
 			acceptLang := getAcceptLang(r)
-			fmt.Println("acceptLang: ", acceptLang)
+			// fmt.Println("acceptLang: ", acceptLang)
 
 			for _, key := range uiSettingsKeys {
 				sessVal := localSess.Values[key]
 				switch key {
 				case "lang":
-					fmt.Println("sessionVal: ", sessVal)
+					// fmt.Println("sessionVal: ", sessVal)
 					if lang, ok := sessVal.(model.Lang); ok {
 						uiSettings.Lang = lang
 					} else {
@@ -294,10 +294,10 @@ func parseStrLang(str string) model.Lang {
 
 func getAcceptLang(r *http.Request) model.Lang {
 	accpetLangs := r.Header.Get("Accept-Language")
-	fmt.Println("acceptLangs: ", accpetLangs)
+	// fmt.Println("acceptLangs: ", accpetLangs)
 	firstLang, _, found := strings.Cut(accpetLangs, ",")
 	if !found || strings.TrimSpace(firstLang) == "" {
-		fmt.Println("accept first lang: ", firstLang)
+		// fmt.Println("accept first lang: ", firstLang)
 		return model.LangEn
 	}
 
