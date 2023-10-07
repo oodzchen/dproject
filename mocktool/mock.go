@@ -42,7 +42,7 @@ func (mc *Mock) Login(data *TestUser) chp.Tasks {
 		chp.Navigate(mc.ServerURL),
 		mc.WaitFooterReady(),
 		chp.Click(`ul.nav-menu:nth-child(2) > li > a[href^="/login"]`),
-		chp.SetValue(`input[name="email"]`, data.Email),
+		chp.SetValue(`input[name="username"]`, data.Email),
 		chp.SetValue(`input[name="password"]`, mc.TestingPWD),
 		chp.Click(`#login-form>button[type="submit"]`),
 		mc.WaitFooterReady(),
