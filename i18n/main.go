@@ -40,6 +40,7 @@ func New(files []string) *I18nCustom {
 
 	timeago.English.PastPrefix = " "
 	timeago.Chinese.PastPrefix = "于 "
+	timeago.Chinese.DefaultLayout = "于 2006-01-02"
 
 	custom := &I18nCustom{
 		CurrLang:  defaultLang,

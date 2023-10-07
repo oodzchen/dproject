@@ -122,6 +122,14 @@ other = "最佳"
 hash = "sha1-bbfa773e5a63a5ea58c9b6207e608ca0120e592a"
 other = "关闭"
 
+[BtnNextPage]
+hash = "sha1-4bfc194b68a3369d53aadcddc4f891771d91a3d9"
+other = "下一页"
+
+[BtnPrevPage]
+hash = "sha1-81f547195bef12a0bb74f5af751fe50e78a0c2f3"
+other = "上一页"
+
 [BtnReset]
 hash = "sha1-44c57abd888a66b36d4b7c902134063e4a097223"
 other = "重置"
@@ -149,6 +157,22 @@ other = "热门"
 [Introduction]
 hash = "sha1-2473e96bc614a911821242119918a241a41836d6"
 other = "介绍"
+
+[Lang_en]
+hash = "sha1-649df08a448ee3fa90f3746baaf6b0907df42c91"
+other = "English"
+
+[Lang_jp]
+hash = "sha1-c12140a0ffb4e56481b4fe0a7a25040c2eafa9ca"
+other = "日本語"
+
+[Lang_zh-Hans]
+hash = "sha1-93659150d0e56377fc3a57cb9bb7d958fd637a74"
+other = "简体中文"
+
+[Lang_zh-Hant]
+hash = "sha1-1f7e4a4c370c9833c9f077a16934e4c7eb1dbc9c"
+other = "繁體中文"
 
 [Language]
 hash = "sha1-89b86ab0e66f527166d98df92ddbcf5416ed58f6"
@@ -191,8 +215,8 @@ hash = "sha1-d06d55570938d12f87db3bf2b48caa9de22d9c67"
 other = "权限"
 
 [PublishInfo]
-hash = "sha1-2e797614056adab5547badda6b409f49715cb186"
-other = "由 {{.Username}} 发布"
+hash = "sha1-50bac0ef543a6393b07a27de87e9682d49977145"
+other = "{{.Username}} 发布"
 
 [Register]
 hash = "sha1-d672995a14650d0e018026b64f297663d8c71c8d"

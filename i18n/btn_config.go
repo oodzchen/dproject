@@ -27,4 +27,14 @@ func (ic *I18nCustom) AddBtnConfigs() {
 		ID:    "BtnSubmit",
 		Other: "Submit",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnPrevPage",
+		Other: "Previous page",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnNextPage",
+		Other: "Next page",
+	})
 }

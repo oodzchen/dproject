@@ -76,7 +76,7 @@ func (ic *I18nCustom) AddConfigs() {
 
 	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "PublishInfo",
-		Other: "By {{.Username}} {{.TimeAgo}}",
+		Other: "By {{.Username}}",
 	})
 
 	ic.AddLocalizeConfig(&i18n.Message{
