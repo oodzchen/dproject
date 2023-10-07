@@ -4,7 +4,6 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/store"
-	"github.com/oodzchen/dproject/utils"
 )
 
 type UserListType string
@@ -31,8 +30,6 @@ type User struct {
 	SantizePolicy *bluemonday.Policy
 }
 
-// const DefaultUserRoleFrontId = "common_user"
-
 func (u *User) Register(email string, password string, name string) (int, error) {
 	user := &model.User{
 		Email:    email,
@@ -43,7 +40,7 @@ func (u *User) Register(email string, password string, name string) (int, error)
 	user.TrimSpace()
 
 	if user.Name == "" {
-		user.Name = utils.ExtractNameFromEmail(user.Email)
+		user.Name = model.ExtractNameFromEmail(user.Email)
 	}
 
 	user.Sanitize(u.SantizePolicy)

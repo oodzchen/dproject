@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -257,10 +258,23 @@ func (u *User) Ban(id int) error {
 	return nil
 }
 
-func (u *User) Login(email string, pwd string) (int, error) {
+func (u *User) Login(username string, pwd string) (int, error) {
 	var id int
 	var hasedPwd string
-	err := u.dbPool.QueryRow(context.Background(), "SELECT id, password FROM users WHERE email = $1", email).Scan(&id, &hasedPwd)
+	var isEmail = false
+
+	if regexp.MustCompile(`@`).Match([]byte(username)) {
+		isEmail = true
+	}
+
+	sqlStr := `SELECT id, password FROM users `
+	if isEmail {
+		sqlStr += "WHERE email = $1"
+	} else {
+		sqlStr += "WHERE username = $1"
+	}
+
+	err := u.dbPool.QueryRow(context.Background(), sqlStr, username).Scan(&id, &hasedPwd)
 	if err != nil {
 		return 0, err
 	}

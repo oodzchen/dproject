@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
@@ -148,10 +149,10 @@ func (mr *MainResource) LoginPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
-	email := r.PostFormValue("email")
-	password := r.PostFormValue("password")
+	username := strings.TrimSpace(r.PostFormValue("username"))
+	password := strings.TrimSpace(r.PostFormValue("password"))
 
-	mr.doLogin(w, r, email, password)
+	mr.doLogin(w, r, username, password)
 
 	// targetUrl, _ := sess.Values["target_url"].(string)
 	target := mr.Session("one", w, r).GetValue("target_url")
@@ -165,9 +166,9 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, email, password string) {
-	if email == "" {
-		mr.Error("email is required", nil, w, r, http.StatusBadRequest)
+func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, username, password string) {
+	if username == "" {
+		mr.Error("username or email is required", nil, w, r, http.StatusBadRequest)
 		return
 	}
 
@@ -176,12 +177,19 @@ func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, email, p
 		return
 	}
 
-	if !utils.ValidateEmail(email) {
-		mr.Error("email or password is incorrect", errors.WithStack(utils.NewError("email not valid")), w, r, http.StatusBadRequest)
-		return
+	if regexp.MustCompile(`@`).Match([]byte(username)) {
+		if !model.ValidateEmail(username) {
+			mr.Error("email or password is incorrect", errors.WithStack(utils.NewError("email format error")), w, r, http.StatusBadRequest)
+			return
+		}
+	} else {
+		if err := model.ValidUsername(username); err != nil {
+			mr.Error("username or password is incorrect", errors.WithStack(utils.NewError("username format error")), w, r, http.StatusBadRequest)
+			return
+		}
 	}
 
-	id, err := mr.store.User.Login(email, password)
+	id, err := mr.store.User.Login(username, password)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

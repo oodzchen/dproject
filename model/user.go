@@ -14,6 +14,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+const ReUsernameStr = `^[a-zA-Z0-9][a-zA-Z0-9._-]+[a-zA-Z0-9]$`
+const ReUsernameMiddleStr = `^[a-zA-Z0-9._-]+$`
+const ReUsernameEdgeStr = `^[a-zA-Z0-9]+$`
+
+// https://regex101.com/r/RzBwPX/1
+const ReEmailStr = `^(?P<name>[a-zA-Z0-9.!#$%&'*+/=?^_ \x60{|}~-]+)@(?P<domain>[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*)$`
+
 type User struct {
 	Id               int
 	Name             string
@@ -73,15 +80,19 @@ func (u *User) Valid() error {
 		return userValidErr(fmt.Sprintf("require field: %s", lackField))
 	}
 
-	ok := utils.ValidateEmail(u.Email)
+	ok := ValidateEmail(u.Email)
 	if !ok {
 		return userValidErr("email format error")
 	}
 
 	// reUsername := regexp.MustCompile(`^[\p{L}\p{N}\s]+$`)
-	reUsername := regexp.MustCompile(utils.ReUsernameStr)
-	if !reUsername.Match([]byte(u.Name)) {
-		return userValidErr("username format error")
+	// reUsername := regexp.MustCompile(utils.ReUsernameStr)
+	// if !reUsername.Match([]byte(u.Name)) {
+	// 	return userValidErr("username format error")
+	// }
+
+	if err := ValidUsername(u.Name); err != nil {
+		return err
 	}
 
 	rePassword := regexp.MustCompile(`[A-Za-z\d[:graph:]]{8,}`)
@@ -114,4 +125,54 @@ func hashPassword(pwd string) (string, error) {
 	}
 
 	return string(hashedPwd), nil
+}
+
+// Validate email string
+func ValidateEmail(email string) bool {
+	re := regexp.MustCompile(ReEmailStr)
+	return re.Match([]byte(email))
+}
+
+func ValidUsername(str string) error {
+	reUsername := regexp.MustCompile(ReUsernameStr)
+	if !reUsername.Match([]byte(str)) {
+		return userValidErr("username format error")
+	}
+	return nil
+}
+
+func ExtractNameFromEmail(email string) string {
+	name := strings.Split(email, "@")[0]
+	reUsername := regexp.MustCompile(ReUsernameStr)
+	reUsernameMiddle := regexp.MustCompile(ReUsernameMiddleStr)
+	reUsernameEdge := regexp.MustCompile(ReUsernameEdgeStr)
+
+	var res []string
+	if reUsername.Match([]byte(name)) {
+		return name
+	} else {
+		if !reUsernameEdge.Match([]byte(name[:1])) {
+			name = name[1:]
+			if len(name) < 1 {
+				return ""
+			}
+		}
+
+		if !reUsernameEdge.Match([]byte(name[len(name)-1:])) {
+			name = name[:len(name)-1]
+			if len(name) < 1 {
+				return ""
+			}
+		}
+
+		for _, rune := range name {
+			if reUsernameMiddle.Match([]byte(string(rune))) {
+				res = append(res, string(rune))
+			} else {
+				res = append(res, ".")
+			}
+		}
+	}
+
+	return strings.Join(res, "")
 }
