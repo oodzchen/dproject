@@ -156,7 +156,12 @@ func TestValidateEmail(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		got := ValidateEmail(tt.in)
+		err := ValidateEmail(tt.in)
+		var got = false
+		if err == nil {
+			got = true
+		}
+
 		if got != tt.want {
 			t.Errorf("%s validate result should be %t, but got %t", tt.in, tt.want, got)
 		}
