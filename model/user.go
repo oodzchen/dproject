@@ -14,12 +14,15 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// https://regex101.com/r/RzBwPX/1
+const ReEmailStr = `^(?P<name>[a-zA-Z0-9.!#$%&'*+/=?^_ \x60{|}~-]+)@(?P<domain>[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*)$`
+
 const ReUsernameStr = `^[a-zA-Z0-9][a-zA-Z0-9._-]+[a-zA-Z0-9]$`
 const ReUsernameMiddleStr = `^[a-zA-Z0-9._-]+$`
 const ReUsernameEdgeStr = `^[a-zA-Z0-9]+$`
 
-// https://regex101.com/r/RzBwPX/1
-const ReEmailStr = `^(?P<name>[a-zA-Z0-9.!#$%&'*+/=?^_ \x60{|}~-]+)@(?P<domain>[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*)$`
+const MaxEmailLen = 254
+const MaxUsernameLen = 20
 
 type User struct {
 	Id               int
@@ -80,8 +83,7 @@ func (u *User) Valid() error {
 		return userValidErr(fmt.Sprintf("require field: %s", lackField))
 	}
 
-	ok := ValidateEmail(u.Email)
-	if !ok {
+	if err := ValidateEmail(u.Email); err != nil {
 		return userValidErr("email format error")
 	}
 
@@ -128,14 +130,24 @@ func hashPassword(pwd string) (string, error) {
 }
 
 // Validate email string
-func ValidateEmail(email string) bool {
+func ValidateEmail(email string) error {
+	if len(email) > MaxEmailLen {
+		return userValidErr("email format error")
+	}
 	re := regexp.MustCompile(ReEmailStr)
-	return re.Match([]byte(email))
+	if !re.Match([]byte(email)) {
+		return userValidErr("email format error")
+	}
+	return nil
 }
 
-func ValidUsername(str string) error {
+func ValidUsername(username string) error {
+	if len(username) > MaxUsernameLen {
+		return userValidErr("username format error")
+	}
+
 	reUsername := regexp.MustCompile(ReUsernameStr)
-	if !reUsername.Match([]byte(str)) {
+	if !reUsername.Match([]byte(username)) {
 		return userValidErr("username format error")
 	}
 	return nil

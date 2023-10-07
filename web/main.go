@@ -179,7 +179,7 @@ func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, username
 	}
 
 	if regexp.MustCompile(`@`).Match([]byte(username)) {
-		if !model.ValidateEmail(username) {
+		if err := model.ValidateEmail(username); err != nil {
 			mr.Error("email or password is incorrect", errors.WithStack(utils.NewError("email format error")), w, r, http.StatusBadRequest)
 			return
 		}
