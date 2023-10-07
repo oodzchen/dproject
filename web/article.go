@@ -201,7 +201,7 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 	var data *model.Article
 
 	if id == "" {
-		pageTitle = "Add"
+		pageTitle = ar.i18nCustom.LocalTpl("AddNew")
 		data = &model.Article{}
 	} else {
 		rId, err := strconv.Atoi(id)
@@ -228,7 +228,12 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		pageTitle = fmt.Sprintf("Edit - %s", article.Title)
+		if article.ReplyTo != 0 {
+			article.GenSummary(100)
+			pageTitle = fmt.Sprintf("%s - %s", ar.i18nCustom.LocalTpl("BtnEdit"), article.Summary)
+		} else {
+			pageTitle = fmt.Sprintf("%s - %s", ar.i18nCustom.LocalTpl("BtnEdit"), article.Title)
+		}
 
 		article.UpdateDisplayTitle()
 		data = article

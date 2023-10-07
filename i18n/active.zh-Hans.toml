@@ -1,91 +1,3 @@
-[AcAction_add_role]
-hash = "sha1-d8d5d55c4c9d25c9ac455cfdf8e691f899c49e01"
-other = "添加角色"
-
-[AcAction_create_article]
-hash = "sha1-219597af7ea604c8463fef4c9f958310a25db4f5"
-other = "创建文章"
-
-[AcAction_delete_article]
-hash = "sha1-0f57b4b727bb498875c1e84c6f18f8651209e51f"
-other = "删除文章"
-
-[AcAction_edit_article]
-hash = "sha1-28e80f82c94d88a7e9a32272306b2ea0b5f05eca"
-other = "编辑文章"
-
-[AcAction_edit_role]
-hash = "sha1-61dd63e9c31ca35cccae0cb058e6d6f3710c448e"
-other = "编辑角色"
-
-[AcAction_login]
-hash = "sha1-4e5a2893bdcc7d239c1db72e4c4ffbe4bea73174"
-other = "登录"
-
-[AcAction_logout]
-hash = "sha1-e43d612e11f1568f2373e719d4c4b08dcecdc7cc"
-other = "退出"
-
-[AcAction_react_article]
-hash = "sha1-29750dea7106fbb6bc61d23e07033e28b11765a9"
-other = "对文章做出反应"
-
-[AcAction_register]
-hash = "sha1-d672995a14650d0e018026b64f297663d8c71c8d"
-other = "注册"
-
-[AcAction_reply_article]
-hash = "sha1-95fb9370f1ef1ff2ea5083190cceb70c1a7bb956"
-other = "回复文章"
-
-[AcAction_save_article]
-hash = "sha1-ac4ef2e88b1a1e62108c09a73bedbf5b2c1f17ec"
-other = "保存文章"
-
-[AcAction_set_role]
-hash = "sha1-c761ae6f808af35baee6875cbc08cc6210fd7c5b"
-other = "设置角色"
-
-[AcAction_update_intro]
-hash = "sha1-b763c995ee533940f9722582fd0e7386b294392e"
-other = "更新介绍"
-
-[AcAction_vote_article]
-hash = "sha1-45bf78f11124bd3068c77aba76c7bdd1c1aa0035"
-other = "给文章投票"
-
-[AcModel_article]
-hash = "sha1-4360c2dcd4af965377499b10a52640af435c9258"
-other = "文章"
-
-[AcModel_empty]
-hash = "sha1-3159fe421b3221381b3c778dc1c3c26e4540be37"
-other = "空"
-
-[AcModel_role]
-hash = "sha1-c3f104d1365744b538bfde9f4adb6a6df4b80355"
-other = "角色"
-
-[AcModel_user]
-hash = "sha1-9f8a2389a20ca0752aa9e95093515517e90e194c"
-other = "用户"
-
-[AcType_anonymous]
-hash = "sha1-9bed5104004c5fe4e3e46673da174472bff1360a"
-other = "匿名"
-
-[AcType_dev]
-hash = "sha1-4c17aadf5117487aab7bc50cbf056caf3977cc31"
-other = "开发"
-
-[AcType_manage]
-hash = "sha1-63cecca67b70751fc04062673106be15df88ce5f"
-other = "管理"
-
-[AcType_user]
-hash = "sha1-9f8a2389a20ca0752aa9e95093515517e90e194c"
-other = "用户"
-
 [Account]
 hash = "sha1-85dfa32c97d8618d1bea083609e2c8a29845abe5"
 other = "账户"
@@ -106,6 +18,10 @@ other = "动作"
 hash = "sha1-e58f7f889902c81b8879128fede278022f0e459c"
 other = "操作记录"
 
+[AddContent]
+hash = "sha1-b53526456e1c3717f5e80c030ef10890cdaba341"
+other = "添加内容"
+
 [AddNew]
 hash = "sha1-6403f2b7eb2aaafe6de34cbf2a029b01afebc512"
 other = "添加"
@@ -113,6 +29,10 @@ other = "添加"
 [All]
 hash = "sha1-6a72085653e4c5be8c7640c868ef787cbcf063d1"
 other = "全部"
+
+[Anchor]
+hash = "sha1-8f8c77e7404ca30dcccf92c73c985f04a86420e7"
+other = "锚点"
 
 [Best]
 hash = "sha1-77003d07271f14977f2cf290c9d16c81e05ab6dd"
@@ -122,13 +42,37 @@ other = "最佳"
 hash = "sha1-bbfa773e5a63a5ea58c9b6207e608ca0120e592a"
 other = "关闭"
 
+[BtnDelete]
+hash = "sha1-f6fdbe48dc54dd86f63097a03bd24094dedd713a"
+other = "删除"
+
+[BtnEdit]
+hash = "sha1-5301648dcf6b53cefc9ed52999aaa92d4603cae0"
+other = "编辑"
+
+[BtnFold]
+hash = "sha1-b6ba0db1f814179114ec82fbf188b2eb5be2596e"
+other = "收起"
+
+[BtnMore]
+hash = "sha1-4bab2d8fe13fa6ab57f80098b414f0f734c5dd25"
+other = "更多"
+
 [BtnNextPage]
 hash = "sha1-4bfc194b68a3369d53aadcddc4f891771d91a3d9"
 other = "下一页"
 
+[BtnParent]
+hash = "sha1-23d692f07a3fb646a8e54fcd2dc724f4ea2ed2c6"
+other = "父级"
+
 [BtnPrevPage]
 hash = "sha1-81f547195bef12a0bb74f5af751fe50e78a0c2f3"
 other = "上一页"
+
+[BtnReply]
+hash = "sha1-6c2bb735a46a8ff307fe2e638d581295b2a49e09"
+other = "回复"
 
 [BtnReset]
 hash = "sha1-44c57abd888a66b36d4b7c902134063e4a097223"
@@ -146,6 +90,22 @@ other = "搜索"
 hash = "sha1-2dacf65959849884a011f36f76a04eebea94c5ea"
 other = "提交"
 
+[BtnUnsave]
+hash = "sha1-65fd5f084b91ec4872711c6bc55c0be01801032f"
+other = "取消保存"
+
+[ConfirmDelete]
+hash = "sha1-5c3d4418dea97785194bdc8d2ba60ca6dec1c61a"
+other = "确定删除"
+
+[Content]
+hash = "sha1-4f9be057f0ea5d2ba72fd2c810e8d7b9aa98b469"
+other = "内容"
+
+[Deleted]
+hash = "sha1-441bda6cd85689e476ebe10440f27967faef61a6"
+other = "已删除"
+
 [Discuss]
 hash = "sha1-1b7949a7060ddc9ee6e31e42f7c8b0e281f45dc9"
 other = "讨论"
@@ -158,22 +118,6 @@ other = "热门"
 hash = "sha1-2473e96bc614a911821242119918a241a41836d6"
 other = "介绍"
 
-[Lang_en]
-hash = "sha1-649df08a448ee3fa90f3746baaf6b0907df42c91"
-other = "English"
-
-[Lang_jp]
-hash = "sha1-c12140a0ffb4e56481b4fe0a7a25040c2eafa9ca"
-other = "日本語"
-
-[Lang_zh-Hans]
-hash = "sha1-93659150d0e56377fc3a57cb9bb7d958fd637a74"
-other = "简体中文"
-
-[Lang_zh-Hant]
-hash = "sha1-1f7e4a4c370c9833c9f077a16934e4c7eb1dbc9c"
-other = "繁體中文"
-
 [Language]
 hash = "sha1-89b86ab0e66f527166d98df92ddbcf5416ed58f6"
 other = "语言"
@@ -181,6 +125,10 @@ other = "语言"
 [Latest]
 hash = "sha1-decd7ca8001063374c7a24698a6adbc6c4552498"
 other = "最新"
+
+[Link]
+hash = "sha1-d0517071aa376e797705058bbad4b658954b9930"
+other = "链接"
 
 [Login]
 hash = "sha1-4e5a2893bdcc7d239c1db72e4c4ffbe4bea73174"
@@ -215,8 +163,16 @@ hash = "sha1-d06d55570938d12f87db3bf2b48caa9de22d9c67"
 other = "权限"
 
 [PublishInfo]
-hash = "sha1-50bac0ef543a6393b07a27de87e9682d49977145"
+hash = "sha1-31e59c380622bbad26b8f01bc14b9ebac08dbe95"
 other = "{{.Username}} 发布"
+
+[Re]
+hash = "sha1-e39422d2f459423ed57d70f33d3dcd32ee31ff97"
+other = "回"
+
+[ReactTip]
+hash = "sha1-eb5974127a583519aa5f64b126b3bb744ca15066"
+other = "对内容做出反应"
 
 [Register]
 hash = "sha1-d672995a14650d0e018026b64f297663d8c71c8d"
@@ -224,7 +180,7 @@ other = "注册"
 
 [ReplyNum]
 hash = "sha1-2cbee60b1478eae565b6780bee631ab1100e8954"
-other = "回复 {{.Count}}"
+other = "{{.Count}} 回复"
 
 [Role]
 hash = "sha1-47dcc27d6e87ece8baebe7e3877a261a5467093d"
@@ -254,6 +210,10 @@ other = "系统默认"
 hash = "sha1-279ff465b21df4aa114acd5656a2ed4fe4a7cd5b"
 other = "该功能需要启用JavaScript"
 
+[Title]
+hash = "sha1-768e0c1c69573fb588f61f1308a015c11468e05f"
+other = "标题"
+
 [Type]
 hash = "sha1-3deb7456519697ecf4eefc455516c969a3681bae"
 other = "类型"
@@ -275,9 +235,9 @@ hash = "sha1-84c29015de33e5d22422382a372caba5c58f8c01"
 other = "用户名"
 
 [VoteScore]
-hash = "sha1-95d1da928c93d0ca9f610316e1f38b752b6eb35c"
-other = "分数 {{.VoteScore}}"
+hash = "sha1-8a59b65d21e42409585cf850b64587e2ee783489"
+other = "{{.Score}} 分"
 
 [Weight]
 hash = "sha1-c3c6f9c00570e41e9c3305fce571e511593c5eb4"
-other = "权重 {{.Weight}}"
+other = "{{.Weight}} 权重"

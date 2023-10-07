@@ -2,7 +2,7 @@
     {{template "head" . -}}
 
     {{- if not .Data.Id -}}
-	<h1>Add Content</h1>
+	<h1>{{local "AddContent"}}</h1>
 	<hr/>
     {{- end -}}
     
@@ -14,20 +14,20 @@
 	{{end -}}
 
 	{{if and .Data.Id (gt .Data.ReplyDepth 0) -}}
-	    <h1>Re{{if gt .Data.ReplyDepth 1}} &times; {{.Data.ReplyDepth}}{{end}}: <a href="/articles/{{.Data.ReplyRootArticleId}}">{{.Data.ReplyRootArticleTitle}}</a></h1>
+	    <h1>{{local "Re"}}{{if gt .Data.ReplyDepth 1}} &times; {{.Data.ReplyDepth}}{{end}}: <a href="/articles/{{.Data.ReplyRootArticleId}}">{{.Data.ReplyRootArticleTitle}}</a></h1>
 	{{else -}}
 	    <div class="form__row">
-		<label class="form__label" for="title">Title:</label>
+		<label class="form__label" for="title">{{local "Title"}}:</label>
 		<input required type="text" id="title" name="title" value="{{.Data.Title}}"  style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box">
 	    </div>
 	{{end -}}
 
 	<div class="form__row">
-	    <label class="form__label" for="content">Content:</label>
+	    <label class="form__label" for="content">{{local "Content"}}:</label>
 	    <textarea id="content" name="content" cols="30" rows="10" style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box;">{{.Data.Content}}</textarea>
 	</div>
 	<br/>
-	<button type="submit">Submit</button>
+	<button type="submit">{{local "BtnSubmit"}}</button>
     </form>
     {{template "foot" . -}}
 {{end -}}

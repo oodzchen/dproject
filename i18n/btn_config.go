@@ -14,6 +14,11 @@ func (ic *I18nCustom) AddBtnConfigs() {
 	})
 
 	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnUnsave",
+		Other: "Unsave",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "BtnReset",
 		Other: "Reset",
 	})
@@ -36,5 +41,35 @@ func (ic *I18nCustom) AddBtnConfigs() {
 	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "BtnNextPage",
 		Other: "Next page",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnDelete",
+		Other: "Delete",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnReply",
+		Other: "Reply",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnEdit",
+		Other: "Edit",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnParent",
+		Other: "Parent",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnFold",
+		Other: "Fold",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnMore",
+		Other: "More",
 	})
 }

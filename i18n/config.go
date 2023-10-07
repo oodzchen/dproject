@@ -76,12 +76,12 @@ func (ic *I18nCustom) AddConfigs() {
 
 	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "PublishInfo",
-		Other: "By {{.Username}}",
+		Other: "By {{.Username}} ",
 	})
 
 	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "VoteScore",
-		Other: "vote score {{.VoteScore}}",
+		Other: "vote score {{.Score}}",
 	})
 
 	ic.AddLocalizeConfig(&i18n.Message{
@@ -200,4 +200,48 @@ func (ic *I18nCustom) AddConfigs() {
 		Other: "Manage",
 	})
 
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Re",
+		Other: "Re",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Link",
+		Other: "Link",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Anchor",
+		Other: "Anchor",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Deleted",
+		Other: "Deleted",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "ConfirmDelete",
+		Other: "Confirm to delete",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "ReactTip",
+		Other: "React to content",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AddContent",
+		Other: "Add content",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Content",
+		Other: "Content",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Title",
+		Other: "Title",
+	})
 }

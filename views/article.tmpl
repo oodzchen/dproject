@@ -82,35 +82,32 @@
 	    <h1>{{.article.Title}}</h1>
 	{{else -}}
 	    {{if eq $pageDepth 1 -}}
-		<h1>Re{{if gt .article.ReplyDepth 1}} &times; {{.article.ReplyDepth}}{{- end -}}: <a href="/articles/{{.article.ReplyRootArticleId}}">{{.article.ReplyRootArticleTitle}}</a></h1>
+		<h1>{{local "Re"}}{{if gt .article.ReplyDepth 1}} &times; {{.article.ReplyDepth}}{{- end -}}: <a href="/articles/{{.article.ReplyRootArticleId}}">{{.article.ReplyRootArticleTitle}}</a></h1>
 	    {{- end -}}
 	{{- end -}}
 
 	<div class="text-lighten-3" style="margin-bottom:0px;">
 	    <small>
+		{{- $author := print  "<a class=\"text-lighten-3\" href=\"/users/" .article.AuthorId "\">" .article.AuthorName "</a>" -}}
 		{{- if .article.Deleted -}}
-		    <span>deleted</span>&nbsp;
-		{{- else -}}
-		    <a class="text-lighten-3" href="/users/{{.article.AuthorId}}">{{.article.AuthorName}}</a>&nbsp;
+		    {{- $author = print "<span>" (local "Deleted" | lower) "</span>" -}}
 		{{- end -}}
-		published <time title="{{.article.CreatedAt}}">{{timeAgo .article.CreatedAt}}</time> |&nbsp;
+		{{- local "PublishInfo" "Username" $author -}}
+		<time title="{{.article.CreatedAt}}">{{timeAgo .article.CreatedAt}}</time> |&nbsp;
 		{{- if ne .article.CreatedAt .article.UpdatedAt -}}
 		    modified <time title="{{.article.UpdatedAt}}">{{timeAgo .article.UpdatedAt}}</time> |&nbsp;
 		{{- end -}}
-		<a class="text-lighten-3" href="/articles/{{.article.Id}}">link</a> |&nbsp;
-		<a class="text-lighten-3" href="#ar_{{.article.Id}}">anchor</a> |&nbsp;
+		<a class="text-lighten-3" href="/articles/{{.article.Id}}">{{local "Link" | lower}}</a> |&nbsp;
+		<a class="text-lighten-3" href="#ar_{{.article.Id}}">{{local "Anchor" | lower}}</a> |&nbsp;
 		<span>{{- local "ReplyNum" "Count" .article.TotalReplyCount -}}</span>&nbsp;
-		{{- if .article.Replies -}}
-		    |&nbsp;{{.article.Replies.Total}} children&nbsp;
-		{{- end -}}
 		{{- if .debug -}}
 		    |&nbsp;{{- .article.ReplyDepth}} depth
-		    |&nbsp;{{- .article.Weight}} weight
+		    |&nbsp;{{- .article.Weight}} {{local "Weight"}}
 		{{- end -}}
 	    </small>
 	</div>
 	{{if .article.Deleted -}}
-	    <i class="text-lighten-2">&lt;Deleted&gt;</i>
+	    <i class="text-lighten-2">&lt;{{local "Deleted"}}&gt;</i>
 	{{- else -}}
 	    <section style="white-space: break-spaces">{{- .article.Content -}}</section>
 	{{- end -}}
@@ -125,10 +122,10 @@
 	    <form method="post" class="card" action="/articles/{{.article.Id}}/delete{{if gt .pageDepth 1}}?from=reply{{- end}}" id="del_form_{{.article.Id}}">
 		{{.CSRFField -}}
 		<input type="hidden" name="id" value="{{.article.Id}}">
-		<label>Confirm to delete?</label>
+		<label>{{local "ConfirmDelete"}}?</label>
 		<br/>
 		<br/>
-		<button type="submit">Delete</button>
+		<button type="submit">{{local "BtnDelete"}}</button>
 	    </form>
 	{{- end -}}
     {{- else -}}
@@ -144,7 +141,7 @@
 		    <div class="reply-tab__title">{{local "ReplyNum" "Count" .article.TotalReplyCount}}</div>
 		    {{- $article := .article -}}
 		    {{- $sortTabs := list "best" "latest" -}}
-		    {{- $sortTabMap := dict "best" "Best" "latest" "Latest" -}}
+		    {{- $sortTabMap := dict "best" (local "Best") "latest" (local "Latest") -}}
 		    <div class="tabs">
 			{{- range $sortTabs -}}
 			    <a class="tab{{if eq $article.Replies.SortType .}} active{{end}}" href="/articles/{{$article.Id}}{{if ne . "best"}}?sort={{.}}#replies{{end}}">{{get $sortTabMap .}}</a>
@@ -191,10 +188,10 @@
 		{{- if .currUser -}}
 		    {{- if eq .currUser.Id .article.AuthorId -}}
 			{{- if permit "article" "edit_mine" -}}
-			    <a href="/articles/{{.article.Id}}/edit" class="btn-edit">Edit</a>&nbsp;&nbsp;
+			    <a href="/articles/{{.article.Id}}/edit" class="btn-edit">{{local "BtnEdit"}}</a>&nbsp;&nbsp;
 			{{- end -}}
 			{{- if permit "article" "delete_mine" -}}
-			    <a class="btn-del" href="/articles/{{.article.Id}}/delete">Delete</a>&nbsp;&nbsp;
+			    <a class="btn-del" href="/articles/{{.article.Id}}/delete">{{local "BtnDelete"}}</a>&nbsp;&nbsp;
 			{{- end -}}
 		    {{- end -}}
 
@@ -202,25 +199,25 @@
 			<form class="btn-form" action="/articles/{{.article.Id}}/save" method="POST" >
 			    {{- .CSRFField -}}
 			    <input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
-			    <button title="Save" type="submit">{{- if and .article.CurrUserState .article.CurrUserState.Saved -}}
-				Unsave
-			    {{- else -}}
-				Save
-			    {{- end -}}</button>
+			    {{- $btnSaveText := local "BtnSave" -}}
+			    {{- if and .article.CurrUserState .article.CurrUserState.Saved -}}
+				{{$btnSaveText = local "BtnUnsave"}}
+			    {{- end -}}
+			    <button title="{{$btnSaveText}}" type="submit">{{$btnSaveText}}</button>
 			</form>&nbsp;&nbsp;
 		    {{- end -}}
 		{{- end -}}
 
 		{{- if permit "article" "reply" -}}
-		    <a title="Reply" href="/articles/{{.article.Id}}/reply">Reply</a>&nbsp;&nbsp;
+		    <a title="{{local "BtnReply"}}" href="/articles/{{.article.Id}}/reply">{{local "BtnReply"}}</a>&nbsp;&nbsp;
 		{{- end -}}
 
 		{{- if gt .pageDepth 1 -}}
-		    <a title="Parent" class="btn-parent" href="#ar_{{.article.ReplyTo}}">Parent</a>&nbsp;&nbsp;
+		    <a title="{{local "BtnParent"}}" class="btn-parent" href="#ar_{{.article.ReplyTo}}">{{local "BtnParent"}}</a>&nbsp;&nbsp;
 		{{- end -}}
 	    {{- end -}}
 	    {{- if and (eq .pageDepth 1) (not .isRootArticle) -}}
-		<a title="Parent" href="/articles/{{.article.ReplyTo}}">Parent</a>&nbsp;&nbsp;
+		<a title="{{local "BtnParent"}}" href="/articles/{{.article.ReplyTo}}">{{local "BtnParent"}}</a>&nbsp;&nbsp;
 	    {{- end -}}
 	</small>
 
@@ -265,9 +262,9 @@
 			<form class="btn-form btn-react" action="/articles/{{.article.Id}}/react" method="POST">
 			    {{.CSRFField}}
 			    <input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
-			    <span title="Emoji">
+			    <span>
 				<svg width="16" viewBox="0 -2 16 16" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" d="M7.5.877a6.623 6.623 0 1 0 0 13.246A6.623 6.623 0 0 0 7.5.877ZM1.827 7.5a5.673 5.673 0 1 1 11.346 0a5.673 5.673 0 0 1-11.346 0Zm3.21 1.714a.5.5 0 1 0-.82.572A3.996 3.996 0 0 0 7.5 11.5c1.36 0 2.56-.679 3.283-1.714a.5.5 0 0 0-.82-.572A2.996 2.996 0 0 1 7.5 10.5a2.996 2.996 0 0 1-2.463-1.286Zm.338-2.364a.875.875 0 1 0 0-1.75a.875.875 0 0 0 0 1.75Zm5.125-.875a.875.875 0 1 1-1.75 0a.875.875 0 0 1 1.75 0Z" clip-rule="evenodd"/></svg>
-				<select required title="Reaction" class="btn-react" id="react_{{$article.Id}}" name="react" autocomplete="off">
+				<select title="{{local "ReactTip"}}" required class="btn-react" id="react_{{$article.Id}}" name="react" autocomplete="off">
 				    <option value="" selected hidden disabled></option>
 				    {{- range .reactOptions -}}
 					<option value="{{.}}">{{index $reactMap .}}</option>
@@ -275,14 +272,14 @@
 				</select>
 			    </span>
 			    <noscript>
-				<button type="submit">Submit</button>
+				<button type="submit">{{local "BtnSubmit"}}</button>
 			    </noscript>
 			</form>
 		    {{- end -}}
 		{{- end -}}
 
 		{{- if gt .pageDepth 1 -}}
-		    <a title="Fold" class="btn-fold" href="javascript:void(0);">Fold</a>&nbsp;&nbsp;
+		    <a title="{{local "BtnFold"}}" class="btn-fold" href="javascript:void(0);">{{local "BtnFold"}}</a>&nbsp;&nbsp;
 		{{- end -}}
 	    {{- end -}}
 	</small>
@@ -297,7 +294,7 @@
 
 	<div class="reply-form-bottom">
 	    <div>
-		<button type="submit">Submit</button>
+		<button type="submit">{{local "BtnSubmit"}}</button>
 	    </div>
 	    <div></div>
 	</div>
@@ -320,7 +317,7 @@
 		{{template "article_content" $subData -}}
 	    </li>
 	    {{if and (gt .TotalReplyCount 0) (eq $pageDepth $maxDepth) -}}
-		<li style="padding-top:6px"><small><a href="/articles/{{.Id}}">More</a></small></li>
+		<li style="padding-top:6px"><small><a href="/articles/{{.Id}}">{{local "BtnMore"}}</a></small></li>
 	    {{- end -}}
 	{{- end -}}
     </ul>

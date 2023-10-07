@@ -34,7 +34,7 @@
 		<a class="article-list__title" {{if eq $idx 0}}id="article-list-head"{{end}} href="/articles/{{$item.Id}}">{{$item.DisplayTitle}}</a>
 		<br/>
 		{{- $author :=  (print "<a class=\"text-lighten-3\" href=\"/users/" $item.AuthorId "\">" $item.AuthorName "</a>") -}}
-		<small class="text-lighten-3">{{local "PublishInfo" "Username" $author}}<time title="{{$item.CreatedAt}}">{{timeAgo $item.CreatedAt}}</time> | {{local "VoteScore"}} {{$item.VoteScore}}&nbsp;
+		<small class="text-lighten-3">{{local "PublishInfo" "Username" $author}}<time title="{{$item.CreatedAt}}">{{timeAgo $item.CreatedAt}}</time> | {{local "VoteScore" "Score" $item.VoteScore}}&nbsp;
 		    {{- if eq $item.TotalReplyCount 0 -}}
 			| <a class="text-lighten-3" href="/articles/{{$item.Id}}">{{local "Discuss"}}</a>&nbsp;
 		    {{- else -}}
@@ -59,7 +59,7 @@
 			    {{- end -}}
 			    &nbsp;&nbsp;
 			    {{- if eq $item.TotalReplyCount 0 -}}
-				<a href="/articles/{{$item.Id}}">Discuss</a>
+				<a href="/articles/{{$item.Id}}">{{local "Discuss"}}</a>
 			    {{- else -}}
 				<a href="/articles/{{$item.Id}}#replies">{{local "ReplyNum" "Count" $item.TotalReplyCount}}</a>
 			    {{- end -}}
