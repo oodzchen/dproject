@@ -180,4 +180,24 @@ func (ic *I18nCustom) AddConfigs() {
 		Other: "Account created successfully",
 	})
 
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Type",
+		Other: "Type",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Action",
+		Other: "Action",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "All",
+		Other: "All",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Manage",
+		Other: "Manage",
+	})
+
 }

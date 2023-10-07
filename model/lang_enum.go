@@ -9,6 +9,9 @@ package model
 import (
 	"fmt"
 	"strings"
+
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+	i18nc "github.com/oodzchen/dproject/i18n"
 )
 
 const (
@@ -79,6 +82,10 @@ func ParseLang(name string) (Lang, error) {
 	return Lang(""), fmt.Errorf("%s is %w", name, ErrInvalidLang)
 }
 
+func (x Lang) I18nID() string {
+	return fmt.Sprintf("Lang_%s", x.String())
+}
+
 var _LangTextMap = map[Lang]string{
 	LangEn:     "English",
 	LangZhHans: "简体中文",
@@ -86,8 +93,15 @@ var _LangTextMap = map[Lang]string{
 	LangJp:     "日本語",
 }
 
-func (x Lang) Text(upCaseHead bool) string {
+func (x Lang) Text(upCaseHead bool, i18nCustom *i18nc.I18nCustom) string {
 	text := []rune(_LangTextMap[x])
+
+	if i18nCustom != nil {
+		if _, ok := i18nCustom.Configs[x.I18nID()]; ok {
+			text = []rune(i18nCustom.MustLocalize(x.I18nID(), "", ""))
+		}
+	}
+
 	var res string
 	if upCaseHead {
 		res = strings.ToUpper(string(text[:1])) + string(text[1:])
@@ -95,4 +109,23 @@ func (x Lang) Text(upCaseHead bool) string {
 		res = strings.ToLower(string(text[:1])) + string(text[1:])
 	}
 	return res
+}
+
+func LangAddI18nConfigs(ic *i18nc.I18nCustom) {
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Lang_en",
+		Other: "English",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Lang_zh-Hans",
+		Other: "简体中文",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Lang_zh-Hant",
+		Other: "繁體中文",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Lang_jp",
+		Other: "日本語",
+	})
 }

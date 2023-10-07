@@ -1,4 +1,4 @@
-//go:generate go-enum --names --values -t ./enum_text.tmpl
+//go:generate go-enum --names --values -t ./enum_i18n.tmpl
 
 package model
 

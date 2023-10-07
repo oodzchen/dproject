@@ -610,7 +610,7 @@ func (mr *ManageResource) ActivityList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, item := range list {
-		item.Format()
+		item.Format(mr.i18nCustom)
 	}
 
 	type QueryData struct {
@@ -630,16 +630,16 @@ func (mr *ManageResource) ActivityList(w http.ResponseWriter, r *http.Request) {
 	for _, item := range model.AcTypeValues() {
 		acTypeStrEnums = append(acTypeStrEnums, item)
 	}
-	acTypeOptons := model.ConvertEnumToOPtions(acTypeStrEnums, true)
+	acTypeOptons := model.ConvertEnumToOPtions(acTypeStrEnums, true, "AcType", mr.i18nCustom)
 
 	var acActionStrEnums []model.StringEnum
 	for _, item := range model.AcActionValues() {
 		acActionStrEnums = append(acActionStrEnums, item)
 	}
-	acActionOptons := model.ConvertEnumToOPtions(acActionStrEnums, true)
+	acActionOptons := model.ConvertEnumToOPtions(acActionStrEnums, true, "AcAction", mr.i18nCustom)
 
 	mr.Render(w, r, "activity", &model.PageData{
-		Title: "Activity - Manage",
+		Title: mr.i18nCustom.LocalTpl("Activity") + "-" + mr.i18nCustom.LocalTpl("Manage"),
 		Data: &QctivityPageData{
 			List:            list,
 			AcTypeOptions:   acTypeOptons,

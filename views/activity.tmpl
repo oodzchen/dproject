@@ -28,35 +28,35 @@
     {{- $data := .Data -}}
     <form class="filter-box" action="/manage/activities" method="GET">
 	<div class="filter-box__item">
-	    <div class="filter-box__label">Username:</div>
-	    <input name="username" type="text" value="{{.Data.Query.UserName}}"/>
+	    <label for="filter-username" class="filter-box__label">{{local "Username"}}:</label>
+	    <input id="filter-username" name="username" type="text" value="{{.Data.Query.UserName}}"/>
 	</div>
 	<div class="filter-box__item">
-	    <div class="filter-box__label">Type:</div>
-	    <select name="type" autocomplete="off">
-		<option value="">All</option>
+	    <label id="filter-type" class="filter-box__label">{{local "Type"}}:</label>
+	    <select id="filter-type" name="type" autocomplete="off">
+		<option value="">{{local "All"}}</option>
 		{{- range .Data.AcTypeOptions -}}
 		    <option value="{{.Value}}" {{if eq .Value $data.Query.Type}}selected{{end}}>{{.Name}}</option>
 		{{- end -}}
 	    </select>
 	</div>
 	<div class="filter-box__item">
-	    <div class="filter-box__label">Action:</div>
-	    <select name="action" autocomplete="off">
-		<option value="">All</option>
+	    <label for="filter-action" class="filter-box__label">{{local "Action"}}:</label>
+	    <select id="filter-action" name="action" autocomplete="off">
+		<option value="">{{local "All"}}</option>
 		{{- range .Data.AcActionOptions -}}
 		    <option value="{{.Value}}" {{if eq .Value $data.Query.Action}}selected{{end}}>{{.Name}}</option>
 		{{- end -}}
 	    </select>
 	</div>
-	<button type="reset" class="btn-reset" data-reset-path="/manage/activities">Reset</button>&nbsp;&nbsp;
-	<button type="submit">Search</button>
+	<button type="reset" class="btn-reset" data-reset-path="/manage/activities">{{local "BtnReset"}}</button>&nbsp;&nbsp;
+	<button type="submit">{{local "BtnSearch"}}</button>
     </form>
 
     <hr/>
 
     <div>
-	<b>{{.Data.Query.Total}} activities</b>
+	<b>{{.Data.Query.Total}} {{(local "Activity" "Count" .Data.Query.Total) | lower}}</b>
     </div>
 
     {{- template "activity_list" .Data.List -}}

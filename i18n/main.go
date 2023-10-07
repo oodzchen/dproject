@@ -23,7 +23,7 @@ type I18nCustom struct {
 	CurrLang  string
 	Bundle    *i18n.Bundle
 	Localizer *i18n.Localizer
-	configs   map[string]*i18n.LocalizeConfig
+	Configs   map[string]*i18n.LocalizeConfig
 }
 
 func New(files []string) *I18nCustom {
@@ -40,7 +40,7 @@ func New(files []string) *I18nCustom {
 		CurrLang:  defaultLang,
 		Bundle:    Bundle,
 		Localizer: Localizer,
-		configs:   make(map[string]*i18n.LocalizeConfig),
+		Configs:   make(map[string]*i18n.LocalizeConfig),
 	}
 
 	custom.AddConfigs()
@@ -54,13 +54,13 @@ func (ic *I18nCustom) AddLocalizeConfig(message *i18n.Message) {
 		panic(fmt.Errorf("Message lack of id: %v", message))
 	}
 
-	ic.configs[message.ID] = &i18n.LocalizeConfig{
+	ic.Configs[message.ID] = &i18n.LocalizeConfig{
 		DefaultMessage: message,
 	}
 }
 
 func (ic *I18nCustom) MustLocalize(id string, templateData any, pluralcount any) string {
-	config := ic.configs[id]
+	config := ic.Configs[id]
 
 	if templateData != "" && templateData != nil {
 		config.TemplateData = templateData
@@ -81,6 +81,10 @@ func (ic *I18nCustom) SwitchLang(lang string) {
 }
 
 func (ic *I18nCustom) LocalTpl(id string, data ...any) string {
+	if len(data) == 0 {
+		return ic.MustLocalize(id, "", "")
+	}
+
 	var tplData = make(map[any]any)
 	for idx, item := range data {
 		if idx%2 == 0 {

@@ -1,3 +1,91 @@
+[AcAction_add_role]
+hash = "sha1-d8d5d55c4c9d25c9ac455cfdf8e691f899c49e01"
+other = "添加角色"
+
+[AcAction_create_article]
+hash = "sha1-219597af7ea604c8463fef4c9f958310a25db4f5"
+other = "创建文章"
+
+[AcAction_delete_article]
+hash = "sha1-0f57b4b727bb498875c1e84c6f18f8651209e51f"
+other = "删除文章"
+
+[AcAction_edit_article]
+hash = "sha1-28e80f82c94d88a7e9a32272306b2ea0b5f05eca"
+other = "编辑文章"
+
+[AcAction_edit_role]
+hash = "sha1-61dd63e9c31ca35cccae0cb058e6d6f3710c448e"
+other = "编辑角色"
+
+[AcAction_login]
+hash = "sha1-4e5a2893bdcc7d239c1db72e4c4ffbe4bea73174"
+other = "登录"
+
+[AcAction_logout]
+hash = "sha1-e43d612e11f1568f2373e719d4c4b08dcecdc7cc"
+other = "退出"
+
+[AcAction_react_article]
+hash = "sha1-29750dea7106fbb6bc61d23e07033e28b11765a9"
+other = "对文章做出反应"
+
+[AcAction_register]
+hash = "sha1-d672995a14650d0e018026b64f297663d8c71c8d"
+other = "注册"
+
+[AcAction_reply_article]
+hash = "sha1-95fb9370f1ef1ff2ea5083190cceb70c1a7bb956"
+other = "回复文章"
+
+[AcAction_save_article]
+hash = "sha1-ac4ef2e88b1a1e62108c09a73bedbf5b2c1f17ec"
+other = "保存文章"
+
+[AcAction_set_role]
+hash = "sha1-c761ae6f808af35baee6875cbc08cc6210fd7c5b"
+other = "设置角色"
+
+[AcAction_update_intro]
+hash = "sha1-b763c995ee533940f9722582fd0e7386b294392e"
+other = "更新介绍"
+
+[AcAction_vote_article]
+hash = "sha1-45bf78f11124bd3068c77aba76c7bdd1c1aa0035"
+other = "给文章投票"
+
+[AcModel_article]
+hash = "sha1-4360c2dcd4af965377499b10a52640af435c9258"
+other = "文章"
+
+[AcModel_empty]
+hash = "sha1-3159fe421b3221381b3c778dc1c3c26e4540be37"
+other = "空"
+
+[AcModel_role]
+hash = "sha1-c3f104d1365744b538bfde9f4adb6a6df4b80355"
+other = "角色"
+
+[AcModel_user]
+hash = "sha1-9f8a2389a20ca0752aa9e95093515517e90e194c"
+other = "用户"
+
+[AcType_anonymous]
+hash = "sha1-9bed5104004c5fe4e3e46673da174472bff1360a"
+other = "匿名"
+
+[AcType_dev]
+hash = "sha1-4c17aadf5117487aab7bc50cbf056caf3977cc31"
+other = "开发"
+
+[AcType_manage]
+hash = "sha1-63cecca67b70751fc04062673106be15df88ce5f"
+other = "管理"
+
+[AcType_user]
+hash = "sha1-9f8a2389a20ca0752aa9e95093515517e90e194c"
+other = "用户"
+
 [Account]
 hash = "sha1-85dfa32c97d8618d1bea083609e2c8a29845abe5"
 other = "账户"
@@ -10,6 +98,10 @@ other = "账户创建成功"
 hash = "sha1-1e1c0d37d3158bf5fa31981251bc8a57e0d0d320"
 other = "账户设置保存成功"
 
+[Action]
+hash = "sha1-97c89a4d6630adeb18fa12ba9976a31413fe293e"
+other = "动作"
+
 [Activity]
 hash = "sha1-e58f7f889902c81b8879128fede278022f0e459c"
 other = "操作记录"
@@ -17,6 +109,10 @@ other = "操作记录"
 [AddNew]
 hash = "sha1-6403f2b7eb2aaafe6de34cbf2a029b01afebc512"
 other = "添加"
+
+[All]
+hash = "sha1-6a72085653e4c5be8c7640c868ef787cbcf063d1"
+other = "全部"
 
 [Best]
 hash = "sha1-77003d07271f14977f2cf290c9d16c81e05ab6dd"
@@ -26,9 +122,21 @@ other = "最佳"
 hash = "sha1-bbfa773e5a63a5ea58c9b6207e608ca0120e592a"
 other = "关闭"
 
+[BtnReset]
+hash = "sha1-44c57abd888a66b36d4b7c902134063e4a097223"
+other = "重置"
+
 [BtnSave]
 hash = "sha1-efc007a393f66cdb14d57d385822a3d9e36ef873"
 other = "保存"
+
+[BtnSearch]
+hash = "sha1-bce06414177f72ab70e6387b6af9f8ceef0d6049"
+other = "搜索"
+
+[BtnSubmit]
+hash = "sha1-2dacf65959849884a011f36f76a04eebea94c5ea"
+other = "提交"
 
 [Discuss]
 hash = "sha1-1b7949a7060ddc9ee6e31e42f7c8b0e281f45dc9"
@@ -57,6 +165,10 @@ other = "登录"
 [Logout]
 hash = "sha1-e43d612e11f1568f2373e719d4c4b08dcecdc7cc"
 other = "退出"
+
+[Manage]
+hash = "sha1-bf58d17e561b1b858e35f9202f811297dac2e9db"
+other = "管理"
 
 [PageLayout]
 hash = "sha1-cecb05a81c588637f7246e84bd611bbfe8649970"
@@ -117,6 +229,10 @@ other = "系统默认"
 [ThemeSystemTip]
 hash = "sha1-279ff465b21df4aa114acd5656a2ed4fe4a7cd5b"
 other = "该功能需要启用JavaScript"
+
+[Type]
+hash = "sha1-3deb7456519697ecf4eefc455516c969a3681bae"
+other = "类型"
 
 [UI]
 hash = "sha1-9d57875196c613785a1eee010c55223a0f1aa821"

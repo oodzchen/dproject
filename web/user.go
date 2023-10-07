@@ -181,7 +181,7 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, activity := range activityList {
-		activity.Format()
+		activity.Format(ur.i18nCustom)
 	}
 
 	var permissionNames []string

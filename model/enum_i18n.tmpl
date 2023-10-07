@@ -1,0 +1,39 @@
+{{- $enum := .enum -}}
+func (x {{.enum.Name}}) I18nID() string {
+	return fmt.Sprintf("{{.enum.Name}}_%s", x.String())
+}
+
+var _{{.enum.Name}}TextMap = map[{{.enum.Name}}]string{
+{{- range $rIndex, $value := .enum.Values }}
+    {{$value.PrefixedName}}:      "{{$value.Comment}}",
+{{- end }}
+}
+
+func (x {{.enum.Name}}) Text(upCaseHead bool, i18nCustom *i18nc.I18nCustom) string {
+	text := []rune(_{{.enum.Name}}TextMap[x])
+
+	if i18nCustom != nil {
+		if _, ok := i18nCustom.Configs[x.I18nID()]; ok {
+			text = []rune(i18nCustom.MustLocalize(x.I18nID(), "", ""))
+		}
+	}
+
+	var res string
+	if upCaseHead {
+		res = strings.ToUpper(string(text[:1])) + string(text[1:])
+	} else {
+		res = strings.ToLower(string(text[:1])) + string(text[1:])
+	}
+	return res
+}
+
+
+
+func {{.enum.Name}}AddI18nConfigs(ic *i18nc.I18nCustom) {
+	{{- range $rIndex, $value := .enum.Values }}
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID: "{{$enum.Name}}_{{$value.ValueStr}}",
+		Other: "{{$value.Comment}}",
+	})
+	{{- end }}
+}

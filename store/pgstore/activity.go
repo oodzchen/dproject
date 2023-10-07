@@ -94,7 +94,7 @@ LEFT JOIN users u ON u.id = ua.user_id`
 		list = append(list, &item)
 	}
 
-	fmt.Println("total: ", total)
+	// fmt.Println("total: ", total)
 
 	return list, total, nil
 }

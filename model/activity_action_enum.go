@@ -9,6 +9,9 @@ package model
 import (
 	"fmt"
 	"strings"
+
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+	i18nc "github.com/oodzchen/dproject/i18n"
 )
 
 const (
@@ -139,6 +142,10 @@ func ParseAcAction(name string) (AcAction, error) {
 	return AcAction(""), fmt.Errorf("%s is %w", name, ErrInvalidAcAction)
 }
 
+func (x AcAction) I18nID() string {
+	return fmt.Sprintf("AcAction_%s", x.String())
+}
+
 var _AcActionTextMap = map[AcAction]string{
 	AcActionRegister:      "Register",
 	AcActionLogin:         "Login",
@@ -156,8 +163,15 @@ var _AcActionTextMap = map[AcAction]string{
 	AcActionEditRole:      "Edit role",
 }
 
-func (x AcAction) Text(upCaseHead bool) string {
+func (x AcAction) Text(upCaseHead bool, i18nCustom *i18nc.I18nCustom) string {
 	text := []rune(_AcActionTextMap[x])
+
+	if i18nCustom != nil {
+		if _, ok := i18nCustom.Configs[x.I18nID()]; ok {
+			text = []rune(i18nCustom.MustLocalize(x.I18nID(), "", ""))
+		}
+	}
+
 	var res string
 	if upCaseHead {
 		res = strings.ToUpper(string(text[:1])) + string(text[1:])
@@ -165,4 +179,63 @@ func (x AcAction) Text(upCaseHead bool) string {
 		res = strings.ToLower(string(text[:1])) + string(text[1:])
 	}
 	return res
+}
+
+func AcActionAddI18nConfigs(ic *i18nc.I18nCustom) {
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_register",
+		Other: "Register",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_login",
+		Other: "Login",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_logout",
+		Other: "Logout",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_update_intro",
+		Other: "Update introduction",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_create_article",
+		Other: "Create article",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_reply_article",
+		Other: "Reply to article",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_edit_article",
+		Other: "Edit article",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_delete_article",
+		Other: "Delete article",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_save_article",
+		Other: "Save article",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_vote_article",
+		Other: "Vote article",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_react_article",
+		Other: "React to article",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_set_role",
+		Other: "Set role",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_add_role",
+		Other: "Add role",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_edit_role",
+		Other: "Edit role",
+	})
 }

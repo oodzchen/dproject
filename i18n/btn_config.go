@@ -12,4 +12,19 @@ func (ic *I18nCustom) AddBtnConfigs() {
 		ID:    "BtnSave",
 		Other: "Save",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnReset",
+		Other: "Reset",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnSearch",
+		Other: "Search",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnSubmit",
+		Other: "Submit",
+	})
 }

@@ -155,6 +155,7 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 	mr.doLogin(w, r, username, password)
 
 	// targetUrl, _ := sess.Values["target_url"].(string)
+
 	target := mr.Session("one", w, r).GetValue("target_url")
 
 	mr.Session("one", w, r).SetValue("target_url", "")
@@ -336,7 +337,7 @@ func (mr *MainResource) handleSettingsPage(w http.ResponseWriter, r *http.Reques
 	for _, item := range model.LangValues() {
 		langStrEnums = append(langStrEnums, item)
 	}
-	langOptions := model.ConvertEnumToOPtions(langStrEnums, true)
+	langOptions := model.ConvertEnumToOPtions(langStrEnums, true, "", nil)
 	pageData := &SettingsPageData{
 		PageKey:         pageKey,
 		LanguageOptions: langOptions,

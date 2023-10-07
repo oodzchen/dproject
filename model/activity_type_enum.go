@@ -9,6 +9,9 @@ package model
 import (
 	"fmt"
 	"strings"
+
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+	i18nc "github.com/oodzchen/dproject/i18n"
 )
 
 const (
@@ -79,6 +82,10 @@ func ParseAcType(name string) (AcType, error) {
 	return AcType(""), fmt.Errorf("%s is %w", name, ErrInvalidAcType)
 }
 
+func (x AcType) I18nID() string {
+	return fmt.Sprintf("AcType_%s", x.String())
+}
+
 var _AcTypeTextMap = map[AcType]string{
 	AcTypeUser:      "User",
 	AcTypeManage:    "Management",
@@ -86,8 +93,15 @@ var _AcTypeTextMap = map[AcType]string{
 	AcTypeDev:       "Development",
 }
 
-func (x AcType) Text(upCaseHead bool) string {
+func (x AcType) Text(upCaseHead bool, i18nCustom *i18nc.I18nCustom) string {
 	text := []rune(_AcTypeTextMap[x])
+
+	if i18nCustom != nil {
+		if _, ok := i18nCustom.Configs[x.I18nID()]; ok {
+			text = []rune(i18nCustom.MustLocalize(x.I18nID(), "", ""))
+		}
+	}
+
 	var res string
 	if upCaseHead {
 		res = strings.ToUpper(string(text[:1])) + string(text[1:])
@@ -95,4 +109,23 @@ func (x AcType) Text(upCaseHead bool) string {
 		res = strings.ToLower(string(text[:1])) + string(text[1:])
 	}
 	return res
+}
+
+func AcTypeAddI18nConfigs(ic *i18nc.I18nCustom) {
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcType_user",
+		Other: "User",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcType_manage",
+		Other: "Management",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcType_anonymous",
+		Other: "Anonymous",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcType_dev",
+		Other: "Development",
+	})
 }
