@@ -153,8 +153,9 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	data.PermissionEnabledList = rd.permissionSrv.PermissionData.EnabledFrondIdList
 
 	rd.tmpl = rd.tmpl.Funcs(template.FuncMap{
-		"permit": rd.permissionSrv.PermissionData.Permit,
-		"local":  rd.i18nCustom.LocalTpl,
+		"permit":  rd.permissionSrv.PermissionData.Permit,
+		"local":   rd.i18nCustom.LocalTpl,
+		"timeAgo": rd.i18nCustom.TimeAgo.Format,
 	})
 
 	if data.Title != "" {

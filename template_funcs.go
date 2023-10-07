@@ -4,14 +4,12 @@ import (
 	"reflect"
 	"strings"
 	"text/template"
-	"time"
 
 	"github.com/oodzchen/dproject/utils"
-	"github.com/xeonx/timeago"
 )
 
 var TmplFuncs = template.FuncMap{
-	"timeAgo":    formatTimeAgo,
+	// "timeAgo":    formatTimeAgo,
 	"timeFormat": utils.FormatTime,
 	"intRange":   intRange,
 	"placehold":  placehold,
@@ -24,9 +22,10 @@ func joinStrArr(arr []string, sep string) string {
 	return strings.Join(arr, sep)
 }
 
-func formatTimeAgo(t time.Time) string {
-	return timeago.English.Format(t)
-}
+// func formatTimeAgo(t time.Time) string {
+// 	// return timeago.English.Format(t)
+// 	return timeago.Chinese.Format(t)
+// }
 
 func intRange(start, end int) []int {
 	// fmt.Println("start: ", start, "end", end)

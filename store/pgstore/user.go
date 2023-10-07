@@ -65,7 +65,7 @@ WHERE u.id IN ( SELECT id FROM users OFFSET $1 LIMIT $2)`
 		sqlStr += ` ORDER BY u.created_at DESC`
 	}
 
-	fmt.Println("user list sqlStr", sqlStr)
+	// fmt.Println("user list sqlStr", sqlStr)
 
 	rows, err := u.dbPool.Query(
 		context.Background(),

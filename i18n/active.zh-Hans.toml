@@ -184,7 +184,7 @@ other = "铺满"
 
 [Participate]
 hash = "sha1-37359838b12b097116ebcd735b4aeb0844331d8f"
-other = "{{.ParticipateNum}}个参与者"
+other = "参与者 {{.ParticipateNum}}"
 
 [Permission]
 hash = "sha1-d06d55570938d12f87db3bf2b48caa9de22d9c67"
@@ -192,7 +192,7 @@ other = "权限"
 
 [PublishInfo]
 hash = "sha1-2e797614056adab5547badda6b409f49715cb186"
-other = "由{{.Username}}发布于{{.TimeAgo}}"
+other = "由 {{.Username}} 发布"
 
 [Register]
 hash = "sha1-d672995a14650d0e018026b64f297663d8c71c8d"
@@ -200,7 +200,7 @@ other = "注册"
 
 [ReplyNum]
 hash = "sha1-2cbee60b1478eae565b6780bee631ab1100e8954"
-other = "{{.Count}}回复"
+other = "回复 {{.Count}}"
 
 [Role]
 hash = "sha1-47dcc27d6e87ece8baebe7e3877a261a5467093d"
@@ -252,8 +252,8 @@ other = "用户名"
 
 [VoteScore]
 hash = "sha1-95d1da928c93d0ca9f610316e1f38b752b6eb35c"
-other = "分数{{.VoteScore}}"
+other = "分数 {{.VoteScore}}"
 
 [Weight]
 hash = "sha1-c3c6f9c00570e41e9c3305fce571e511593c5eb4"
-other = "权重{{.Weight}}"
+other = "权重 {{.Weight}}"

@@ -6,6 +6,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"github.com/xeonx/timeago"
 	"golang.org/x/text/language"
 )
 
@@ -24,6 +25,7 @@ type I18nCustom struct {
 	Bundle    *i18n.Bundle
 	Localizer *i18n.Localizer
 	Configs   map[string]*i18n.LocalizeConfig
+	TimeAgo   *timeago.Config
 }
 
 func New(files []string) *I18nCustom {
@@ -36,11 +38,15 @@ func New(files []string) *I18nCustom {
 
 	Localizer := i18n.NewLocalizer(Bundle, defaultLang)
 
+	timeago.English.PastPrefix = " "
+	timeago.Chinese.PastPrefix = "于 "
+
 	custom := &I18nCustom{
 		CurrLang:  defaultLang,
 		Bundle:    Bundle,
 		Localizer: Localizer,
 		Configs:   make(map[string]*i18n.LocalizeConfig),
+		TimeAgo:   &timeago.English,
 	}
 
 	custom.AddConfigs()
@@ -77,6 +83,15 @@ func (ic *I18nCustom) SwitchLang(lang string) {
 	// fmt.Println("switch lang: ", lang)
 	ic.Localizer = i18n.NewLocalizer(ic.Bundle, lang)
 	ic.CurrLang = lang
+
+	switch lang {
+	case "zh-Hans":
+		ic.TimeAgo = &timeago.Chinese
+	// case "jp":
+	// ic.TimeAgo = &timeago.Japanese
+	default:
+		ic.TimeAgo = &timeago.English
+	}
 	// fmt.Println("login str:", MustLocalize("Login", "", 0))
 }
 

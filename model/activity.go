@@ -6,7 +6,6 @@ import (
 	"time"
 
 	i18nc "github.com/oodzchen/dproject/i18n"
-	"github.com/xeonx/timeago"
 )
 
 type Activity struct {
@@ -43,7 +42,7 @@ func (act *Activity) Format(i18nCustom *i18nc.I18nCustom) {
 	default:
 	}
 
-	text += fmt.Sprintf(" at <time title=\"%s\">%s</time>", act.CreatedAt.String(), timeago.English.Format(*act.CreatedAt))
+	text += fmt.Sprintf("<time title=\"%s\">%s</time>", act.CreatedAt.String(), i18nCustom.TimeAgo.Format(*act.CreatedAt))
 
 	act.FormattedText = text
 }
