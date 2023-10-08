@@ -201,8 +201,10 @@ func (a *Article) Update(item *model.Article, fieldNames []string) (int, error) 
 		updateVals = append(updateVals, itemVal.FieldByName(field))
 	}
 
-	sqlStr := "UPDATE posts SET " + strings.Join(updateStr, ", ") + fmt.Sprintf(" WHERE id = $%d RETURNING(id)", len(updateStr)+1)
+	updateStr = append(updateStr, "updated_at = NOW()")
+
 	updateVals = append(updateVals, item.Id)
+	sqlStr := "UPDATE posts SET " + strings.Join(updateStr, ", ") + fmt.Sprintf(" WHERE id = $%d RETURNING(id)", len(updateVals))
 
 	// fmt.Println("update sql string: ", sqlStr)
 	// fmt.Println("update vals: ", updateVals)

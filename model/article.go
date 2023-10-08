@@ -211,6 +211,7 @@ type Article struct {
 	ParticipateCount          int
 	CurrUserState             *CurrUserState
 	ReactCounts               *ArticleReactCounts
+	ShowScore                 bool
 }
 
 func (a *Article) FormatNullValues() {
@@ -326,6 +327,15 @@ func (a *Article) CalcWeight() {
 	a.Weight = cf
 
 	a.ListWeight = hot(a.VoteUp, a.VoteDown, a.CreatedAt)
+}
+
+func (a *Article) CheckShowScore() {
+	// a.VoteScore = a.VoteUp - a.VoteDown - 1
+	if time.Now().Sub(a.CreatedAt).Hours() > 1 {
+		a.ShowScore = true
+	} else {
+		a.ShowScore = false
+	}
 }
 
 // First commit  Mon Feb 13 00:11:53 2023 +0800

@@ -19,9 +19,6 @@ import (
 type ArticleResource struct {
 	*Renderer
 	articleSrv *service.Article
-	// DBConn *pgx.Conn
-	// DBPool *pgxpool.Pool
-	// store *store.Store
 }
 
 func NewArticleResource(renderer *Renderer) *ArticleResource {
@@ -155,6 +152,7 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		item.FormatNullValues()
 		item.UpdateDisplayTitle()
 		item.GenSummary(200)
+		item.CheckShowScore()
 	}
 
 	// total, err := ar.store.Article.Count()
@@ -457,6 +455,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		item.FormatTimeStr()
 		item.CalcScore()
 		item.CalcWeight()
+		item.CheckShowScore()
 
 		if item.Id == articleId {
 			rootArticle = item

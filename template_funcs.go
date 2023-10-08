@@ -55,12 +55,12 @@ func placehold(data any, placeholcer string) string {
 	}
 }
 
-func upCaseHead(str string, runeNum int) string {
+func upCaseHead(runeNum int, str string) string {
 	runeStr := []rune(str)
 	return strings.ToUpper(string(runeStr[:runeNum])) + string(runeStr[runeNum:])
 }
 
-func downCaseHead(str string, runeNum int) string {
+func downCaseHead(runeNum int, str string) string {
 	runeStr := []rune(str)
 	return strings.ToLower(string(runeStr[:runeNum])) + string(runeStr[runeNum:])
 }

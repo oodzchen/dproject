@@ -19,17 +19,17 @@
 	    <li>
 		<a href="/users/{{.Id}}">{{.Name}}</a>
 		<div>{{.Email}}</div>
-		<div class="text-lighten-3">regitered at {{ timeAgo .RegisteredAt }}</div>
+		<div class="text-lighten-3">{{local "Register"}}{{ timeAgo .RegisteredAt }}</div>
 		<div>
 		    <small>
-			<b>Role</b>: <span {{if eq .RoleFrontId "banned_user"}}style="color:red"{{end}}>{{.RoleName}}</span>
+			<b>{{local "Role"}}</b>: <span {{if eq .RoleFrontId "banned_user"}}style="color:red"{{end}}>{{.RoleName}}</span>
 		    </small>
 		</div>
 		{{- if $debug -}}
 		    <form action="/login_debug" method="POST">
 			{{$csrfField}}
 			<input name="debug-user-email" type="hidden" value="{{.Email}}"/>
-			<button type="submit">Login</button>
+			<button type="submit">{{local "Login"}}</button>
 		    </form>
 		{{- end -}}
 	    </li>

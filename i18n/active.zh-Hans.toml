@@ -246,6 +246,10 @@ other = "退出"
 hash = "sha1-bf58d17e561b1b858e35f9202f811297dac2e9db"
 other = "管理"
 
+[Modified]
+hash = "sha1-19a532c8bc61c311f583455c80ffe37067bbc9bb"
+other = "编辑"
+
 [PageLayout]
 hash = "sha1-cecb05a81c588637f7246e84bd611bbfe8649970"
 other = "内容布局"

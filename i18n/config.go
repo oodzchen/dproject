@@ -244,4 +244,10 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "Title",
 		Other: "Title",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Modified",
+		Other: "Modified",
+	})
+
 }

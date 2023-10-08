@@ -34,11 +34,15 @@
 		<a class="article-list__title" {{if eq $idx 0}}id="article-list-head"{{end}} href="/articles/{{$item.Id}}">{{$item.DisplayTitle}}</a>
 		<br/>
 		{{- $author :=  (print "<a class=\"text-lighten-3\" href=\"/users/" $item.AuthorId "\">" $item.AuthorName "</a>") -}}
-		<small class="text-lighten-3">{{local "PublishInfo" "Username" $author}}<time title="{{$item.CreatedAt}}">{{timeAgo $item.CreatedAt}}</time> | {{local "VoteScore" "Score" $item.VoteScore}}&nbsp;
+		<small class="text-lighten-3">
+		    {{- if and $item.ShowScore (gt $item.VoteScore 0) -}}
+			{{- local "VoteScore" "Score" $item.VoteScore | upHead 1}} |&nbsp;
+		    {{- end -}}
+		    {{local "PublishInfo" "Username" $author}}<time title="{{$item.CreatedAt}}">{{timeAgo $item.CreatedAt}}</time>&nbsp;
 		    {{- if eq $item.TotalReplyCount 0 -}}
 			| <a class="text-lighten-3" href="/articles/{{$item.Id}}">{{local "Discuss"}}</a>&nbsp;
 		    {{- else -}}
-			| <a class="text-lighten-3" href="/articles/{{$item.Id}}#replies">{{local "ReplyNum" "Count" $item.TotalReplyCount}}</a>&nbsp;
+			| <a class="text-lighten-3" href="/articles/{{$item.Id}}">{{local "ReplyNum" "Count" $item.TotalReplyCount}}</a>&nbsp;
 		    {{- end -}}
 		    {{- if $debug -}}
 			| {{local "Weight"}} {{$item.ListWeight}}

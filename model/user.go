@@ -10,7 +10,6 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/microcosm-cc/bluemonday"
-	"github.com/oodzchen/dproject/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -42,9 +41,9 @@ type User struct {
 	Super            bool
 }
 
-func (u *User) FormatTimeStr() {
-	u.RegisteredAtStr = utils.FormatTime(u.RegisteredAt, "YYYY年MM月DD日")
-}
+// func (u *User) FormatTimeStr() {
+// 	u.RegisteredAtStr = utils.FormatTime(u.RegisteredAt, "YYYY年MM月DD日")
+// }
 
 func (u *User) FormatNullVals() {
 	if u.NullIntroduction.Valid {

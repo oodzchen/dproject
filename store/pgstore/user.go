@@ -119,7 +119,6 @@ WHERE u.id IN ( SELECT id FROM users OFFSET $1 LIMIT $2)`
 			}
 
 			listMap[item.Id] = &item
-			item.FormatTimeStr()
 			list = append(list, &item)
 		}
 	}
@@ -262,7 +261,7 @@ WHERE u.id = $1`
 
 	// fmt.Println("user data: ", item)
 
-	item.FormatTimeStr()
+	// item.FormatTimeStr()
 	item.FormatNullVals()
 
 	return &item, nil
@@ -377,7 +376,7 @@ WHERE p.author_id = $1 AND p.deleted = false`
 		}
 
 		item.FormatNullValues()
-		item.FormatTimeStr()
+		// item.FormatTimeStr()
 
 		posts = append(posts, &item)
 	}
@@ -433,7 +432,7 @@ ORDER BY ps.created_at DESC`
 		}
 
 		item.FormatNullValues()
-		item.FormatTimeStr()
+		// item.FormatTimeStr()
 
 		posts = append(posts, &item)
 	}

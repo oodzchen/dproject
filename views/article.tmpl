@@ -88,6 +88,9 @@
 
 	<div class="text-lighten-3" style="margin-bottom:0px;">
 	    <small>
+		{{- if and .article.ShowScore (gt .article.VoteScore 0) -}}
+		    {{local "VoteScore" "Score" .article.VoteScore | upHead 1}} |&nbsp;
+		{{- end -}}
 		{{- $author := print  "<a class=\"text-lighten-3\" href=\"/users/" .article.AuthorId "\">" .article.AuthorName "</a>" -}}
 		{{- if .article.Deleted -}}
 		    {{- $author = print "<span>" (local "Deleted" | lower) "</span>" -}}
@@ -95,14 +98,17 @@
 		{{- local "PublishInfo" "Username" $author -}}
 		<time title="{{.article.CreatedAt}}">{{timeAgo .article.CreatedAt}}</time> |&nbsp;
 		{{- if ne .article.CreatedAt .article.UpdatedAt -}}
-		    modified <time title="{{.article.UpdatedAt}}">{{timeAgo .article.UpdatedAt}}</time> |&nbsp;
+		    {{local "Modified"}}<time title="{{.article.UpdatedAt}}">{{timeAgo .article.UpdatedAt}}</time> |&nbsp;
 		{{- end -}}
+		<span>{{- local "ReplyNum" "Count" .article.TotalReplyCount -}}</span> |&nbsp;
 		<a class="text-lighten-3" href="/articles/{{.article.Id}}">{{local "Link" | lower}}</a> |&nbsp;
 		<a class="text-lighten-3" href="#ar_{{.article.Id}}">{{local "Anchor" | lower}}</a> |&nbsp;
-		<span>{{- local "ReplyNum" "Count" .article.TotalReplyCount -}}</span>&nbsp;
+		{{- if gt .pageDepth 1 -}}
+		    <a title="{{local "BtnParent"}}" class="btn-parent text-lighten-3" href="#ar_{{.article.ReplyTo}}">{{local "BtnParent"}}</a> |&nbsp;
+		{{- end -}}
 		{{- if .debug -}}
-		    |&nbsp;{{- .article.ReplyDepth}} depth
-		    |&nbsp;{{- .article.Weight}} {{local "Weight"}}
+		    {{- .article.ReplyDepth}} depth |&nbsp;
+		    {{- .article.Weight}} {{local "Weight"}}
 		{{- end -}}
 	    </small>
 	</div>
@@ -173,10 +179,12 @@
 		    <input name="type" type="hidden" value="up"/>
 		    <button {{if not (permit "article" "vote_up")}}disabled{{end}} class="btn-vote--up" type="submit" title="Upvote"><svg width="14" viewBox="0 1 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1 21h22L12 2"/></svg></button>
 		    </form>
-		{{- if gt .article.VoteScore 0 -}}
+		    {{/*
+		    {{- if gt .article.VoteScore 0 -}}
 		    <span>{{.article.VoteScore}}<span>
-		{{- end -}}
-		&nbsp;&nbsp;
+	    {{- end -}}
+	    */}}
+	    &nbsp;&nbsp;
 		{{- if permit "article" "vote_down" -}}
 		    <form class="vote-form{{if eq .article.CurrUserState.VoteType "down"}} voted{{end}}" action="/articles/{{.article.Id}}/vote" method="POST">
 		    {{.CSRFField}}
@@ -184,6 +192,9 @@
 		    <input name="type" type="hidden" value="down"/>
 		    <button class="btn-vote--down" type="submit" title="Downvote"><svg width="14" viewBox="0 1 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1 3h22L12 22"/></svg></button>
 		    </form>&nbsp;
+		{{- end -}}
+		{{- if permit "article" "reply" -}}
+		    <a title="{{local "BtnReply"}}" href="/articles/{{.article.Id}}/reply">{{local "BtnReply"}}</a>&nbsp;&nbsp;
 		{{- end -}}
 		{{- if .currUser -}}
 		    {{- if eq .currUser.Id .article.AuthorId -}}
@@ -206,14 +217,6 @@
 			    <button title="{{$btnSaveText}}" type="submit">{{$btnSaveText}}</button>
 			</form>&nbsp;&nbsp;
 		    {{- end -}}
-		{{- end -}}
-
-		{{- if permit "article" "reply" -}}
-		    <a title="{{local "BtnReply"}}" href="/articles/{{.article.Id}}/reply">{{local "BtnReply"}}</a>&nbsp;&nbsp;
-		{{- end -}}
-
-		{{- if gt .pageDepth 1 -}}
-		    <a title="{{local "BtnParent"}}" class="btn-parent" href="#ar_{{.article.ReplyTo}}">{{local "BtnParent"}}</a>&nbsp;&nbsp;
 		{{- end -}}
 	    {{- end -}}
 	    {{- if and (eq .pageDepth 1) (not .isRootArticle) -}}
