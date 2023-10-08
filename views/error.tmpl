@@ -6,16 +6,16 @@
 	{{- .Data.HttpStatusCode -}}&nbsp;
 	{{- .Data.ErrText -}}
 	{{- if eq .Data.ErrCode 1000 -}}
-	    <a href="/login">, go to login</a>.
+	    , <a href="/login">{{local "GoTo" | lower}}{{local "Login" | lower}}</a>.
 	{{- else if eq .Data.ErrCode 1001 -}}
-	    <a href="/register">, go to register</a>.
+	    , <a href="/register">{{local "GoTo" | lower}}{{local "Register" | lower}}</a>.
 	{{- end -}}
     </p>
     <p>
 	{{- if .Data.PrevUrl -}}
-	    <a href="{{.Data.PrevUrl}}" class="btn-go-back">Go back</a>&nbsp;&nbsp;
+	    <a href="{{.Data.PrevUrl}}" class="btn-go-back">{{local "GoBack"}}</a>&nbsp;&nbsp;
 	{{- end -}}
-	<a href="/">Go home</a>
+	<a href="/">{{local "GoHome"}}</a>
     </p>
 
     {{template "foot" . -}}

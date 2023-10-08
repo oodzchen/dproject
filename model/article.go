@@ -277,7 +277,7 @@ func (a *Article) Sanitize(p *bluemonday.Policy) {
 }
 
 func articleValidErr(str string) error {
-	return errors.Join(ErrValidArticleFailed, errors.New(str))
+	return errors.Join(AppErrorArticleValidFailed, errors.New(str))
 }
 
 func (a *Article) TrimSpace() {

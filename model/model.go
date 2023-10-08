@@ -4,6 +4,8 @@ import (
 	i18nc "github.com/oodzchen/dproject/i18n"
 )
 
+var translator *i18nc.I18nCustom
+
 type OptionItem struct {
 	Value any
 	Name  string
@@ -26,4 +28,12 @@ func ConvertEnumToOPtions(values []StringEnum, upCaseHead bool, enumName string,
 	}
 
 	return options
+}
+
+func SetupI18n(ic *i18nc.I18nCustom) {
+	translator = ic
+	AcActionAddI18nConfigs(translator)
+	AcTypeAddI18nConfigs(translator)
+	AcModelAddI18nConfigs(translator)
+	AppErrorAddI18nConfigs(translator)
 }

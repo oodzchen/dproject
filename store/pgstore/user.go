@@ -256,7 +256,7 @@ WHERE u.id = $1`
 	}
 
 	if item.Id < 1 {
-		return nil, model.ErrUserNotExist
+		return nil, model.AppErrorUserNotExist
 	}
 
 	// fmt.Println("user data: ", item)

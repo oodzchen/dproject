@@ -126,6 +126,38 @@ other = "{{.FieldNames}}已存在"
 hash = "sha1-8f8c77e7404ca30dcccf92c73c985f04a86420e7"
 other = "锚点"
 
+[AppError_ActivityValidFailed]
+hash = "sha1-d5391c41f2dc52ebf157475f1484a48628ba1ccf"
+other = "操作记录数据校验失败"
+
+[AppError_AlreadyRegistered]
+hash = "sha1-6351ef4c8e2af37b471b2289823ac9d21eb80452"
+other = "已注册"
+
+[AppError_ArticleValidFailed]
+hash = "sha1-28b79d62521142f818df6c69c148bb69bcaa3e45"
+other = "文章数据校验失败"
+
+[AppError_NotRegistered]
+hash = "sha1-b2115c5fa95f4a4a102bddcbb41b3e25c2913528"
+other = "未注册"
+
+[AppError_PermissionValidFailed]
+hash = "sha1-a9bc154675b1a4ea8e90857ade8e92f47e2ac802"
+other = "权限数据校验失败"
+
+[AppError_RoleValidFailed]
+hash = "sha1-7942450884aadb223dfbd2860dd91328b9ae42cb"
+other = "角色数据校验失败"
+
+[AppError_UserNotExist]
+hash = "sha1-c712a3ebfb15ee879dcf77f9176894933c27ee77"
+other = "用户不存在"
+
+[AppError_UserValidFailed]
+hash = "sha1-46b4582ec35d1d21e9e1a57373a6c0ee9ba3a93d"
+other = "用户数据校验失败"
+
 [Best]
 hash = "sha1-77003d07271f14977f2cf290c9d16c81e05ab6dd"
 other = "最佳"
@@ -209,6 +241,18 @@ other = "邮箱"
 [FormatError]
 hash = "sha1-833e1ef7040ce6951780e2e42210cecc9061e69a"
 other = "{{.FieldNames}}格式错误"
+
+[GoBack]
+hash = "sha1-e84712fbf4eee89d1d896d75da5b5b9ceca43eac"
+other = "返回"
+
+[GoHome]
+hash = "sha1-8007defd3284dd8910ddf82aa69e5f0eeb722b0f"
+other = "去主页"
+
+[GoTo]
+hash = "sha1-b49acb618383a8ff82afe57ddbf49c204da3b22d"
+other = "去"
 
 [Hot]
 hash = "sha1-8c948d7947e0c20b3e2bc9c63fea2eaec504e113"

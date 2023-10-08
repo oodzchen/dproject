@@ -102,11 +102,11 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 	_, err := mr.userSrv.Register(email, password, username)
 	if err != nil {
 		var pgErr *pgconn.PgError
-		if errors.Is(err, model.ErrValidUserFailed) {
+		if errors.Is(err, model.AppErrorUserValidFailed) {
 			mr.Error(err.Error(), err, w, r, http.StatusBadRequest)
 		} else if errors.As(err, &pgErr) && pgErr.Code == PGErrUniqueViolation {
 			alreadyExistsTip := mr.Local("AlreadyExists", "FieldNames", mr.Local("Or", "A", mr.Local("Username"), "B", mr.Local("Email")))
-			mr.Error(alreadyExistsTip, model.NewAppError(err, model.ErrAlreadyRegistered), w, r, http.StatusBadRequest)
+			mr.Error(alreadyExistsTip, err, w, r, http.StatusBadRequest)
 		} else {
 			mr.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
 		}
@@ -201,7 +201,7 @@ func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, username
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			notRegisterdTip := mr.Local("NotRegistered", "FieldNames", mr.Local("Or", "A", mr.Local("Username"), "B", mr.Local("Email")))
-			mr.Error(notRegisterdTip, model.NewAppError(err, model.ErrNotRegistered), w, r, http.StatusBadRequest)
+			mr.Error(notRegisterdTip, err, w, r, http.StatusBadRequest)
 		} else {
 			mr.Error(loginFailedTip, err, w, r, http.StatusBadRequest)
 		}

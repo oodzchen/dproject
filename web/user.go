@@ -150,7 +150,7 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 
 	user, err := ur.store.User.Item(userId)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) || errors.Is(err, model.ErrUserNotExist) {
+		if errors.Is(err, pgx.ErrNoRows) || errors.Is(err, model.AppErrorUserNotExist) {
 			ur.Error("", nil, w, r, http.StatusNotFound)
 		} else {
 			ur.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)

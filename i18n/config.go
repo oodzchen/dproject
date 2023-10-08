@@ -285,4 +285,18 @@ func (ic *I18nCustom) AddConfigs() {
 		Other: "Create a new account.",
 	})
 
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "GoTo",
+		Other: "Go to ",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "GoBack",
+		Other: "Go back",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "GoHome",
+		Other: "Go home",
+	})
 }

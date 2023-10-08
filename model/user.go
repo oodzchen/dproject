@@ -57,7 +57,7 @@ func (u *User) Sanitize(p *bluemonday.Policy) {
 }
 
 func userValidErr(str string) error {
-	return errors.Join(ErrValidUserFailed, errors.New(str))
+	return errors.Join(AppErrorUserValidFailed, errors.New(str))
 }
 
 func (u *User) TrimSpace() {

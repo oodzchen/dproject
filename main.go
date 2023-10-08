@@ -46,9 +46,7 @@ func main() {
 	}
 
 	i18nCustom := i18nc.New(langFiles)
-	model.AcActionAddI18nConfigs(i18nCustom)
-	model.AcTypeAddI18nConfigs(i18nCustom)
-	model.AcModelAddI18nConfigs(i18nCustom)
+	model.SetupI18n(i18nCustom)
 
 	permissionData, err := config.ParsePermissionData("./config/permissions.yml")
 	if err != nil {
