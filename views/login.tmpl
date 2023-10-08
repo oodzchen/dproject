@@ -5,18 +5,18 @@
     <form class="form" id="login-form" method="post" action="/login">
 	{{.CSRFField -}}
 	<div class="form__row">
-	    <label class="form__label" for="username">Username or Email:</label>
+	    <label class="form__label" for="username">{{local "Or" "A" (local "Username") "B" (local "Email")}}:</label>
 	    <input required name="username" id="username" type="text"/>
 	</div>
 	<div class="form__row">
-	    <label class="form__label" for="password">Password:</label>
+	    <label class="form__label" for="password">{{local "Password"}}:</label>
 	    <input required name="password" id="password" type="password"/>
 	</div>
 	<div>
-	    <a href="/register">Create a new account</a>
+	    <a href="/register">{{local "RegisterTip"}}</a>
 	</div>
 	<br/>
-	<button type="submit">Login</button>
+	<button type="submit">{{local "Login"}}</button>
     </form>
 
     {{template "foot" . -}}

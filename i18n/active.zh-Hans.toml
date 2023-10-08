@@ -118,6 +118,10 @@ other = "添加"
 hash = "sha1-6a72085653e4c5be8c7640c868ef787cbcf063d1"
 other = "全部"
 
+[AlreadyExists]
+hash = "sha1-45e9b256082a5147e111a0316a945de71823f64e"
+other = "{{.FieldNames}}已存在"
+
 [Anchor]
 hash = "sha1-8f8c77e7404ca30dcccf92c73c985f04a86420e7"
 other = "锚点"
@@ -198,9 +202,21 @@ other = "已删除"
 hash = "sha1-1b7949a7060ddc9ee6e31e42f7c8b0e281f45dc9"
 other = "讨论"
 
+[Email]
+hash = "sha1-84add5b2952787581cb9a8851eef63d1ec75d22b"
+other = "邮箱"
+
+[FormatError]
+hash = "sha1-833e1ef7040ce6951780e2e42210cecc9061e69a"
+other = "{{.FieldNames}}格式错误"
+
 [Hot]
 hash = "sha1-8c948d7947e0c20b3e2bc9c63fea2eaec504e113"
 other = "热门"
+
+[Incorrect]
+hash = "sha1-2c1c9f19509f54bec6d6efc5fe83b469fe0392b1"
+other = "{{.FieldNames}}不匹配"
 
 [Introduction]
 hash = "sha1-2473e96bc614a911821242119918a241a41836d6"
@@ -238,6 +254,10 @@ other = "链接"
 hash = "sha1-4e5a2893bdcc7d239c1db72e4c4ffbe4bea73174"
 other = "登录"
 
+[LoginTip]
+hash = "sha1-11b5bce86eaab5b60e0080c3aa478b547ac03790"
+other = "已有账号？请直接{{.LoginLink}}"
+
 [Logout]
 hash = "sha1-e43d612e11f1568f2373e719d4c4b08dcecdc7cc"
 other = "退出"
@@ -249,6 +269,14 @@ other = "管理"
 [Modified]
 hash = "sha1-19a532c8bc61c311f583455c80ffe37067bbc9bb"
 other = "编辑"
+
+[NotRegistered]
+hash = "sha1-c4dbd26f2d54aa07c16b121383c7a5bdfd3f7e18"
+other = "{{.FieldNames}}未注册"
+
+[Or]
+hash = "sha1-4c0aecf997f6774c15964f0e3447a6ab2df2b14e"
+other = "{{.A}}或{{.B}}"
 
 [PageLayout]
 hash = "sha1-cecb05a81c588637f7246e84bd611bbfe8649970"
@@ -265,6 +293,14 @@ other = "铺满"
 [Participate]
 hash = "sha1-37359838b12b097116ebcd735b4aeb0844331d8f"
 other = "参与者 {{.ParticipateNum}}"
+
+[Password]
+hash = "sha1-8be3c943b1609fffbfc51aad666d0a04adf83c9d"
+other = "密码"
+
+[PasswordFormatTip]
+hash = "sha1-0faa603d90df7715fa39d86e8ebd421c634e610f"
+other = "密码最少{{.LeastLen}}个字符，必须同时包含数字、字母和特殊符号。"
 
 [Permission]
 hash = "sha1-d06d55570938d12f87db3bf2b48caa9de22d9c67"
@@ -286,9 +322,17 @@ other = "对内容做出反应"
 hash = "sha1-d672995a14650d0e018026b64f297663d8c71c8d"
 other = "注册"
 
+[RegisterTip]
+hash = "sha1-7d4f1cb536460874d0458be43fab294a4e643d6f"
+other = "创建新账号"
+
 [ReplyNum]
 hash = "sha1-2cbee60b1478eae565b6780bee631ab1100e8954"
 other = "{{.Count}} 回复"
+
+[Required]
+hash = "sha1-1d2cc27d94564c97fda931d16fc110dcd9db0d09"
+other = "{{.FieldNames}}是必须的"
 
 [Role]
 hash = "sha1-47dcc27d6e87ece8baebe7e3877a261a5467093d"
@@ -341,6 +385,10 @@ other = "用户"
 [Username]
 hash = "sha1-84c29015de33e5d22422382a372caba5c58f8c01"
 other = "用户名"
+
+[UsernameFormatTip]
+hash = "sha1-0eeee349df98cb1536c262a4526ca536913ceedd"
+other = "默认使用邮箱地址中的用户名。用户名只能使用数字、字母、下划线（_）、中横线（-）和英文句号（.），首尾不能是标点符号。"
 
 [VoteScore]
 hash = "sha1-8a59b65d21e42409585cf850b64587e2ee783489"

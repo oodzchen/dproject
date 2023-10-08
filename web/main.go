@@ -83,7 +83,7 @@ func (mr *MainResource) RegisterPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	mr.Render(w, r, "register", &model.PageData{
-		Title: "Register",
+		Title: mr.Local("Register"),
 		Data:  "",
 		BreadCrumbs: []*model.BreadCrumb{
 			{
@@ -105,7 +105,8 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, model.ErrValidUserFailed) {
 			mr.Error(err.Error(), err, w, r, http.StatusBadRequest)
 		} else if errors.As(err, &pgErr) && pgErr.Code == PGErrUniqueViolation {
-			mr.Error("the eamil or username already exists", model.NewAppError(err, model.ErrAlreadyRegistered), w, r, http.StatusBadRequest)
+			alreadyExistsTip := mr.Local("AlreadyExists", "FieldNames", mr.Local("Or", "A", mr.Local("Username"), "B", mr.Local("Email")))
+			mr.Error(alreadyExistsTip, model.NewAppError(err, model.ErrAlreadyRegistered), w, r, http.StatusBadRequest)
 		} else {
 			mr.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
 		}
@@ -137,7 +138,7 @@ func (mr *MainResource) LoginPage(w http.ResponseWriter, r *http.Request) {
 
 	mr.Session("one", w, r).SetValue("target_url", targetUrl)
 	mr.Render(w, r, "login", &model.PageData{
-		Title: "Login",
+		Title: mr.i18nCustom.LocalTpl("Login"),
 		Data:  "",
 		BreadCrumbs: []*model.BreadCrumb{
 			{
@@ -169,23 +170,28 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 
 func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, username, password string) {
 	if username == "" {
-		mr.Error("username or email is required", nil, w, r, http.StatusBadRequest)
+		userNameRequiredTip := mr.Local("Required", "FieldNames", mr.Local("Or", "A", mr.Local("Username"), "B", mr.Local("Email")))
+		mr.Error(userNameRequiredTip, nil, w, r, http.StatusBadRequest)
 		return
 	}
 
 	if password == "" {
-		mr.Error("password is required", nil, w, r, http.StatusBadRequest)
+		mr.Error(mr.Local("Required", "FieldNames", mr.Local("Password")), nil, w, r, http.StatusBadRequest)
 		return
 	}
 
+	loginFailedTip := mr.Local("Incorrect", "FieldNames", mr.Local("Or", "A", mr.Local("Username"), "B", mr.Local("Password")))
+
 	if regexp.MustCompile(`@`).Match([]byte(username)) {
 		if err := model.ValidateEmail(username); err != nil {
-			mr.Error("email or password is incorrect", errors.WithStack(utils.NewError("email format error")), w, r, http.StatusBadRequest)
+			emailValidTip := mr.Local("Incorrect", "FieldNames", mr.Local("Or", "A", mr.Local("Email"), "B", mr.Local("Password")))
+			mr.Error(emailValidTip, err, w, r, http.StatusBadRequest)
 			return
 		}
 	} else {
 		if err := model.ValidUsername(username); err != nil {
-			mr.Error("username or password is incorrect", errors.WithStack(utils.NewError("username format error")), w, r, http.StatusBadRequest)
+			usernameValidTip := loginFailedTip
+			mr.Error(usernameValidTip, err, w, r, http.StatusBadRequest)
 			return
 		}
 	}
@@ -194,9 +200,10 @@ func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, username
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			mr.Error("the email has not been registered", model.NewAppError(err, model.ErrNotRegistered), w, r, http.StatusBadRequest)
+			notRegisterdTip := mr.Local("NotRegistered", "FieldNames", mr.Local("Or", "A", mr.Local("Username"), "B", mr.Local("Email")))
+			mr.Error(notRegisterdTip, model.NewAppError(err, model.ErrNotRegistered), w, r, http.StatusBadRequest)
 		} else {
-			mr.Error("email or password is incorrect", errors.WithStack(err), w, r, http.StatusBadRequest)
+			mr.Error(loginFailedTip, err, w, r, http.StatusBadRequest)
 		}
 
 		return
@@ -218,7 +225,6 @@ func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, username
 
 	sess.Values["user_id"] = user.Id
 	sess.Values["user_name"] = user.Name
-
 	// gob.Register([]string{})
 	// sess.Values["user_permitted_id_list"] = permittedIdList
 

@@ -250,4 +250,39 @@ func (ic *I18nCustom) AddConfigs() {
 		Other: "Modified",
 	})
 
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Email",
+		Other: "Email",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Password",
+		Other: "Password",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "PasswordFormatTip",
+		Other: "Password must be at least {{.LeastLen}} characters long and contain a combination of numbers, letters, and special characters.",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "UsernameFormatTip",
+		Other: "Default to using the username from the email. Username can only consist of numbers, letters, and characters _.-, and cannot begin or end with a symbol.",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "LoginTip",
+		Other: "Already have an account? Please {{.LoginLink}} directly.",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Or",
+		Other: "{{.A}} or {{.B}}",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "RegisterTip",
+		Other: "Create a new account.",
+	})
+
 }

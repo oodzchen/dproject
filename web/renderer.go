@@ -106,7 +106,8 @@ func (rd *Renderer) Error(msg string, err error, w http.ResponseWriter, r *http.
 	}
 
 	if len(msg) > 0 {
-		errText += " - " + strings.ToUpper(msg[:1]) + msg[1:]
+		text := []rune(msg)
+		errText += " - " + strings.ToUpper(string(text[:1])) + string(text[1:])
 		pageData.ErrText = errText
 	}
 
@@ -265,6 +266,10 @@ func (rd *Renderer) ToPrevPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/", http.StatusFound)
+}
+
+func (rd *Renderer) Local(id string, data ...any) string {
+	return rd.i18nCustom.LocalTpl(id, data...)
 }
 
 // func (rd *Renderer) SaveUserInfo(u *model.User, w http.ResponseWriter, r *http.Request) {

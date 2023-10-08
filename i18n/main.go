@@ -52,6 +52,7 @@ func New(files []string) *I18nCustom {
 
 	custom.AddConfigs()
 	custom.AddBtnConfigs()
+	custom.AddErrorConfigs()
 
 	return custom
 }
