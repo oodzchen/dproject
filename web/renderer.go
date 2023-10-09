@@ -79,7 +79,8 @@ func (rd *Renderer) GetLoginedUserId(w http.ResponseWriter, r *http.Request) int
 }
 
 func (rd *Renderer) Error(msg string, err error, w http.ResponseWriter, r *http.Request, code int) {
-	fmt.Printf("%+v\n", err)
+	fmt.Printf("render err: %+v\n", err)
+	fmt.Println("msg: ", msg)
 
 	referer := r.Referer()
 	refererUrl, _ := url.Parse(referer)
@@ -93,7 +94,7 @@ func (rd *Renderer) Error(msg string, err error, w http.ResponseWriter, r *http.
 
 	type errPageData struct {
 		HttpStatusCode int
-		AppError       model.AppError
+		AppErrCode     model.AppErrCode
 		ErrCode        int
 		ErrText        string
 		PrevUrl        string
@@ -109,11 +110,11 @@ func (rd *Renderer) Error(msg string, err error, w http.ResponseWriter, r *http.
 	if len(msg) > 0 {
 		text := []rune(msg)
 		errText += " - " + strings.ToUpper(string(text[:1])) + string(text[1:])
-		pageData.ErrText = errText
 	}
+	pageData.ErrText = errText
 
 	if err, ok := err.(model.AppError); ok {
-		pageData.ErrCode = int(err)
+		pageData.ErrCode = int(err.ErrCode)
 	}
 
 	pageData.HttpStatusCode = code

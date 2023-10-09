@@ -1,10 +1,6 @@
-//go:generate go-enum --names --values -t enum_int_i18n.tmpl
+//go:generate go-enum --names --values -t enum_int_i18n.tmpl -t enum_error.tmpl
 
 package model
-
-import (
-	"fmt"
-)
 
 // App Error
 /*
@@ -19,34 +15,18 @@ import (
    UserNotExist, // user dose not exist
    )
 */
-type AppError int
+type AppErrCode int
 
-// type AppError struct {
-// 	Err     error
-// 	ErrCode AppErrCode
-// }
-
-func (x AppError) Error() string {
-	return fmt.Sprintf("error code: %d, %s", x, x.Text(false, translator))
+type AppError struct {
+	ErrCode AppErrCode
 }
 
-// type AppErrCode int
+func (x AppError) Error() string {
+	return x.ErrCode.Text(false, translator)
+}
 
-// const (
-// 	ErrAlreadyRegistered AppErrCode = 1000
-// 	ErrNotRegistered                = 1001
-// )
-
-// var (
-// 	ErrValidUserFailed       = errors.New("user validation failed")
-// 	ErrValidArticleFailed    = errors.New("article validation failed")
-// 	ErrValidPermissionFailed = errors.New("permission validation failed")
-// 	ErrValidRoleFailed       = errors.New("role validation failed")
-// 	ErrValidActivityFailed   = errors.New("activity validation failed")
-
-// 	ErrUserNotExist = errors.New("user dose not exist")
-// )
-
-// func NewAppError(err error, code AppErrCode) *AppError {
-// 	return &AppError{err, code}
-// }
+func NewAppError(code AppErrCode) error {
+	return &AppError{
+		ErrCode: code,
+	}
+}

@@ -13,7 +13,6 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/microcosm-cc/bluemonday"
-	"github.com/oodzchen/dproject/utils"
 )
 
 const (
@@ -260,8 +259,8 @@ func (a *Article) GenSummary(strLen int) {
 }
 
 func (a *Article) FormatTimeStr() {
-	a.CreatedAtStr = utils.FormatTime(a.CreatedAt, "Y年M月D日 h时m分s秒")
-	a.UpdatedAtStr = utils.FormatTime(a.UpdatedAt, "Y年M月D日 h时m分s秒")
+	a.CreatedAtStr = translator.TimeAgo.Format(a.CreatedAt)
+	a.UpdatedAtStr = translator.TimeAgo.Format(a.UpdatedAt)
 }
 
 func (a *Article) TransformNewlines() {
@@ -277,7 +276,7 @@ func (a *Article) Sanitize(p *bluemonday.Policy) {
 }
 
 func articleValidErr(str string) error {
-	return errors.Join(AppErrorArticleValidFailed, errors.New(str))
+	return errors.Join(AppErrArticleValidFailed, errors.New(str))
 }
 
 func (a *Article) TrimSpace() {

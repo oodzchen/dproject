@@ -102,7 +102,7 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 	_, err := mr.userSrv.Register(email, password, username)
 	if err != nil {
 		var pgErr *pgconn.PgError
-		if errors.Is(err, model.AppErrorUserValidFailed) {
+		if errors.Is(err, model.AppErrUserValidFailed) {
 			mr.Error(err.Error(), err, w, r, http.StatusBadRequest)
 		} else if errors.As(err, &pgErr) && pgErr.Code == PGErrUniqueViolation {
 			alreadyExistsTip := mr.Local("AlreadyExists", "FieldNames", mr.Local("Or", "A", mr.Local("Username"), "B", mr.Local("Email")))

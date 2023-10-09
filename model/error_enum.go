@@ -15,140 +15,141 @@ import (
 )
 
 const (
-	// AppErrorAlreadyRegistered is a AppError of type AlreadyRegistered.
+	// AppErrCodeAlreadyRegistered is a AppErrCode of type AlreadyRegistered.
 	// already registered
-	AppErrorAlreadyRegistered AppError = iota + 1000
-	// AppErrorNotRegistered is a AppError of type NotRegistered.
+	AppErrCodeAlreadyRegistered AppErrCode = iota + 1000
+	// AppErrCodeNotRegistered is a AppErrCode of type NotRegistered.
 	// not registered
-	AppErrorNotRegistered
-	// AppErrorUserValidFailed is a AppError of type UserValidFailed.
+	AppErrCodeNotRegistered
+	// AppErrCodeUserValidFailed is a AppErrCode of type UserValidFailed.
 	// user data validation failed
-	AppErrorUserValidFailed
-	// AppErrorArticleValidFailed is a AppError of type ArticleValidFailed.
+	AppErrCodeUserValidFailed
+	// AppErrCodeArticleValidFailed is a AppErrCode of type ArticleValidFailed.
 	// article data validation failed
-	AppErrorArticleValidFailed
-	// AppErrorPermissionValidFailed is a AppError of type PermissionValidFailed.
+	AppErrCodeArticleValidFailed
+	// AppErrCodePermissionValidFailed is a AppErrCode of type PermissionValidFailed.
 	// permission data validation failed
-	AppErrorPermissionValidFailed
-	// AppErrorRoleValidFailed is a AppError of type RoleValidFailed.
+	AppErrCodePermissionValidFailed
+	// AppErrCodeRoleValidFailed is a AppErrCode of type RoleValidFailed.
 	// role data validation failed
-	AppErrorRoleValidFailed
-	// AppErrorActivityValidFailed is a AppError of type ActivityValidFailed.
+	AppErrCodeRoleValidFailed
+	// AppErrCodeActivityValidFailed is a AppErrCode of type ActivityValidFailed.
 	// activity data validation failed
-	AppErrorActivityValidFailed
-	// AppErrorUserNotExist is a AppError of type UserNotExist.
+	AppErrCodeActivityValidFailed
+	// AppErrCodeUserNotExist is a AppErrCode of type UserNotExist.
 	// user dose not exist
-	AppErrorUserNotExist
+	AppErrCodeUserNotExist
 )
 
-var ErrInvalidAppError = fmt.Errorf("not a valid AppError, try [%s]", strings.Join(_AppErrorNames, ", "))
+var ErrInvalidAppErrCode = fmt.Errorf("not a valid AppErrCode, try [%s]", strings.Join(_AppErrCodeNames, ", "))
 
-const _AppErrorName = "AlreadyRegisteredNotRegisteredUserValidFailedArticleValidFailedPermissionValidFailedRoleValidFailedActivityValidFailedUserNotExist"
+const _AppErrCodeName = "AlreadyRegisteredNotRegisteredUserValidFailedArticleValidFailedPermissionValidFailedRoleValidFailedActivityValidFailedUserNotExist"
 
-var _AppErrorNames = []string{
-	_AppErrorName[0:17],
-	_AppErrorName[17:30],
-	_AppErrorName[30:45],
-	_AppErrorName[45:63],
-	_AppErrorName[63:84],
-	_AppErrorName[84:99],
-	_AppErrorName[99:118],
-	_AppErrorName[118:130],
+var _AppErrCodeNames = []string{
+	_AppErrCodeName[0:17],
+	_AppErrCodeName[17:30],
+	_AppErrCodeName[30:45],
+	_AppErrCodeName[45:63],
+	_AppErrCodeName[63:84],
+	_AppErrCodeName[84:99],
+	_AppErrCodeName[99:118],
+	_AppErrCodeName[118:130],
 }
 
-// AppErrorNames returns a list of possible string values of AppError.
-func AppErrorNames() []string {
-	tmp := make([]string, len(_AppErrorNames))
-	copy(tmp, _AppErrorNames)
+// AppErrCodeNames returns a list of possible string values of AppErrCode.
+func AppErrCodeNames() []string {
+	tmp := make([]string, len(_AppErrCodeNames))
+	copy(tmp, _AppErrCodeNames)
 	return tmp
 }
 
-// AppErrorValues returns a list of the values for AppError
-func AppErrorValues() []AppError {
-	return []AppError{
-		AppErrorAlreadyRegistered,
-		AppErrorNotRegistered,
-		AppErrorUserValidFailed,
-		AppErrorArticleValidFailed,
-		AppErrorPermissionValidFailed,
-		AppErrorRoleValidFailed,
-		AppErrorActivityValidFailed,
-		AppErrorUserNotExist,
+// AppErrCodeValues returns a list of the values for AppErrCode
+func AppErrCodeValues() []AppErrCode {
+	return []AppErrCode{
+		AppErrCodeAlreadyRegistered,
+		AppErrCodeNotRegistered,
+		AppErrCodeUserValidFailed,
+		AppErrCodeArticleValidFailed,
+		AppErrCodePermissionValidFailed,
+		AppErrCodeRoleValidFailed,
+		AppErrCodeActivityValidFailed,
+		AppErrCodeUserNotExist,
 	}
 }
 
-var _AppErrorMap = map[AppError]string{
-	AppErrorAlreadyRegistered:     _AppErrorName[0:17],
-	AppErrorNotRegistered:         _AppErrorName[17:30],
-	AppErrorUserValidFailed:       _AppErrorName[30:45],
-	AppErrorArticleValidFailed:    _AppErrorName[45:63],
-	AppErrorPermissionValidFailed: _AppErrorName[63:84],
-	AppErrorRoleValidFailed:       _AppErrorName[84:99],
-	AppErrorActivityValidFailed:   _AppErrorName[99:118],
-	AppErrorUserNotExist:          _AppErrorName[118:130],
+var _AppErrCodeMap = map[AppErrCode]string{
+	AppErrCodeAlreadyRegistered:     _AppErrCodeName[0:17],
+	AppErrCodeNotRegistered:         _AppErrCodeName[17:30],
+	AppErrCodeUserValidFailed:       _AppErrCodeName[30:45],
+	AppErrCodeArticleValidFailed:    _AppErrCodeName[45:63],
+	AppErrCodePermissionValidFailed: _AppErrCodeName[63:84],
+	AppErrCodeRoleValidFailed:       _AppErrCodeName[84:99],
+	AppErrCodeActivityValidFailed:   _AppErrCodeName[99:118],
+	AppErrCodeUserNotExist:          _AppErrCodeName[118:130],
 }
 
 // String implements the Stringer interface.
-func (x AppError) String() string {
-	if str, ok := _AppErrorMap[x]; ok {
+func (x AppErrCode) String() string {
+	if str, ok := _AppErrCodeMap[x]; ok {
 		return str
 	}
-	return fmt.Sprintf("AppError(%d)", x)
+	return fmt.Sprintf("AppErrCode(%d)", x)
 }
 
 // IsValid provides a quick way to determine if the typed value is
 // part of the allowed enumerated values
-func (x AppError) IsValid() bool {
-	_, ok := _AppErrorMap[x]
+func (x AppErrCode) IsValid() bool {
+	_, ok := _AppErrCodeMap[x]
 	return ok
 }
 
-var _AppErrorValue = map[string]AppError{
-	_AppErrorName[0:17]:    AppErrorAlreadyRegistered,
-	_AppErrorName[17:30]:   AppErrorNotRegistered,
-	_AppErrorName[30:45]:   AppErrorUserValidFailed,
-	_AppErrorName[45:63]:   AppErrorArticleValidFailed,
-	_AppErrorName[63:84]:   AppErrorPermissionValidFailed,
-	_AppErrorName[84:99]:   AppErrorRoleValidFailed,
-	_AppErrorName[99:118]:  AppErrorActivityValidFailed,
-	_AppErrorName[118:130]: AppErrorUserNotExist,
+var _AppErrCodeValue = map[string]AppErrCode{
+	_AppErrCodeName[0:17]:    AppErrCodeAlreadyRegistered,
+	_AppErrCodeName[17:30]:   AppErrCodeNotRegistered,
+	_AppErrCodeName[30:45]:   AppErrCodeUserValidFailed,
+	_AppErrCodeName[45:63]:   AppErrCodeArticleValidFailed,
+	_AppErrCodeName[63:84]:   AppErrCodePermissionValidFailed,
+	_AppErrCodeName[84:99]:   AppErrCodeRoleValidFailed,
+	_AppErrCodeName[99:118]:  AppErrCodeActivityValidFailed,
+	_AppErrCodeName[118:130]: AppErrCodeUserNotExist,
 }
 
-// ParseAppError attempts to convert a string to a AppError.
-func ParseAppError(name string) (AppError, error) {
-	if x, ok := _AppErrorValue[name]; ok {
+// ParseAppErrCode attempts to convert a string to a AppErrCode.
+func ParseAppErrCode(name string) (AppErrCode, error) {
+	if x, ok := _AppErrCodeValue[name]; ok {
 		return x, nil
 	}
-	return AppError(0), fmt.Errorf("%s is %w", name, ErrInvalidAppError)
+	return AppErrCode(0), fmt.Errorf("%s is %w", name, ErrInvalidAppErrCode)
 }
 
-func (x AppError) I18nID() string {
-	return fmt.Sprintf("AppError_%s", x.String())
+var (
+	AppErrAlreadyRegistered     = NewAppError(AppErrCodeAlreadyRegistered)
+	AppErrNotRegistered         = NewAppError(AppErrCodeNotRegistered)
+	AppErrUserValidFailed       = NewAppError(AppErrCodeUserValidFailed)
+	AppErrArticleValidFailed    = NewAppError(AppErrCodeArticleValidFailed)
+	AppErrPermissionValidFailed = NewAppError(AppErrCodePermissionValidFailed)
+	AppErrRoleValidFailed       = NewAppError(AppErrCodeRoleValidFailed)
+	AppErrActivityValidFailed   = NewAppError(AppErrCodeActivityValidFailed)
+	AppErrUserNotExist          = NewAppError(AppErrCodeUserNotExist)
+)
+
+func (x AppErrCode) I18nID() string {
+	return fmt.Sprintf("AppErrCode_%s", x.String())
 }
 
-var _AppErrorTextMap = map[AppError]string{
-	AppErrorAlreadyRegistered:     "already registered",
-	AppErrorNotRegistered:         "not registered",
-	AppErrorUserValidFailed:       "user data validation failed",
-	AppErrorArticleValidFailed:    "article data validation failed",
-	AppErrorPermissionValidFailed: "permission data validation failed",
-	AppErrorRoleValidFailed:       "role data validation failed",
-	AppErrorActivityValidFailed:   "activity data validation failed",
-	AppErrorUserNotExist:          "user dose not exist",
+var _AppErrCodeTextMap = map[AppErrCode]string{
+	AppErrCodeAlreadyRegistered:     "already registered",
+	AppErrCodeNotRegistered:         "not registered",
+	AppErrCodeUserValidFailed:       "user data validation failed",
+	AppErrCodeArticleValidFailed:    "article data validation failed",
+	AppErrCodePermissionValidFailed: "permission data validation failed",
+	AppErrCodeRoleValidFailed:       "role data validation failed",
+	AppErrCodeActivityValidFailed:   "activity data validation failed",
+	AppErrCodeUserNotExist:          "user dose not exist",
 }
 
-func (x AppError) Text(upCaseHead bool, i18nCustom *i18nc.I18nCustom) string {
-	// fmt.Println("translator: ", translator)
-	// fmt.Println("AppError.Text: ", int(x))
-
-	if _, ok := _AppErrorTextMap[x]; !ok {
-		return ""
-	}
-
-	text := []rune(_AppErrorTextMap[x])
-
-	// fmt.Println("text: ", text)
-	// fmt.Println("i18nID: ", x.I18nID())
+func (x AppErrCode) Text(upCaseHead bool, i18nCustom *i18nc.I18nCustom) string {
+	text := []rune(_AppErrCodeTextMap[x])
 
 	if i18nCustom != nil {
 		if _, ok := i18nCustom.Configs[x.I18nID()]; ok {
@@ -165,37 +166,37 @@ func (x AppError) Text(upCaseHead bool, i18nCustom *i18nc.I18nCustom) string {
 	return res
 }
 
-func AppErrorAddI18nConfigs(ic *i18nc.I18nCustom) {
+func AppErrCodeAddI18nConfigs(ic *i18nc.I18nCustom) {
 	ic.AddLocalizeConfig(&i18n.Message{
-		ID:    "AppError_AlreadyRegistered",
+		ID:    "AppErrCode_AlreadyRegistered",
 		Other: "already registered",
 	})
 	ic.AddLocalizeConfig(&i18n.Message{
-		ID:    "AppError_NotRegistered",
+		ID:    "AppErrCode_NotRegistered",
 		Other: "not registered",
 	})
 	ic.AddLocalizeConfig(&i18n.Message{
-		ID:    "AppError_UserValidFailed",
+		ID:    "AppErrCode_UserValidFailed",
 		Other: "user data validation failed",
 	})
 	ic.AddLocalizeConfig(&i18n.Message{
-		ID:    "AppError_ArticleValidFailed",
+		ID:    "AppErrCode_ArticleValidFailed",
 		Other: "article data validation failed",
 	})
 	ic.AddLocalizeConfig(&i18n.Message{
-		ID:    "AppError_PermissionValidFailed",
+		ID:    "AppErrCode_PermissionValidFailed",
 		Other: "permission data validation failed",
 	})
 	ic.AddLocalizeConfig(&i18n.Message{
-		ID:    "AppError_RoleValidFailed",
+		ID:    "AppErrCode_RoleValidFailed",
 		Other: "role data validation failed",
 	})
 	ic.AddLocalizeConfig(&i18n.Message{
-		ID:    "AppError_ActivityValidFailed",
+		ID:    "AppErrCode_ActivityValidFailed",
 		Other: "activity data validation failed",
 	})
 	ic.AddLocalizeConfig(&i18n.Message{
-		ID:    "AppError_UserNotExist",
+		ID:    "AppErrCode_UserNotExist",
 		Other: "user dose not exist",
 	})
 }

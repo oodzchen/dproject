@@ -54,7 +54,7 @@ type PermissionListItem struct {
 // }
 
 func permissionValidErr(str string) error {
-	return errors.Join(AppErrorPermissionValidFailed, errors.New(str))
+	return errors.Join(AppErrPermissionValidFailed, errors.New(str))
 }
 
 const PermissionFrontIdMaxLen int = 50

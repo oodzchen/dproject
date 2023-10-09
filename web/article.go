@@ -296,8 +296,9 @@ func (ar *ArticleResource) handleSubmit(w http.ResponseWriter, r *http.Request, 
 		id, err = ar.articleSrv.Create(title, content, authorId, 0)
 	}
 	// id, err := ar.articleSrv.Create(title, content, authorId, replyTo)
+
 	if err != nil {
-		if errors.Is(err, model.AppErrorActivityValidFailed) {
+		if errors.Is(err, model.AppErrArticleValidFailed) {
 			ar.Error(err.Error(), err, w, r, http.StatusBadRequest)
 		} else {
 			ar.Error("", err, w, r, http.StatusInternalServerError)

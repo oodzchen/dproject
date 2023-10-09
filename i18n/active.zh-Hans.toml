@@ -126,35 +126,35 @@ other = "{{.FieldNames}}已存在"
 hash = "sha1-8f8c77e7404ca30dcccf92c73c985f04a86420e7"
 other = "锚点"
 
-[AppError_ActivityValidFailed]
+[AppErrCode_ActivityValidFailed]
 hash = "sha1-d5391c41f2dc52ebf157475f1484a48628ba1ccf"
 other = "操作记录数据校验失败"
 
-[AppError_AlreadyRegistered]
+[AppErrCode_AlreadyRegistered]
 hash = "sha1-6351ef4c8e2af37b471b2289823ac9d21eb80452"
 other = "已注册"
 
-[AppError_ArticleValidFailed]
+[AppErrCode_ArticleValidFailed]
 hash = "sha1-28b79d62521142f818df6c69c148bb69bcaa3e45"
 other = "文章数据校验失败"
 
-[AppError_NotRegistered]
+[AppErrCode_NotRegistered]
 hash = "sha1-b2115c5fa95f4a4a102bddcbb41b3e25c2913528"
 other = "未注册"
 
-[AppError_PermissionValidFailed]
+[AppErrCode_PermissionValidFailed]
 hash = "sha1-a9bc154675b1a4ea8e90857ade8e92f47e2ac802"
 other = "权限数据校验失败"
 
-[AppError_RoleValidFailed]
+[AppErrCode_RoleValidFailed]
 hash = "sha1-7942450884aadb223dfbd2860dd91328b9ae42cb"
 other = "角色数据校验失败"
 
-[AppError_UserNotExist]
+[AppErrCode_UserNotExist]
 hash = "sha1-c712a3ebfb15ee879dcf77f9176894933c27ee77"
 other = "用户不存在"
 
-[AppError_UserValidFailed]
+[AppErrCode_UserValidFailed]
 hash = "sha1-46b4582ec35d1d21e9e1a57373a6c0ee9ba3a93d"
 other = "用户数据校验失败"
 

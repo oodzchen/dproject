@@ -24,7 +24,7 @@ type Activity struct {
 }
 
 func ActivityValidErr(str string) error {
-	return errors.Join(AppErrorActivityValidFailed, errors.New(str))
+	return errors.Join(AppErrActivityValidFailed, errors.New(str))
 }
 
 func (act *Activity) Format(i18nCustom *i18nc.I18nCustom) {

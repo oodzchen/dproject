@@ -2,8 +2,7 @@ package pgstore
 
 import (
 	"context"
-
-	"github.com/oodzchen/dproject/utils"
+	"errors"
 )
 
 type PGStore struct{}
@@ -45,7 +44,7 @@ func (pg *PGStore) Ping(ctx context.Context) error {
 
 func CheckDB(beforeConnect bool) error {
 	if pgDB == nil {
-		return utils.NewErrorWithId("store.pgstore.CheckDB", "Database config is required")
+		return errors.New("Database config is required")
 	}
 
 	if beforeConnect {
@@ -53,7 +52,7 @@ func CheckDB(beforeConnect bool) error {
 	}
 
 	if pgDB.Pool == nil {
-		return utils.NewErrorWithId("store.pgstore.CheckDB", "No database connection")
+		return errors.New("No database connection")
 	}
 
 	return nil

@@ -1,0 +1,5 @@
+var (
+{{- range $rIndex, $value := .enum.Values }}
+    AppErr{{$value.Name}} = NewAppError({{$value.PrefixedName}})
+{{- end }}
+)
