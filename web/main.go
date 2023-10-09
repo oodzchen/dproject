@@ -88,7 +88,7 @@ func (mr *MainResource) RegisterPage(w http.ResponseWriter, r *http.Request) {
 		BreadCrumbs: []*model.BreadCrumb{
 			{
 				Path: "/register",
-				Name: "Register",
+				Name: mr.Local("Register"),
 			},
 		},
 	})
@@ -143,7 +143,7 @@ func (mr *MainResource) LoginPage(w http.ResponseWriter, r *http.Request) {
 		BreadCrumbs: []*model.BreadCrumb{
 			{
 				Path: "/login",
-				Name: "Login",
+				Name: mr.Local("Login"),
 			},
 		},
 	})
@@ -335,8 +335,8 @@ type SettingsPageData struct {
 
 func (mr *MainResource) handleSettingsPage(w http.ResponseWriter, r *http.Request, pageKey SettingsPageKey) {
 	settingsTitleMap := map[SettingsPageKey]string{
-		SettingsPageKeyUI:      mr.i18nCustom.MustLocalize("UI", "", ""),
-		SettingsPageKeyAccount: mr.i18nCustom.MustLocalize("Account", "", ""),
+		SettingsPageKeyUI:      mr.Local("UI"),
+		SettingsPageKeyAccount: mr.Local("Account"),
 	}
 
 	var langStrEnums []model.StringEnum
