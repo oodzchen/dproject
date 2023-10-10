@@ -68,7 +68,11 @@ func (ic *I18nCustom) AddLocalizeConfig(message *i18n.Message) {
 }
 
 func (ic *I18nCustom) MustLocalize(id string, templateData any, pluralcount any) string {
-	config := ic.Configs[id]
+	config, ok := ic.Configs[id]
+	if !ok {
+		fmt.Printf("lack of i18n config: %s\n", id)
+		return ""
+	}
 
 	if templateData != "" && templateData != nil {
 		config.TemplateData = templateData
@@ -98,6 +102,9 @@ func (ic *I18nCustom) SwitchLang(lang string) {
 }
 
 func (ic *I18nCustom) LocalTpl(id string, data ...any) string {
+	// fmt.Println("data: ", data)
+	// fmt.Println("len(data): ", len(data))
+
 	if len(data) == 0 {
 		return ic.MustLocalize(id, "", "")
 	}

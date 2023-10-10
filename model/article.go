@@ -276,7 +276,7 @@ func (a *Article) Sanitize(p *bluemonday.Policy) {
 }
 
 func articleValidErr(str string) error {
-	return errors.Join(AppErrArticleValidFailed, errors.New(str))
+	return errors.Join(AppErrArticleValidFailed, errors.New(", "+str))
 }
 
 func (a *Article) TrimSpace() {
@@ -290,25 +290,25 @@ func (a *Article) Valid(isUpdate bool) error {
 	content := strings.TrimSpace(a.Content)
 
 	if !isUpdate && authorId == 0 {
-		return articleValidErr("author id is required")
+		return articleValidErr(translator.LocalTpl("Required", "FieldNames", translator.LocalTpl("Author")))
 	}
 
 	if !isReply {
 		if title == "" {
-			return articleValidErr("article title is required")
+			return articleValidErr(translator.LocalTpl("Required", "FieldNames", translator.LocalTpl("ArticleTitle")))
 		}
 
 		if utf8.RuneCountInString(title) > MAX_ARTICLE_TITLE_LEN {
-			return articleValidErr(fmt.Sprintf("article title limit to %d characters", MAX_ARTICLE_TITLE_LEN))
+			return articleValidErr(translator.LocalTpl("NotExceed", "FieldNames", translator.LocalTpl("ArticleTitle"), "Num", MAX_ARTICLE_TITLE_LEN))
 		}
 	}
 
 	if content == "" {
-		return articleValidErr("article content is required")
+		return articleValidErr(translator.LocalTpl("Required", "FieldNames", translator.LocalTpl("ArticleContent")))
 	}
 
 	if utf8.RuneCountInString(content) > MAX_ARTICLE_CONTENT_LEN {
-		return articleValidErr(fmt.Sprintf("article content limit to %d characters", MAX_ARTICLE_CONTENT_LEN))
+		return articleValidErr(translator.LocalTpl("NotExceed", "FieldNames", translator.LocalTpl("ArticleContent"), "Num", MAX_ARTICLE_CONTENT_LEN))
 	}
 	return nil
 }

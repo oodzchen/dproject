@@ -2,7 +2,6 @@ package model
 
 import (
 	"errors"
-	"fmt"
 	"html"
 	"regexp"
 	"strings"
@@ -57,7 +56,7 @@ func (u *User) Sanitize(p *bluemonday.Policy) {
 }
 
 func userValidErr(str string) error {
-	return errors.Join(AppErrUserValidFailed, errors.New(str))
+	return errors.Join(AppErrUserValidFailed, errors.New(", "+str))
 }
 
 func (u *User) TrimSpace() {
@@ -69,28 +68,22 @@ func (u *User) Valid() error {
 	lackField := ""
 
 	if u.Email == "" {
-		lackField = "email"
+		lackField = translator.LocalTpl("Email")
 	}
 	if u.Name == "" {
-		lackField = "username"
+		lackField = translator.LocalTpl("Username")
 	}
 	if u.Password == "" {
-		lackField = "password"
+		lackField = translator.LocalTpl("Password")
 	}
 
 	if lackField != "" {
-		return userValidErr(fmt.Sprintf("require field: %s", lackField))
+		return userValidErr(translator.LocalTpl("Required", "FieldNames", lackField))
 	}
 
 	if err := ValidateEmail(u.Email); err != nil {
-		return userValidErr("email format error")
+		return userValidErr(translator.LocalTpl("FormatError", "FieldNames", translator.LocalTpl("Email")))
 	}
-
-	// reUsername := regexp.MustCompile(`^[\p{L}\p{N}\s]+$`)
-	// reUsername := regexp.MustCompile(utils.ReUsernameStr)
-	// if !reUsername.Match([]byte(u.Name)) {
-	// 	return userValidErr("username format error")
-	// }
 
 	if err := ValidUsername(u.Name); err != nil {
 		return err
@@ -102,7 +95,8 @@ func (u *User) Valid() error {
 	reNotaion := regexp.MustCompile(`[[:graph:]]`)
 	originalPwd := []byte(u.Password)
 	if !rePassword.Match(originalPwd) || !reLetter.Match(originalPwd) || !reNum.Match(originalPwd) || !reNotaion.Match(originalPwd) {
-		return userValidErr("password format error")
+		// return userValidErr("password format error")
+		return userValidErr(translator.LocalTpl("FormatError", "FieldNames", translator.LocalTpl("Password")))
 	}
 
 	return nil
@@ -131,23 +125,23 @@ func hashPassword(pwd string) (string, error) {
 // Validate email string
 func ValidateEmail(email string) error {
 	if len(email) > MaxEmailLen {
-		return userValidErr("email format error")
+		return userValidErr(translator.LocalTpl("FormatError", "FieldNames", translator.LocalTpl("Email")))
 	}
 	re := regexp.MustCompile(ReEmailStr)
 	if !re.Match([]byte(email)) {
-		return userValidErr("email format error")
+		return userValidErr(translator.LocalTpl("FormatError", "FieldNames", translator.LocalTpl("Email")))
 	}
 	return nil
 }
 
 func ValidUsername(username string) error {
 	if len(username) > MaxUsernameLen {
-		return userValidErr("username format error")
+		return userValidErr(translator.LocalTpl("FormatError", "FieldNames", translator.LocalTpl("Username")))
 	}
 
 	reUsername := regexp.MustCompile(ReUsernameStr)
 	if !reUsername.Match([]byte(username)) {
-		return userValidErr("username format error")
+		return userValidErr(translator.LocalTpl("FormatError", "FieldNames", translator.LocalTpl("Username")))
 	}
 	return nil
 }

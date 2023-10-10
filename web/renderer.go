@@ -280,7 +280,6 @@ func (rd *Renderer) Local(id string, data ...any) string {
 // 	ss.SetValue("user_name", u.Name)
 
 // 	// gob.Register(model.User{})
-
 // 	ss.SetValue("user_info", *u)
 // }
 

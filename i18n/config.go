@@ -299,4 +299,24 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "GoHome",
 		Other: "Go home",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Author",
+		Other: "Author",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Article",
+		Other: "Article",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "ArticleTitle",
+		Other: "Article title",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "ArticleContent",
+		Other: "Article content",
+	})
 }

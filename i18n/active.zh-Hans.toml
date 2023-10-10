@@ -158,6 +158,22 @@ other = "用户不存在"
 hash = "sha1-46b4582ec35d1d21e9e1a57373a6c0ee9ba3a93d"
 other = "用户数据校验失败"
 
+[Article]
+hash = "sha1-4360c2dcd4af965377499b10a52640af435c9258"
+other = "文章"
+
+[ArticleContent]
+hash = "sha1-9d58cf5b6dae3426741c668446d38abdc66e135a"
+other = "文章内容"
+
+[ArticleTitle]
+hash = "sha1-1462c5df3e3961c5a25d0e87e872c270196e4576"
+other = "文章标题"
+
+[Author]
+hash = "sha1-5fda23d62015b99fb2a9f86b38bcdf2bdf7609c8"
+other = "作者"
+
 [Best]
 hash = "sha1-77003d07271f14977f2cf290c9d16c81e05ab6dd"
 other = "最佳"
@@ -314,6 +330,10 @@ other = "管理"
 hash = "sha1-19a532c8bc61c311f583455c80ffe37067bbc9bb"
 other = "编辑"
 
+[NotExceed]
+hash = "sha1-205e3492b51a5da2a20bfc97ac267b9328eda3fd"
+other = "{{.FieldNames}}不得超过 {{.Num}} 个字符"
+
 [NotRegistered]
 hash = "sha1-c4dbd26f2d54aa07c16b121383c7a5bdfd3f7e18"
 other = "{{.FieldNames}}未注册"
@@ -432,7 +452,7 @@ other = "用户名"
 
 [UsernameFormatTip]
 hash = "sha1-0eeee349df98cb1536c262a4526ca536913ceedd"
-other = "默认使用邮箱地址中的用户名。用户名只能使用数字、字母、下划线（_）、中横线（-）和英文句号（.），首尾不能是标点符号。"
+other = "默认使用邮箱地址中的用户名。用户名只能使用数字、字母、下划线（_）、中横线（-）和英文句号（.），不区分大小写，首尾不能是标点符号。"
 
 [VoteScore]
 hash = "sha1-8a59b65d21e42409585cf850b64587e2ee783489"

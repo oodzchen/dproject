@@ -30,7 +30,7 @@ type Role struct {
 }
 
 func roleValidErr(str string) error {
-	return errors.Join(AppErrRoleValidFailed, errors.New(str))
+	return errors.Join(AppErrRoleValidFailed, errors.New(", "+str))
 }
 
 const RoleFrontIdMaxLen int = 50
