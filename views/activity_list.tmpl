@@ -30,6 +30,6 @@
 	    </li>
 	{{- end -}}
 
-	{{- placehold . "<i class='text-lighten-2'>No data</i>" -}}
+	{{- placehold . (print "<i class='text-lighten-2'>" (local "NoData") "</i>") -}}
     </ul>
 {{- end -}}

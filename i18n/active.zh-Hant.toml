@@ -159,7 +159,7 @@ hash = "sha1-46b4582ec35d1d21e9e1a57373a6c0ee9ba3a93d"
 other = "用戶數據校驗失敗"
 
 [Article]
-hash = "sha1-4360c2dcd4af965377499b10a52640af435c9258"
+hash = "sha1-7c422841b7e3951946583038790545c4ed38481b"
 other = "文章"
 
 [ArticleContent]
@@ -282,6 +282,10 @@ other = "{{.FieldNames}}不匹配"
 hash = "sha1-2473e96bc614a911821242119918a241a41836d6"
 other = "介紹"
 
+[JoinAt]
+hash = "sha1-f7668d8d7d5dc44dd28b4a1b2f659d5dde238046"
+other = "加入於"
+
 [Lang_en]
 hash = "sha1-649df08a448ee3fa90f3746baaf6b0907df42c91"
 other = "English"
@@ -329,6 +333,10 @@ other = "管理"
 [Modified]
 hash = "sha1-19a532c8bc61c311f583455c80ffe37067bbc9bb"
 other = "編輯"
+
+[NoData]
+hash = "sha1-d802d232a85b790c06a7f0815c75d27016580682"
+other = "暫無數據"
 
 [NotExceed]
 hash = "sha1-205e3492b51a5da2a20bfc97ac267b9328eda3fd"
@@ -390,6 +398,10 @@ other = "註冊"
 hash = "sha1-7d4f1cb536460874d0458be43fab294a4e643d6f"
 other = "創建新賬號"
 
+[Reply]
+hash = "sha1-c8a103c73005ccd029f388a9b7336a994cad85ba"
+other = "回覆"
+
 [ReplyNum]
 hash = "sha1-2cbee60b1478eae565b6780bee631ab1100e8954"
 other = "{{.Count}} 回覆"
@@ -401,6 +413,10 @@ other = "{{.FieldNames}}是必須的"
 [Role]
 hash = "sha1-47dcc27d6e87ece8baebe7e3877a261a5467093d"
 other = "角色"
+
+[Saved]
+hash = "sha1-c0ae8f6ea84111498894729659051ce9713aab42"
+other = "已保存"
 
 [Settings]
 hash = "sha1-c7f73bb54d928922c3838bb789ee9fb8a5b1eb37"
@@ -442,9 +458,17 @@ other = "用戶界面"
 hash = "sha1-3ae42a48d3578bbecbca8c0feb1381ec16c2c957"
 other = "用戶界面設置保存成功"
 
+[UpdateRole]
+hash = "sha1-dd5f9688fb0203138d144596ac296778a6be0086"
+other = "更新{{local \"Role\"}}"
+
 [User]
 hash = "sha1-57f2b181d0a5e79a147ea1cdf41457f58dbbb3c9"
 other = "用戶"
+
+[UserManage]
+hash = "sha1-8bbee95bc5178af72b392d8bfb543dd81343407e"
+other = "{{local \"User\"}}{{local \"Manage\"}}"
 
 [Username]
 hash = "sha1-84c29015de33e5d22422382a372caba5c58f8c01"

@@ -44,7 +44,7 @@
 			    <br/>
 			    <br/>
 			{{- end -}}
-			{{- placehold .FormattedPermissions "<i class=\"text-lighten-2\">No permissions</i>" -}}
+			{{- placehold .FormattedPermissions (print "<i class=\"text-lighten-2\">" (local "NoData") "</i>") -}}
 		    </td>
 		    <td>
 			{{- if not .IsDefault -}}

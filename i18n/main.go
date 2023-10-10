@@ -3,6 +3,7 @@ package i18nc
 import (
 	"fmt"
 	"strconv"
+	"text/template"
 	"time"
 
 	"github.com/BurntSushi/toml"
@@ -65,6 +66,9 @@ func (ic *I18nCustom) AddLocalizeConfig(message *i18n.Message) {
 
 	ic.Configs[message.ID] = &i18n.LocalizeConfig{
 		DefaultMessage: message,
+		Funcs: template.FuncMap{
+			"local": ic.LocalTpl,
+		},
 	}
 }
 

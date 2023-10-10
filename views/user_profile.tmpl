@@ -4,19 +4,19 @@
 
     {{- if permit "user" "manage" -}}
 	<fieldset>
-	    <legend>User Manage</legend>
-	    {{if permit "user" "update_role"}}<a href="/users/{{.Data.UserInfo.Id}}/set_role">Update Role</a>&nbsp;&nbsp;{{end}}
+	    <legend>{{local "UserManage"}}</legend>
+	    {{if permit "user" "update_role"}}<a href="/users/{{.Data.UserInfo.Id}}/set_role">{{local "UpdateRole"}}</a>&nbsp;&nbsp;{{end}}
 	    <hr/>
 	    <div>
 		<small>
 		    <div>
-			<b>Role</b>:
+			<b>{{local "Role" "Count" 2}}</b>:
 			<br/>
 			<span {{if eq .Data.UserInfo.RoleFrontId "banned_user"}}style="color:red"{{end}}>{{.Data.UserInfo.RoleName}}</span>
 		    </div>
 		    <br/>
 		    <div>
-			<b>Permissions</b>
+			<b>{{local "Permission" "Count" 2}}</b>
 			<br/>
 			{{joinStrArr .Data.PermissionNames ", &nbsp;&nbsp;"}}
 		    </div>
@@ -29,7 +29,7 @@
 
     {{- $data := .Data -}}
     {{- $tabs := list "all" "article" "reply" -}}
-    {{- $tabsMap := dict "all" "All" "article" "Articles" "reply" "Replies" "saved" "Saved" "activity" "Activity" -}}
+    {{- $tabsMap := dict "all" (local "All") "article" (local "Article" "Count" 2) "reply" (local "Reply" "Count" 2) "saved" (local "Saved") "activity" (local "Activity" "Count" 2) -}}
 
     {{- if .LoginedUser -}}
 	{{- if eq .LoginedUser.Id .Data.UserInfo.Id -}}
@@ -61,14 +61,14 @@
     <h1>{{.Name}}</h1>
     <div class="data-list">
 	<div class="data-list__row">
-            <div class="data-list__label">Joined At:</div>
+            <div class="data-list__label">{{local "JoinAt"}}:</div>
             <div class="data-list__content">
 		<time title="{{.RegisteredAt}}">{{timeFormat .RegisteredAt "YYYY/MM/DD"}}</time>
 	    </div>
 	</div>
 	{{if .Introduction -}}
 	    <div class="data-list__row">
-		<div class="data-list__label">Introduction:</div>
+		<div class="data-list__label">{{local "Introduction"}}:</div>
 		<div class="data-list__content" style="white-space:break-spaces;">
 		    {{- .Introduction -}}
 		</div>
@@ -104,7 +104,7 @@
 		<div class="post-list__info">{{.Summary}}{{if ne .Content .Summary}} ...{{end}}</div>
 	    </li>
 	{{end -}}
-	{{- placehold . "<i class='text-lighten-2'>No data</i>" -}}
+	{{- placehold . (print "<i class='text-lighten-2'>" (local "NoData") "</i>") -}}
     </ul>
 {{end -}}
 

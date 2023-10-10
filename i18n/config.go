@@ -307,7 +307,8 @@ func (ic *I18nCustom) AddConfigs() {
 
 	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "Article",
-		Other: "Article",
+		One:   "Article",
+		Other: "Articles",
 	})
 
 	ic.AddLocalizeConfig(&i18n.Message{
@@ -319,4 +320,36 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "ArticleContent",
 		Other: "Article content",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "UserManage",
+		Other: "{{local \"User\"}} {{local \"Manage\"}}",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "UpdateRole",
+		Other: "Update {{local \"Role\"}}",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Reply",
+		One:   "Reply",
+		Other: "Replies",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Saved",
+		Other: "Saved",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "JoinAt",
+		Other: "Joined At",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "NoData",
+		Other: "No data",
+	})
+
 }
