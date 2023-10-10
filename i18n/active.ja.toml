@@ -1,0 +1,487 @@
+[AcAction_add_role]
+hash = "sha1-d8d5d55c4c9d25c9ac455cfdf8e691f899c49e01"
+other = "ロールを追加"
+
+[AcAction_create_article]
+hash = "sha1-219597af7ea604c8463fef4c9f958310a25db4f5"
+other = "記事を作成する"
+
+[AcAction_delete_article]
+hash = "sha1-0f57b4b727bb498875c1e84c6f18f8651209e51f"
+other = "記事を削除する"
+
+[AcAction_edit_article]
+hash = "sha1-28e80f82c94d88a7e9a32272306b2ea0b5f05eca"
+other = "記事を編集する"
+
+[AcAction_edit_role]
+hash = "sha1-61dd63e9c31ca35cccae0cb058e6d6f3710c448e"
+other = "ロールを編集する"
+
+[AcAction_login]
+hash = "sha1-4e5a2893bdcc7d239c1db72e4c4ffbe4bea73174"
+other = "ログイン"
+
+[AcAction_logout]
+hash = "sha1-e43d612e11f1568f2373e719d4c4b08dcecdc7cc"
+other = "ログアウト"
+
+[AcAction_react_article]
+hash = "sha1-29750dea7106fbb6bc61d23e07033e28b11765a9"
+other = "記事に反応する"
+
+[AcAction_register]
+hash = "sha1-d672995a14650d0e018026b64f297663d8c71c8d"
+other = "登録"
+
+[AcAction_reply_article]
+hash = "sha1-95fb9370f1ef1ff2ea5083190cceb70c1a7bb956"
+other = "記事に返信する"
+
+[AcAction_save_article]
+hash = "sha1-ac4ef2e88b1a1e62108c09a73bedbf5b2c1f17ec"
+other = "記事を保存"
+
+[AcAction_set_role]
+hash = "sha1-c761ae6f808af35baee6875cbc08cc6210fd7c5b"
+other = "役割を設定"
+
+[AcAction_update_intro]
+hash = "sha1-b763c995ee533940f9722582fd0e7386b294392e"
+other = "紹介を更新"
+
+[AcAction_vote_article]
+hash = "sha1-45bf78f11124bd3068c77aba76c7bdd1c1aa0035"
+other = "記事に投票する"
+
+[AcModel_article]
+hash = "sha1-4360c2dcd4af965377499b10a52640af435c9258"
+other = "記事"
+
+[AcModel_empty]
+hash = "sha1-3159fe421b3221381b3c778dc1c3c26e4540be37"
+other = "空"
+
+[AcModel_role]
+hash = "sha1-c3f104d1365744b538bfde9f4adb6a6df4b80355"
+other = "役割"
+
+[AcModel_user]
+hash = "sha1-9f8a2389a20ca0752aa9e95093515517e90e194c"
+other = "ユーザー"
+
+[AcType_anonymous]
+hash = "sha1-9bed5104004c5fe4e3e46673da174472bff1360a"
+other = "匿名"
+
+[AcType_dev]
+hash = "sha1-4c17aadf5117487aab7bc50cbf056caf3977cc31"
+other = "開発"
+
+[AcType_manage]
+hash = "sha1-63cecca67b70751fc04062673106be15df88ce5f"
+other = "管理"
+
+[AcType_user]
+hash = "sha1-9f8a2389a20ca0752aa9e95093515517e90e194c"
+other = "ユーザー"
+
+[Account]
+hash = "sha1-85dfa32c97d8618d1bea083609e2c8a29845abe5"
+other = "アカウント"
+
+[AccountCreateSuccess]
+hash = "sha1-ac149d993c248919bf0929ca291207f5dc184d76"
+other = "アカウントの作成に成功しました"
+
+[AccountSaveSuccess]
+hash = "sha1-1e1c0d37d3158bf5fa31981251bc8a57e0d0d320"
+other = "アカウントの設定が保存されました"
+
+[Action]
+hash = "sha1-97c89a4d6630adeb18fa12ba9976a31413fe293e"
+other = "アクション"
+
+[Activity]
+hash = "sha1-e58f7f889902c81b8879128fede278022f0e459c"
+other = "アクティビティの記録"
+
+[AddContent]
+hash = "sha1-b53526456e1c3717f5e80c030ef10890cdaba341"
+other = "コンテンツを追加"
+
+[AddNew]
+hash = "sha1-6403f2b7eb2aaafe6de34cbf2a029b01afebc512"
+other = "追加"
+
+[All]
+hash = "sha1-6a72085653e4c5be8c7640c868ef787cbcf063d1"
+other = "すべて"
+
+[AlreadyExists]
+hash = "sha1-45e9b256082a5147e111a0316a945de71823f64e"
+other = "{{.FieldNames}}は既に存在します"
+
+[Anchor]
+hash = "sha1-8f8c77e7404ca30dcccf92c73c985f04a86420e7"
+other = "アンカー"
+
+[AppErrCode_ActivityValidFailed]
+hash = "sha1-d5391c41f2dc52ebf157475f1484a48628ba1ccf"
+other = "アクティビティのデータ検証に失敗しました"
+
+[AppErrCode_AlreadyRegistered]
+hash = "sha1-6351ef4c8e2af37b471b2289823ac9d21eb80452"
+other = "既に登録済み"
+
+[AppErrCode_ArticleValidFailed]
+hash = "sha1-28b79d62521142f818df6c69c148bb69bcaa3e45"
+other = "記事のデータ検証に失敗しました"
+
+[AppErrCode_NotRegistered]
+hash = "sha1-b2115c5fa95f4a4a102bddcbb41b3e25c2913528"
+other = "未登録"
+
+[AppErrCode_PermissionValidFailed]
+hash = "sha1-a9bc154675b1a4ea8e90857ade8e92f47e2ac802"
+other = "権限のデータ検証に失敗しました"
+
+[AppErrCode_RoleValidFailed]
+hash = "sha1-7942450884aadb223dfbd2860dd91328b9ae42cb"
+other = "役割のデータ検証に失敗しました"
+
+[AppErrCode_UserNotExist]
+hash = "sha1-c712a3ebfb15ee879dcf77f9176894933c27ee77"
+other = "ユーザーが存在しません"
+
+[AppErrCode_UserValidFailed]
+hash = "sha1-46b4582ec35d1d21e9e1a57373a6c0ee9ba3a93d"
+other = "ユーザーのデータ検証に失敗しました"
+
+[Article]
+hash = "sha1-7c422841b7e3951946583038790545c4ed38481b"
+other = "記事"
+
+[ArticleContent]
+hash = "sha1-9d58cf5b6dae3426741c668446d38abdc66e135a"
+other = "記事の内容"
+
+[ArticleTitle]
+hash = "sha1-1462c5df3e3961c5a25d0e87e872c270196e4576"
+other = "記事のタイトル"
+
+[Author]
+hash = "sha1-5fda23d62015b99fb2a9f86b38bcdf2bdf7609c8"
+other = "著者"
+
+[Best]
+hash = "sha1-77003d07271f14977f2cf290c9d16c81e05ab6dd"
+other = "最高"
+
+[BtnClose]
+hash = "sha1-bbfa773e5a63a5ea58c9b6207e608ca0120e592a"
+other = "閉じる"
+
+[BtnDelete]
+hash = "sha1-f6fdbe48dc54dd86f63097a03bd24094dedd713a"
+other = "削除"
+
+[BtnEdit]
+hash = "sha1-5301648dcf6b53cefc9ed52999aaa92d4603cae0"
+other = "編集"
+
+[BtnFold]
+hash = "sha1-b6ba0db1f814179114ec82fbf188b2eb5be2596e"
+other = "折りたたむ"
+
+[BtnMore]
+hash = "sha1-4bab2d8fe13fa6ab57f80098b414f0f734c5dd25"
+other = "もっと見る"
+
+[BtnNextPage]
+hash = "sha1-4bfc194b68a3369d53aadcddc4f891771d91a3d9"
+other = "次のページ"
+
+[BtnParent]
+hash = "sha1-23d692f07a3fb646a8e54fcd2dc724f4ea2ed2c6"
+other = "親レベル"
+
+[BtnPrevPage]
+hash = "sha1-81f547195bef12a0bb74f5af751fe50e78a0c2f3"
+other = "前のページ"
+
+[BtnReply]
+hash = "sha1-6c2bb735a46a8ff307fe2e638d581295b2a49e09"
+other = "返信"
+
+[BtnReset]
+hash = "sha1-44c57abd888a66b36d4b7c902134063e4a097223"
+other = "リセット"
+
+[BtnSave]
+hash = "sha1-efc007a393f66cdb14d57d385822a3d9e36ef873"
+other = "保存"
+
+[BtnSearch]
+hash = "sha1-bce06414177f72ab70e6387b6af9f8ceef0d6049"
+other = "検索"
+
+[BtnSubmit]
+hash = "sha1-2dacf65959849884a011f36f76a04eebea94c5ea"
+other = "送信"
+
+[BtnUnsave]
+hash = "sha1-65fd5f084b91ec4872711c6bc55c0be01801032f"
+other = "保存をキャンセル"
+
+[ConfirmDelete]
+hash = "sha1-5c3d4418dea97785194bdc8d2ba60ca6dec1c61a"
+other = "削除を確認"
+
+[Content]
+hash = "sha1-4f9be057f0ea5d2ba72fd2c810e8d7b9aa98b469"
+other = "内容"
+
+[Deleted]
+hash = "sha1-441bda6cd85689e476ebe10440f27967faef61a6"
+other = "削除済み"
+
+[Discuss]
+hash = "sha1-1b7949a7060ddc9ee6e31e42f7c8b0e281f45dc9"
+other = "議論"
+
+[Email]
+hash = "sha1-84add5b2952787581cb9a8851eef63d1ec75d22b"
+other = "メール"
+
+[FormatError]
+hash = "sha1-833e1ef7040ce6951780e2e42210cecc9061e69a"
+other = "{{.FieldNames}}の形式が正しくありません"
+
+[GoBack]
+hash = "sha1-e84712fbf4eee89d1d896d75da5b5b9ceca43eac"
+other = "戻る"
+
+[GoHome]
+hash = "sha1-8007defd3284dd8910ddf82aa69e5f0eeb722b0f"
+other = "ホームへ"
+
+[GoTo]
+hash = "sha1-b49acb618383a8ff82afe57ddbf49c204da3b22d"
+other = "移動"
+
+[Hot]
+hash = "sha1-8c948d7947e0c20b3e2bc9c63fea2eaec504e113"
+other = "人気"
+
+[Incorrect]
+hash = "sha1-2c1c9f19509f54bec6d6efc5fe83b469fe0392b1"
+other = "{{.FieldNames}}が一致しません"
+
+[Introduction]
+hash = "sha1-2473e96bc614a911821242119918a241a41836d6"
+other = "紹介"
+
+[JoinAt]
+hash = "sha1-f7668d8d7d5dc44dd28b4a1b2f659d5dde238046"
+other = "加入日"
+
+[Lang_en]
+hash = "sha1-649df08a448ee3fa90f3746baaf6b0907df42c91"
+other = "English"
+
+[Lang_jp]
+hash = "sha1-c12140a0ffb4e56481b4fe0a7a25040c2eafa9ca"
+other = "日本語"
+
+[Lang_zh-Hans]
+hash = "sha1-93659150d0e56377fc3a57cb9bb7d958fd637a74"
+other = "簡体字中国語"
+
+[Lang_zh-Hant]
+hash = "sha1-1f7e4a4c370c9833c9f077a16934e4c7eb1dbc9c"
+other = "繁体字中国語"
+
+[Language]
+hash = "sha1-89b86ab0e66f527166d98df92ddbcf5416ed58f6"
+other = "言語"
+
+[Latest]
+hash = "sha1-decd7ca8001063374c7a24698a6adbc6c4552498"
+other = "最新"
+
+[Link]
+hash = "sha1-d0517071aa376e797705058bbad4b658954b9930"
+other = "リンク"
+
+[Login]
+hash = "sha1-4e5a2893bdcc7d239c1db72e4c4ffbe4bea73174"
+other = "ログイン"
+
+[LoginTip]
+hash = "sha1-11b5bce86eaab5b60e0080c3aa478b547ac03790"
+other = "既存のアカウントをお持ちですか？{{.LoginLink}}をクリックしてください"
+
+[Logout]
+hash = "sha1-e43d612e11f1568f2373e719d4c4b08dcecdc7cc"
+other = "ログアウト"
+
+[Manage]
+hash = "sha1-bf58d17e561b1b858e35f9202f811297dac2e9db"
+other = "管理"
+
+[Modified]
+hash = "sha1-19a532c8bc61c311f583455c80ffe37067bbc9bb"
+other = "編集"
+
+[NoData]
+hash = "sha1-d802d232a85b790c06a7f0815c75d27016580682"
+other = "データがありません"
+
+[NotExceed]
+hash = "sha1-205e3492b51a5da2a20bfc97ac267b9328eda3fd"
+other = "{{.FieldNames}}は{{.Num}}文字を超えてはいけません"
+
+[NotRegistered]
+hash = "sha1-c4dbd26f2d54aa07c16b121383c7a5bdfd3f7e18"
+other = "{{.FieldNames}}は未登録です"
+
+[Or]
+hash = "sha1-4c0aecf997f6774c15964f0e3447a6ab2df2b14e"
+other = "{{.A}}または{{.B}}"
+
+[PageLayout]
+hash = "sha1-cecb05a81c588637f7246e84bd611bbfe8649970"
+other = "コンテンツのレイアウト"
+
+[PageLayoutCentered]
+hash = "sha1-6d00bb19135877d80a5920b732fd247f3f558c2e"
+other = "中央揃え"
+
+[PageLayoutFull]
+hash = "sha1-10b28a8c1e445017f5c61e4266d4b7ad9e9a3748"
+other = "全画面"
+
+[Participate]
+hash = "sha1-37359838b12b097116ebcd735b4aeb0844331d8f"
+other = "参加者 {{.ParticipateNum}}"
+
+[Password]
+hash = "sha1-8be3c943b1609fffbfc51aad666d0a04adf83c9d"
+other = "パスワード"
+
+[PasswordFormatTip]
+hash = "sha1-0faa603d90df7715fa39d86e8ebd421c634e610f"
+other = "パスワードは少なくとも{{.LeastLen}}文字で、数字、文字、特殊記号を含んでいる必要があります。"
+
+[Permission]
+hash = "sha1-d06d55570938d12f87db3bf2b48caa9de22d9c67"
+other = "権限"
+
+[PublishInfo]
+hash = "sha1-31e59c380622bbad26b8f01bc14b9ebac08dbe95"
+other = "{{.Username}} が投稿"
+
+[Re]
+hash = "sha1-e39422d2f459423ed57d70f33d3dcd32ee31ff97"
+other = "返信"
+
+[ReactTip]
+hash = "sha1-eb5974127a583519aa5f64b126b3bb744ca15066"
+other = "コンテンツに対する反応"
+
+[Register]
+hash = "sha1-d672995a14650d0e018026b64f297663d8c71c8d"
+other = "登録"
+
+[RegisterTip]
+hash = "sha1-7d4f1cb536460874d0458be43fab294a4e643d6f"
+other = "新しいアカウントを作成"
+
+[Reply]
+hash = "sha1-c8a103c73005ccd029f388a9b7336a994cad85ba"
+other = "返信"
+
+[ReplyNum]
+hash = "sha1-2cbee60b1478eae565b6780bee631ab1100e8954"
+other = "{{.Count}} 回答"
+
+[Required]
+hash = "sha1-1d2cc27d94564c97fda931d16fc110dcd9db0d09"
+other = "{{.FieldNames}}は必須です"
+
+[Role]
+hash = "sha1-47dcc27d6e87ece8baebe7e3877a261a5467093d"
+other = "役割"
+
+[Saved]
+hash = "sha1-c0ae8f6ea84111498894729659051ce9713aab42"
+other = "保存済み"
+
+[Settings]
+hash = "sha1-c7f73bb54d928922c3838bb789ee9fb8a5b1eb37"
+other = "設定"
+
+[Theme]
+hash = "sha1-a797e30923ac1be590300ce6b08e63b4e6dc6688"
+other = "テーマ"
+
+[ThemeDark]
+hash = "sha1-ae1ef01432946b8976b9b58575b3390ab7644db2"
+other = "ダークモード"
+
+[ThemeLight]
+hash = "sha1-a36ef8aba22905e2d2efbf1ac1d6230d5761859d"
+other = "ライトモード"
+
+[ThemeSystem]
+hash = "sha1-8b97460c8967dc926f18b9e679496d859b299858"
+other = "システムデフォルト"
+
+[ThemeSystemTip]
+hash = "sha1-279ff465b21df4aa114acd5656a2ed4fe4a7cd5b"
+other = "この機能はJavaScriptを有効にする必要があります"
+
+[Title]
+hash = "sha1-768e0c1c69573fb588f61f1308a015c11468e05f"
+other = "タイトル"
+
+[Type]
+hash = "sha1-3deb7456519697ecf4eefc455516c969a3681bae"
+other = "タイプ"
+
+[UI]
+hash = "sha1-9d57875196c613785a1eee010c55223a0f1aa821"
+other = "ユーザーインターフェース"
+
+[UISaveSuccess]
+hash = "sha1-3ae42a48d3578bbecbca8c0feb1381ec16c2c957"
+other = "ユーザーインターフェースの設定が保存されました"
+
+[UpdateRole]
+hash = "sha1-dd5f9688fb0203138d144596ac296778a6be0086"
+other = "{{local \"Role\"}}を更新"
+
+[User]
+hash = "sha1-57f2b181d0a5e79a147ea1cdf41457f58dbbb3c9"
+other = "ユーザー"
+
+[UserManage]
+hash = "sha1-8bbee95bc5178af72b392d8bfb543dd81343407e"
+other = "{{local \"User\"}}{{local \"Manage\"}}"
+
+[Username]
+hash = "sha1-84c29015de33e5d22422382a372caba5c58f8c01"
+other = "ユーザー名"
+
+[UsernameFormatTip]
+hash = "sha1-0eeee349df98cb1536c262a4526ca536913ceedd"
+other = "デフォルトではメールアドレスからユーザー名を使用します。ユーザー名は数字、文字、アンダースコア（_）、ハイフン（-）、英文ピリオド（.）のみ使用でき、大文字と小文字は区別されません。また、先頭と末尾に句読点を使用できません。"
+
+[VoteScore]
+hash = "sha1-8a59b65d21e42409585cf850b64587e2ee783489"
+other = "{{.Score}} ポイント"
+
+[Weight]
+hash = "sha1-c3c6f9c00570e41e9c3305fce571e511593c5eb4"
+other = "{{.Weight}} ウェイト"

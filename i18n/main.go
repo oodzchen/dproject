@@ -111,21 +111,52 @@ var timeAgoZHHant = &timeago.Config{
 	DefaultLayout: "於 2006-01-02",
 }
 
+var timeAgoJP = &timeago.Config{
+	PastPrefix:   " ",
+	PastSuffix:   "前に",
+	FuturePrefix: " ",
+	FutureSuffix: "に",
+
+	Periods: []timeago.FormatPeriod{
+		{D: time.Second, One: "1 秒", Many: "%d 秒"},
+		{D: time.Minute, One: "1 分", Many: "%d 分"},
+		{D: time.Hour, One: "1 時間", Many: "%d 時間"},
+		{D: timeago.Day, One: "1 日", Many: "%d 日"},
+		{D: timeago.Month, One: "1 ヶ月", Many: "%d ヶ月"},
+		{D: timeago.Year, One: "1 年", Many: "%d 年"},
+	},
+
+	Zero: "1 秒",
+
+	Max:           73 * time.Hour,
+	DefaultLayout: "2006-01-02",
+}
+
 func (ic *I18nCustom) SwitchLang(lang string) {
 	// fmt.Println("switch lang: ", lang)
-	ic.Localizer = i18n.NewLocalizer(ic.Bundle, lang)
-	ic.CurrLang = lang
+	// fmt.Println("simplified chinese: ", language.SimplifiedChinese.String())
+	// fmt.Println("traditional chinese: ", language.TraditionalChinese.String())
+	// fmt.Println("japanese: ", language.Japanese.String())
 
+	var langTag language.Tag
 	switch lang {
 	case "zh-Hans":
 		ic.TimeAgo = &timeago.Chinese
+		langTag = language.SimplifiedChinese
 	case "zh-Hant":
 		ic.TimeAgo = timeAgoZHHant
-	// case "jp":
-	// ic.TimeAgo = &timeago.Japanese
+		langTag = language.TraditionalChinese
+	case "jp":
+		ic.TimeAgo = timeAgoJP
+		langTag = language.Japanese
 	default:
 		ic.TimeAgo = &timeago.English
+		langTag = language.English
 	}
+
+	ic.Localizer = i18n.NewLocalizer(ic.Bundle, langTag.String())
+	ic.CurrLang = lang
+
 	// fmt.Println("login str:", MustLocalize("Login", "", 0))
 }
 

@@ -44,6 +44,7 @@ func main() {
 	langFiles := []string{
 		"./i18n/active.zh-Hans.toml",
 		"./i18n/active.zh-Hant.toml",
+		"./i18n/active.ja.toml",
 	}
 
 	i18nCustom := i18nc.New(langFiles)
