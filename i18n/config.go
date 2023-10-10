@@ -361,4 +361,10 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "DeleteSuccess",
 		Other: "Content deleted successfully",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "EditContent",
+		Other: "Edit content",
+	})
+
 }

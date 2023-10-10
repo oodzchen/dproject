@@ -254,6 +254,10 @@ other = "已删除"
 hash = "sha1-1b7949a7060ddc9ee6e31e42f7c8b0e281f45dc9"
 other = "讨论"
 
+[EditContent]
+hash = "sha1-0eea86f9aabaef1ecfe059c6e2c4a2de39feae69"
+other = "编辑内容"
+
 [Email]
 hash = "sha1-84add5b2952787581cb9a8851eef63d1ec75d22b"
 other = "邮箱"

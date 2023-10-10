@@ -1,10 +1,5 @@
 {{define "create" -}}
     {{template "head" . -}}
-
-    {{- if not .Data.Id -}}
-	<h1>{{local "AddContent"}}</h1>
-	<hr/>
-    {{- end -}}
     
     <form class="form" method="post" action="/articles{{- if .Data.Id -}}/{{.Data.Id}}/edit{{- end -}}">
 	{{.CSRFField -}}

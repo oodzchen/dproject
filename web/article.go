@@ -198,10 +198,12 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 	var pageTitle string
 	var data *model.Article
 
+	var moduleTitle = ar.Local("AddContent")
 	if id == "" {
 		pageTitle = ar.i18nCustom.LocalTpl("AddNew")
 		data = &model.Article{}
 	} else {
+		moduleTitle = ar.Local("EditContent")
 		rId, err := strconv.Atoi(id)
 
 		if err != nil {
@@ -242,6 +244,11 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 	ar.Render(w, r, "create", &model.PageData{
 		Title: pageTitle,
 		Data:  data,
+		BreadCrumbs: []*model.BreadCrumb{
+			{
+				Name: moduleTitle,
+			},
+		},
 	})
 }
 

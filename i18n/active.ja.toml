@@ -254,6 +254,10 @@ other = "削除済み"
 hash = "sha1-1b7949a7060ddc9ee6e31e42f7c8b0e281f45dc9"
 other = "議論"
 
+[EditContent]
+hash = "sha1-0eea86f9aabaef1ecfe059c6e2c4a2de39feae69"
+other = "コンテンツを編集する"
+
 [Email]
 hash = "sha1-84add5b2952787581cb9a8851eef63d1ec75d22b"
 other = "メール"
