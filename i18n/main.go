@@ -3,6 +3,7 @@ package i18nc
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
@@ -85,6 +86,27 @@ func (ic *I18nCustom) MustLocalize(id string, templateData any, pluralcount any)
 	return ic.Localizer.MustLocalize(config)
 }
 
+var timeAgoZHHant = &timeago.Config{
+	PastPrefix:   "於 ",
+	PastSuffix:   "前",
+	FuturePrefix: "於 ",
+	FutureSuffix: "",
+
+	Periods: []timeago.FormatPeriod{
+		{D: time.Second, One: "1 秒", Many: "%d 秒"},
+		{D: time.Minute, One: "1 分鐘", Many: "%d 分鐘"},
+		{D: time.Hour, One: "1 小時", Many: "%d 小時"},
+		{D: timeago.Day, One: "1 天", Many: "%d 天"},
+		{D: timeago.Month, One: "1 月", Many: "%d 月"},
+		{D: timeago.Year, One: "1 年", Many: "%d 年"},
+	},
+
+	Zero: "1 秒",
+
+	Max:           73 * time.Hour,
+	DefaultLayout: "於 2006-01-02",
+}
+
 func (ic *I18nCustom) SwitchLang(lang string) {
 	// fmt.Println("switch lang: ", lang)
 	ic.Localizer = i18n.NewLocalizer(ic.Bundle, lang)
@@ -93,6 +115,8 @@ func (ic *I18nCustom) SwitchLang(lang string) {
 	switch lang {
 	case "zh-Hans":
 		ic.TimeAgo = &timeago.Chinese
+	case "zh-Hant":
+		ic.TimeAgo = timeAgoZHHant
 	// case "jp":
 	// ic.TimeAgo = &timeago.Japanese
 	default:
