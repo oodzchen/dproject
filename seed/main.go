@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/oodzchen/dproject/config"
 	"github.com/oodzchen/dproject/mocktool"
 	"github.com/oodzchen/dproject/service"
@@ -102,8 +103,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	userSrv := &service.User{Store: dataStore}
-	articleSrv := &service.Article{Store: dataStore}
+	policy := bluemonday.UGCPolicy()
+	userSrv := &service.User{Store: dataStore, SantizePolicy: policy}
+	articleSrv := &service.Article{Store: dataStore, SantizePolicy: policy}
 
 	fmt.Println("os.Args", os.Args)
 	if len(os.Args) > 1 {

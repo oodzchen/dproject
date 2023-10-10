@@ -6,6 +6,11 @@ import (
 
 var translator *i18nc.I18nCustom
 
+func init() {
+	ic := i18nc.New([]string{})
+	SetupI18n(ic)
+}
+
 type OptionItem struct {
 	Value any
 	Name  string
