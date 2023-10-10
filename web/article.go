@@ -311,7 +311,7 @@ func (ar *ArticleResource) handleSubmit(w http.ResponseWriter, r *http.Request, 
 	ctx := context.WithValue(r.Context(), "article_id", id)
 	*r = *r.WithContext(ctx)
 
-	ssOne.Flash("Content published successfully")
+	ssOne.Flash(ar.Local("PublishSuccess"))
 
 	if isReply {
 		if ssOne.GetStringValue("prev_url") != "" {
@@ -382,7 +382,7 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 
 	ssOne := ar.Session("one", w, r)
 
-	ssOne.Flash("Content published successfully")
+	ssOne.Flash(ar.Local("PublishSuccess"))
 
 	if isReply && ssOne.GetStringValue("prev_url") != "" {
 		ar.ToPrevPage(w, r)
@@ -602,7 +602,8 @@ func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 
 	currUserId, err := GetLoginUserId(ar.sessStore, w, r)
 	if err != nil {
-		ar.Error("Please login", err, w, r, http.StatusUnauthorized)
+		// ar.Error("", err, w, r, http.StatusUnauthorized)
+		ar.ToLogin(w, r)
 		return
 	}
 
@@ -614,7 +615,7 @@ func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 
 	if article.AuthorId != currUserId {
 		http.Redirect(w, r, fmt.Sprintf("/articles/%d", rId), http.StatusFound)
-		ar.Error("Forbidden", err, w, r, http.StatusForbidden)
+		ar.Error("", err, w, r, http.StatusForbidden)
 		return
 	}
 
@@ -624,7 +625,7 @@ func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ar.Session("one", w, r).Flash("Content deleted successfully")
+	ar.Session("one", w, r).Flash(ar.Local("DeleteSccess"))
 
 	http.Redirect(w, r, fmt.Sprintf("/articles/%d", rootArticleId), http.StatusFound)
 }

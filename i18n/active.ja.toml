@@ -242,6 +242,10 @@ other = "削除を確認"
 hash = "sha1-4f9be057f0ea5d2ba72fd2c810e8d7b9aa98b469"
 other = "内容"
 
+[DeleteSuccess]
+hash = "sha1-e270e33b96a665bd14551dc46f0d4f19f7263129"
+other = "コンテンツは削除されました"
+
 [Deleted]
 hash = "sha1-441bda6cd85689e476ebe10440f27967faef61a6"
 other = "削除済み"
@@ -290,7 +294,7 @@ other = "加入日"
 hash = "sha1-649df08a448ee3fa90f3746baaf6b0907df42c91"
 other = "English"
 
-[Lang_jp]
+[Lang_ja]
 hash = "sha1-c12140a0ffb4e56481b4fe0a7a25040c2eafa9ca"
 other = "日本語"
 
@@ -381,6 +385,10 @@ other = "権限"
 [PublishInfo]
 hash = "sha1-31e59c380622bbad26b8f01bc14b9ebac08dbe95"
 other = "{{.Username}} が投稿"
+
+[PublishSuccess]
+hash = "sha1-1ab450c982f656c8cbeea66168feaf2e03f8647f"
+other = "コンテンツは正常に公開されました"
 
 [Re]
 hash = "sha1-e39422d2f459423ed57d70f33d3dcd32ee31ff97"

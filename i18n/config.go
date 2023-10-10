@@ -352,4 +352,13 @@ func (ic *I18nCustom) AddConfigs() {
 		Other: "No data",
 	})
 
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "PublishSuccess",
+		Other: "Content published successfully",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "DeleteSuccess",
+		Other: "Content deleted successfully",
+	})
 }
