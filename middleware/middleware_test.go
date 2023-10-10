@@ -39,8 +39,10 @@ func TestParseStrLang(t *testing.T) {
 		{in: "en-GB-oed", want: model.LangEn},
 		{in: "en-US", want: model.LangEn},
 		{in: "en-CA", want: model.LangEn},
-		{in: "jp", want: model.LangJp},
-		{in: "jp-JP", want: model.LangJp},
+		{in: "jp", want: model.LangJa},
+		{in: "jp-JP", want: model.LangJa},
+		{in: "ja", want: model.LangJa},
+		{in: "ja-JP", want: model.LangJa},
 	}
 
 	for _, tt := range tests {

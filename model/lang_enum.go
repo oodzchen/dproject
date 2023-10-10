@@ -24,9 +24,9 @@ const (
 	// LangZhHant is a Lang of type zh-Hant.
 	// 繁體中文
 	LangZhHant Lang = "zh-Hant"
-	// LangJp is a Lang of type jp.
+	// LangJa is a Lang of type ja.
 	// 日本語
-	LangJp Lang = "jp"
+	LangJa Lang = "ja"
 )
 
 var ErrInvalidLang = fmt.Errorf("not a valid Lang, try [%s]", strings.Join(_LangNames, ", "))
@@ -35,7 +35,7 @@ var _LangNames = []string{
 	string(LangEn),
 	string(LangZhHans),
 	string(LangZhHant),
-	string(LangJp),
+	string(LangJa),
 }
 
 // LangNames returns a list of possible string values of Lang.
@@ -51,7 +51,7 @@ func LangValues() []Lang {
 		LangEn,
 		LangZhHans,
 		LangZhHant,
-		LangJp,
+		LangJa,
 	}
 }
 
@@ -71,7 +71,7 @@ var _LangValue = map[string]Lang{
 	"en":      LangEn,
 	"zh-Hans": LangZhHans,
 	"zh-Hant": LangZhHant,
-	"jp":      LangJp,
+	"ja":      LangJa,
 }
 
 // ParseLang attempts to convert a string to a Lang.
@@ -90,7 +90,7 @@ var _LangTextMap = map[Lang]string{
 	LangEn:     "English",
 	LangZhHans: "简体中文",
 	LangZhHant: "繁體中文",
-	LangJp:     "日本語",
+	LangJa:     "日本語",
 }
 
 func (x Lang) Text(upCaseHead bool, i18nCustom *i18nc.I18nCustom) string {
@@ -125,7 +125,7 @@ func LangAddI18nConfigs(ic *i18nc.I18nCustom) {
 		Other: "繁體中文",
 	})
 	ic.AddLocalizeConfig(&i18n.Message{
-		ID:    "Lang_jp",
+		ID:    "Lang_ja",
 		Other: "日本語",
 	})
 }

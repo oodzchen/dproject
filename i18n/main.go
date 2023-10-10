@@ -146,7 +146,7 @@ func (ic *I18nCustom) SwitchLang(lang string) {
 	case "zh-Hant":
 		ic.TimeAgo = timeAgoZHHant
 		langTag = language.TraditionalChinese
-	case "jp":
+	case "ja":
 		ic.TimeAgo = timeAgoJP
 		langTag = language.Japanese
 	default:

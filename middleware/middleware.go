@@ -289,7 +289,7 @@ var langReMap = map[model.Lang]string{
 	model.LangZhHans: `^zh(?:-(?:(?:Hans|cmn)|(?:cmn-Hans)|(?:Hans-.*)|(?:CN|SG)))?$`,
 	model.LangZhHant: `^zh-(?:(?:Hant|cmn-Hant)|(?:Hant-.*)|(?:HK|TW|MO))$`,
 	model.LangEn:     `^(?:en(?:-.*)?)$`,
-	model.LangJp:     `^(?:jp(?:-.*)?)$`,
+	model.LangJa:     `^(?:j(p|a)(?:-.*)?)$`,
 }
 
 func parseStrLang(str string) model.Lang {
