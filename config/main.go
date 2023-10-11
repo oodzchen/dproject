@@ -57,7 +57,7 @@ var Config *AppConfig
 // var BrandName = "DizKaz"
 var BrandName = "笛卡"
 var BrandDomainName = "DizKaz.com"
-var Slogan = "知无不言, 言无不尽"
+var Slogan = ""
 var ReplyDepthPageSize = 10
 
 func Init(envFile string) error {
