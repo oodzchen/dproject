@@ -260,6 +260,7 @@ func (ar *ArticleResource) handleSubmit(w http.ResponseWriter, r *http.Request, 
 	}
 
 	title := r.Form.Get("title")
+	url := r.Form.Get("url")
 	content := r.Form.Get("content")
 	paramReplyTo := chi.URLParam(r, "articleId")
 
@@ -300,7 +301,7 @@ func (ar *ArticleResource) handleSubmit(w http.ResponseWriter, r *http.Request, 
 	if isReply {
 		id, err = ar.articleSrv.Reply(replyTo, content, authorId)
 	} else {
-		id, err = ar.articleSrv.Create(title, content, authorId, 0)
+		id, err = ar.articleSrv.Create(title, url, content, authorId, 0)
 	}
 	// id, err := ar.articleSrv.Create(title, content, authorId, replyTo)
 
@@ -364,6 +365,7 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	if !isReply {
 		article.Title = r.Form.Get("title")
+		article.Link = r.Form.Get("url")
 	}
 
 	article.TrimSpace()
@@ -377,7 +379,7 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 
 	updateFields := []string{"Content"}
 	if !isReply {
-		updateFields = append(updateFields, "Title")
+		updateFields = append(updateFields, "Title", "Link")
 	}
 
 	id, err := ar.store.Article.Update(article, updateFields)
@@ -632,7 +634,7 @@ func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ar.Session("one", w, r).Flash(ar.Local("DeleteSccess"))
+	ar.Session("one", w, r).Flash(ar.Local("DeleteSuccess"))
 
 	http.Redirect(w, r, fmt.Sprintf("/articles/%d", rootArticleId), http.StatusFound)
 }

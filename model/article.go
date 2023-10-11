@@ -184,6 +184,7 @@ func (al *ArticleList) Swap(i, j int) {
 type Article struct {
 	Id                        int
 	Title                     string
+	Link                      string
 	NullTitle                 pgtype.Text
 	AuthorName                string
 	AuthorId                  int
@@ -272,6 +273,7 @@ func (a *Article) Sanitize(p *bluemonday.Policy) {
 	// a.Title = p.Sanitize(a.Title)
 	// a.Content = p.Sanitize(a.Content)
 	a.Title = p.Sanitize(a.Title)
+	a.Link = p.Sanitize(a.Link)
 	a.Content = html.EscapeString(a.Content)
 }
 
@@ -281,6 +283,7 @@ func articleValidErr(str string) error {
 
 func (a *Article) TrimSpace() {
 	a.Title = strings.TrimSpace(a.Title)
+	a.Link = strings.TrimSpace(a.Link)
 }
 
 func (a *Article) Valid(isUpdate bool) error {
@@ -288,6 +291,9 @@ func (a *Article) Valid(isUpdate bool) error {
 	authorId := a.AuthorId
 	title := strings.TrimSpace(a.Title)
 	content := strings.TrimSpace(a.Content)
+	link := strings.TrimSpace(a.Link)
+
+	reURLStr := `^(https?|ftp)://[^\s/$.?#].[^\s]*$`
 
 	if !isUpdate && authorId == 0 {
 		return articleValidErr(translator.LocalTpl("Required", "FieldNames", translator.LocalTpl("Author")))
@@ -301,10 +307,17 @@ func (a *Article) Valid(isUpdate bool) error {
 		if utf8.RuneCountInString(title) > MAX_ARTICLE_TITLE_LEN {
 			return articleValidErr(translator.LocalTpl("NotExceed", "FieldNames", translator.LocalTpl("ArticleTitle"), "Num", MAX_ARTICLE_TITLE_LEN))
 		}
-	}
 
-	if content == "" {
-		return articleValidErr(translator.LocalTpl("Required", "FieldNames", translator.LocalTpl("ArticleContent")))
+		if link != "" {
+			if !regexp.MustCompile(reURLStr).Match([]byte(link)) {
+				return articleValidErr(translator.LocalTpl("FormatError", "FieldNames", translator.LocalTpl("URL")))
+			}
+		}
+
+	} else {
+		if content == "" {
+			return articleValidErr(translator.LocalTpl("Required", "FieldNames", translator.LocalTpl("ArticleContent")))
+		}
 	}
 
 	if utf8.RuneCountInString(content) > MAX_ARTICLE_CONTENT_LEN {

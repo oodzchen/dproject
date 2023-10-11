@@ -392,4 +392,14 @@ func (ic *I18nCustom) AddConfigs() {
 		Other: "Oldest",
 	})
 
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "URL",
+		Other: "URL",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Source",
+		Other: "Source",
+	})
+
 }

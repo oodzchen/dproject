@@ -11,10 +11,11 @@ type Article struct {
 	SantizePolicy *bluemonday.Policy
 }
 
-func (a *Article) Create(title, content string, authorId, replyTo int) (int, error) {
+func (a *Article) Create(title, url, content string, authorId, replyTo int) (int, error) {
 	article := &model.Article{
 		Title:    title,
 		AuthorId: authorId,
+		Link:     url,
 		Content:  content,
 		ReplyTo:  replyTo,
 	}
@@ -29,7 +30,7 @@ func (a *Article) Create(title, content string, authorId, replyTo int) (int, err
 		return 0, err
 	}
 
-	id, err := a.Store.Article.Create(article.Title, article.Content, authorId, replyTo)
+	id, err := a.Store.Article.Create(article.Title, article.Link, article.Content, authorId, replyTo)
 	if err != nil {
 		return 0, err
 	}
@@ -38,5 +39,5 @@ func (a *Article) Create(title, content string, authorId, replyTo int) (int, err
 }
 
 func (a *Article) Reply(target int, content string, authorId int) (int, error) {
-	return a.Create("", content, authorId, target)
+	return a.Create("", "", content, authorId, target)
 }

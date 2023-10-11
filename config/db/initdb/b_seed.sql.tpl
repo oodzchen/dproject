@@ -29,6 +29,7 @@ ON users (LOWER(username));
 CREATE TABLE posts (
 id SERIAL PRIMARY KEY,
 title VARCHAR(255),
+url VARCHAR(255),
 author_id INTEGER REFERENCES users(id),
 content TEXT,
 created_at TIMESTAMP NOT NULL DEFAULT NOW(),

@@ -450,6 +450,10 @@ other = "保存済み"
 hash = "sha1-c7f73bb54d928922c3838bb789ee9fb8a5b1eb37"
 other = "設定"
 
+[Source]
+hash = "sha1-6da13addb000b67d42a6d66391713819e634149f"
+other = "ソース"
+
 [Theme]
 hash = "sha1-a797e30923ac1be590300ce6b08e63b4e6dc6688"
 other = "テーマ"
@@ -485,6 +489,10 @@ other = "ユーザーインターフェース"
 [UISaveSuccess]
 hash = "sha1-3ae42a48d3578bbecbca8c0feb1381ec16c2c957"
 other = "ユーザーインターフェースの設定が保存されました"
+
+[URL]
+hash = "sha1-0e2d9b0777a485c1276de0803c12a7d76fbc5c39"
+other = "URL"
 
 [UpdateRole]
 hash = "sha1-dd5f9688fb0203138d144596ac296778a6be0086"

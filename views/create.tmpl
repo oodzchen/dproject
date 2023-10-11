@@ -1,7 +1,15 @@
 {{define "create" -}}
     {{template "head" . -}}
-    
-    <form class="form" method="post" action="/articles{{- if .Data.Id -}}/{{.Data.Id}}/edit{{- end -}}">
+
+    <style>
+     .create-form input,
+     .create-form textarea{
+	 display: block;
+	 width: 100%;
+	 box-sizing: border-box;
+     }
+    </style>
+    <form class="form create-form" method="post" action="/articles{{- if .Data.Id -}}/{{.Data.Id}}/edit{{- end -}}">
 	{{.CSRFField -}}
 	{{if .Data.Id -}}
 	    <input type="hidden" name="id" value="{{.Data.Id}}">
@@ -13,13 +21,20 @@
 	{{else -}}
 	    <div class="form__row">
 		<label class="form__label" for="title">{{local "Title"}}:</label>
-		<input required type="text" id="title" name="title" value="{{.Data.Title}}"  style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box">
+		<input required type="text" id="title" name="title" value="{{.Data.Title}}">
+		<small class="text-lighten-2">必填，最多80个字符，请简洁的语言概括内容，不要故意使用吸引眼球的标题，不相关的内容将被删除</small>
+	    </div>
+	    <div class="form__row">
+		<label class="form__label" for="url">{{local "URL"}}:</label>
+		<input type="url" id="url" name="url" value="{{.Data.Link}}">
+		<small class="text-lighten-2">选填，请提供直达链接，不要使用任何重定向的网址，请尽量提供第一手消息来源</small>
 	    </div>
 	{{end -}}
-
+	
 	<div class="form__row">
 	    <label class="form__label" for="content">{{local "Content"}}:</label>
-	    <textarea id="content" name="content" cols="30" rows="10" style="display:block;width:100%;margin-bottom:10px;box-sizing:border-box;">{{.Data.Content}}</textarea>
+	    <textarea id="content" name="content" cols="30" rows="10">{{.Data.Content}}</textarea>
+	    <small class="text-lighten-2">选填，最多两万个字符</small>
 	</div>
 	<br/>
 	<button type="submit">{{local "BtnSubmit"}}</button>

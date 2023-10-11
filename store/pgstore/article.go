@@ -19,7 +19,7 @@ type Article struct {
 
 func (a *Article) List(page, pageSize, userId int) ([]*model.Article, error) {
 	sqlStr := `
-SELECT tp.id, tp.title, u.username as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, tp.depth, p2.title as root_article_title, (
+SELECT tp.id, tp.title, COALESCE(tp.url, ''), u.username as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, tp.depth, p2.title as root_article_title, (
 	WITH RECURSIVE replies AS (
 	   SELECT id
 	   FROM posts
@@ -102,6 +102,7 @@ LIMIT $2;`
 		err := rows.Scan(
 			&item.Id,
 			&item.Title,
+			&item.Link,
 			&item.AuthorName,
 			&item.AuthorId,
 			&item.Content,
@@ -135,15 +136,16 @@ func (a *Article) Count() (int, error) {
 	return count, nil
 }
 
-func (a *Article) Create(title, content string, authorId, replyTo int) (int, error) {
+func (a *Article) Create(title, url, content string, authorId, replyTo int) (int, error) {
 	var id int
 	sqlStr := `
-INSERT INTO posts (title, author_id, content, reply_to, root_article_id, depth)
+INSERT INTO posts (title, author_id, content, reply_to, url, root_article_id, depth)
 VALUES (
     $1,
     $2,
     $3,
     $4,
+    $5,
     (
         CASE WHEN $4 = 0 THEN 0
 	     WHEN (SELECT p.reply_to FROM posts p WHERE $4 = p.id) = 0 THEN $4
@@ -163,6 +165,7 @@ RETURNING (id);`
 		authorId,
 		content,
 		replyTo,
+		url,
 	).Scan(&id)
 	if err != nil {
 		return 0, err
@@ -171,7 +174,7 @@ RETURNING (id);`
 }
 
 func validArticleUpdateField(key string) bool {
-	allowedFields := []string{"Title", "Content", "Weight"}
+	allowedFields := []string{"Title", "Content", "Weight", "Link"}
 	for _, field := range allowedFields {
 		if key == field {
 			return true
@@ -195,6 +198,7 @@ func (a *Article) Update(item *model.Article, fieldNames []string) (int, error) 
 		"Title":   "title",
 		"Content": "content",
 		"Weight":  "weight",
+		"Link":    "url",
 	}
 	for idx, field := range fieldNames {
 		updateStr = append(updateStr, fmt.Sprintf("%s = $%d", dbFieldNameMap[field], idx+1))
@@ -220,7 +224,7 @@ func (a *Article) Update(item *model.Article, fieldNames []string) (int, error) 
 
 func (a *Article) Item(id, userId int) (*model.Article, error) {
 	sqlStr := `
-SELECT p.id, p.title, u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title as root_article_title, (
+SELECT p.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title as root_article_title, (
 	WITH RECURSIVE replies AS (
 	   SELECT id
 	   FROM posts
@@ -290,6 +294,7 @@ WHERE p.id = $1;`
 	err := a.dbPool.QueryRow(context.Background(), sqlStr, id, userId).Scan(
 		&item.Id,
 		&item.Title,
+		&item.Link,
 		&item.AuthorName,
 		&item.AuthorId,
 		&item.Content,
@@ -332,17 +337,17 @@ WHERE p.id = $1;`
 func (a *Article) ItemTree(id, userId int) ([]*model.Article, error) {
 	sqlStr := `
 WITH RECURSIVE articleTree AS (
-     SELECT id, title, author_id, content, created_at, updated_at, deleted, reply_to, depth, 0 AS cur_depth, root_article_id
+     SELECT id, title, url, author_id, content, created_at, updated_at, deleted, reply_to, depth, 0 AS cur_depth, root_article_id
      FROM posts
      WHERE id = $1
      UNION ALL
-     SELECT p.id, p.title, p.author_id, p.content, p.created_at,p.updated_at, p.deleted, p.reply_to, p.depth, ar.cur_depth + 1, p.root_article_id
+     SELECT p.id, p.title, p.url, p.author_id, p.content, p.created_at,p.updated_at, p.deleted, p.reply_to, p.depth, ar.cur_depth + 1, p.root_article_id
      FROM posts p
      JOIN articleTree ar
      ON p.reply_to = ar.id
      WHERE ar.cur_depth < $2
 )
-SELECT ar.id, ar.title, u.username as author_name, ar.author_id, ar.content, ar.created_at, ar.updated_at, ar.deleted, ar.reply_to, ar.depth, ar.root_article_id, p2.title as root_article_title, (
+SELECT ar.id, ar.title, COALESCE(ar.url, ''), u.username as author_name, ar.author_id, ar.content, ar.created_at, ar.updated_at, ar.deleted, ar.reply_to, ar.depth, ar.root_article_id, p2.title as root_article_title, (
 	WITH RECURSIVE replies AS (
 	   SELECT id
 	   FROM posts
@@ -422,6 +427,7 @@ ORDER BY ar.created_at;`
 		err = rows.Scan(
 			&item.Id,
 			&item.Title,
+			&item.Link,
 			&item.AuthorName,
 			&item.AuthorId,
 			&item.Content,
