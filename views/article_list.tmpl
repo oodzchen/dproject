@@ -1,16 +1,6 @@
 {{define "article_list" -}}
 
     {{template "head" . -}}
-
-    <style>
-     .article-list .article-list__title{
-	 font-size: 1.1rem;
-     }
-     .article-list .article-list__summary{
-	 font-size: 0.8rem;
-	 color: var(--text-lighten-2);
-     }
-    </style>
     
     {{- $debug := .Debug -}}
     {{- $data := .Data -}}
@@ -31,45 +21,52 @@
 	{{- placehold .Data.Articles (print "<i class='text-lighten'>" (local "NoData") "</i>") -}}
 	{{range $idx, $item := .Data.Articles -}}
 	    <li>
-		<a class="article-list__title" {{if eq $idx 0}}id="article-list-head"{{end}} href="/articles/{{$item.Id}}">{{$item.DisplayTitle}}</a>
-		<br/>
-		{{- $author :=  (print "<a class=\"text-lighten-3\" href=\"/users/" $item.AuthorId "\">" $item.AuthorName "</a>") -}}
-		<small class="text-lighten-3">
-		    {{- if and $item.ShowScore (gt $item.VoteScore 0) -}}
-			{{- local "VoteScore" "Score" $item.VoteScore | upHead 1}} |&nbsp;
+		<form class="vote-form{{if and $currUser (eq $item.CurrUserState.VoteType "up")}} voted{{end}}" action="/articles/{{$item.Id}}/vote" method="POST">
+		    {{$csrfField}}
+		    <input name="type" type="hidden" value="up"/>
+		    <button {{if not (permit "article" "vote_up")}}disabled{{end}} class="btn-vote--up" type="submit" title="Upvote"><svg width="14" viewBox="0 1 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1 21h22L12 2"/></svg></button>
+		</form>
+		<div>
+		    <a class="article-list__title" {{if eq $idx 0}}id="article-list-head"{{end}} href="/articles/{{$item.Id}}">{{$item.DisplayTitle}}</a>
+		    <br/>
+		    {{- $author :=  (print "<a class=\"text-lighten-3\" href=\"/users/" $item.AuthorId "\">" $item.AuthorName "</a>") -}}
+		    <small class="text-lighten-3">
+			{{- if gt $item.VoteScore 0 -}}
+			    {{- local "VoteScore" "Score" $item.VoteScore | upHead 1}} |&nbsp;
+			{{- end -}}
+			{{local "PublishInfo" "Username" $author}}<time title="{{$item.CreatedAt}}">{{timeAgo $item.CreatedAt}}</time>&nbsp;
+			{{- if eq $item.TotalReplyCount 0 -}}
+			    | <a class="text-lighten-3" href="/articles/{{$item.Id}}">{{local "Discuss"}}</a>&nbsp;
+			{{- else -}}
+			    | <a class="text-lighten-3" href="/articles/{{$item.Id}}">{{local "ReplyNum" "Count" $item.TotalReplyCount}}</a>&nbsp;
+			{{- end -}}
+			{{- if $debug -}}
+			    | {{local "Weight"}} {{$item.ListWeight}}
+			    | {{local "Participate"}} {{$item.ParticipateCount}}
+			{{- end -}}
+		    </small>
+		    {{- if $showSummary -}}<div class="article-list__summary" class="text-lighten-2">{{$item.Summary}}{{if ne $item.Summary $item.Content}} ...{{end}}</div>{{- end -}}
+		    {{- if $showOperation -}}
+			<div class="article-operation">
+			    <small>
+				<form class="vote-form{{if and $currUser (eq $item.CurrUserState.VoteType "up")}} voted{{end}}" action="/articles/{{$item.Id}}/vote" method="POST">
+				    {{$csrfField}}
+				    <input name="type" type="hidden" value="up"/>
+				    <button {{if not (permit "article" "vote_up")}}disabled{{end}} class="btn-vote--up" type="submit" title="Upvote"><svg width="14" viewBox="0 1 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1 21h22L12 2"/></svg></button>
+				</form>
+				{{- if gt $item.VoteScore 0 -}}
+				    <span class="article-list__vote-score">{{$item.VoteScore}}</span>
+				{{- end -}}
+				&nbsp;&nbsp;
+				{{- if eq $item.TotalReplyCount 0 -}}
+				    <a href="/articles/{{$item.Id}}">{{local "Discuss"}}</a>
+				{{- else -}}
+				    <a href="/articles/{{$item.Id}}#replies">{{local "ReplyNum" "Count" $item.TotalReplyCount}}</a>
+				{{- end -}}
+			    </small>
+			</div>
 		    {{- end -}}
-		    {{local "PublishInfo" "Username" $author}}<time title="{{$item.CreatedAt}}">{{timeAgo $item.CreatedAt}}</time>&nbsp;
-		    {{- if eq $item.TotalReplyCount 0 -}}
-			| <a class="text-lighten-3" href="/articles/{{$item.Id}}">{{local "Discuss"}}</a>&nbsp;
-		    {{- else -}}
-			| <a class="text-lighten-3" href="/articles/{{$item.Id}}">{{local "ReplyNum" "Count" $item.TotalReplyCount}}</a>&nbsp;
-		    {{- end -}}
-		    {{- if $debug -}}
-			| {{local "Weight"}} {{$item.ListWeight}}
-			| {{local "Participate"}} {{$item.ParticipateCount}}
-		    {{- end -}}
-		</small>
-		{{- if $showSummary -}}<div class="article-list__summary" class="text-lighten-2">{{$item.Summary}}{{if ne $item.Summary $item.Content}} ...{{end}}</div>{{- end -}}
-		{{- if $showOperation -}}
-		    <div class="article-operation">
-			<small>
-			    <form class="vote-form{{if and $currUser (eq $item.CurrUserState.VoteType "up")}} voted{{end}}" action="/articles/{{$item.Id}}/vote" method="POST">
-				{{$csrfField}}
-				<input name="type" type="hidden" value="up"/>
-				<button {{if not (permit "article" "vote_up")}}disabled{{end}} class="btn-vote--up" type="submit" title="Upvote"><svg width="14" viewBox="0 1 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1 21h22L12 2"/></svg></button>
-			    </form>
-			    {{- if gt $item.VoteScore 0 -}}
-				<span class="article-list__vote-score">{{$item.VoteScore}}</span>
-			    {{- end -}}
-			    &nbsp;&nbsp;
-			    {{- if eq $item.TotalReplyCount 0 -}}
-				<a href="/articles/{{$item.Id}}">{{local "Discuss"}}</a>
-			    {{- else -}}
-				<a href="/articles/{{$item.Id}}#replies">{{local "ReplyNum" "Count" $item.TotalReplyCount}}</a>
-			    {{- end -}}
-			</small>
-		    </div>
-		{{- end -}}
+		</div>
 	    </li>
 	{{end -}}
     </ol>

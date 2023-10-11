@@ -145,14 +145,28 @@ a.text-lighten-3{
     color: var(--text-with-background)
 }
 .article-list{
-    padding-left: 2rem;
+    list-style: none;
+    padding-left: 0;
 }
 .article-list li{
+    display: flex;
+    align-items: flex-start;
     margin-bottom: 10px;
 }
 .article-list li a:active,
 .article-list li a:focus{
     border: 1px dashed #ccc;
+}
+.article-list .article-list__title{
+    font-size: 1.1rem;
+    line-height: 1.2;
+}
+.article-list .article-list__summary{
+    font-size: 0.8rem;
+    color: var(--text-lighten-2);
+}
+.article-list .vote-form{
+    margin-right: 10px;
 }
 .skip-button{
     position: fixed;
@@ -302,14 +316,14 @@ a.text-lighten-3{
     vertical-align: -1px;
 }
 
-.article-operation .btn-form{
+.btn-form{
     display: inline;
     margin: 0;
     padding: 0;
 }
 
 .btn-link,
-.article-operation .btn-form button[type="submit"]{
+.btn-form button[type="submit"]{
     appearance: none;
     display: inline-block;
     margin: 0;
@@ -324,7 +338,7 @@ a.text-lighten-3{
 }
 
 .btn-link:hover,
-.article-operation .btn-form button[type="submit"]:hover{
+.btn-form button[type="submit"]:hover{
     text-decoration: underline;
 }
 
@@ -368,7 +382,7 @@ a.text-lighten-3{
     cursor: pointer;
 }
 
-.article-operation .btn-form{
+.btn-form{
     display: inline-block;
 }
 

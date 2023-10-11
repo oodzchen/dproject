@@ -76,7 +76,7 @@
     {{$pageDepth := add .pageDepth 1 -}}
     {{$delPage := eq .pageType "del"}}
     {{$replyPage := eq .pageType "reply"}}
-    {{$data := dict "currUser" .currUser "article" .article "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "isRootArticle" $isRoot "debug" .debug "reactOptions" .reactOptions "reactMap" .reactMap -}}
+    {{$data := dict "currUser" .currUser "article" .article "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "isRootArticle" $isRoot "debug" .debug "reactOptions" .reactOptions "reactMap" .reactMap "pageType" .pageType -}}
     <article {{if $isRoot}}id="ar_{{.article.Id}}"{{end}}>
 	{{if $isRoot -}}
 	    <h1>{{.article.Title}}</h1>
@@ -106,7 +106,29 @@
 		{{- if gt .pageDepth 1 -}}
 		    <a title="{{local "BtnParent"}}" class="btn-parent text-lighten-3" href="#ar_{{.article.ReplyTo}}">{{local "BtnParent"}}</a> |&nbsp;
 		{{- end -}}
+		{{- if permit "article" "save" -}}
+		    <form class="btn-form" action="/articles/{{.article.Id}}/save" method="POST" >
+			{{- .CSRFField -}}
+			<input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
+			{{- $btnSaveText := local "BtnSave" -}}
+			{{- if and .article.CurrUserState .article.CurrUserState.Saved -}}
+			    {{$btnSaveText = local "BtnUnsave"}}
+			{{- end -}}
+			<button class="text-lighten-3" title="{{$btnSaveText}}" type="submit">{{$btnSaveText}}</button>
+		    </form>
+		{{- end -}}
+		{{- if .currUser -}}
+		    {{- if eq .currUser.Id .article.AuthorId -}}
+			{{- if permit "article" "edit_mine" -}}
+			    &nbsp;|&nbsp;<a class="btn-edit text-lighten-3" href="/articles/{{.article.Id}}/edit">{{local "BtnEdit"}}</a>
+			{{- end -}}
+			{{- if permit "article" "delete_mine" -}}
+			    &nbsp;|&nbsp;<a class="btn-del text-lighten-3" href="/articles/{{.article.Id}}/delete">{{local "BtnDelete"}}</a>
+			{{- end -}}
+		    {{- end -}}
+		{{- end -}}
 		{{- if .debug -}}
+		    &nbsp;|&nbsp;
 		    {{- .article.ReplyDepth}} depth |&nbsp;
 		    {{- .article.Weight}} {{local "Weight"}}
 		{{- end -}}
@@ -179,53 +201,29 @@
 		    <input name="type" type="hidden" value="up"/>
 		    <button {{if not (permit "article" "vote_up")}}disabled{{end}} class="btn-vote--up" type="submit" title="Upvote"><svg width="14" viewBox="0 1 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1 21h22L12 2"/></svg></button>
 		    </form>
-		    {{/*
-		    {{- if gt .article.VoteScore 0 -}}
-		    <span>{{.article.VoteScore}}<span>
-	    {{- end -}}
-	    */}}
-	    &nbsp;&nbsp;
-		{{- if permit "article" "vote_down" -}}
-		    <form class="vote-form{{if eq .article.CurrUserState.VoteType "down"}} voted{{end}}" action="/articles/{{.article.Id}}/vote" method="POST">
-		    {{.CSRFField}}
-		    <input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
-		    <input name="type" type="hidden" value="down"/>
-		    <button class="btn-vote--down" type="submit" title="Downvote"><svg width="14" viewBox="0 1 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1 3h22L12 22"/></svg></button>
-		    </form>&nbsp;
-		{{- end -}}
-		{{- if permit "article" "reply" -}}
-		    <a title="{{local "BtnReply"}}" href="/articles/{{.article.Id}}/reply">{{local "BtnReply"}}</a>&nbsp;&nbsp;
-		{{- end -}}
-		{{- if .currUser -}}
-		    {{- if eq .currUser.Id .article.AuthorId -}}
-			{{- if permit "article" "edit_mine" -}}
-			    <a href="/articles/{{.article.Id}}/edit" class="btn-edit">{{local "BtnEdit"}}</a>&nbsp;&nbsp;
-			{{- end -}}
-			{{- if permit "article" "delete_mine" -}}
-			    <a class="btn-del" href="/articles/{{.article.Id}}/delete">{{local "BtnDelete"}}</a>&nbsp;&nbsp;
-			{{- end -}}
-		    {{- end -}}
-
-		    {{- if permit "article" "save" -}}
-			<form class="btn-form" action="/articles/{{.article.Id}}/save" method="POST" >
-			    {{- .CSRFField -}}
+		    &nbsp;&nbsp;
+		    {{- if permit "article" "vote_down" -}}
+			<form class="vote-form{{if eq .article.CurrUserState.VoteType "down"}} voted{{end}}" action="/articles/{{.article.Id}}/vote" method="POST">
+			    {{.CSRFField}}
 			    <input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
-			    {{- $btnSaveText := local "BtnSave" -}}
-			    {{- if and .article.CurrUserState .article.CurrUserState.Saved -}}
-				{{$btnSaveText = local "BtnUnsave"}}
-			    {{- end -}}
-			    <button title="{{$btnSaveText}}" type="submit">{{$btnSaveText}}</button>
-			</form>&nbsp;&nbsp;
+			    <input name="type" type="hidden" value="down"/>
+			    <button class="btn-vote--down" type="submit" title="Downvote"><svg width="14" viewBox="0 1 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1 3h22L12 22"/></svg></button>
+			</form>&nbsp;
 		    {{- end -}}
-		{{- end -}}
+		    {{- if permit "article" "reply" -}}
+			<a title="{{local "BtnReply"}}" href="/articles/{{.article.Id}}/reply">{{local "BtnReply"}}</a>&nbsp;&nbsp;
+		    {{- end -}}
 	    {{- end -}}
-	    {{- if and (eq .pageDepth 1) (not .isRootArticle) -}}
+
+	    {{$replyPage := eq .pageType "reply"}}
+	    {{- if and (not $replyPage) (eq .pageDepth 1) (not .isRootArticle) -}}
 		<a title="{{local "BtnParent"}}" href="/articles/{{.article.ReplyTo}}">{{local "BtnParent"}}</a>&nbsp;&nbsp;
 	    {{- end -}}
 	</small>
 
 	<small>
 	    {{- if not .article.Deleted -}}
+		{{- $showEmoji := false -}}
 		{{- $reactOptions := .reactOptions -}}
 		{{- $reactMap := .reactMap -}}
 		{{- $article := .article -}}
@@ -238,7 +236,7 @@
 		    {{- $currReactType = .article.CurrUserState.ReactType -}}
 		{{- end -}}
 
-		{{- if $article.ReactCounts -}}
+		{{- if and $showEmoji $article.ReactCounts -}}
 		    <div class="article-reacts">
 			{{- range $reactOptions -}}
 			    {{- $strVal := . | toString -}}
@@ -260,7 +258,7 @@
 		    </div>
 		{{- end -}}
 		
-		{{- if not $isSelf -}}
+		{{- if and $showEmoji (not $isSelf) -}}
 		    {{- if permit "article" "react" -}}
 			<form class="btn-form btn-react" action="/articles/{{.article.Id}}/react" method="POST">
 			    {{.CSRFField}}
