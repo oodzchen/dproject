@@ -9,9 +9,6 @@
     {{- $isDefault := and $role $role.IsDefault -}}
     {{- $rolePermissionIdList := .Data.RolePermissionIdList -}}
 
-    <h1>{{if $isEdit}}Edit{{else}}Add{{end}} Role</h1>
-    <hr/>
-
     <form class="form" action="/manage/roles{{if $isEdit}}/{{$role.Id}}/edit{{end}}" method="POST">
 	{{- $csrfField -}}
 	<div class="form__row">

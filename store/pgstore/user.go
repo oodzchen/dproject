@@ -17,7 +17,7 @@ type User struct {
 	dbPool *pgxpool.Pool
 }
 
-func (u *User) List(page, pageSize int, oldest bool) ([]*model.User, error) {
+func (u *User) List(page, pageSize int, oldest bool, username, roleFrontId string) ([]*model.User, int, error) {
 	if page < 1 {
 		page = defaultPage
 	}
@@ -26,38 +26,48 @@ func (u *User) List(page, pageSize int, oldest bool) ([]*model.User, error) {
 		pageSize = defaultPage
 	}
 
-	// 	sqlStr := `SELECT u.id, u.username, u.email, u.created_at, COALESCE(u.introduction, ''),
-	// COALESCE(r.name, '') as role_name, COALESCE(r.front_id, '') AS role_front_id,
-	// COALESCE(p.id, 0) AS p_id, COALESCE(p.name, '') AS p_name, COALESCE(p.front_id, '') AS p_front_id, COALESCE(p.module, 'user') AS p_module, COALESCE(p.created_at, NOW()) AS p_created_at
+	// 	sqlStr := `SELECT
+	//     u.id, u.username, u.email, u.created_at,
+	//     COALESCE(u.introduction, ''),
+	//     COALESCE(r.name, '') as role_name,
+	//     COALESCE(r.front_id, '') AS role_front_id,
+	//     COALESCE(p.id, 0) AS p_id,
+	//     COALESCE(p.name, '') AS p_name,
+	//     COALESCE(p.front_id, '') AS p_front_id,
+	//     COALESCE(p.module, 'user') AS p_module,
+	//     COALESCE(p.created_at, NOW()) AS p_created_at
 	// FROM users u
 	// LEFT JOIN user_roles ur ON ur.user_id = u.id
 	// LEFT JOIN roles r ON ur.role_id = r.id
 	// LEFT JOIN role_permissions rp ON rp.role_id = r.id
 	// LEFT JOIN permissions p ON p.id = rp.permission_id
-	// INNER JOIN (
-	//     SELECT id FROM users
-	//     ORDER BY
-	//         CASE WHEN $3 = true THEN created_at END ASC,
-	//         CASE WHEN $3 = false THEN created_at END DESC
-	//     OFFSET $1 LIMIT $2
-	// ) AS u1 ON u1.id = u.id;`
+	// WHERE u.id IN ( SELECT id FROM users OFFSET $1 LIMIT $2)`
 
 	sqlStr := `SELECT 
     u.id, u.username, u.email, u.created_at, 
     COALESCE(u.introduction, ''),
     COALESCE(r.name, '') as role_name, 
     COALESCE(r.front_id, '') AS role_front_id,
-    COALESCE(p.id, 0) AS p_id, 
-    COALESCE(p.name, '') AS p_name, 
-    COALESCE(p.front_id, '') AS p_front_id, 
-    COALESCE(p.module, 'user') AS p_module, 
-    COALESCE(p.created_at, NOW()) AS p_created_at
+COUNT(*) OVER() AS total
 FROM users u
 LEFT JOIN user_roles ur ON ur.user_id = u.id
 LEFT JOIN roles r ON ur.role_id = r.id
-LEFT JOIN role_permissions rp ON rp.role_id = r.id
-LEFT JOIN permissions p ON p.id = rp.permission_id
-WHERE u.id IN ( SELECT id FROM users OFFSET $1 LIMIT $2)`
+`
+	var conditions []string
+	var args []any
+	if strings.TrimSpace(username) != "" {
+		args = append(args, "%"+username+"%")
+		conditions = append(conditions, fmt.Sprintf(" username ILIKE $%d ", len(args)))
+	}
+
+	if strings.TrimSpace(roleFrontId) != "" {
+		args = append(args, roleFrontId)
+		conditions = append(conditions, fmt.Sprintf(" r.front_id = $%d ", len(args)))
+	}
+
+	if len(conditions) > 0 {
+		sqlStr += ` WHERE ` + strings.Join(conditions, " AND ")
+	}
 
 	if oldest {
 		sqlStr += ` ORDER BY u.created_at`
@@ -65,27 +75,30 @@ WHERE u.id IN ( SELECT id FROM users OFFSET $1 LIMIT $2)`
 		sqlStr += ` ORDER BY u.created_at DESC`
 	}
 
+	args = append(args, pageSize*(page-1), pageSize)
+	sqlStr += fmt.Sprintf(` OFFSET $%d LIMIT $%d`, len(args)-1, len(args))
+
 	// fmt.Println("user list sqlStr", sqlStr)
 
 	rows, err := u.dbPool.Query(
 		context.Background(),
 		sqlStr,
-		pageSize*(page-1),
-		pageSize,
+		args...,
 	)
 
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	defer rows.Close()
 
 	var list []*model.User
-	listMap := make(map[int]*model.User)
+	// listMap := make(map[int]*model.User)
+	var total int
 
 	for rows.Next() {
 		var item model.User
-		var pItem model.Permission
+		// var pItem model.Permission
 		err := rows.Scan(
 			&item.Id,
 			&item.Name,
@@ -94,36 +107,38 @@ WHERE u.id IN ( SELECT id FROM users OFFSET $1 LIMIT $2)`
 			&item.Introduction,
 			&item.RoleName,
 			&item.RoleFrontId,
-			&pItem.Id,
-			&pItem.Name,
-			&pItem.FrontId,
-			&pItem.Module,
-			&pItem.CreatedAt,
+			&total,
+			// &pItem.Id,
+			// &pItem.Name,
+			// &pItem.FrontId,
+			// &pItem.Module,
+			// &pItem.CreatedAt,
 		)
 
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 
-		if v, ok := listMap[item.Id]; ok {
-			if pItem.Id > 0 {
-				if v.Permissions != nil {
-					v.Permissions = append(v.Permissions, &pItem)
-				} else {
-					v.Permissions = []*model.Permission{&pItem}
-				}
-			}
-		} else {
-			if pItem.Id > 0 {
-				item.Permissions = []*model.Permission{&pItem}
-			}
+		// if v, ok := listMap[item.Id]; ok {
+		// 	if pItem.Id > 0 {
+		// 		if v.Permissions != nil {
+		// 			v.Permissions = append(v.Permissions, &pItem)
+		// 		} else {
+		// 			v.Permissions = []*model.Permission{&pItem}
+		// 		}
+		// 	}
+		// } else {
+		// 	if pItem.Id > 0 {
+		// 		item.Permissions = []*model.Permission{&pItem}
+		// 	}
 
-			listMap[item.Id] = &item
-			list = append(list, &item)
-		}
+		// 	listMap[item.Id] = &item
+		// 	list = append(list, &item)
+		// }
+		list = append(list, &item)
 	}
 
-	return list, nil
+	return list, total, nil
 }
 
 func (u *User) Count() (int, error) {

@@ -12,6 +12,40 @@
 	 margin: 0 26px 16px 0;
      }
     </style>
+
+    {{- $data := .Data -}}
+    
+    <form class="filter-box" action="/manage/users" method="GET">
+	<div class="filter-box__item">
+	    <label for="filter-username" class="filter-box__label">{{local "Username"}}:</label>
+	    <input id="filter-username" name="username" type="text" value="{{.Data.Query.UserName}}"/>
+	</div>
+	<div class="filter-box__item">
+	    <label id="filter-type" class="filter-box__label">{{local "Role"}}:</label>
+	    <select id="filter-type" name="role" autocomplete="off">
+		<option value="">{{local "All"}}</option>
+		{{- range .Data.RoleOptions -}}
+		    <option value="{{.Value}}" {{if eq .Value $data.Query.Role}}selected{{end}}>{{.Name}}</option>
+		{{- end -}}
+	    </select>
+	</div>
+	<button type="reset" class="btn-reset" data-reset-path="/manage/users">{{local "BtnReset"}}</button>&nbsp;&nbsp;
+	<button type="submit">{{local "BtnSearch"}}</button>
+    </form>
+
+    {{- $sortTabs := list "latest" "oldest" -}}
+    {{- $sortTabMap := dict "latest" (local "Latest") "oldest" (local "Oldest") -}}
+    
+    <div class="page-tab">
+	<div>
+	    <b>{{.Data.Query.Total}} {{local "User" "Count" .Data.Query.Total}}</b>
+	</div>
+	<div class="tabs">
+	    {{- range $sortTabs -}}
+		<a class="tab{{if eq . $data.Query.Sort}} active{{end}}" href="/manage/users{{if ne . "latest"}}?sort={{.}}{{end}}">{{index $sortTabMap .}}</a>
+	    {{- end -}}
+	</div>
+    </div>
     <ul class="user-list">
 	{{- $csrfField := .CSRFField -}}
 	{{- $debug := .Debug -}}
@@ -36,7 +70,7 @@
 	{{- end -}}
     </ul>
 
-    {{ $pagiData := dict "currPage" .Data.CurrPage "totalPage" .Data.TotalPage "pathPrefix" "/manage/users"  }}
+    {{ $pagiData := dict "currPage" .Data.Query.Page "totalPage" .Data.Query.TotalPage "pathPrefix" "/manage/users"  }}
     {{ template "pagination" $pagiData }}    
 
     {{template "foot" .}}

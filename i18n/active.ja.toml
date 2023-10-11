@@ -110,6 +110,10 @@ other = "アクティビティの記録"
 hash = "sha1-b53526456e1c3717f5e80c030ef10890cdaba341"
 other = "コンテンツを追加"
 
+[AddItem]
+hash = "sha1-151a662c36d0d55f79e088a13e2a5ad932854feb"
+other = "{{.Name}}を追加する"
+
 [AddNew]
 hash = "sha1-6403f2b7eb2aaafe6de34cbf2a029b01afebc512"
 other = "追加"
@@ -258,6 +262,10 @@ other = "議論"
 hash = "sha1-0eea86f9aabaef1ecfe059c6e2c4a2de39feae69"
 other = "コンテンツを編集する"
 
+[EditItem]
+hash = "sha1-26d22a0aa032d15cd11fcddc54a8b92af7611462"
+other = "{{.Name}}を編集する"
+
 [Email]
 hash = "sha1-84add5b2952787581cb9a8851eef63d1ec75d22b"
 other = "メール"
@@ -322,6 +330,10 @@ other = "最新"
 hash = "sha1-d0517071aa376e797705058bbad4b658954b9930"
 other = "リンク"
 
+[List]
+hash = "sha1-fa8f3c7716db7922f9494a6ecfd118ba3e3cdd75"
+other = "{{.Name}}一覧"
+
 [Login]
 hash = "sha1-4e5a2893bdcc7d239c1db72e4c4ffbe4bea73174"
 other = "ログイン"
@@ -353,6 +365,10 @@ other = "{{.FieldNames}}は{{.Num}}文字を超えてはいけません"
 [NotRegistered]
 hash = "sha1-c4dbd26f2d54aa07c16b121383c7a5bdfd3f7e18"
 other = "{{.FieldNames}}は未登録です"
+
+[Oldest]
+hash = "sha1-c47bb88fdba7f64b65e09ff995dd260647b5a5fc"
+other = "最古"
 
 [Or]
 hash = "sha1-4c0aecf997f6774c15964f0e3447a6ab2df2b14e"
@@ -477,6 +493,10 @@ other = "{{local \"Role\"}}を更新"
 [User]
 hash = "sha1-57f2b181d0a5e79a147ea1cdf41457f58dbbb3c9"
 other = "ユーザー"
+
+[UserList]
+hash = "sha1-5b0d366aff61a85387ad1c8c49d601f92f59bde5"
+other = "ユーザー一覧"
 
 [UserManage]
 hash = "sha1-8bbee95bc5178af72b392d8bfb543dd81343407e"

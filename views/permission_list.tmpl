@@ -5,9 +5,6 @@
     {{- $csrfField := .CSRFField -}}
     {{- $debug := .Debug -}}
 
-    <h1>{{if eq .Data.PageType "create"}}Add Permission{{else}}Permission List{{end}}</h1>
-    <hr/>
-
     <div style="margin-bottom: 16px">
 	{{- if eq .Data.PageType "create" -}}
 	    <!-- <form class="form" action="/manage/permissions" method="POST">

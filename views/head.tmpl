@@ -69,10 +69,10 @@
 		    </li>
 		</ul>
 	    </nav>
-	    {{- if .Debug -}}
+	    {{- if .LoginedUser -}}
 		<nav class="top-nav">
 		    <ul class="nav-menu nav-menu--left">
-			{{- if and .LoginedUser (permit "manage" "access") -}}
+			{{- if permit "manage" "access" -}}
 			    <li><a href="/manage/permissions">{{local "Permission" "Count" 2}}</a></li>
 			    <li><a href="/manage/roles">{{local "Role" "Count" 2}}</a></li>
 			    <li><a href="/manage/users">{{local "User" "Count" 2}}</a></li>
@@ -80,7 +80,7 @@
 			{{- end -}}
 		    </ul>
 		    <ul class="nav-menu nav-menu--right">
-			{{- if .LoginedUser -}}
+			{{- if .Debug -}}
 			    <li>
 				<form action="/login_debug" method="post">
 				    {{.CSRFField}}

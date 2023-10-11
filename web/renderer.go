@@ -168,7 +168,7 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	}
 
 	if data.Debug {
-		users, err := rd.store.User.List(1, 50, true)
+		users, _, err := rd.store.User.List(1, 50, true, "", "")
 		if err != nil {
 			fmt.Println("get debug user data error: ", err)
 		}

@@ -108,7 +108,7 @@ func (pm *Permission) InitRoleTable() error {
 }
 
 func (pm *Permission) InitUserRoleTable() error {
-	uList, err := pm.Store.User.List(1, 999, true)
+	uList, _, err := pm.Store.User.List(1, 999, true, "", "")
 	if err != nil {
 		return err
 	}

@@ -68,6 +68,7 @@ func (ur *UserResource) List(w http.ResponseWriter, r *http.Request) {
 
 	paramPage := r.Form.Get("page")
 	// fmt.Println("paramPage:", paramPage)
+
 	page, err := strconv.Atoi(paramPage)
 	if err != nil {
 		// fmt.Printf("page err %v\n", err)
@@ -79,40 +80,82 @@ func (ur *UserResource) List(w http.ResponseWriter, r *http.Request) {
 		pageSize = 100
 	}
 
-	list, err := ur.store.User.List(page, pageSize, false)
+	username := r.URL.Query().Get("username")
+	roleFrontId := r.URL.Query().Get("role")
+	sort := r.URL.Query().Get("sort")
+
+	var oldest bool
+	if sort == "oldest" {
+		oldest = true
+	} else {
+		oldest = false
+		sort = "latest"
+	}
+
+	list, total, err := ur.store.User.List(page, pageSize, oldest, username, roleFrontId)
 	if err != nil {
 		ur.Error("", err, w, r, http.StatusInternalServerError)
 	}
 
-	total, err := ur.store.User.Count()
-	if err != nil {
-		ur.Error("", err, w, r, http.StatusInternalServerError)
-		return
+	// total, err := ur.store.User.Count()
+	// if err != nil {
+	// 	ur.Error("", err, w, r, http.StatusInternalServerError)
+	// 	return
+	// }
+
+	type UserQueryData struct {
+		UserName, Role, Sort   string
+		Total, Page, TotalPage int
 	}
 
 	type UserListPage struct {
-		List      []*model.User
-		Total     int
-		CurrPage  int
-		TotalPage int
-		PageSize  int
+		List []*model.User
+		// Total     int
+		// CurrPage  int
+		// TotalPage int
+		// PageSize  int
+
+		Query       *UserQueryData
+		RoleOptions []*model.OptionItem
 	}
 
 	ur.SavePrevPage(w, r)
 
+	roleList, err := ur.store.Role.List(page, pageSize)
+	if err != nil {
+		ur.Error("", err, w, r, http.StatusInternalServerError)
+	}
+
+	var roleOptions []*model.OptionItem
+	for _, item := range roleList {
+		roleOptions = append(roleOptions, &model.OptionItem{
+			Name:  item.Name,
+			Value: item.FrontId,
+		})
+	}
+
 	ur.Render(w, r, "user_list", &model.PageData{
 		Title: "User List",
 		Data: &UserListPage{
-			list,
-			total,
-			page,
-			CeilInt(total, pageSize),
-			pageSize,
+			List: list,
+			// total,
+			// page,
+			// CeilInt(total, pageSize),
+			// pageSize,
+			Query: &UserQueryData{
+				UserName:  username,
+				Role:      roleFrontId,
+				Sort:      sort,
+				Total:     total,
+				Page:      page,
+				TotalPage: CeilInt(total, pageSize),
+			},
+			RoleOptions: roleOptions,
 		},
 		BreadCrumbs: []*model.BreadCrumb{
 			{
 				Path: "/users",
-				Name: "User List",
+				Name: ur.Local("UserList"),
 			},
 		},
 	})

@@ -367,4 +367,29 @@ func (ic *I18nCustom) AddConfigs() {
 		Other: "Edit content",
 	})
 
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "UserList",
+		Other: "User List",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "List",
+		Other: "{{.Name}} List",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AddItem",
+		Other: "Add {{.Name}}",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "EditItem",
+		Other: "Edit {{.Name}}",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Oldest",
+		Other: "Oldest",
+	})
+
 }

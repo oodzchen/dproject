@@ -138,19 +138,19 @@ func (mr *ManageResource) handlePermissionList(w http.ResponseWriter, r *http.Re
 		CurrTab       string
 	}
 
-	title := "Permission List"
+	title := mr.Local("List", "Name", mr.Local("Permission", "Count", 1))
 	breadCrumbs := []*model.BreadCrumb{
 		{
 			Path: "/manage/permissions",
-			Name: "Permission",
+			Name: title,
 		},
 	}
 
 	if pageType == PermissionPageCreate {
-		title = "Add Permission"
+		title = mr.Local("AddItem", "Name", mr.Local("Permission", "Count", 1))
 		breadCrumbs = append(breadCrumbs, &model.BreadCrumb{
 			Path: "",
-			Name: "Add Permission",
+			Name: title,
 		})
 	}
 
@@ -254,11 +254,11 @@ func (mr *ManageResource) RoleListPage(w http.ResponseWriter, r *http.Request) {
 		PageSize  int
 	}
 
-	title := "Role List"
+	title := mr.Local("List", "Name", mr.Local("Role", "Count", 1))
 	breadCrumbs := []*model.BreadCrumb{
 		{
 			Path: "/manage/roles",
-			Name: "Role",
+			Name: title,
 		},
 	}
 
@@ -306,19 +306,21 @@ func (mr *ManageResource) RoleCreatePage(w http.ResponseWriter, r *http.Request)
 
 	formattedPermissionList := formatPermissionList(filteredPermissionList, mr.permissionSrv.PermissionData.GetModuleList())
 
+	upLevelTitle := mr.Local("List", "Name", mr.Local("Role", "Count", 1))
+	title := mr.Local("AddItem", "Name", mr.Local("Role", "Count", 1))
 	breadCrumbs := []*model.BreadCrumb{
 		{
 			Path: "/manage/roles",
-			Name: "Role",
+			Name: upLevelTitle,
 		},
 		{
 			Path: "",
-			Name: "Add Role",
+			Name: title,
 		},
 	}
 
 	mr.Render(w, r, "role_form", &model.PageData{
-		Title: "Add Role",
+		Title: title,
 		Data: &RoleFormPageData{
 			PermissionList: formattedPermissionList,
 			PageType:       RoleFormPageAdd,
@@ -479,19 +481,21 @@ func (mr *ManageResource) RoleEditPage(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	upLevelTitle := mr.Local("List", "Name", mr.Local("Role", "Count", 1))
+	title := mr.Local("EditItem", "Name", mr.Local("Role", "Count", 1))
 	breadCrumbs := []*model.BreadCrumb{
 		{
 			Path: "/manage/roles",
-			Name: "Role",
+			Name: upLevelTitle,
 		},
 		{
 			Path: "",
-			Name: "Edit Role",
+			Name: title,
 		},
 	}
 
 	mr.Render(w, r, "role_form", &model.PageData{
-		Title: "Edit Role",
+		Title: title,
 		Data: &RoleFormPageData{
 			Role:                 role,
 			RolePermissionIdList: rolePermissionIdList,
@@ -638,8 +642,16 @@ func (mr *ManageResource) ActivityList(w http.ResponseWriter, r *http.Request) {
 	}
 	acActionOptons := model.ConvertEnumToOPtions(acActionStrEnums, true, "AcAction", mr.i18nCustom)
 
+	title := mr.Local("List", "Name", mr.Local("Activity", "Count", 1))
+	breadCrumbs := []*model.BreadCrumb{
+		{
+			Path: "/manage/activities",
+			Name: title,
+		},
+	}
+
 	mr.Render(w, r, "activity", &model.PageData{
-		Title: mr.i18nCustom.LocalTpl("Activity") + "-" + mr.i18nCustom.LocalTpl("Manage"),
+		Title: title,
 		Data: &QctivityPageData{
 			List:            list,
 			AcTypeOptions:   acTypeOptons,
@@ -653,5 +665,6 @@ func (mr *ManageResource) ActivityList(w http.ResponseWriter, r *http.Request) {
 				TotalPage: CeilInt(total, pageSize),
 			},
 		},
+		BreadCrumbs: breadCrumbs,
 	})
 }

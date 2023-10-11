@@ -448,3 +448,26 @@ a.text-lighten-3{
 .noscript-inline>*{
     display: inline;
 }
+
+.filter-box{
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.filter-box input,
+.filter-box button{
+    height: 30px;
+    box-sizing: border-box;
+    flex: 0 1 auto;
+}
+
+.filter-box .filter-box__item{
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: 10px;
+    margin-bottom: 4px;
+}
+.filter-box .filter-box__label{
+    padding-right: 4px;
+    line-height: 30px;
+}

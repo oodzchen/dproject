@@ -110,6 +110,10 @@ other = "操作記錄"
 hash = "sha1-b53526456e1c3717f5e80c030ef10890cdaba341"
 other = "添加內容"
 
+[AddItem]
+hash = "sha1-151a662c36d0d55f79e088a13e2a5ad932854feb"
+other = "添加{{.Name}}"
+
 [AddNew]
 hash = "sha1-6403f2b7eb2aaafe6de34cbf2a029b01afebc512"
 other = "添加"
@@ -258,6 +262,10 @@ other = "討論"
 hash = "sha1-0eea86f9aabaef1ecfe059c6e2c4a2de39feae69"
 other = "編輯內容"
 
+[EditItem]
+hash = "sha1-26d22a0aa032d15cd11fcddc54a8b92af7611462"
+other = "編輯{{.Name}}"
+
 [Email]
 hash = "sha1-84add5b2952787581cb9a8851eef63d1ec75d22b"
 other = "郵箱"
@@ -322,6 +330,10 @@ other = "最新"
 hash = "sha1-d0517071aa376e797705058bbad4b658954b9930"
 other = "鏈接"
 
+[List]
+hash = "sha1-fa8f3c7716db7922f9494a6ecfd118ba3e3cdd75"
+other = "{{.Name}}列表"
+
 [Login]
 hash = "sha1-4e5a2893bdcc7d239c1db72e4c4ffbe4bea73174"
 other = "登錄"
@@ -353,6 +365,10 @@ other = "{{.FieldNames}}不得超過 {{.Num}} 個字符"
 [NotRegistered]
 hash = "sha1-c4dbd26f2d54aa07c16b121383c7a5bdfd3f7e18"
 other = "{{.FieldNames}}未註冊"
+
+[Oldest]
+hash = "sha1-c47bb88fdba7f64b65e09ff995dd260647b5a5fc"
+other = "最舊"
 
 [Or]
 hash = "sha1-4c0aecf997f6774c15964f0e3447a6ab2df2b14e"
@@ -477,6 +493,10 @@ other = "更新{{local \"Role\"}}"
 [User]
 hash = "sha1-57f2b181d0a5e79a147ea1cdf41457f58dbbb3c9"
 other = "用戶"
+
+[UserList]
+hash = "sha1-5b0d366aff61a85387ad1c8c49d601f92f59bde5"
+other = "用戶列表"
 
 [UserManage]
 hash = "sha1-8bbee95bc5178af72b392d8bfb543dd81343407e"

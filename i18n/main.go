@@ -41,6 +41,7 @@ func New(files []string) *I18nCustom {
 	Localizer := i18n.NewLocalizer(Bundle, defaultLang)
 
 	timeago.English.PastPrefix = " "
+	timeago.English.DefaultLayout = " 2006-01-02"
 	timeago.Chinese.PastPrefix = "于 "
 	timeago.Chinese.DefaultLayout = "于 2006-01-02"
 

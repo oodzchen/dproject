@@ -36,7 +36,7 @@ type ArticleStore interface {
 }
 
 type UserStore interface {
-	List(page, pageSize int, oldest bool) ([]*model.User, error)
+	List(page, pageSize int, oldest bool, username, roleForntId string) ([]*model.User, int, error)
 	Create(email, password, name string, roleFrontId string) (int, error)
 	Update(u *model.User, fields []string) (int, error)
 	Item(int) (*model.User, error)
