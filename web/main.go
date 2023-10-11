@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
@@ -281,6 +282,8 @@ func (mr *MainResource) SaveUISettings(w http.ResponseWriter, r *http.Request) {
 	lang := r.PostForm.Get("lang")
 	theme := r.PostForm.Get("theme")
 	contentLayout := r.PostForm.Get("content_layout")
+	fontSizeStr := r.PostForm.Get("font_size")
+	fontSizeCustomStr := r.PostForm.Get("font_size_custom")
 
 	uiSettings := &model.UISettings{}
 
@@ -301,6 +304,21 @@ func (mr *MainResource) SaveUISettings(w http.ResponseWriter, r *http.Request) {
 		uiSettings.ContentLayout = contentLayout
 		localSess.SetValue("page_content_layout", contentLayout)
 	}
+
+	var fontSize int
+	if strings.TrimSpace(fontSizeStr) == "x" {
+		fontSize, _ = strconv.Atoi(fontSizeCustomStr)
+	} else {
+		fontSize, _ = strconv.Atoi(fontSizeStr)
+	}
+
+	if fontSize < 10 {
+		mr.Error("", nil, w, r, http.StatusBadRequest)
+		return
+	}
+
+	uiSettings.FontSize = fontSize
+	localSess.SetValue("font_size", fontSize)
 
 	oneSess := mr.Session("one", w, r)
 	oneSess.Raw.AddFlash(mr.i18nCustom.MustLocalize("UISaveSuccess", "", 0))

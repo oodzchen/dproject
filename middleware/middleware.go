@@ -247,7 +247,7 @@ func CreateUISettingsMiddleware(sessStore *sessions.CookieStore, ic *i18nc.I18nC
 			logSessError("local", errors.WithStack(err))
 
 			uiSettings := &model.UISettings{}
-			uiSettingsKeys := []string{"lang", "page_theme", "page_content_layout"}
+			uiSettingsKeys := []string{"lang", "page_theme", "page_content_layout", "font_size"}
 			acceptLang := getAcceptLang(r)
 			// fmt.Println("acceptLang: ", acceptLang)
 
@@ -274,7 +274,14 @@ func CreateUISettingsMiddleware(sessStore *sessions.CookieStore, ic *i18nc.I18nC
 					} else {
 						uiSettings.ContentLayout = model.PageContentLayoutCentered
 					}
+				case "font_size":
+					if fontSize, ok := sessVal.(int); ok {
+						uiSettings.FontSize = fontSize
+					} else {
+						uiSettings.FontSize = 16
+					}
 				}
+
 			}
 
 			// fmt.Println("uisettings in middleware: ", uiSettings)

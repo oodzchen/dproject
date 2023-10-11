@@ -36,6 +36,9 @@
 	    {{- $contentLayoutDict := dict "full" (local "PageLayoutFull") "centered" (local "PageLayoutCentered")}}
 	    {{- $contentLayouts := list "centered" "full"}}
 	    {{- $settings := .UISettings}}
+
+	    {{- $fontSizes := list "12" "14" "16" "18" "29" "x"}}
+	    {{- $fontSizeDict := dict "12" (local "FontExtremSmall") "14" (local "FontSmall") "16" (local "FontRegular") "18" (local "FontLarge") "29" (local "FontExtremLarge") "x" (local "FontCustom")}}
 	    {{- .CSRFField}}
 	    <div class="form__row">
 		<label class="form__label" for="lang">{{local "Language"}}:</label>
@@ -58,6 +61,14 @@
 		<div id="content-layout-options">
 		    {{range $contentLayouts -}}
 			<span><label><input name="content_layout" required autocomplete="off" id="{{.}}" {{if and $settings (eq $settings.ContentLayout .)}}checked{{end}} type="radio" value="{{.}}"/> {{get $contentLayoutDict .}}</label></span>&nbsp;&nbsp;
+		    {{- end -}}
+		</div>
+	    </div>
+	    <div class="form__row">
+		<label class="form__label" for="font-size-options">{{local "FontSize"}}:</label>
+		<div id="font-size-options">
+		    {{range $fontSizes -}}
+			<span><label><input name="font_size" required autocomplete="off" id="font-size-{{.}}" {{if and $settings (eq (toString $settings.FontSize) .)}}checked{{end}} type="radio" value="{{.}}"/> {{get $fontSizeDict .}} {{if eq . "x"}} <input name="font_size_custom" type="number" min="10" value=""/> {{end}}</label></span>&nbsp;&nbsp;
 		    {{- end -}}
 		</div>
 	    </div>

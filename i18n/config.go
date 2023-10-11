@@ -426,4 +426,40 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "ArticleContentTip",
 		Other: "Up to 20,000 characters.",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "FontSize",
+		Other: "Font Size",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "FontExtremSmall",
+		Other: "Extrem Small",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "FontSmall",
+		Other: "Small",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "FontRegular",
+		Other: "Regular",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "FontLarge",
+		Other: "Large",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "FontExtremLarge",
+		Other: "Extrem Large",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "FontCustom",
+		Other: "Custom",
+	})
+
 }

@@ -17,6 +17,9 @@
 	    <title>{{.Title}}{{if .Slogan}} - {{.Slogan}}{{end}}</title>
 	    <link href="/static/css/style.css" rel="stylesheet"/>
 	    <style>
+	     :root{
+		 font-size: {{.UISettings.FontSize}}px;
+	     }
 	     :root[data-theme="light"] {
 		 --background: {{$bgColorLight}};
 	     }

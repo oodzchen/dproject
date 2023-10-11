@@ -15,6 +15,7 @@ type UISettings struct {
 	Lang          Lang
 	Theme         string
 	ContentLayout string
+	FontSize      int
 }
 
 type BreadCrumb struct {

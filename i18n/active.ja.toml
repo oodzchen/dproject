@@ -282,6 +282,34 @@ other = "{{.Name}}を編集する"
 hash = "sha1-84add5b2952787581cb9a8851eef63d1ec75d22b"
 other = "メール"
 
+[FontCustom]
+hash = "sha1-081ae3fdc403609cf6e760849ebb14117b7a50cb"
+other = "カスタマイズ"
+
+[FontExtremLarge]
+hash = "sha1-fd7a3c3e504bf82d25e727afe0ea0a9244ed41ec"
+other = "極大"
+
+[FontExtremSmall]
+hash = "sha1-b89f98839b433481f93f382fe30d4be9768f7570"
+other = "極小"
+
+[FontLarge]
+hash = "sha1-738fd1d2452fc31a236c5ad511bfcc46b324365e"
+other = "大きい"
+
+[FontRegular]
+hash = "sha1-8d4e4ef3ea5252ec5235e4b1dd463ae9c302422c"
+other = "標準フォント"
+
+[FontSize]
+hash = "sha1-b456f452a1151135c8915df535cde20d445829b7"
+other = "フォントサイズ"
+
+[FontSmall]
+hash = "sha1-c74fd9714e38b26dbf7f58d75f93cfc977a05ba6"
+other = "小さい"
+
 [FormOptional]
 hash = "sha1-0c6c4102d4dfec3b1aa41117e0e344046c58a151"
 other = "任意"
