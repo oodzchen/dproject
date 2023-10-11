@@ -22,19 +22,19 @@
 	    <div class="form__row">
 		<label class="form__label" for="title">{{local "Title"}}:</label>
 		<input required type="text" id="title" name="title" value="{{.Data.Title}}">
-		<small class="text-lighten-2">必填，最多80个字符，请简洁的语言概括内容，不要故意使用吸引眼球的标题，不相关的内容将被删除</small>
+		<small class="text-lighten-2">({{local "FormRequired"}}) {{local "ArticleTitleTip"}}</small>
 	    </div>
 	    <div class="form__row">
 		<label class="form__label" for="url">{{local "URL"}}:</label>
 		<input type="url" id="url" name="url" value="{{.Data.Link}}">
-		<small class="text-lighten-2">选填，请提供直达链接，不要使用任何重定向的网址，请尽量提供第一手消息来源</small>
+		<small class="text-lighten-2">({{local "FormOptional"}}) {{local "ArticleURLTip"}}</small>
 	    </div>
 	{{end -}}
 	
 	<div class="form__row">
 	    <label class="form__label" for="content">{{local "Content"}}:</label>
 	    <textarea id="content" name="content" cols="30" rows="10">{{.Data.Content}}</textarea>
-	    <small class="text-lighten-2">选填，最多两万个字符</small>
+	    <small class="text-lighten-2">({{local "FormOptional"}}) {{local "ArticleContentTip"}}</small>
 	</div>
 	<br/>
 	<button type="submit">{{local "BtnSubmit"}}</button>

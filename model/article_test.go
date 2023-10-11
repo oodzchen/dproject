@@ -10,6 +10,7 @@ type articleData struct {
 	AuthorId int
 	Content  string
 	Depth    int
+	Link     string
 }
 
 func TestArticleValid(t *testing.T) {
@@ -31,6 +32,7 @@ func TestArticleValid(t *testing.T) {
 				1,
 				"This is content",
 				0,
+				"https://test.com",
 			},
 			isUpdate: false,
 			valid:    true,
@@ -42,6 +44,7 @@ func TestArticleValid(t *testing.T) {
 				1,
 				"This is content",
 				0,
+				"https://test.com",
 			},
 			isUpdate: false,
 			valid:    false,
@@ -53,20 +56,22 @@ func TestArticleValid(t *testing.T) {
 				0,
 				"This is content",
 				0,
+				"https://test.com",
 			},
 			isUpdate: false,
 			valid:    false,
 		},
 		{
-			desc: "Content is required",
+			desc: "Content is optional",
 			in: &articleData{
 				"This is Title",
 				1,
 				" ",
 				0,
+				"https://test.com",
 			},
 			isUpdate: false,
-			valid:    false,
+			valid:    true,
 		},
 		{
 			desc: "Title limit",
@@ -75,6 +80,7 @@ func TestArticleValid(t *testing.T) {
 				1,
 				"This is content",
 				0,
+				"https://test.com",
 			},
 			isUpdate: false,
 			valid:    false,
@@ -86,6 +92,7 @@ func TestArticleValid(t *testing.T) {
 				1,
 				string(largeText),
 				0,
+				"https://test.com",
 			},
 			isUpdate: false,
 			valid:    false,
@@ -97,6 +104,7 @@ func TestArticleValid(t *testing.T) {
 				1,
 				"This is Content",
 				0,
+				"https://test.com",
 			},
 			isUpdate: true,
 			valid:    false,
@@ -108,6 +116,7 @@ func TestArticleValid(t *testing.T) {
 				0,
 				"This is Content",
 				1,
+				"https://test.com",
 			},
 			isUpdate: true,
 			valid:    true,
@@ -119,6 +128,7 @@ func TestArticleValid(t *testing.T) {
 				0,
 				"This is Content",
 				1,
+				"https://test.com",
 			},
 			isUpdate: true,
 			valid:    true,
@@ -130,8 +140,33 @@ func TestArticleValid(t *testing.T) {
 				0,
 				"",
 				1,
+				"https://test.com",
 			},
 			isUpdate: true,
+			valid:    false,
+		},
+		{
+			desc: "URL is optinal",
+			in: &articleData{
+				"This is Title",
+				1,
+				"",
+				0,
+				"",
+			},
+			isUpdate: false,
+			valid:    true,
+		},
+		{
+			desc: "URL format",
+			in: &articleData{
+				"This is Title",
+				1,
+				"",
+				0,
+				"abc.com",
+			},
+			isUpdate: false,
 			valid:    false,
 		},
 	}
@@ -143,6 +178,7 @@ func TestArticleValid(t *testing.T) {
 				AuthorId:   tt.in.AuthorId,
 				Content:    tt.in.Content,
 				ReplyDepth: tt.in.Depth,
+				Link:       tt.in.Link,
 			}
 			err := a.Valid(tt.isUpdate)
 			got := err == nil

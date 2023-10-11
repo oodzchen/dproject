@@ -47,6 +47,10 @@ data:
       name: Reply Article
       adapt_id: article.reply
       enabled: true
+    view_score:
+      name: View Score
+      adapt_id: article.view_score
+      enabled: false
 
   user:
     manage:

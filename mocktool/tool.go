@@ -17,6 +17,7 @@ type TestUser struct {
 type TestArticle struct {
 	Title   string
 	Content string
+	URL     string
 }
 
 func GenUser() *TestUser {
@@ -39,6 +40,10 @@ func GenUser() *TestUser {
 		Email: gofakeit.Email(),
 		Name:  name,
 	}
+}
+
+func GenURL() string {
+	return gofakeit.URL()
 }
 
 // var chars []string = []string{"零", "一", "二", "三", "四", "五", "六", "七", "八", "九"}
@@ -64,10 +69,16 @@ func GenArticle() *TestArticle {
 		content = content[:20000]
 	}
 
-	return &TestArticle{
+	article := &TestArticle{
 		Title:   title,
 		Content: content,
 	}
+	rand := rand.Intn(100)
+	if rand%2 == 0 {
+		article.URL = GenURL()
+	}
+
+	return article
 }
 
 func LogFailed(err error) {

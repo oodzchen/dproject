@@ -40,7 +40,7 @@ func registerNewUser(store *Store) (int, error) {
 
 func createNewArticle(store *Store, userId int) (int, error) {
 	article := mt.GenArticle()
-	return store.Article.Create(article.Title, article.Content, userId, 0)
+	return store.Article.Create(article.Title, "", article.Content, userId, 0)
 }
 
 func TestArticleVote(t *testing.T) {

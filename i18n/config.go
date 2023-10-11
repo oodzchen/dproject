@@ -402,4 +402,28 @@ func (ic *I18nCustom) AddConfigs() {
 		Other: "Source",
 	})
 
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "FormOptional",
+		Other: "Optional",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "FormRequired",
+		Other: "Required",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "ArticleTitleTip",
+		Other: "Up to 80 characters, please summarize content concisely without clickbait titles. Irrelevant content will be removed.",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "ArticleURLTip",
+		Other: "Please provide direct links, avoid using redirected URLs. Whenever possible, provide primary sources.",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "ArticleContentTip",
+		Other: "Up to 20,000 characters.",
+	})
 }

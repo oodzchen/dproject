@@ -7,18 +7,20 @@
 	<div class="form__row">
 	    <label class="form__label" for="email">{{local "Email"}}:</label>
 	    <input required name="email" id="email" type="email"/>
+	    <br/>
+	    <small class="text-lighten-2">({{local "FormRequired"}})</small>
 	</div>
 	<div class="form__row">
 	    <label class="form__label" for="password">{{local "Password"}}:</label>
 	    <input required name="password" id="password" type="password" />
 	    <br/>
-	    <small class="text-lighten-2">{{local "PasswordFormatTip" "LeastLen" 8}}</small>
+	    <small class="text-lighten-2">({{local "FormRequired"}}) {{local "PasswordFormatTip" "LeastLen" 8}}</small>
 	</div>
 	<div class="form__row">
 	    <label class="form__label" for="username">{{local "Username"}}:</label>
 	    <input name="username" id="username" type="text"/>
 	    <br/>
-	    <small class="text-lighten-2">{{local "UsernameFormatTip"}}</small>
+	    <small class="text-lighten-2">({{local "FormOptional"}}) {{local "UsernameFormatTip"}}</small>
 	</div>
 	<br/>
 	<div>
