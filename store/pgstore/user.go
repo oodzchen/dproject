@@ -311,7 +311,7 @@ func (u *User) Login(username string, pwd string) (int, error) {
 	if isEmail {
 		sqlStr += "WHERE email = $1"
 	} else {
-		sqlStr += "WHERE username = $1"
+		sqlStr += "WHERE username ILIKE $1"
 	}
 
 	err := u.dbPool.QueryRow(context.Background(), sqlStr, username).Scan(&id, &hasedPwd)
