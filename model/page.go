@@ -1,5 +1,7 @@
 package model
 
+import "net/url"
+
 const (
 	PageThemeLight  string = "light"
 	PageThemeDark          = "dark"
@@ -32,6 +34,8 @@ type PageData struct {
 	CSRFField             string
 	UISettings            *UISettings
 	RoutePath             string
+	RouteQuery            url.Values
+	RouteRawQuery         string
 	Debug                 bool
 	DebugUsers            []*User
 	BreadCrumbs           []*BreadCrumb

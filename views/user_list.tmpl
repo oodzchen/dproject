@@ -70,9 +70,8 @@
 	{{- end -}}
     </ul>
 
-    {{ $pagiData := dict "currPage" .Data.Query.Page "totalPage" .Data.Query.TotalPage "pathPrefix" "/manage/users"  }}
-    {{ template "pagination" $pagiData }}    
-
+    {{ $pagiData := dict "currPage" .Data.Query.Page "totalPage" .Data.Query.TotalPage "pathPrefix" "/manage/users" "query" .RouteQuery }}
+    {{ template "pagination" $pagiData }}
     {{template "foot" .}}
 
 {{- end -}}

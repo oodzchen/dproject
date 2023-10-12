@@ -154,6 +154,8 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	data.BrandDomainName = config.Config.BrandDomainName
 	data.Slogan = config.Config.Slogan
 	data.PermissionEnabledList = rd.permissionSrv.PermissionData.EnabledFrondIdList
+	data.RouteRawQuery = r.URL.RawQuery
+	data.RouteQuery = r.URL.Query()
 
 	rd.tmpl = rd.tmpl.Funcs(template.FuncMap{
 		"permit":  rd.permissionSrv.PermissionData.Permit,

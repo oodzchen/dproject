@@ -9,6 +9,7 @@
 	 box-sizing: border-box;
      }
     </style>
+    {{- $isReply := ne .Data.ReplyTo 0 -}}
     <form class="form create-form" method="post" action="/articles{{- if .Data.Id -}}/{{.Data.Id}}/edit{{- end -}}">
 	{{.CSRFField -}}
 	{{if .Data.Id -}}
@@ -34,7 +35,7 @@
 	<div class="form__row">
 	    <label class="form__label" for="content">{{local "Content"}}:</label>
 	    <textarea id="content" name="content" cols="30" rows="10">{{.Data.Content}}</textarea>
-	    <small class="text-lighten-2">({{local "FormOptional"}}) {{local "ArticleContentTip"}}</small>
+	    <small class="text-lighten-2">{{if not $isReply}}({{local "FormOptional"}}) {{end}}{{local "ArticleContentTip"}}</small>
 	</div>
 	<br/>
 	<button type="submit">{{local "BtnSubmit"}}</button>

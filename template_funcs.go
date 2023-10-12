@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
+	"net/url"
 	"reflect"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -16,6 +19,7 @@ var TmplFuncs = template.FuncMap{
 	"joinStrArr": joinStrArr,
 	"upHead":     upCaseHead,
 	"downHead":   downCaseHead,
+	"pageStr":    pageStr,
 }
 
 func joinStrArr(arr []string, sep string) string {
@@ -63,4 +67,25 @@ func upCaseHead(runeNum int, str string) string {
 func downCaseHead(runeNum int, str string) string {
 	runeStr := []rune(str)
 	return strings.ToLower(string(runeStr[:runeNum])) + string(runeStr[runeNum:])
+}
+
+func pageStr(path string, page int, query url.Values) string {
+	if query == nil {
+		return fmt.Sprintf("%s?page=%d", path, page)
+	}
+
+	var pageStr string
+	if page < 1 {
+		pageStr = "1"
+	} else {
+		pageStr = strconv.Itoa(page)
+	}
+
+	if query.Has("page") {
+		query.Set("page", pageStr)
+	} else {
+		query.Add("page", pageStr)
+	}
+
+	return path + "?" + query.Encode()
 }

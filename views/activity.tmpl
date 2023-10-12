@@ -36,7 +36,7 @@
 
     {{- template "activity_list" .Data.List -}}
 
-    {{- $pagiData := dict "currPage" .Data.Query.Page "totalPage" .Data.Query.TotalPage "pathPrefix" "/manage/activities"  -}}
+    {{- $pagiData := dict "currPage" .Data.Query.Page "totalPage" .Data.Query.TotalPage "pathPrefix" "/manage/activities"  "query" .RouteQuery -}}
     {{- template "pagination" $pagiData -}}
 
     {{template "foot" . -}}

@@ -65,7 +65,7 @@
 
     {{- if and $data.article.Replies (gt $data.article.Replies.TotalPage 1) -}}
 	{{- $prefix := printf "/articles/%d" $data.article.Id -}}
-	{{- $pagiData := dict "currPage" $data.article.Replies.CurrPage "totalPage" $data.article.Replies.TotalPage "pathPrefix" $prefix -}}
+	{{- $pagiData := dict "currPage" $data.article.Replies.CurrPage "totalPage" $data.article.Replies.TotalPage "pathPrefix" .RoutePath "query" .RouteQuery -}}
 	{{- template "pagination" $pagiData -}}
     {{- end -}}
     {{template "foot" . -}}

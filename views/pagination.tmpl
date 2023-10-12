@@ -1,23 +1,25 @@
 {{ define "pagination" }}
+    {{- $path := .pathPrefix -}}
+    {{- $query := .query -}}
+    
     <div>
 	{{- if gt .currPage 1 -}}
-	    <a href="{{.pathPrefix}}?page={{add .currPage -1}}">{{local "BtnPrevPage"}}</a>&nbsp;&nbsp;
+	    <a href="{{pageStr $path (int (add .currPage -1)) $query}}">{{local "BtnPrevPage"}}</a>&nbsp;&nbsp;
 	{{- end -}}
 	
 	{{- if gt .totalPage 1 -}}
 	    {{$currPage := .currPage}}
-	    {{$pathPrefix := .pathPrefix}}
 	    {{- range $page := intRange 1 .totalPage -}}
 		{{- if eq $currPage $page -}}
 		    &nbsp;{{$page}}&nbsp;&nbsp;
 		{{- else -}}
-		    &nbsp;<a href="{{$pathPrefix}}?page={{$page}}">{{$page}}</a>&nbsp;&nbsp;
+		    &nbsp;<a href="{{pageStr $path $page $query}}">{{$page}}</a>&nbsp;&nbsp;
 		{{- end -}}
 	    {{- end -}}
 	{{- end -}}
 
 	{{- if lt .currPage .totalPage -}}
-	    <a href="{{.pathPrefix}}?page={{add .currPage 1}}">{{local "BtnNextPage"}}</a>&nbsp;
+	    <a href="{{pageStr $path (int (add .currPage 1)) $query}}">{{local "BtnNextPage"}}</a>&nbsp;
 	{{- end -}}
     </div>
 {{- end -}}
