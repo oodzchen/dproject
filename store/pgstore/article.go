@@ -46,6 +46,13 @@ SELECT COUNT(*) FROM post_votes
 WHERE post_id = tp.id AND type = 'down'
 ) AS vote_down,
 (SELECT COUNT(*) FROM (
+  WITH RECURSIVE postTree AS (
+    SELECT id, author_id FROM posts WHERE reply_to = tp.id
+    UNION ALL
+    SELECT p1.id, p1.author_id FROM posts p1
+    JOIN postTree pt
+    ON p1.reply_to = pt.id
+  )
   SELECT user_id
     FROM (
       SELECT user_id FROM post_votes WHERE post_id = tp.id
@@ -54,8 +61,8 @@ WHERE post_id = tp.id AND type = 'down'
       UNION ALL
       SELECT user_id FROM post_reacts WHERE post_id = tp.id
       UNION ALL
-      SELECT author_id AS user_id FROM posts WHERE reply_to = tp.id
-    ) AS user_id GROUP BY user_id
+      SELECT author_id AS user_id FROM postTree
+    ) AS p_users GROUP BY user_id
 ) AS participate_count)
 FROM posts tp
 LEFT JOIN posts p2 ON tp.root_article_id = p2.id

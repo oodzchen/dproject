@@ -101,30 +101,32 @@
 		{{- if ne .article.CreatedAt .article.UpdatedAt -}}
 		    {{local "Modified"}}<time title="{{.article.UpdatedAt}}">{{timeAgo .article.UpdatedAt}}</time> |&nbsp;
 		{{- end -}}
-		<span>{{- local "ReplyNum" "Count" .article.TotalReplyCount -}}</span> |&nbsp;
-		<a class="text-lighten-3" href="/articles/{{.article.Id}}">{{local "Link" | lower}}</a> |&nbsp;
-		<a class="text-lighten-3" href="#ar_{{.article.Id}}">{{local "Anchor" | lower}}</a> |&nbsp;
-		{{- if gt .pageDepth 1 -}}
-		    <a title="{{local "BtnParent"}}" class="btn-parent text-lighten-3" href="#ar_{{.article.ReplyTo}}">{{local "BtnParent"}}</a> |&nbsp;
-		{{- end -}}
-		{{- if permit "article" "save" -}}
-		    <form class="btn-form" action="/articles/{{.article.Id}}/save" method="POST" >
-			{{- .CSRFField -}}
-			<input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
-			{{- $btnSaveText := local "BtnSave" -}}
-			{{- if and .article.CurrUserState .article.CurrUserState.Saved -}}
-			    {{$btnSaveText = local "BtnUnsave"}}
-			{{- end -}}
-			<button class="text-lighten-3" title="{{$btnSaveText}}" type="submit">{{$btnSaveText}}</button>
-		    </form>
-		{{- end -}}
-		{{- if .currUser -}}
-		    {{- if eq .currUser.Id .article.AuthorId -}}
-			{{- if permit "article" "edit_mine" -}}
-			    &nbsp;|&nbsp;<a class="btn-edit text-lighten-3" href="/articles/{{.article.Id}}/edit">{{local "BtnEdit"}}</a>
-			{{- end -}}
-			{{- if permit "article" "delete_mine" -}}
-			    &nbsp;|&nbsp;<a class="btn-del text-lighten-3" href="/articles/{{.article.Id}}/delete">{{local "BtnDelete"}}</a>
+		<span>{{- local "ReplyNum" "Count" .article.TotalReplyCount -}}</span>
+		{{- if not .article.Deleted -}}
+		    &nbsp;|&nbsp;<a class="text-lighten-3" href="/articles/{{.article.Id}}">{{local "Link" | lower}}</a> |&nbsp;
+		    <a class="text-lighten-3" href="#ar_{{.article.Id}}">{{local "Anchor" | lower}}</a> |&nbsp;
+		    {{- if gt .pageDepth 1 -}}
+			<a title="{{local "BtnParent"}}" class="btn-parent text-lighten-3" href="#ar_{{.article.ReplyTo}}">{{local "BtnParent"}}</a> |&nbsp;
+		    {{- end -}}
+		    {{- if permit "article" "save" -}}
+			<form class="btn-form" action="/articles/{{.article.Id}}/save" method="POST" >
+			    {{- .CSRFField -}}
+			    <input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
+			    {{- $btnSaveText := local "BtnSave" -}}
+			    {{- if and .article.CurrUserState .article.CurrUserState.Saved -}}
+				{{$btnSaveText = local "BtnUnsave"}}
+			    {{- end -}}
+			    <button class="text-lighten-3" title="{{$btnSaveText}}" type="submit">{{$btnSaveText}}</button>
+			</form>
+		    {{- end -}}
+		    {{- if .currUser -}}
+			{{- if eq .currUser.Id .article.AuthorId -}}
+			    {{- if permit "article" "edit_mine" -}}
+				&nbsp;|&nbsp;<a class="btn-edit text-lighten-3" href="/articles/{{.article.Id}}/edit">{{local "BtnEdit"}}</a>
+			    {{- end -}}
+			    {{- if permit "article" "delete_mine" -}}
+				&nbsp;|&nbsp;<a class="btn-del text-lighten-3" href="/articles/{{.article.Id}}/delete">{{local "BtnDelete"}}</a>
+			    {{- end -}}
 			{{- end -}}
 		    {{- end -}}
 		{{- end -}}
