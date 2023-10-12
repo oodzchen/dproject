@@ -16,6 +16,20 @@ created_at TIMESTAMP NOT NULL DEFAULT NOW(),
 type react_type
 );
 
+CREATE TABLE post_subs (
+user_id INTEGER REFERENCES users(id),
+post_id INTEGER REFERENCES posts(id),
+created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+);
+
+CREATE TABLE messages (
+    id SERIAL PRIMARY KEY,
+    sender_id INTEGER REFERENCES posts(id),
+    content TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    is_read BOOLEAN NOT NULL DEFAULT false
+)
+
 CREATE TABLE roles (
     id SERIAL PRIMARY KEY,
     front_id VARCHAR(50) NOT NULL,
