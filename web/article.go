@@ -310,7 +310,6 @@ func (ar *ArticleResource) handleSubmit(w http.ResponseWriter, r *http.Request, 
 		id, err = ar.articleSrv.Create(title, url, content, authorId, 0)
 	}
 	// id, err := ar.articleSrv.Create(title, content, authorId, replyTo)
-
 	if err != nil {
 		if errors.Is(err, model.AppErrArticleValidFailed) {
 			ar.Error(err.Error(), err, w, r, http.StatusBadRequest)
@@ -324,6 +323,17 @@ func (ar *ArticleResource) handleSubmit(w http.ResponseWriter, r *http.Request, 
 	if err != nil {
 		ar.ServerErrorp("", err, w, r)
 		return
+	}
+
+	if isReply {
+		go func() {
+			err = ar.store.Article.Notify(1, replyTo, fmt.Sprintf("new reply id: %d", id))
+			if err != nil {
+				// ar.ServerErrorp("", err, w, r)
+				fmt.Println("notify to subscribers error: ", err)
+				return
+			}
+		}()
 	}
 
 	ssOne := ar.Session("one", w, r)

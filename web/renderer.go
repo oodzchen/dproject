@@ -157,6 +157,15 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	data.RouteRawQuery = r.URL.RawQuery
 	data.RouteQuery = r.URL.Query()
 
+	loginedUseId := rd.GetLoginedUserId(w, r)
+	if loginedUseId > 0 {
+		messageCount, err := rd.store.Message.UnreadCount(loginedUseId)
+		if err != nil {
+			fmt.Printf("get message count error: %v", err)
+		}
+		data.MessageCount = messageCount
+	}
+
 	rd.tmpl = rd.tmpl.Funcs(template.FuncMap{
 		"permit":  rd.permissionSrv.PermissionData.Permit,
 		"local":   rd.i18nCustom.LocalTpl,

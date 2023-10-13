@@ -121,6 +121,9 @@ a.brand b{
 .slogan{
     font-size: 0.8rem;
 }
+a.text{
+    color: var(--text);
+}
 .text-lighten,
 a.text-lighten{
     color: var(--text-lighten)

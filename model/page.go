@@ -43,4 +43,5 @@ type PageData struct {
 	BrandDomainName       string
 	Slogan                string
 	PermissionEnabledList []string
+	MessageCount          int
 }

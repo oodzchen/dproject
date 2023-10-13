@@ -97,3 +97,11 @@ func (pg *PGStore) NewActivity() (any, error) {
 	}
 	return &Activity{pgDB.Pool}, nil
 }
+
+func (pg *PGStore) NewMessage() (any, error) {
+	err := CheckDB(false)
+	if err != nil {
+		return nil, err
+	}
+	return &Message{pgDB.Pool}, nil
+}

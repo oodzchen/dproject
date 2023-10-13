@@ -10,6 +10,7 @@ type Store struct {
 	Role       RoleStore
 	Permission PermissionStore
 	Activity   ActivityStore
+	Message    MessageStore
 }
 
 type DBStore interface {
@@ -18,6 +19,7 @@ type DBStore interface {
 	NewPermissionStore() (any, error)
 	NewRoleStore() (any, error)
 	NewActivity() (any, error)
+	NewMessage() (any, error)
 }
 
 type ArticleStore interface {
@@ -34,6 +36,7 @@ type ArticleStore interface {
 	Save(id, loginedUserId int) error
 	React(id, loginedUserId int, reactType string) error
 	Subscribe(id, loginedUserId int) error
+	Notify(senderUserId, sourceArticleId int, content string) error
 }
 
 type UserStore interface {
@@ -84,12 +87,20 @@ type ActivityStore interface {
 	Create(userId int, actType, action, targetModel string, targetId int, ipAddr, deviceInfo, details string) (int, error)
 }
 
+type MessageStore interface {
+	List(userId int, status int, page, pageSize int) ([]*model.Message, int, error)
+	Create(senderUserId, reciverUserId, sourceArticleId int, content string) (int, error)
+	Read(messageId int) error
+	UnreadCount(loginedUserId int) (int, error)
+}
+
 func New(dbStore DBStore) (*Store, error) {
 	article, err := dbStore.NewArticleStore()
 	user, err := dbStore.NewUserStore()
 	permission, err := dbStore.NewPermissionStore()
 	role, err := dbStore.NewRoleStore()
 	activity, err := dbStore.NewActivity()
+	message, err := dbStore.NewMessage()
 
 	if err != nil {
 		return nil, err
@@ -100,6 +111,7 @@ func New(dbStore DBStore) (*Store, error) {
 	permissionStore := permission.(PermissionStore)
 	roleStore := role.(RoleStore)
 	activityStore := activity.(ActivityStore)
+	messageStore := message.(MessageStore)
 
 	return &Store{
 		Article:    articleStore,
@@ -107,5 +119,6 @@ func New(dbStore DBStore) (*Store, error) {
 		Role:       roleStore,
 		Permission: permissionStore,
 		Activity:   activityStore,
+		Message:    messageStore,
 	}, nil
 }

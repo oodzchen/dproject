@@ -726,6 +726,27 @@ func (a *Article) Subscribe(id, userId int) error {
 	return nil
 }
 
+func (a *Article) Notify(senderUserId, sourceArticleId int, content string) error {
+	sqlStr := `
+WITH RECURSIVE parentPosts AS (
+  SELECT id, reply_to FROM posts WHERE id = $2
+  UNION ALL
+  SELECT p1.id, p1.reply_to FROM posts p1
+  JOIN parentPosts pp ON pp.reply_to = p1.id AND pp.reply_to != 0
+)
+INSERT INTO messages (sender_id, reciever_id, source_id, content)
+SELECT $1, ps.user_id, pp.id, $3 FROM parentPosts pp
+INNER JOIN post_subs ps ON ps.post_id = pp.id;
+`
+	_, err := a.dbPool.Exec(context.Background(), sqlStr, senderUserId, sourceArticleId, content)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (a *Article) subscribeCheck(id, userId int) (error, bool) {
 	var count int
 	err := a.dbPool.QueryRow(
