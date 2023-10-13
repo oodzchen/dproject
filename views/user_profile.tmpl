@@ -29,11 +29,12 @@
 
     {{- $data := .Data -}}
     {{- $tabs := list "all" "article" "reply" -}}
-    {{- $tabsMap := dict "all" (local "All") "article" (local "Article" "Count" 2) "reply" (local "Reply" "Count" 2) "saved" (local "Saved") "activity" (local "Activity" "Count" 2) -}}
+    {{- $tabsMap := dict "all" (local "All") "article" (local "Article" "Count" 2) "reply" (local "Reply" "Count" 2) "saved" (local "Saved") "subscribed" (local "Subscribed") "activity" (local "Activity" "Count" 2) -}}
 
     {{- if .LoginedUser -}}
 	{{- if eq .LoginedUser.Id .Data.UserInfo.Id -}}
 	    {{- $tabs = append $tabs "saved" -}}
+	    {{- $tabs = append $tabs "subscribed" -}}
 	{{- end -}}
 
 	{{- if permit "user" "access_activity" -}}
@@ -101,7 +102,9 @@
 		    <a href="/articles/{{.Id}}">{{.DisplayTitle}}</a>
 		    <small><time title="{{.CreatedAt}}">{{timeAgo .CreatedAt}}</time></small>
 		</div>
-		<div class="post-list__info">{{.Summary}}{{if ne .Content .Summary}} ...{{end}}</div>
+		{{- if .Content -}}
+		    <div class="post-list__info">{{.Summary}}{{if ne .Content .Summary}} ...{{end}}</div>
+		{{- end -}}
 	    </li>
 	{{end -}}
 	{{- placehold . (print "<i class='text-lighten-2'>" (local "NoData") "</i>") -}}

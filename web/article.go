@@ -95,6 +95,12 @@ func (ar *ArticleResource) Routes() http.Handler {
 		}, ar), mdw.UserLogger(
 			ar.uLogger, model.AcTypeUser, model.AcActionReactArticle, model.AcModelArticle, mdw.ULogURLArticleId),
 		).Post("/react", ar.React)
+
+		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
+			"article.subscribe",
+		}, ar), mdw.UserLogger(
+			ar.uLogger, model.AcTypeUser, model.AcActionSubscribeArticle, model.AcModelArticle, mdw.ULogURLArticleId),
+		).Post("/subscribe", ar.Subscribe)
 	})
 
 	return rt
@@ -311,6 +317,12 @@ func (ar *ArticleResource) handleSubmit(w http.ResponseWriter, r *http.Request, 
 		} else {
 			ar.Error("", err, w, r, http.StatusInternalServerError)
 		}
+		return
+	}
+
+	err = ar.store.Article.Subscribe(id, authorId)
+	if err != nil {
+		ar.ServerErrorp("", err, w, r)
 		return
 	}
 
@@ -756,6 +768,38 @@ func (ar *ArticleResource) React(w http.ResponseWriter, r *http.Request) {
 	refererUrl, _ := url.Parse(r.Referer())
 	// fmt.Println("referer: ", referer)
 	// fmt.Println("refererUrl: ", refererUrl)
+	if IsRegisterdPage(refererUrl, ar.router) && rootId != "" && rootId != "0" && rootId != articleIdS {
+		http.Redirect(w, r, fmt.Sprintf("%s#ar_%s", referer, articleIdS), http.StatusFound)
+	} else {
+		http.Redirect(w, r, referer, http.StatusFound)
+	}
+}
+
+func (ar *ArticleResource) Subscribe(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+
+	articleIdS := chi.URLParam(r, "articleId")
+	articleId, err := strconv.Atoi(articleIdS)
+	if err != nil {
+		ar.Error("", errors.New("get article id failed"), w, r, http.StatusBadRequest)
+		return
+	}
+
+	rootId := r.Form.Get("root")
+	userId := ar.GetLoginedUserId(w, r)
+	if userId != 0 {
+		err = ar.store.Article.Subscribe(articleId, userId)
+		if err != nil {
+			ar.ServerErrorp("", err, w, r)
+			return
+		}
+	} else {
+		ar.ToLogin(w, r)
+		return
+	}
+
+	referer := r.Referer()
+	refererUrl, _ := url.Parse(r.Referer())
 	if IsRegisterdPage(refererUrl, ar.router) && rootId != "" && rootId != "0" && rootId != articleIdS {
 		http.Redirect(w, r, fmt.Sprintf("%s#ar_%s", referer, articleIdS), http.StatusFound)
 	} else {

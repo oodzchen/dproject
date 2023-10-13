@@ -481,4 +481,10 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "SkipToContent",
 		Other: "Skip to content",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Subscribed",
+		Other: "Subscribed",
+	})
+
 }

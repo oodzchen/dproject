@@ -72,4 +72,14 @@ func (ic *I18nCustom) AddBtnConfigs() {
 		ID:    "BtnMore",
 		Other: "More",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnSubscribe",
+		Other: "Subscribe",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnUnsubscribe",
+		Other: "Unsubscribe",
+	})
 }

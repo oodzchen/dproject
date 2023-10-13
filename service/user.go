@@ -9,16 +9,18 @@ import (
 type UserListType string
 
 const (
-	UserListAll      UserListType = "all"
-	UserListSaved                 = "saved"
-	UserListArticle               = "article"
-	UserListReply                 = "reply"
-	UserListActivity              = "activity"
+	UserListAll        UserListType = "all"
+	UserListSaved                   = "saved"
+	UserListArticle                 = "article"
+	UserListReply                   = "reply"
+	UserListActivity                = "activity"
+	UserListSubscribed              = "subscribed"
 )
 
 var AuthRequiedUserTabMap = map[UserListType]bool{
-	UserListSaved:    true,
-	UserListActivity: true,
+	UserListSaved:      true,
+	UserListSubscribed: true,
+	UserListActivity:   true,
 }
 
 func CheckUserTabAuthRequired(tab UserListType) bool {
@@ -64,6 +66,8 @@ func (u *User) GetPosts(userId int, listType UserListType) ([]*model.Article, er
 	switch listType {
 	case UserListSaved:
 		return u.Store.User.GetSavedPosts(userId)
+	case UserListSubscribed:
+		return u.Store.User.GetSubscribedPosts(userId)
 	default:
 		return u.Store.User.GetPosts(userId, string(listType))
 	}

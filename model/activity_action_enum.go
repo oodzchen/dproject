@@ -57,6 +57,9 @@ const (
 	// AcActionEditRole is a AcAction of type edit_role.
 	// Edit role
 	AcActionEditRole AcAction = "edit_role"
+	// AcActionSubscribeArticle is a AcAction of type subscribe_article.
+	// Subscribe article
+	AcActionSubscribeArticle AcAction = "subscribe_article"
 )
 
 var ErrInvalidAcAction = fmt.Errorf("not a valid AcAction, try [%s]", strings.Join(_AcActionNames, ", "))
@@ -76,6 +79,7 @@ var _AcActionNames = []string{
 	string(AcActionSetRole),
 	string(AcActionAddRole),
 	string(AcActionEditRole),
+	string(AcActionSubscribeArticle),
 }
 
 // AcActionNames returns a list of possible string values of AcAction.
@@ -102,6 +106,7 @@ func AcActionValues() []AcAction {
 		AcActionSetRole,
 		AcActionAddRole,
 		AcActionEditRole,
+		AcActionSubscribeArticle,
 	}
 }
 
@@ -118,20 +123,21 @@ func (x AcAction) IsValid() bool {
 }
 
 var _AcActionValue = map[string]AcAction{
-	"register":       AcActionRegister,
-	"login":          AcActionLogin,
-	"logout":         AcActionLogout,
-	"update_intro":   AcActionUpdateIntro,
-	"create_article": AcActionCreateArticle,
-	"reply_article":  AcActionReplyArticle,
-	"edit_article":   AcActionEditArticle,
-	"delete_article": AcActionDeleteArticle,
-	"save_article":   AcActionSaveArticle,
-	"vote_article":   AcActionVoteArticle,
-	"react_article":  AcActionReactArticle,
-	"set_role":       AcActionSetRole,
-	"add_role":       AcActionAddRole,
-	"edit_role":      AcActionEditRole,
+	"register":          AcActionRegister,
+	"login":             AcActionLogin,
+	"logout":            AcActionLogout,
+	"update_intro":      AcActionUpdateIntro,
+	"create_article":    AcActionCreateArticle,
+	"reply_article":     AcActionReplyArticle,
+	"edit_article":      AcActionEditArticle,
+	"delete_article":    AcActionDeleteArticle,
+	"save_article":      AcActionSaveArticle,
+	"vote_article":      AcActionVoteArticle,
+	"react_article":     AcActionReactArticle,
+	"set_role":          AcActionSetRole,
+	"add_role":          AcActionAddRole,
+	"edit_role":         AcActionEditRole,
+	"subscribe_article": AcActionSubscribeArticle,
 }
 
 // ParseAcAction attempts to convert a string to a AcAction.
@@ -147,20 +153,21 @@ func (x AcAction) I18nID() string {
 }
 
 var _AcActionTextMap = map[AcAction]string{
-	AcActionRegister:      "Register",
-	AcActionLogin:         "Login",
-	AcActionLogout:        "Logout",
-	AcActionUpdateIntro:   "Update introduction",
-	AcActionCreateArticle: "Create article",
-	AcActionReplyArticle:  "Reply to article",
-	AcActionEditArticle:   "Edit article",
-	AcActionDeleteArticle: "Delete article",
-	AcActionSaveArticle:   "Save article",
-	AcActionVoteArticle:   "Vote article",
-	AcActionReactArticle:  "React to article",
-	AcActionSetRole:       "Set role",
-	AcActionAddRole:       "Add role",
-	AcActionEditRole:      "Edit role",
+	AcActionRegister:         "Register",
+	AcActionLogin:            "Login",
+	AcActionLogout:           "Logout",
+	AcActionUpdateIntro:      "Update introduction",
+	AcActionCreateArticle:    "Create article",
+	AcActionReplyArticle:     "Reply to article",
+	AcActionEditArticle:      "Edit article",
+	AcActionDeleteArticle:    "Delete article",
+	AcActionSaveArticle:      "Save article",
+	AcActionVoteArticle:      "Vote article",
+	AcActionReactArticle:     "React to article",
+	AcActionSetRole:          "Set role",
+	AcActionAddRole:          "Add role",
+	AcActionEditRole:         "Edit role",
+	AcActionSubscribeArticle: "Subscribe article",
 }
 
 func (x AcAction) Text(upCaseHead bool, i18nCustom *i18nc.I18nCustom) string {
@@ -237,5 +244,9 @@ func AcActionAddI18nConfigs(ic *i18nc.I18nCustom) {
 	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "AcAction_edit_role",
 		Other: "Edit role",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_subscribe_article",
+		Other: "Subscribe article",
 	})
 }

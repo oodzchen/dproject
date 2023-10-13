@@ -119,6 +119,17 @@
 			    <button class="text-lighten-3" title="{{$btnSaveText}}" type="submit">{{$btnSaveText}}</button>
 			</form>
 		    {{- end -}}
+		    {{- if permit "article" "subscribe" -}}
+			&nbsp;|&nbsp;<form class="btn-form" action="/articles/{{.article.Id}}/subscribe" method="POST" >
+			    {{- .CSRFField -}}
+			    <input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
+			    {{- $btnSubText := local "BtnSubscribe" -}}
+			    {{- if and .article.CurrUserState .article.CurrUserState.Subscribed -}}
+				{{$btnSubText = local "BtnUnsubscribe"}}
+			    {{- end -}}
+			    <button class="text-lighten-3" title="{{$btnSubText}}" type="submit">{{$btnSubText}}</button>
+			</form>
+		    {{- end -}}
 		    {{- if .currUser -}}
 			{{- if eq .currUser.Id .article.AuthorId -}}
 			    {{- if permit "article" "edit_mine" -}}

@@ -33,6 +33,7 @@ type ArticleStore interface {
 	Vote(id, loginedUserId int, voteType string) error
 	Save(id, loginedUserId int) error
 	React(id, loginedUserId int, reactType string) error
+	Subscribe(id, loginedUserId int) error
 }
 
 type UserStore interface {
@@ -45,6 +46,7 @@ type UserStore interface {
 	Login(username, pwd string) (int, error)
 	GetPosts(userId int, listType string) ([]*model.Article, error)
 	GetSavedPosts(int) ([]*model.Article, error)
+	GetSubscribedPosts(int) ([]*model.Article, error)
 	Count() (int, error)
 	SetRole(userId int, roleFrontId string) (int, error)
 	SetRoleManyWithFrontId([]*model.User) error

@@ -51,6 +51,10 @@ data:
       name: View Score
       adapt_id: article.view_score
       enabled: false
+    subscribe:
+      name: Subscribe
+      adapt_id: article.subscribe
+      enabled: false
 
   user:
     manage:

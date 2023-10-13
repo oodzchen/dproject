@@ -73,6 +73,7 @@ type CurrUserState struct {
 	Saved         bool
 	NullReactType pgtype.Text
 	ReactType     ArticleReact
+	Subscribed    bool
 }
 
 func (cus *CurrUserState) FormatNullValues() {

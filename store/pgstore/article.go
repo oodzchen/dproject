@@ -266,6 +266,14 @@ SELECT
  FROM post_saves WHERE post_id = p.id AND user_id = $2
 ) AS saved,
 (
+SELECT
+  CASE
+    WHEN COUNT(*) > 0 THEN TRUE
+    ELSE FALSE
+  END
+ FROM post_subs WHERE post_id = p.id AND user_id = $2
+) AS subscribed,
+(
 SELECT type FROM post_reacts WHERE post_id = p.id AND user_id = $2
 ) AS user_react_type,
 COALESCE(reacts.grinning, 0),
@@ -317,6 +325,7 @@ WHERE p.id = $1;`
 		&item.VoteUp,
 		&item.VoteDown,
 		&item.CurrUserState.Saved,
+		&item.CurrUserState.Subscribed,
 		&item.CurrUserState.NullReactType,
 		&grinning,
 		&confused,
@@ -389,6 +398,14 @@ SELECT
  FROM post_saves WHERE post_id = ar.id AND user_id = $3
 ) AS saved,
 (
+SELECT
+  CASE
+    WHEN COUNT(*) > 0 THEN TRUE
+    ELSE FALSE
+  END
+ FROM post_subs WHERE post_id = ar.id AND user_id = $3
+) AS subscribed,
+(
 SELECT type FROM post_reacts WHERE post_id = ar.id AND user_id = $3
 ) AS user_react_type,
 COALESCE(reacts.grinning, 0),
@@ -450,6 +467,7 @@ ORDER BY ar.created_at;`
 			&item.VoteUp,
 			&item.VoteDown,
 			&item.CurrUserState.Saved,
+			&item.CurrUserState.Subscribed,
 			&item.CurrUserState.NullReactType,
 			&grinning,
 			&confused,
@@ -559,7 +577,7 @@ func (a *Article) VoteCheck(id, userId int) (error, string) {
 }
 
 func (a *Article) Save(id, userId int) error {
-	err, saved := a.SaveCheck(id, userId)
+	err, saved := a.saveCheck(id, userId)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return err
 	}
@@ -590,7 +608,7 @@ func (a *Article) Save(id, userId int) error {
 	return nil
 }
 
-func (a *Article) SaveCheck(id, userId int) (error, bool) {
+func (a *Article) saveCheck(id, userId int) (error, bool) {
 	var count int
 	err := a.dbPool.QueryRow(
 		context.Background(),
@@ -674,4 +692,51 @@ func (a *Article) ReactCheck(id, userId int) (error, string) {
 	}
 
 	return nil, rt
+}
+
+func (a *Article) Subscribe(id, userId int) error {
+	err, subscribed := a.subscribeCheck(id, userId)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return err
+	}
+
+	if !subscribed {
+		_, err = a.dbPool.Exec(
+			context.Background(),
+			`INSERT INTO post_subs (post_id, user_id) VALUES ($1, $2)`,
+			id,
+			userId,
+		)
+
+		if err != nil {
+			return err
+		}
+	} else {
+		_, err = a.dbPool.Exec(
+			context.Background(),
+			`DELETE FROM post_subs WHERE post_id = $1 AND user_id = $2`,
+			id,
+			userId,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (a *Article) subscribeCheck(id, userId int) (error, bool) {
+	var count int
+	err := a.dbPool.QueryRow(
+		context.Background(),
+		`SELECT COUNT(*) FROM post_subs WHERE post_id = $1 AND user_id = $2`,
+		id,
+		userId,
+	).Scan(&count)
+	if err != nil {
+		return err, false
+	}
+
+	return nil, count > 0
 }
