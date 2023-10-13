@@ -71,6 +71,8 @@ func (mr *MainResource) Routes() http.Handler {
 		r.Post("/ui", mr.SaveUISettings)
 	})
 
+	rt.With(mdw.AuthCheck(mr.sessStore)).Get("/messages", mr.MessageList)
+
 	if config.Config.Debug {
 		rt.With(mdw.UserLogger(mr.uLogger, model.AcTypeDev, model.AcActionLogin, model.AcModelEmpty, mdw.ULogEmpty)).Post("/login_debug", mr.LoginDebug)
 	}
@@ -426,4 +428,70 @@ func (mr *MainResource) SaveAccountSettings(w http.ResponseWriter, r *http.Reque
 	} else {
 		http.Redirect(w, r, "/login", http.StatusFound)
 	}
+}
+
+type MessageStatus string
+
+const (
+	MessageStatusUnread MessageStatus = "unread"
+	MessageStatusRead                 = "read"
+	MessageStatusAll                  = "all"
+)
+
+var MessageStatusMap = map[MessageStatus]bool{
+	MessageStatusUnread: true,
+	MessageStatusRead:   true,
+	MessageStatusAll:    true,
+}
+
+type MessageQueryData struct {
+	*queryData
+	Tab string
+}
+type MessagePageData struct {
+	List  []*model.Message
+	Query *MessageQueryData
+}
+
+func (mr *MainResource) MessageList(w http.ResponseWriter, r *http.Request) {
+	tab := strings.TrimSpace(r.URL.Query().Get("tab"))
+
+	page, pageSize := mr.GetPaginationData(r)
+
+	if _, ok := MessageStatusMap[MessageStatus(tab)]; !ok {
+		tab = string(MessageStatusUnread)
+	}
+
+	userId := mr.GetLoginedUserId(w, r)
+
+	list, total, err := mr.store.Message.List(userId, tab, page, pageSize)
+	if err != nil {
+		mr.Error("", err, w, r, http.StatusInternalServerError)
+		return
+	}
+
+	for _, item := range list {
+		item.SourceArticle.FormatDeleted()
+		item.SourceArticle.UpdateDisplayTitle()
+	}
+
+	title := mr.Local("List", "Name", mr.Local("Message"))
+
+	mr.Render(w, r, "message", &model.PageData{
+		Title: title,
+		Data: &MessagePageData{
+			List: list,
+			Query: &MessageQueryData{
+				&queryData{
+					Total: total, Page: page, TotalPage: CeilInt(total, pageSize),
+				},
+				tab,
+			},
+		},
+		BreadCrumbs: []*model.BreadCrumb{
+			{
+				Name: title,
+			},
+		},
+	})
 }

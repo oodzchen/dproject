@@ -487,4 +487,23 @@ func (ic *I18nCustom) AddConfigs() {
 		Other: "Subscribed",
 	})
 
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "MessageUnread",
+		Other: "Unread",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "MessageRead",
+		Other: "Read",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Message",
+		Other: "Message",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "NewReply",
+		Other: "New reply on {{.ArticleTitle}}",
+	})
 }

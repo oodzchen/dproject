@@ -88,7 +88,7 @@ type ActivityStore interface {
 }
 
 type MessageStore interface {
-	List(userId int, status int, page, pageSize int) ([]*model.Message, int, error)
+	List(userId int, status string, page, pageSize int) ([]*model.Message, int, error)
 	Create(senderUserId, reciverUserId, sourceArticleId int, content string) (int, error)
 	Read(messageId int) error
 	UnreadCount(loginedUserId int) (int, error)

@@ -418,9 +418,25 @@ other = "退出"
 hash = "sha1-bf58d17e561b1b858e35f9202f811297dac2e9db"
 other = "管理"
 
+[Message]
+hash = "sha1-68f4145fee7dde76afceb910165924ad14cf0d00"
+other = "消息"
+
+[MessageRead]
+hash = "sha1-852b438f91ad9eb2cdd84419a675a216d543c687"
+other = "已读"
+
+[MessageUnread]
+hash = "sha1-07b032b56f7aa399f0c5a6580292f3e83d7b1fad"
+other = "未读"
+
 [Modified]
 hash = "sha1-19a532c8bc61c311f583455c80ffe37067bbc9bb"
 other = "编辑"
+
+[NewReply]
+hash = "sha1-5e9146c5767c612cb92c2ef21c78f9c32a1aebd8"
+other = "{{.ArticleTitle}}有新的回复"
 
 [NoData]
 hash = "sha1-d802d232a85b790c06a7f0815c75d27016580682"

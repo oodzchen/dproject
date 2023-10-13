@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -283,6 +284,23 @@ func (rd *Renderer) ToPrevPage(w http.ResponseWriter, r *http.Request) {
 
 func (rd *Renderer) Local(id string, data ...any) string {
 	return rd.i18nCustom.LocalTpl(id, data...)
+}
+
+func (rd *Renderer) GetPaginationData(r *http.Request) (int, int) {
+	pageStr := r.URL.Query().Get("page")
+	pageSizeStr := r.URL.Query().Get("page_size")
+	page, _ := strconv.Atoi(pageStr)
+	pageSize, _ := strconv.Atoi(pageSizeStr)
+
+	if page < DefaultPage {
+		page = DefaultPage
+	}
+
+	if pageSize < DefaultPageSize {
+		pageSize = DefaultPageSize
+	}
+
+	return page, pageSize
 }
 
 // func (rd *Renderer) SaveUserInfo(u *model.User, w http.ResponseWriter, r *http.Request) {

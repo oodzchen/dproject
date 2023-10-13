@@ -13,15 +13,16 @@ type Message struct {
 	dbPool *pgxpool.Pool
 }
 
-func (m *Message) List(userId, status, page, pageSize int) ([]*model.Message, int, error) {
+func (m *Message) List(userId int, status string, page, pageSize int) ([]*model.Message, int, error) {
 	sqlStr := `SELECT m.id, m.sender_id, u.username AS sender_name, m.reciever_id, u1.username AS reciever_name, m.content, m.created_at, m.is_read,
-p.id, p.title, COALESCE(p.url, ''), u2.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth
+p.id, p.title, COALESCE(p.url, ''), u2.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, COALESCE(p2.title, ''),
 COUNT(*) OVER() AS total
 FROM messages m
 LEFT JOIN users u ON u.id = m.sender_id
 LEFT JOIN users u1 ON u1.id = m.reciever_id
 LEFT JOIN posts p ON p.id = m.source_id
-LEFT JOIN users u2 ON u2.id = p.author_id`
+LEFT JOIN users u2 ON u2.id = p.author_id
+LEFT JOIN posts p2 ON p.root_article_id = p2.id`
 
 	var args []any
 	var conditions []string
@@ -39,12 +40,11 @@ LEFT JOIN users u2 ON u2.id = p.author_id`
 		conditionCount += 1
 	}
 
-	if status > 1 {
-		args = append(args, status)
+	if status != "" {
 		switch status {
-		case 2:
+		case "unread":
 			conditions = append(conditions, "m.is_read = false")
-		case 3:
+		case "read":
 			conditions = append(conditions, "m.is_read = true")
 		}
 		conditionCount += 1
@@ -92,6 +92,7 @@ LEFT JOIN users u2 ON u2.id = p.author_id`
 			&article.Deleted,
 			&article.ReplyTo,
 			&article.ReplyDepth,
+			&article.ReplyRootArticleTitle,
 
 			&total,
 		)

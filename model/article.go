@@ -238,9 +238,9 @@ func (a *Article) UpdateDisplayTitle() {
 	if a.ReplyDepth == 0 {
 		displayTitle = a.Title
 	} else if a.ReplyDepth == 1 {
-		displayTitle = fmt.Sprintf("Re: %s", a.ReplyRootArticleTitle)
+		displayTitle = fmt.Sprintf("%s: %s", translator.LocalTpl("Re"), a.ReplyRootArticleTitle)
 	} else {
-		displayTitle = fmt.Sprintf("Re × %d: %s", a.ReplyDepth, a.ReplyRootArticleTitle)
+		displayTitle = fmt.Sprintf("%s × %d: %s", translator.LocalTpl("Re"), a.ReplyDepth, a.ReplyRootArticleTitle)
 	}
 
 	a.DisplayTitle = displayTitle
