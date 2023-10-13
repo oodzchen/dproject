@@ -30,7 +30,7 @@
 	</head>
 	<body {{if and .UISettings (eq .UISettings.ContentLayout "centered") -}}style="max-width:1000px"{{end}}>
 	    {{- if or (eq .RoutePath "/") (eq .RoutePath "/articles") -}}
-		<a id="skip-button" class="skip-button" tab-index="0" href="#article-list-head">Skip To Content</a>
+		<a id="skip-button" class="skip-button" tab-index="0" href="#article-list-head">{{local "SkipToContent"}}</a>
 	    {{- end -}}
 	    <nav class="top-nav">
 		{{- $breadIdx := 0 -}}

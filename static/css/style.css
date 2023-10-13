@@ -152,6 +152,7 @@ a.text-lighten-3{
     display: flex;
     align-items: flex-start;
     margin-bottom: 10px;
+    line-height: 1.2;
 }
 .article-list li a:active,
 .article-list li a:focus{
@@ -159,14 +160,12 @@ a.text-lighten-3{
 }
 .article-list .article-list__title{
     font-size: 1.1rem;
-    line-height: 1.2;
 }
 .article-list .article-list__summary{
     font-size: 0.8rem;
     color: var(--text-lighten-2);
 }
 .article-list .vote-form{
-    padding-top: 5px;
     margin-right: 10px;
 }
 .skip-button{

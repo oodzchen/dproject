@@ -250,6 +250,10 @@ other = "提交"
 hash = "sha1-65fd5f084b91ec4872711c6bc55c0be01801032f"
 other = "取消保存"
 
+[CancelVote]
+hash = "sha1-9f021898ec33f40be86f32bb614b7676044e2590"
+other = "取消投票"
+
 [ConfirmDelete]
 hash = "sha1-5c3d4418dea97785194bdc8d2ba60ca6dec1c61a"
 other = "確定刪除"
@@ -269,6 +273,10 @@ other = "已刪除"
 [Discuss]
 hash = "sha1-1b7949a7060ddc9ee6e31e42f7c8b0e281f45dc9"
 other = "討論"
+
+[Downvote]
+hash = "sha1-fef514a08c2e58d62819024945219c7cbcc3d52f"
+other = "減一票"
 
 [EditContent]
 hash = "sha1-0eea86f9aabaef1ecfe059c6e2c4a2de39feae69"
@@ -498,6 +506,10 @@ other = "已保存"
 hash = "sha1-c7f73bb54d928922c3838bb789ee9fb8a5b1eb37"
 other = "設置"
 
+[SkipToContent]
+hash = "sha1-0a4470d64e9d32597eececc636ba833f0a727528"
+other = "跳轉到內容"
+
 [Source]
 hash = "sha1-6da13addb000b67d42a6d66391713819e634149f"
 other = "來源"
@@ -545,6 +557,10 @@ other = "來源鏈接"
 [UpdateRole]
 hash = "sha1-dd5f9688fb0203138d144596ac296778a6be0086"
 other = "更新{{local \"Role\"}}"
+
+[Upvote]
+hash = "sha1-c52661f1d10a409be8dc96f4be3c50514d22a928"
+other = "投一票"
 
 [User]
 hash = "sha1-57f2b181d0a5e79a147ea1cdf41457f58dbbb3c9"

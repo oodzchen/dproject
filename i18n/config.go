@@ -462,4 +462,23 @@ func (ic *I18nCustom) AddConfigs() {
 		Other: "Custom",
 	})
 
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Upvote",
+		Other: "Upvote",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Downvote",
+		Other: "Downvote",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "CancelVote",
+		Other: "Cancel the vote",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "SkipToContent",
+		Other: "Skip to content",
+	})
 }
