@@ -15,7 +15,7 @@ const (
 
 var DefaultUiSettings = &UISettings{
 	Lang:          LangEn,
-	Theme:         PageThemeLight,
+	Theme:         PageThemeSystem,
 	ContentLayout: PageContentLayoutCentered,
 	FontSize:      16,
 }
