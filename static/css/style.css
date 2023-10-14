@@ -64,10 +64,11 @@ a:focus-visible{
 
 input,
 textarea,
-button{
+button,
+select{
     box-sizing: border-box;
     max-width: calc(100vw - 24px);
-    font-size: var(--font-size);
+    font-size: 1rem;
 }
 
 *:disabled{
