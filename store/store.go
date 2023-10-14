@@ -36,6 +36,7 @@ type ArticleStore interface {
 	Save(id, loginedUserId int) error
 	React(id, loginedUserId int, reactType string) error
 	Subscribe(id, loginedUserId int) error
+	CheckSubscribe(id, loginedUserId int) (int, error)
 	Notify(senderUserId, sourceArticleId int, content string) error
 }
 
@@ -91,6 +92,7 @@ type MessageStore interface {
 	List(userId int, status string, page, pageSize int) ([]*model.Message, int, error)
 	Create(senderUserId, reciverUserId, sourceArticleId int, content string) (int, error)
 	Read(messageId int) error
+	ReadMany(messageIds []any) error
 	UnreadCount(loginedUserId int) (int, error)
 }
 

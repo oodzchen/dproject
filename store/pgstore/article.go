@@ -726,6 +726,45 @@ func (a *Article) Subscribe(id, userId int) error {
 	return nil
 }
 
+// Check if user already subscribe in ancestor node
+func (a *Article) CheckSubscribe(id, userId int) (int, error) {
+	sqlStr := `WITH RECURSIVE ancestors AS (
+  SELECT p.id, p.reply_to FROM posts p
+  WHERE p.id = $1
+  
+  UNION ALL
+  
+  SELECT p1.id, p1.reply_to FROM posts p1
+  JOIN ancestors an ON p1.id = an.reply_to
+ )
+ SELECT id FROM ancestors an
+ INNER JOIN post_subs ps ON ps.post_id = an.id AND ps.user_id = $2
+`
+	// fmt.Println("article id: ", id)
+	// fmt.Println("user id: ", userId)
+	// fmt.Println("check subscribe sql: ", sqlStr)
+	rows, err := a.dbPool.Query(context.Background(), sqlStr, id, userId)
+	if err != nil {
+		return 0, err
+	}
+
+	// var count int
+	var ancestorSubscribes []int
+	var subedId int
+	for rows.Next() {
+		err := rows.Scan(&subedId)
+		if err != nil {
+			return len(ancestorSubscribes), err
+		}
+
+		ancestorSubscribes = append(ancestorSubscribes, subedId)
+	}
+
+	// fmt.Println("subed ids: ", ancestorSubscribes)
+
+	return len(ancestorSubscribes), nil
+}
+
 func (a *Article) Notify(senderUserId, sourceArticleId int, content string) error {
 	sqlStr := `
 WITH RECURSIVE parentPosts AS (
@@ -736,7 +775,7 @@ WITH RECURSIVE parentPosts AS (
 )
 INSERT INTO messages (sender_id, reciever_id, source_id, content)
 SELECT $1, ps.user_id, pp.id, $3 FROM parentPosts pp
-INNER JOIN post_subs ps ON ps.post_id = pp.id;
+INNER JOIN post_subs ps ON ps.post_id = pp.id AND ps.user_id != $1;
 `
 	_, err := a.dbPool.Exec(context.Background(), sqlStr, senderUserId, sourceArticleId, content)
 

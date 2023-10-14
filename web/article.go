@@ -319,7 +319,21 @@ func (ar *ArticleResource) handleSubmit(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	err = ar.store.Article.Subscribe(id, authorId)
+	if isReply {
+		count, err := ar.store.Article.CheckSubscribe(id, authorId)
+		if err != nil {
+			fmt.Printf("check subscribe error: %v\n", err)
+		}
+
+		// fmt.Println("check subscribe count: ", count)
+		if count == 0 {
+			err = ar.store.Article.Subscribe(id, authorId)
+		}
+	} else {
+		err = ar.store.Article.Subscribe(id, authorId)
+
+	}
+
 	if err != nil {
 		ar.ServerErrorp("", err, w, r)
 		return
@@ -327,7 +341,7 @@ func (ar *ArticleResource) handleSubmit(w http.ResponseWriter, r *http.Request, 
 
 	if isReply {
 		go func() {
-			err = ar.store.Article.Notify(1, replyTo, fmt.Sprintf("new reply id: %d", id))
+			err = ar.store.Article.Notify(authorId, replyTo, fmt.Sprintf("new reply id: %d", id))
 			if err != nil {
 				// ar.ServerErrorp("", err, w, r)
 				fmt.Println("notify to subscribers error: ", err)

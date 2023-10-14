@@ -459,7 +459,7 @@ func (mr *MainResource) MessageList(w http.ResponseWriter, r *http.Request) {
 	page, pageSize := mr.GetPaginationData(r)
 
 	if _, ok := MessageStatusMap[MessageStatus(tab)]; !ok {
-		tab = string(MessageStatusUnread)
+		tab = string(MessageStatusAll)
 	}
 
 	userId := mr.GetLoginedUserId(w, r)
@@ -470,9 +470,19 @@ func (mr *MainResource) MessageList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var messageIds []any
 	for _, item := range list {
 		item.SourceArticle.FormatDeleted()
 		item.SourceArticle.UpdateDisplayTitle()
+		messageIds = append(messageIds, item.Id)
+	}
+
+	if len(messageIds) > 0 {
+		err = mr.store.Message.ReadMany(messageIds)
+		if err != nil {
+			mr.Error("", err, w, r, http.StatusInternalServerError)
+			return
+		}
 	}
 
 	title := mr.Local("List", "Name", mr.Local("Message"))

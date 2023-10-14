@@ -1,16 +1,7 @@
 {{define "message" -}}
     {{template "head" . -}}
-    {{- $data := .Data -}}
-    {{- $tabs := list "unread" "read" "all"  -}}
-    {{- $tabMap := dict "unread" (local "MessageUnread") "read" (local "MessageRead") "all" (local "All") -}}
 
-    <div class="page-tab">
-	<div class="tabs">
-	    {{- range $tabs -}}
-		<a class="tab{{if eq $data.Query.Tab . }} active{{end}}" href="/messages{{if ne . "unread"}}?tab={{.}}{{end}}">{{get $tabMap .}}</a>
-	    {{- end -}}
-	</div>
-    </div>
+    {{- $data := .Data -}}
 
     <style>
      .message-list{
@@ -34,3 +25,16 @@
 
     {{template "foot" . -}}
 {{end -}}
+
+{{- define "message_tab" -}}
+    {{- $data := .Data -}}
+    {{- $tabs := list "unread" "read" "all"  -}}
+    {{- $tabMap := dict "unread" (local "MessageUnread") "read" (local "MessageRead") "all" (local "All") -}}
+    <div class="page-tab">
+	<div class="tabs">
+	    {{- range $tabs -}}
+		<a class="tab{{if eq $data.Query.Tab . }} active{{end}}" href="/messages{{if ne . "unread"}}?tab={{.}}{{end}}">{{get $tabMap .}}</a>
+	    {{- end -}}
+	</div>
+    </div>
+{{- end -}}

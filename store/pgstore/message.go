@@ -134,7 +134,25 @@ RETURNING (id)`,
 }
 
 func (m *Message) Read(messageId int) error {
-	_, err := m.dbPool.Exec(context.Background(), `UPDATE messages SET is_read = NOT is_read WHERE id = $1`, messageId)
+	_, err := m.dbPool.Exec(context.Background(), `UPDATE messages SET is_read = true WHERE id = $1`, messageId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Message) ReadMany(messageIds []any) error {
+	var placeholdArr []string
+	for idx := range messageIds {
+		placeholdArr = append(placeholdArr, fmt.Sprintf("$%d", idx+1))
+	}
+
+	sqlStr := `UPDATE messages SET is_read = true WHERE id IN (` + strings.Join(placeholdArr, ", ") + `)`
+
+	// fmt.Println("Read many messages sql: ", sqlStr)
+
+	_, err := m.dbPool.Exec(context.Background(), sqlStr, messageIds...)
 	if err != nil {
 		return err
 	}
