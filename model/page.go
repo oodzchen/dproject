@@ -13,6 +13,13 @@ const (
 	PageContentLayoutCentered        = "centered"
 )
 
+var DefaultUiSettings = &UISettings{
+	Lang:          LangEn,
+	Theme:         PageThemeLight,
+	ContentLayout: PageContentLayoutCentered,
+	FontSize:      16,
+}
+
 type UISettings struct {
 	Lang          Lang
 	Theme         string

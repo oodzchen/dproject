@@ -140,6 +140,8 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	if uiSettings, ok := r.Context().Value("ui_settings").(*model.UISettings); ok {
 		// fmt.Println("uiSettings in renderer: ", uiSettings)
 		data.UISettings = uiSettings
+	} else {
+		data.UISettings = model.DefaultUiSettings
 	}
 
 	err := sess.Save(r, w)

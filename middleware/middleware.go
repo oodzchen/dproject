@@ -266,7 +266,7 @@ func CreateUISettingsMiddleware(sessStore *sessions.CookieStore, ic *i18nc.I18nC
 					if theme, ok := sessVal.(string); ok {
 						uiSettings.Theme = theme
 					} else {
-						uiSettings.Theme = model.PageThemeSystem
+						uiSettings.Theme = model.DefaultUiSettings.Theme
 					}
 				case "page_content_layout":
 					if layout, ok := sessVal.(string); ok {
@@ -278,7 +278,7 @@ func CreateUISettingsMiddleware(sessStore *sessions.CookieStore, ic *i18nc.I18nC
 					if fontSize, ok := sessVal.(int); ok {
 						uiSettings.FontSize = fontSize
 					} else {
-						uiSettings.FontSize = 16
+						uiSettings.FontSize = model.DefaultUiSettings.FontSize
 					}
 				}
 
