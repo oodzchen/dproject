@@ -29,29 +29,7 @@
 	    <link href="/static/css/style.css" rel="stylesheet"/>
 	</head>
 	<body {{if and .UISettings (eq .UISettings.ContentLayout "centered") -}}style="max-width:1000px"{{end}}>
-	    <script>
-	     var primaryTheme = getPrimaryTheme()
-             if (primaryTheme == 'system') {
-		 setTheme(primaryTheme)
-		 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
-                     setTheme(primaryTheme)
-		 });
-             }
-	     function getPrimaryTheme() {
-		 return document.documentElement.getAttribute('data-theme')
-	     }
-
-	     function setTheme(themeName) {
-		 if (themeName == "system") {
-		     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-			 themeName = "dark"
-		     } else {
-			 themeName = "light"
-		     }
-		 }
-		 document.documentElement.setAttribute("data-theme", themeName)
-	     }
-	    </script>
+	    <script src="/static/js/update-theme.js"></script>
 	    {{- if or (eq .RoutePath "/") (eq .RoutePath "/articles") -}}
 		<a id="skip-button" class="skip-button" tab-index="0" href="#article-list-head">{{local "SkipToContent"}}</a>
 	    {{- end -}}
