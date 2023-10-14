@@ -518,7 +518,15 @@ p.reply_to,
 p.author_id,
 u.username AS author_name,
 p.depth,
-p3.title AS root_article_title
+p3.title AS root_article_title,
+(
+SELECT
+  CASE
+    WHEN COUNT(*) > 0 THEN TRUE
+    ELSE FALSE
+  END
+ FROM post_subs WHERE post_id = p.id AND user_id = $1
+) AS subscribed
 FROM post_subs ps
 LEFT JOIN posts p ON p.id = ps.post_id
 LEFT JOIN users u ON p.author_id = u.id
@@ -535,6 +543,8 @@ ORDER BY ps.created_at DESC`
 	var posts []*model.Article
 	for rows.Next() {
 		var item model.Article
+		var userState model.CurrUserState
+
 		err = rows.Scan(
 			&item.Id,
 			&item.NullTitle,
@@ -546,12 +556,15 @@ ORDER BY ps.created_at DESC`
 			&item.AuthorName,
 			&item.ReplyDepth,
 			&item.NullReplyRootArticleTitle,
+			&userState.Subscribed,
 		)
 
 		if err != nil {
 			fmt.Printf("query user's subscribed posts error: %v", err)
 			return nil, err
 		}
+
+		item.CurrUserState = &userState
 
 		item.FormatNullValues()
 		// item.FormatTimeStr()

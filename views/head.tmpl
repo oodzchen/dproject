@@ -55,7 +55,7 @@
 			<li><a href="/articles/new">&plus;{{local "AddNew"}}</a></li>
 		    {{- end -}}
 		    {{if .LoginedUser -}}
-			<li><a href="/users/{{.LoginedUser.Id}}">{{.LoginedUser.Name}}</a>{{if gt .MessageCount 0}} <a class="text" href="/messages"><b>({{.MessageCount}} {{local "Message"}})</b></a>{{end}}</li>
+			<li><a href="/users/{{.LoginedUser.Id}}">{{.LoginedUser.Name}}</a> <a class="text" href="/messages">{{if gt .MessageCount 0}}<b>({{.MessageCount}} {{local "Message"}})</b>{{else}}({{local "Message"}}){{end}}</a></li>
 			<li>
 			    <form class="form-inline" action="/logout" method="POST">
 				{{.CSRFField}}

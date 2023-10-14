@@ -2,6 +2,7 @@
     {{template "head" . -}}
 
     {{- $data := .Data -}}
+    {{- $csrfField := .CSRFField -}}
 
     <style>
      .message-list{
@@ -15,7 +16,17 @@
     <ul class="message-list">
 	{{- range $data.List -}}
 	    {{- $title := print "<a href='/articles/" .SourceArticle.Id "'>" .SourceArticle.DisplayTitle "</a>" -}}
-	    <li>{{local "NewReply" "ArticleTitle" $title}}{{timeAgo .CreatedAt}}</li>
+	    <li>
+		{{- local "NewReply" "ArticleTitle" $title}}{{timeAgo .CreatedAt}}
+		{{- if and .SourceArticle.CurrUserState .SourceArticle.CurrUserState.Subscribed -}}
+		    &nbsp;&nbsp;<form class="btn-form" action="/articles/{{.SourceArticle.Id}}/subscribe" method="POST" >
+			{{- $csrfField -}}
+			<input name="root" type="hidden" value="{{.SourceArticle.ReplyRootArticleId}}"/>
+			{{$btnSubText := local "BtnUnsubscribe"}}
+			<button class="text-lighten-3" title="{{$btnSubText}}" type="submit">{{$btnSubText}}</button>
+		    </form>
+		{{- end -}}
+	    </li>
 	{{- end -}}
 	{{- placehold $data.List (print "<i class='text-lighten-2'>" (local "NoData") "</i>") -}}
     </ul>

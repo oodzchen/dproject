@@ -28,6 +28,7 @@
     {{template "user_basic_info" .Data.UserInfo -}}
 
     {{- $data := .Data -}}
+    {{- $csrfField := .CSRFField -}}
     {{- $tabs := list "all" "article" "reply" -}}
     {{- $tabsMap := dict "all" (local "All") "article" (local "Article" "Count" 2) "reply" (local "Reply" "Count" 2) "saved" (local "Saved") "subscribed" (local "Subscribed") "activity" (local "Activity" "Count" 2) -}}
 
@@ -48,10 +49,11 @@
 	{{- end -}}
     </div>
 
+    {{- $postListData := dict "posts" .Data.Posts "tab" $data.CurrTab "csrfField" $csrfField -}}
     {{- if eq $data.CurrTab "activity" -}}
 	{{template "activity_list" .Data.Activities -}}
     {{- else -}}
-	{{template "post_list" .Data.Posts -}}
+	{{template "post_list" $postListData -}}
     {{- end -}}
 
     {{template "foot" . -}}
@@ -96,18 +98,28 @@
      }
     </style>
     <ul class="post-list">
-	{{range . -}}
+	{{- $csrfField := .csrfField -}}
+	{{- $tab := .tab -}}
+	{{range .posts -}}
 	    <li>
 		<div>
 		    <a href="/articles/{{.Id}}">{{.DisplayTitle}}</a>
-		    <small><time title="{{.CreatedAt}}">{{timeAgo .CreatedAt}}</time></small>
+		    <time title="{{.CreatedAt}}">{{timeAgo .CreatedAt}}</time>
+		    {{- if and (eq $tab "subscribed") (and .CurrUserState .CurrUserState.Subscribed) -}}
+			&nbsp;&nbsp;<form class="btn-form" action="/articles/{{.Id}}/subscribe" method="POST" >
+			{{- $csrfField -}}
+			<input name="root" type="hidden" value="{{.ReplyRootArticleId}}"/>
+			{{$btnSubText := local "BtnUnsubscribe"}}
+			<button class="text-lighten-3" title="{{$btnSubText}}" type="submit">{{$btnSubText}}</button>
+			</form>
+		    {{- end -}}
 		</div>
 		{{- if .Content -}}
 		    <div class="post-list__info">{{.Summary}}{{if ne .Content .Summary}} ...{{end}}</div>
 		{{- end -}}
 	    </li>
 	{{end -}}
-	{{- placehold . (print "<i class='text-lighten-2'>" (local "NoData") "</i>") -}}
+	{{- placehold .posts (print "<i class='text-lighten-2'>" (local "NoData") "</i>") -}}
     </ul>
 {{end -}}
 

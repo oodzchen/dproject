@@ -16,6 +16,14 @@ type Message struct {
 func (m *Message) List(userId int, status string, page, pageSize int) ([]*model.Message, int, error) {
 	sqlStr := `SELECT m.id, m.sender_id, u.username AS sender_name, m.reciever_id, u1.username AS reciever_name, m.content, m.created_at, m.is_read,
 p.id, p.title, COALESCE(p.url, ''), u2.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, COALESCE(p2.title, ''),
+(
+SELECT
+  CASE
+    WHEN COUNT(*) > 0 THEN TRUE
+    ELSE FALSE
+  END
+ FROM post_subs WHERE post_id = p.id AND user_id = m.reciever_id
+) AS subscribed,
 COUNT(*) OVER() AS total
 FROM messages m
 LEFT JOIN users u ON u.id = m.sender_id
@@ -55,7 +63,7 @@ LEFT JOIN posts p2 ON p.root_article_id = p2.id`
 	}
 
 	args = append(args, pageSize*(page-1), pageSize)
-	sqlStr += fmt.Sprintf(" ORDER BY m.created_at DESC OFFSET $%d LIMIT $%d", len(args)-1, len(args))
+	sqlStr += fmt.Sprintf(" ORDER BY m.created_at DESC, m.id OFFSET $%d LIMIT $%d", len(args)-1, len(args))
 
 	// fmt.Println("message list sqlStr: ", sqlStr)
 	// fmt.Println("message list args: ", args)
@@ -69,6 +77,7 @@ LEFT JOIN posts p2 ON p.root_article_id = p2.id`
 	var total int
 	for rows.Next() {
 		var item model.Message
+		var userState model.CurrUserState
 		var article model.Article
 
 		err := rows.Scan(
@@ -93,6 +102,7 @@ LEFT JOIN posts p2 ON p.root_article_id = p2.id`
 			&article.ReplyTo,
 			&article.ReplyDepth,
 			&article.ReplyRootArticleTitle,
+			&userState.Subscribed,
 
 			&total,
 		)
@@ -101,6 +111,7 @@ LEFT JOIN posts p2 ON p.root_article_id = p2.id`
 			return nil, 0, err
 		}
 
+		article.CurrUserState = &userState
 		item.SourceArticle = &article
 
 		list = append(list, &item)
