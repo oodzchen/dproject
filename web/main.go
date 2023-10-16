@@ -304,8 +304,12 @@ func (mr *MainResource) SaveUISettings(w http.ResponseWriter, r *http.Request) {
 	var fontSize int
 	if strings.TrimSpace(fontSizeStr) == "x" {
 		fontSize, _ = strconv.Atoi(fontSizeCustomStr)
+		uiSettings.FontSizeCustom = true
+		localSess.SetValue("font_size_custom", true)
 	} else {
 		fontSize, _ = strconv.Atoi(fontSizeStr)
+		uiSettings.FontSizeCustom = false
+		localSess.SetValue("font_size_custom", false)
 	}
 
 	if fontSize < 10 {

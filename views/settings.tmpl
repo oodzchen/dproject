@@ -68,7 +68,7 @@
 		<label class="form__label" for="font-size-options">{{local "FontSize"}}:</label>
 		<div id="font-size-options">
 		    {{range $fontSizes -}}
-			<span><label><input name="font_size" required autocomplete="off" id="font-size-{{.}}" {{if and $settings (eq (toString $settings.FontSize) .)}}checked{{end}} type="radio" value="{{.}}"/> {{get $fontSizeDict .}} {{if eq . "x"}} <input name="font_size_custom" type="number" min="10" value=""/> {{end}}</label></span>&nbsp;&nbsp;
+			<span><label><input name="font_size" required autocomplete="off" id="font-size-{{.}}" {{if or (eq (toString $settings.FontSize) .) (and (eq "x" .) $settings.FontSizeCustom)}}checked{{end}} type="radio" value="{{.}}"/> {{get $fontSizeDict .}} {{if eq . "x"}} <input name="font_size_custom" type="number" autocomplete="off" min="10" value="{{if $settings.FontSizeCustom}}{{$settings.FontSize}}{{end}}"/> px {{end}}</label></span>&nbsp;&nbsp;
 		    {{- end -}}
 		</div>
 	    </div>

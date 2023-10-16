@@ -80,7 +80,7 @@
     <article {{if $isRoot}}id="ar_{{.article.Id}}"{{end}}>
 	{{if $isRoot -}}
 	    <h1>{{.article.Title}}</h1>
-	    {{if .article.Link}}<a href="{{.article.Link}}">{{local "Source"}}</a>{{end}}
+	    {{if .article.Link}}<a title="{{.article.Link}}" href="{{.article.Link}}">{{local "Source"}}</a>{{end}}
 	{{else -}}
 	    {{if eq $pageDepth 1 -}}
 		<h1>{{local "Re"}}{{if gt .article.ReplyDepth 1}} &times; {{.article.ReplyDepth}}{{- end -}}: <a href="/articles/{{.article.ReplyRootArticleId}}">{{.article.ReplyRootArticleTitle}}</a></h1>
@@ -106,7 +106,7 @@
 		    &nbsp;|&nbsp;<a class="text-lighten-3" href="/articles/{{.article.Id}}">{{local "Link" | lower}}</a> |&nbsp;
 		    <a class="text-lighten-3" href="#ar_{{.article.Id}}">{{local "Anchor" | lower}}</a> |&nbsp;
 		    {{- if gt .pageDepth 1 -}}
-			<a title="{{local "BtnParent"}}" class="btn-parent text-lighten-3" href="#ar_{{.article.ReplyTo}}">{{local "BtnParent"}}</a> |&nbsp;
+			<a title="{{local "BtnParent"}}" class="btn-parent text-lighten-3" href="#ar_{{.article.ReplyTo}}">{{local "BtnParent" | lower}}</a> |&nbsp;
 		    {{- end -}}
 		    {{- if permit "article" "save" -}}
 			<form class="btn-form" action="/articles/{{.article.Id}}/save" method="POST" >
@@ -116,7 +116,7 @@
 			    {{- if and .article.CurrUserState .article.CurrUserState.Saved -}}
 				{{$btnSaveText = local "BtnUnsave"}}
 			    {{- end -}}
-			    <button class="text-lighten-3" title="{{$btnSaveText}}" type="submit">{{$btnSaveText}}</button>
+			    <button class="text-lighten-3" title="{{$btnSaveText}}" type="submit">{{$btnSaveText | lower}}</button>
 			</form>
 		    {{- end -}}
 		    {{- if permit "article" "subscribe" -}}
@@ -127,16 +127,16 @@
 			    {{- if and .article.CurrUserState .article.CurrUserState.Subscribed -}}
 				{{$btnSubText = local "BtnUnsubscribe"}}
 			    {{- end -}}
-			    <button class="text-lighten-3" title="{{$btnSubText}}" type="submit">{{$btnSubText}}</button>
+			    <button class="text-lighten-3" title="{{$btnSubText}}" type="submit">{{$btnSubText | lower}}</button>
 			</form>
 		    {{- end -}}
 		    {{- if .currUser -}}
 			{{- if eq .currUser.Id .article.AuthorId -}}
 			    {{- if permit "article" "edit_mine" -}}
-				&nbsp;|&nbsp;<a class="btn-edit text-lighten-3" href="/articles/{{.article.Id}}/edit">{{local "BtnEdit"}}</a>
+				&nbsp;|&nbsp;<a class="btn-edit text-lighten-3" href="/articles/{{.article.Id}}/edit">{{local "BtnEdit" | lower}}</a>
 			    {{- end -}}
 			    {{- if permit "article" "delete_mine" -}}
-				&nbsp;|&nbsp;<a class="btn-del text-lighten-3" href="/articles/{{.article.Id}}/delete">{{local "BtnDelete"}}</a>
+				&nbsp;|&nbsp;<a class="btn-del text-lighten-3" href="/articles/{{.article.Id}}/delete">{{local "BtnDelete" | lower}}</a>
 			    {{- end -}}
 			{{- end -}}
 		    {{- end -}}

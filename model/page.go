@@ -14,17 +14,19 @@ const (
 )
 
 var DefaultUiSettings = &UISettings{
-	Lang:          LangEn,
-	Theme:         PageThemeSystem,
-	ContentLayout: PageContentLayoutCentered,
-	FontSize:      16,
+	Lang:           LangEn,
+	Theme:          PageThemeSystem,
+	ContentLayout:  PageContentLayoutCentered,
+	FontSize:       16,
+	FontSizeCustom: false,
 }
 
 type UISettings struct {
-	Lang          Lang
-	Theme         string
-	ContentLayout string
-	FontSize      int
+	Lang           Lang
+	Theme          string
+	ContentLayout  string
+	FontSize       int
+	FontSizeCustom bool
 }
 
 type BreadCrumb struct {

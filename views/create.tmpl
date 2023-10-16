@@ -2,7 +2,8 @@
     {{template "head" . -}}
 
     <style>
-     .create-form input,
+     .create-form input[type="text"],
+     .create-form input[type="url"],
      .create-form textarea{
 	 display: block;
 	 width: 100%;
@@ -10,6 +11,10 @@
      }
     </style>
     {{- $isReply := ne .Data.ReplyTo 0 -}}
+
+    <div class="create-tip" style="padding: 10px;margin-bottom: 10px;background:var(--text-bg);color:var(--text-lighten);">
+	由于这里的内容将会公布在互联网上，请不要在发帖标题和内容中包含个人隐私信息，所有隐私数据将被移除。
+    </div>
     <form class="form create-form" method="post" action="/articles{{- if .Data.Id -}}/{{.Data.Id}}/edit{{- end -}}">
 	{{.CSRFField -}}
 	{{if .Data.Id -}}
@@ -21,21 +26,29 @@
 	    <h1>{{local "Re"}}{{if gt .Data.ReplyDepth 1}} &times; {{.Data.ReplyDepth}}{{end}}: <a href="/articles/{{.Data.ReplyRootArticleId}}">{{.Data.ReplyRootArticleTitle}}</a></h1>
 	{{else -}}
 	    <div class="form__row">
-		<label class="form__label" for="title">{{local "Title"}}:</label>
+		<label class="form__label" for="title">{{local "Title"}} <small class="text-lighten-2" style="font-weight: normal">({{local "FormRequired"}})</small></label>
 		<input required type="text" id="title" name="title" value="{{.Data.Title}}">
-		<small class="text-lighten-2">({{local "FormRequired"}}) {{local "ArticleTitleTip"}}</small>
+		<small class="text-lighten-2">{{local "ArticleTitleTip"}}</small>
 	    </div>
 	    <div class="form__row">
-		<label class="form__label" for="url">{{local "URL"}}:</label>
+		<label class="form__label" for="url">{{local "URL"}} <small class="text-lighten-2" style="font-weight: normal">({{local "FormOptional"}})</small></label>
 		<input type="url" id="url" name="url" value="{{.Data.Link}}">
-		<small class="text-lighten-2">({{local "FormOptional"}}) {{local "ArticleURLTip"}}</small>
+		<small class="text-lighten-2">{{local "ArticleURLTip"}}</small>
 	    </div>
 	{{end -}}
 	
 	<div class="form__row">
-	    <label class="form__label" for="content">{{local "Content"}}:</label>
+	    <label class="form__label" for="content">{{local "Content"}} <small class="text-lighten-2" style="font-weight: normal">{{if not $isReply}} ({{local "FormOptional"}}){{end}}</small></label>
 	    <textarea id="content" name="content" cols="30" rows="10">{{.Data.Content}}</textarea>
-	    <small class="text-lighten-2">{{if not $isReply}}({{local "FormOptional"}}) {{end}}{{local "ArticleContentTip"}}</small>
+	    <small class="text-lighten-2">{{local "ArticleContentTip"}}</small>
+	</div>
+	<div class="form__row">
+	    <label class="form__label" for="content">通知</label>
+	    <div>
+		<label><input name="notify" type="checkbox" checked autocomplete="off" value="message"/>消息通知 <small class="text-lighten-2">(将会收到消息提醒)</small></label>
+		<br/>
+		<label><input name="notify" type="checkbox" checked autocomplete="off" value="email"/>邮件通知 <small class="text-lighten-2">(回复将会发送到你的注册邮箱)</small></label>
+	    </div>
 	</div>
 	<br/>
 	<button type="submit">{{local "BtnSubmit"}}</button>

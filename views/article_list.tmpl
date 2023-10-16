@@ -27,7 +27,7 @@
 		    <button {{if not (permit "article" "vote_up")}}disabled{{end}} class="btn-vote--up" type="submit" title="{{if eq $item.CurrUserState.VoteType "up"}}{{local "CancelVote"}}{{else}}{{local "Upvote"}}{{end}}"><svg width="14" viewBox="0 1 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1 21h22L12 2"/></svg></button>
 		</form>
 		<div>
-		    <a class="article-list__title" {{if eq $idx 0}}id="article-list-head"{{end}} href="/articles/{{$item.Id}}">{{$item.DisplayTitle}}</a> {{if $item.Link}}[<a href="{{$item.Link}}">{{local "Source"}}</a>]{{end}}
+		    <a class="article-list__title" {{if eq $idx 0}}id="article-list-head"{{end}} href="/articles/{{$item.Id}}">{{$item.DisplayTitle}}</a> {{if $item.Link}}[<a title="{{$item.Link}}" href="{{$item.Link}}">{{local "Source"}}</a>]{{end}}
 		    <br/>
 		    {{- $author :=  (print "<a class=\"text-lighten-3\" href=\"/users/" $item.AuthorId "\">" $item.AuthorName "</a>") -}}
 		    <small class="text-lighten-3">
