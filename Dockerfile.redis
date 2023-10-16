@@ -1,0 +1,8 @@
+FROM redis:7.2.1-alpine
+
+WORKDIR /app
+
+COPY ./redis/users.acl.tpl .
+COPY ./redis/run_redis.sh .
+
+CMD ["sh", "/app/run_redis.sh"]
