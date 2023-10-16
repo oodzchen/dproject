@@ -1,0 +1,16 @@
+{{define "verify" -}}
+
+    {{template "head" . -}}
+
+    <form class="form" method="post" action="/register">
+	{{.CSRFField -}}
+	<div class="form__row">
+	    <label class="form__label" for="verification_code">验证码 <small class="text-lighten-2" style="font-weight: normal">({{local "FormRequired"}})</small></label>
+	    <input name="verification_code" id="verification_code" type="text"/> <button>发送验证码到邮箱</button>
+	</div>
+	<br/>
+	<button type="submit">{{local "BtnSubmit"}}</button>
+    </form>
+
+    {{template "foot" . -}}
+{{end -}}

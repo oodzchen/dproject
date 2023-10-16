@@ -78,6 +78,15 @@ CREATE TABLE activities (
     details TEXT
 );
 
+-- CREATE TABLE verification_codes (
+--     id SERIAL PRIMARY KEY,
+--     email VARCHAR(255) NOT NULL,
+--     code VARCHAR(255) NOT NULL,
+--     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+--     expired_at TIMESTAMP NOT NULL DEFAULT NOW(),
+--     is_used BOOLEAN NOT NULL DEFAULT false
+-- )
+
 -- INSERT INTO roles (front_id, name) VALUES ('user', 'User');
 -- INSERT INTO roles (front_id, name) VALUES ('moderator', 'Moderator');
 -- INSERT INTO roles (front_id, name) VALUES ('admin', 'Admin');

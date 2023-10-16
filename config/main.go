@@ -52,6 +52,12 @@ func (dbCfg *DBConfig) GetDSN() string {
 	)
 }
 
+type RedisConfig struct {
+	Host     string `env:"REDIS_HOST"`
+	Port     string `env:"REDIS_PORT"`
+	Password string `env:"REDIS_PASSWORD"`
+}
+
 var Config *AppConfig
 
 // var BrandName = "DizKaz"
