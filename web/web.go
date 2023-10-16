@@ -36,7 +36,12 @@ func logSessError(sessName string, err error) {
 	}
 }
 
-func ClearSession(sess *sessions.Session, w http.ResponseWriter, r *http.Request) {
+func ClearSession(cookStore *sessions.CookieStore, w http.ResponseWriter, r *http.Request) {
+	sess, err := cookStore.Get(r, "one")
+	if err != nil {
+		fmt.Println("clear session get session error: ", err)
+	}
+
 	if sess != nil {
 		sess.Options.MaxAge = -1
 		err := sess.Save(r, w)

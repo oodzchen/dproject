@@ -213,6 +213,9 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	header.Add("Content-Security-Policy", strings.Join(contentSecurity, ";"))
 
 	// fmt.Println("header", header.Values("Content-Security-Policy"))
+	if code == http.StatusInternalServerError {
+		ClearSession(rd.sessStore, w, r)
+	}
 	w.WriteHeader(code)
 
 	err = rd.tmpl.ExecuteTemplate(w, name, data)
@@ -244,7 +247,7 @@ func (rd *Renderer) Session(name string, w http.ResponseWriter, r *http.Request)
 	sess, err := rd.sessStore.Get(r, name)
 	if err != nil {
 		logSessError(name, errors.WithStack(err))
-		ClearSession(sess, w, r)
+		ClearSession(rd.sessStore, w, r)
 	}
 	return &Session{rd, sess, w, r}
 }

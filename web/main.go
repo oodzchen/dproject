@@ -269,13 +269,7 @@ func (mr *MainResource) Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (mr *MainResource) doLogout(w http.ResponseWriter, r *http.Request) {
-	sess, err := mr.sessStore.Get(r, "one")
-	if err != nil {
-		logSessError("one", errors.WithStack(err))
-		mr.Error("", err, w, r, http.StatusInternalServerError)
-		return
-	}
-	ClearSession(sess, w, r)
+	ClearSession(mr.sessStore, w, r)
 
 	mr.permissionSrv.ResetPermissionData()
 }
