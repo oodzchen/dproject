@@ -35,6 +35,11 @@ jobs:
           APP_OUTER_PORT: ${{ vars.APP_OUTER_PORT }}
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
           CSRF_SECRET: ${{ secrets.CSRF_SECRET }}
+          REDIS_HOST: "localhost"
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          REDIS_USER: ${{ secrets.REDIS_USER }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          REDISCLI_AUTH: ${{ secrets.REDISCLI_AUTH }}
       run: ./scripts/pre_test.sh
 
     - run: docker compose --env-file ./.env.testing -f ./docker-compose.dev.yml pull
@@ -47,6 +52,7 @@ jobs:
       run: |
         docker compose --env-file ./.env.testing -f ./docker-compose.dev.yml up -d
         docker ps
+        docker exec local-redis cat /usr/local/etc/redis/users.acl
 
     - name: Build
       run: CGO_ENABLED=0 GOOS=linux go build -o /usr/local/bin/app -v .
