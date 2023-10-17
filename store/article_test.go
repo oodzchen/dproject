@@ -12,19 +12,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func connectDB() (*pgstore.PGStore, error) {
-	err := config.Init("testdata/.env.testing")
-	if err != nil {
-		return nil, err
-	}
-
-	appCfg := config.Config
-
+func connectDB(appCfg *config.AppConfig) (*pgstore.PGStore, error) {
 	pg := pgstore.New(&pgstore.DBConfig{
 		DSN: appCfg.DB.GetDSN(),
 	})
 
-	err = pg.ConnectDB()
+	err := pg.ConnectDB()
 	if err != nil {
 		return nil, err
 	}
@@ -32,9 +25,9 @@ func connectDB() (*pgstore.PGStore, error) {
 	return pg, nil
 }
 
-func registerNewUser(store *Store) (int, error) {
+func registerNewUser(store *Store, appCfg *config.AppConfig) (int, error) {
 	user := mt.GenUser()
-	pwd, _ := bcrypt.GenerateFromPassword([]byte(config.Config.DB.UserDefaultPassword), 10)
+	pwd, _ := bcrypt.GenerateFromPassword([]byte(appCfg.DB.UserDefaultPassword), 10)
 	return store.User.Create(user.Email, string(pwd), user.Name, "common_user")
 }
 
@@ -44,7 +37,14 @@ func createNewArticle(store *Store, userId int) (int, error) {
 }
 
 func TestArticleVote(t *testing.T) {
-	pg, err := connectDB()
+	appCfg, err := config.NewTest()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// fmt.Println("testing db config:", appCfg.DB)
+
+	pg, err := connectDB(appCfg)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -55,13 +55,13 @@ func TestArticleVote(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	uId, err := registerNewUser(store)
+	uId, err := registerNewUser(store, appCfg)
 	mt.LogFailed(err)
 
 	aId, err := createNewArticle(store, uId)
 	mt.LogFailed(err)
 
-	uBId, err := registerNewUser(store)
+	uBId, err := registerNewUser(store, appCfg)
 	mt.LogFailed(err)
 
 	// fmt.Println("uId: ", uId)
@@ -91,7 +91,12 @@ func TestArticleVote(t *testing.T) {
 }
 
 func TestArticleCheckVote(t *testing.T) {
-	pg, err := connectDB()
+	appCfg, err := config.NewTest()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	pg, err := connectDB(appCfg)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -102,7 +107,7 @@ func TestArticleCheckVote(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	uId, err := registerNewUser(store)
+	uId, err := registerNewUser(store, appCfg)
 	mt.LogFailed(err)
 
 	aId, err := createNewArticle(store, uId)

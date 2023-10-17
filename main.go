@@ -80,7 +80,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("connecting database success")
+	fmt.Println("connected database successfully")
 	defer pg.CloseDB()
 
 	dataStore, err := store.New(pg)
@@ -89,25 +89,20 @@ func main() {
 	}
 
 	redisAddr := net.JoinHostPort(appCfg.Redis.Host, appCfg.Redis.Port)
-	fmt.Println("redisAddr: ", redisAddr)
+	fmt.Println("connecting redis...")
 	redisDB := redis.NewClient(&redis.Options{
 		Addr:     redisAddr,
 		Username: appCfg.Redis.User,
 		Password: appCfg.Redis.Password,
 		DB:       0,
 	})
-
 	ctx := context.Background()
-	err = redisDB.Set(ctx, "key", "value", 0).Err()
+	err = redisDB.Ping(ctx).Err()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-
-	val, err := redisDB.Get(ctx, "key").Result()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("key", val)
+	defer redisDB.Close()
+	fmt.Println("connected redis successfully")
 
 	permissionSrv := &service.Permission{
 		Store:          dataStore,

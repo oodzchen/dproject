@@ -3,7 +3,11 @@
 package config
 
 import (
+	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
 
 	"github.com/caarlos0/env/v9"
 	"github.com/joho/godotenv"
@@ -84,6 +88,27 @@ func InitFromEnv() error {
 	}
 	Config = cfg
 	return nil
+}
+
+func NewTest() (*AppConfig, error) {
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		return nil, errors.New("can't get caller info")
+	}
+
+	// fmt.Println("caller filename: ", filename)
+
+	testingEnvFile := filepath.Join(filepath.Dir(filename), "./.env.testing")
+
+	// fmt.Println("testing env file: ", testingEnvFile)
+
+	if _, err := os.Stat(testingEnvFile); err != nil {
+		return nil, err
+	}
+	// if err != nil {
+	// 	return nil, err
+	// }
+	return Parse(testingEnvFile)
 }
 
 // Parse env file and generate AppConfig struct
