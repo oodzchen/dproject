@@ -42,6 +42,7 @@ services:
     environment:
       - REDIS_USER=$REDIS_USER
       - REDIS_PASSWORD=$REDIS_PASSWORD
+      - REDISCLI_AUTH=$REDISCLI_AUTH
     volumes:
       - redis-data:/data
       - ./redis/redis.conf:/usr/local/etc/redis/redis.conf

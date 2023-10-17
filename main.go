@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -18,6 +19,7 @@ import (
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/store/pgstore"
 	"github.com/oodzchen/dproject/utils"
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
@@ -73,16 +75,39 @@ func main() {
 		DSN: appCfg.DB.GetDSN(),
 	})
 
+	fmt.Println("connecting database...")
 	err = pg.ConnectDB()
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println("connecting database success")
 	defer pg.CloseDB()
 
 	dataStore, err := store.New(pg)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	redisAddr := net.JoinHostPort(appCfg.Redis.Host, appCfg.Redis.Port)
+	fmt.Println("redisAddr: ", redisAddr)
+	redisDB := redis.NewClient(&redis.Options{
+		Addr:     redisAddr,
+		Username: appCfg.Redis.User,
+		Password: appCfg.Redis.Password,
+		DB:       0,
+	})
+
+	ctx := context.Background()
+	err = redisDB.Set(ctx, "key", "value", 0).Err()
+	if err != nil {
+		panic(err)
+	}
+
+	val, err := redisDB.Get(ctx, "key").Result()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("key", val)
 
 	permissionSrv := &service.Permission{
 		Store:          dataStore,
@@ -133,6 +158,7 @@ func main() {
 			permisisonSrv:  permissionSrv,
 			sanitizePolicy: sanitizePolicy,
 			i18nCustom:     i18nCustom,
+			rdb:            redisDB,
 		})),
 	}
 

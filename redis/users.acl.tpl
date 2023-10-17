@@ -1,2 +1,2 @@
-user default off
-user $REDIS_USER +@all on >$REDIS_PASSWORD
+user default +ping on >$REDISCLI_AUTH
+user $REDIS_USER +@all ~* on >$REDIS_PASSWORD

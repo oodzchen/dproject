@@ -23,6 +23,7 @@ import (
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
 	"github.com/oodzchen/dproject/web"
+	"github.com/redis/go-redis/v9"
 )
 
 type ServiceConfig struct {
@@ -32,6 +33,7 @@ type ServiceConfig struct {
 	permisisonSrv  *service.Permission
 	sanitizePolicy *bluemonday.Policy
 	i18nCustom     *i18nc.I18nCustom
+	rdb            *redis.Client
 }
 
 // func FileServer(r chi.Router, path string, root http.FileSystem) {
