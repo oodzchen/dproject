@@ -511,4 +511,52 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "EmailVerify",
 		Other: "Email Verification",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "VerificationEmailTip",
+		Other: "The verification code has been sent to the email: {{.Email}}. It is valid for {{.Duration}} minutes. Please enter the code to complete the registration.",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "VerificationCode",
+		Other: "Verification code",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "ResendVerification",
+		Other: "Please resend the verification code to the email.",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "VerificationExpired",
+		Other: "The verification code has expired.",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "VerificationIncorrect",
+		Other: "The verification code is incorrect.",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "SubmitContentTip",
+		Other: "Due to the content being published on the internet, please refrain from including personal privacy information in the post title and content. All private data will be removed.",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID: "VerificationMailTpl",
+		Other: `<html>
+<body>
+<p>You are registering on {{.DomainName}}, here's the verfication code:</p>
+<p><large><b>{{.Code}}</b></large></p>
+<p>Valid for {{.Minutes}} minutes.</p>
+<hr>
+<p style="color:#666">{{.DomainName}}</p>
+</body>
+</html>`,
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "VerificationMailTitle",
+		Other: "Verification code for registration",
+	})
 }

@@ -13,7 +13,7 @@
     {{- $isReply := ne .Data.ReplyTo 0 -}}
 
     <div class="tip-block">
-	由于这里的内容将会公布在互联网上，请不要在发帖标题和内容中包含个人隐私信息，所有隐私数据将被移除。
+	{{local "SubmitContentTip"}}
     </div>
     <form class="form create-form" method="post" action="/articles{{- if .Data.Id -}}/{{.Data.Id}}/edit{{- end -}}">
 	{{.CSRFField -}}
@@ -42,14 +42,14 @@
 	    <textarea id="content" name="content" cols="30" rows="10">{{.Data.Content}}</textarea>
 	    <small class="text-lighten-2">{{local "ArticleContentTip"}}</small>
 	</div>
-	<div class="form__row">
-	    <label class="form__label" for="content">通知</label>
-	    <div>
-		<label><input name="notify" type="checkbox" checked autocomplete="off" value="message"/>消息通知 <small class="text-lighten-2">(将会收到消息提醒)</small></label>
-		<br/>
-		<label><input name="notify" type="checkbox" checked autocomplete="off" value="email"/>邮件通知 <small class="text-lighten-2">(回复将会发送到你的注册邮箱)</small></label>
-	    </div>
-	</div>
+	<!-- <div class="form__row">
+	     <label class="form__label" for="content">通知</label>
+	     <div>
+	     <label><input name="notify" type="checkbox" checked autocomplete="off" value="message"/>消息通知 <small class="text-lighten-2">(将会收到消息提醒)</small></label>
+	     <br/>
+	     <label><input name="notify" type="checkbox" checked autocomplete="off" value="email"/>邮件通知 <small class="text-lighten-2">(回复将会发送到你的注册邮箱)</small></label>
+	     </div>
+	     </div> -->
 	<br/>
 	<button type="submit">{{local "BtnSubmit"}}</button>
     </form>

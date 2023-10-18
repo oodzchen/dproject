@@ -9,6 +9,7 @@ import (
 
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
+	i18nc "github.com/oodzchen/dproject/i18n"
 )
 
 type Mail struct {
@@ -16,6 +17,7 @@ type Mail struct {
 	auth           sasl.Client
 	SMTPServer     string
 	SMTPServerPort string
+	i18nCustom     *i18nc.I18nCustom
 }
 
 type MailHead struct {
@@ -34,20 +36,20 @@ MIME-version: 1.0;
 Content-Type: text/html;charset="UTF-8";
 `
 
-const verificationCodeTpl = `<html>
-<body>
-<p>You are registering on {{.DomainName}}, here's the verfication code:</p>
-<p><large><b>{{.Code}}</b></large></p>
-<p>Valid for {{.Minutes}} minutes.</p>
-<hr>
-<p style="color:#666">{{.DomainName}}</p>
-</body>
-</html>`
+// const verificationCodeTpl = `<html>
+// <body>
+// <p>You are registering on {{.DomainName}}, here's the verfication code:</p>
+// <p><large><b>{{.Code}}</b></large></p>
+// <p>Valid for {{.Minutes}} minutes.</p>
+// <hr>
+// <p style="color:#666">{{.DomainName}}</p>
+// </body>
+// </html>`
 
-func NewMail(userEmail, password string, smtpServer, smtpServerPort string) *Mail {
+func NewMail(userEmail, password string, smtpServer, smtpServerPort string, i18nCustom *i18nc.I18nCustom) *Mail {
 	auth := sasl.NewPlainClient("", userEmail, password)
 
-	return &Mail{userEmail, auth, smtpServer, smtpServerPort}
+	return &Mail{userEmail, auth, smtpServer, smtpServerPort, i18nCustom}
 }
 
 func (m *Mail) SendVerificationCode(email, code string) error {
@@ -59,29 +61,26 @@ func (m *Mail) SendVerificationCode(email, code string) error {
 	err := headTpl.Execute(writer, &MailHead{
 		To:      email,
 		From:    m.LoginEmail,
-		Subject: "Verification code for registration",
+		Subject: m.i18nCustom.LocalTpl("VerificationMailTitle"),
 	})
 	if err != nil {
 		return err
 	}
+
+	verificationCodeTpl := m.i18nCustom.LocalTpl("VerificationMailTpl", "DomainName", "dizkaz.com", "Code", code, "Minutes", 5)
+
+	// fmt.Println("verificationCodeTpl: ", verificationCodeTpl)
 
 	bodyTpl := template.Must(template.New("body").Parse(verificationCodeTpl))
-	err = bodyTpl.Execute(writer, &MailBody{
-		DomainName: "dizkaz.com",
-		Code:       code,
-		Minutes:    5,
-	})
+	// err = bodyTpl.Execute(writer, &MailBody{
+	// 	DomainName: "dizkaz.com",
+	// 	Code:       code,
+	// 	Minutes:    5,
+	// })
+	err = bodyTpl.Execute(writer, nil)
 	if err != nil {
 		return err
 	}
-
-	// msgTpl := msgHead
-	// msgTpl += "<html><body><h1>Verification code</h1>"
-	// msgTpl += "The code is <b>%s</b>\r\n<br>"
-	// msgTpl += "For security reasons, please do not disclose the verification code.\r\n<br>"
-	// msgTpl += "<hr>Kholin\r\n<br>"
-	// msgTpl += "</body></html>"
-	// msgData := fmt.Sprintf(msgTpl, email, m.LoginEmail, code)
 
 	// fmt.Println("msg data: ", buf.String())
 

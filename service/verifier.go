@@ -51,10 +51,9 @@ func (v *Verifier) SaveCode(email string, code string) error {
 }
 
 func (v *Verifier) GetCode(email string) (string, error) {
-	str, err := v.Rdb.Get(context.Background(), getKey(email)).Result()
-	if err != nil {
-		return "", err
-	}
+	return v.Rdb.Get(context.Background(), getKey(email)).Result()
+}
 
-	return str, nil
+func (v *Verifier) DeleteCode(email string) error {
+	return v.Rdb.Del(context.Background(), getKey(email)).Err()
 }

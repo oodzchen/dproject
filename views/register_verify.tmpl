@@ -2,18 +2,18 @@
 
     {{template "head" . -}}
 
-    <div class="tip-block">验证码已经发送到邮箱，{{.Data.CodeLifeTime}}分钟内有效。请输入验证码以完成注册。</div>
+    <div class="tip-block">{{local "VerificationEmailTip" "Email" .Data.Email "Duration" .Data.CodeLifeTime}}</div>
     <form class="form" method="post" action="/register_verify">
 	{{.CSRFField -}}
 	<div class="form__row">
-	    <label class="form__label" for="code">验证码 <small class="text-lighten-2" style="font-weight: normal">({{local "FormRequired"}})</small></label>
+	    <label class="form__label" for="code">{{local "VerificationCode"}} <small class="text-lighten-2" style="font-weight: normal">({{local "FormRequired"}})</small></label>
 	    <input required name="code" id="code" type="number"/>
 	</div>
 	<button type="submit">{{local "BtnSubmit"}}</button>
     </form>
     <br/>
     <div>
-	<a href="">重新发送验证码到邮箱</a>
+	<a href="/register_send_code">{{local "ResendVerification"}}</a>
     </div>
 
     {{template "foot" . -}}

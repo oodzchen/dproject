@@ -224,7 +224,7 @@ a.text-lighten-3{
 
 .data-list{
     display: table;
-    width: 100%;
+    /* width: 100%; */
 }
 .data-list .data-list__row{
     display: table-row;
@@ -237,8 +237,8 @@ a.text-lighten-3{
     vertical-align: top;
 }
 .data-list .data-list__label{
-    width: 7rem;
-    text-align: right;
+    /* width: 7rem; */
+    /* text-align: right; */
     padding-right: 6px;
     box-sizing: border-box;
 }

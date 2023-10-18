@@ -534,6 +534,10 @@ other = "{{.Count}} 回答"
 hash = "sha1-1d2cc27d94564c97fda931d16fc110dcd9db0d09"
 other = "{{.FieldNames}}は必須です"
 
+[ResendVerification]
+hash = "sha1-b06230933f952f7ee876b38574badc8e7b092b06"
+other = "メールに確認コードを再送してください。"
+
 [Role]
 hash = "sha1-47dcc27d6e87ece8baebe7e3877a261a5467093d"
 other = "役割"
@@ -553,6 +557,10 @@ other = "コンテンツに移動"
 [Source]
 hash = "sha1-6da13addb000b67d42a6d66391713819e634149f"
 other = "ソース"
+
+[SubmitContentTip]
+hash = "sha1-424c6ff5cbf4243b6b6e5061f140ef4a8258d92a"
+other = "インターネット上での投稿に関して、投稿のタイトルと内容に個人情報を含めないでください。すべての個人データは削除されます。"
 
 [Subscribed]
 hash = "sha1-dd1242a8fc29346652bfdab77420ee2576b04652"
@@ -625,6 +633,30 @@ other = "ユーザー名"
 [UsernameFormatTip]
 hash = "sha1-0eeee349df98cb1536c262a4526ca536913ceedd"
 other = "デフォルトではメールアドレスからユーザー名を使用します。ユーザー名は数字、文字、アンダースコア（_）、ハイフン（-）、英文ピリオド（.）のみ使用でき、大文字と小文字は区別されません。また、先頭と末尾に句読点を使用できません。"
+
+[VerificationCode]
+hash = "sha1-80f2f2980f48ffb22f35543391c405298be6c959"
+other = "認証コード"
+
+[VerificationEmailTip]
+hash = "sha1-9e8f73fea4146e263d60a9505e44a69a8dccdc60"
+other = "認証コードはメールアドレス{{.Email}}に送信されました。有効期間は{{.Duration}}分です。登録を完了するために、有効期限内にコードを入力してください。"
+
+[VerificationExpired]
+hash = "sha1-d1f5e2cb06217142682a8456cc78e8a19926881c"
+other = "認証コードは期限切れです"
+
+[VerificationIncorrect]
+hash = "sha1-0bfa38ac5e888ec01e1f996e1d1b2947244af7e2"
+other = "認証コードが正しくありません"
+
+[VerificationMailTitle]
+hash = "sha1-bffcbb153794e546328d3ea4589dc9623cc4a758"
+other = "登録のための認証コード"
+
+[VerificationMailTpl]
+hash = "sha1-ef16ca8d40351d7371779a323c1bec3afa08c64a"
+other = "<html>\n<body>\n<p>あなたは{{.DomainName}}に登録しています。以下は認証コードです：</p>\n<p><large><b>{{.Code}}</b></large></p>\n<p>{{.Minutes}} 分間有効です。</p>\n<hr>\n<p style=\"color:#666\">{{.DomainName}}</p>\n</body>\n</html>"
 
 [VoteScore]
 hash = "sha1-8a59b65d21e42409585cf850b64587e2ee783489"

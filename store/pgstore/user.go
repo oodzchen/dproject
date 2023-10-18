@@ -326,6 +326,14 @@ func (u *User) Delete(id int) error {
 	return nil
 }
 
+func (u *User) DeleteHard(id int) error {
+	_, err := u.dbPool.Exec(context.Background(), `DELETE FROM users WHERE id = $1`, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (u *User) Ban(id int) error {
 	err := u.dbPool.QueryRow(context.Background(), "UPDATE users SET banned = true WHERE id = $1", id).Scan(nil)
 	if err != nil {

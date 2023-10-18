@@ -534,6 +534,10 @@ other = "{{.Count}} 回复"
 hash = "sha1-1d2cc27d94564c97fda931d16fc110dcd9db0d09"
 other = "{{.FieldNames}}是必须的"
 
+[ResendVerification]
+hash = "sha1-b06230933f952f7ee876b38574badc8e7b092b06"
+other = "重新发送验证码到邮箱"
+
 [Role]
 hash = "sha1-47dcc27d6e87ece8baebe7e3877a261a5467093d"
 other = "角色"
@@ -553,6 +557,10 @@ other = "跳转到内容"
 [Source]
 hash = "sha1-6da13addb000b67d42a6d66391713819e634149f"
 other = "来源"
+
+[SubmitContentTip]
+hash = "sha1-424c6ff5cbf4243b6b6e5061f140ef4a8258d92a"
+other = "由于这里的内容将会公布在互联网上，请不要在发帖标题和内容中包含个人隐私信息，所有隐私数据将被移除。"
 
 [Subscribed]
 hash = "sha1-dd1242a8fc29346652bfdab77420ee2576b04652"
@@ -625,6 +633,30 @@ other = "用户名"
 [UsernameFormatTip]
 hash = "sha1-0eeee349df98cb1536c262a4526ca536913ceedd"
 other = "默认使用邮箱地址中的用户名。用户名只能使用数字、字母、下划线（_）、中横线（-）和英文句号（.），不区分大小写，首尾不能是标点符号。"
+
+[VerificationCode]
+hash = "sha1-80f2f2980f48ffb22f35543391c405298be6c959"
+other = "验证码"
+
+[VerificationEmailTip]
+hash = "sha1-9e8f73fea4146e263d60a9505e44a69a8dccdc60"
+other = "验证码已经发送到邮箱: {{.Email}}，{{.Duration}}分钟内有效。请输入验证码以完成注册。"
+
+[VerificationExpired]
+hash = "sha1-d1f5e2cb06217142682a8456cc78e8a19926881c"
+other = "验证码已过期"
+
+[VerificationIncorrect]
+hash = "sha1-0bfa38ac5e888ec01e1f996e1d1b2947244af7e2"
+other = "验证码错误"
+
+[VerificationMailTitle]
+hash = "sha1-bffcbb153794e546328d3ea4589dc9623cc4a758"
+other = "注册验证码"
+
+[VerificationMailTpl]
+hash = "sha1-ef16ca8d40351d7371779a323c1bec3afa08c64a"
+other = "<html>\n<body>\n<p>你正在注册 {{.DomainName}}, 验证码是:</p>\n<p><large><b>{{.Code}}</b></large></p>\n<p>{{.Minutes}} 分钟内有效。</p>\n<hr>\n<p style=\"color:#666\">{{.DomainName}}</p>\n</body>\n</html>"
 
 [VoteScore]
 hash = "sha1-8a59b65d21e42409585cf850b64587e2ee783489"
