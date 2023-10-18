@@ -61,7 +61,7 @@ func (mr *MainResource) Routes() http.Handler {
 		r.Get("/", mr.SettingsPage)
 		r.With(mdw.AuthCheck(mr.sessStore)).Get("/account", mr.SettingsAccountPage)
 
-		r.With(mdw.AuthCheck(mr.sessStore), mdw.PermitCheck(mr.permissionSrv, []string{
+		r.With(mdw.AuthCheck(mr.sessStore), mdw.PermitCheck(mr.srv.Permission, []string{
 			"user.update_intro_mine",
 			// "user.update_intro_others",
 		}, mr),
@@ -217,7 +217,7 @@ func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, username
 		mr.Error("", err, w, r, http.StatusInternalServerError)
 	}
 
-	mr.permissionSrv.SetLoginedUser(user)
+	mr.srv.Permission.SetLoginedUser(user)
 
 	sess, err := mr.sessStore.Get(r, "one")
 	if err != nil {
@@ -271,7 +271,7 @@ func (mr *MainResource) Logout(w http.ResponseWriter, r *http.Request) {
 func (mr *MainResource) doLogout(w http.ResponseWriter, r *http.Request) {
 	ClearSession(mr.sessStore, w, r)
 
-	mr.permissionSrv.ResetPermissionData()
+	mr.srv.Permission.ResetPermissionData()
 }
 
 func (mr *MainResource) SaveUISettings(w http.ResponseWriter, r *http.Request) {

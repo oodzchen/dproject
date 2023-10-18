@@ -28,22 +28,23 @@ type Renderer struct {
 	router    *chi.Mux
 	store     *store.Store
 	// permission *config.PermissionData
-	permissionSrv  *service.Permission
+	// permissionSrv  *service.Permission
 	uLogger        *service.UserLogger
 	sanitizePolicy *bluemonday.Policy
 	i18nCustom     *i18nc.I18nCustom
+	srv            *service.Service
 }
 
-func NewRenderer(tmpl *template.Template, sessStore *sessions.CookieStore, router *chi.Mux, store *store.Store, permissionSrv *service.Permission, userLogger *service.UserLogger, sp *bluemonday.Policy, ic *i18nc.I18nCustom) *Renderer {
+func NewRenderer(tmpl *template.Template, sessStore *sessions.CookieStore, router *chi.Mux, store *store.Store, sp *bluemonday.Policy, ic *i18nc.I18nCustom, srv *service.Service) *Renderer {
 	return &Renderer{
 		tmpl,
 		sessStore,
 		router,
 		store,
-		permissionSrv,
-		userLogger,
+		srv.UserLogger,
 		sp,
 		ic,
+		srv,
 	}
 }
 
@@ -156,7 +157,7 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	data.BrandName = config.Config.BrandName
 	data.BrandDomainName = config.Config.BrandDomainName
 	data.Slogan = config.Config.Slogan
-	data.PermissionEnabledList = rd.permissionSrv.PermissionData.EnabledFrondIdList
+	data.PermissionEnabledList = rd.srv.Permission.PermissionData.EnabledFrondIdList
 	data.RouteRawQuery = r.URL.RawQuery
 	data.RouteQuery = r.URL.Query()
 
@@ -170,7 +171,7 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	}
 
 	rd.tmpl = rd.tmpl.Funcs(template.FuncMap{
-		"permit":  rd.permissionSrv.PermissionData.Permit,
+		"permit":  rd.srv.Permission.PermissionData.Permit,
 		"local":   rd.i18nCustom.LocalTpl,
 		"timeAgo": rd.i18nCustom.TimeAgo.Format,
 	})
@@ -228,7 +229,7 @@ func (rd *Renderer) getUserPermittedFrontIds(r *http.Request) []string {
 	var frontIdList []string
 	if userData, ok := r.Context().Value("user_data").(*model.User); ok {
 		if userData.Super {
-			return rd.permissionSrv.PermissionData.EnabledFrondIdList
+			return rd.srv.Permission.PermissionData.EnabledFrondIdList
 		}
 
 		if userData.Permissions != nil && len(userData.Permissions) > 0 {

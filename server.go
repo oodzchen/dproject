@@ -34,6 +34,7 @@ type ServiceConfig struct {
 	sanitizePolicy *bluemonday.Policy
 	i18nCustom     *i18nc.I18nCustom
 	rdb            *redis.Client
+	mail           *service.Mail
 }
 
 // func FileServer(r chi.Router, path string, root http.FileSystem) {
@@ -89,15 +90,31 @@ func Service(c *ServiceConfig) http.Handler {
 		Store: c.store,
 	}
 
+	srv := &service.Service{
+		Article: &service.Article{
+			Store:         c.store,
+			SantizePolicy: c.sanitizePolicy,
+		},
+		User: &service.User{
+			Store:         c.store,
+			SantizePolicy: c.sanitizePolicy,
+		},
+		Permission: c.permisisonSrv,
+		UserLogger: userLogger,
+		Verifier: &service.Verifier{
+			CodeLifeTime: service.DefaultCodeLifeTime,
+			Rdb:          c.rdb,
+		},
+		Mail: c.mail,
+	}
 	renderer := web.NewRenderer(
 		baseTmpl,
 		sessStore,
 		r,
 		c.store,
-		c.permisisonSrv,
-		userLogger,
 		c.sanitizePolicy,
 		c.i18nCustom,
+		srv,
 	)
 
 	r.Use(mdw.FetchUserData(c.store, sessStore, c.permisisonSrv, renderer))

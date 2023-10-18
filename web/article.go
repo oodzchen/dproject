@@ -24,10 +24,7 @@ type ArticleResource struct {
 func NewArticleResource(renderer *Renderer) *ArticleResource {
 	return &ArticleResource{
 		renderer,
-		&service.Article{
-			Store:         renderer.store,
-			SantizePolicy: renderer.sanitizePolicy,
-		},
+		renderer.srv.Article,
 	}
 }
 
@@ -35,12 +32,12 @@ func (ar *ArticleResource) Routes() http.Handler {
 	rt := chi.NewRouter()
 
 	rt.Get("/", ar.List)
-	rt.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
+	rt.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.srv.Permission, []string{
 		"article.create",
 	}, ar), mdw.UserLogger(ar.uLogger, model.AcTypeUser, model.AcActionCreateArticle, model.AcModelArticle, mdw.ULogNewArticleId),
 	).Post("/", ar.Submit)
 
-	rt.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
+	rt.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.srv.Permission, []string{
 		"article.create",
 	}, ar),
 	).Get("/new", ar.FormPage)
@@ -48,7 +45,7 @@ func (ar *ArticleResource) Routes() http.Handler {
 	rt.Route("/{articleId}", func(r chi.Router) {
 		r.Get("/", ar.Item)
 
-		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
+		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.srv.Permission, []string{
 			"article.edit_mine",
 			// "article.edit_others",
 		}, ar)).Group(func(r chi.Router) {
@@ -58,7 +55,7 @@ func (ar *ArticleResource) Routes() http.Handler {
 			).Post("/edit", ar.Update)
 		})
 
-		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
+		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.srv.Permission, []string{
 			"article.delete_mine",
 			// "article.delete_others",
 		}, ar)).Group(func(r chi.Router) {
@@ -68,7 +65,7 @@ func (ar *ArticleResource) Routes() http.Handler {
 			).Post("/delete", ar.Delete)
 		})
 
-		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
+		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.srv.Permission, []string{
 			"article.reply",
 		}, ar)).Group(func(r chi.Router) {
 			r.Get("/reply", ar.ReplyPage)
@@ -77,26 +74,26 @@ func (ar *ArticleResource) Routes() http.Handler {
 			).Post("/reply", ar.SubmitReply)
 		})
 
-		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
+		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.srv.Permission, []string{
 			"article.vote_up",
 			"article.vote_down",
 		}, ar), mdw.UserLogger(
 			ar.uLogger, model.AcTypeUser, model.AcActionVoteArticle, model.AcModelArticle, mdw.ULogURLArticleId),
 		).Post("/vote", ar.Vote)
 
-		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
+		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.srv.Permission, []string{
 			"article.save",
 		}, ar), mdw.UserLogger(
 			ar.uLogger, model.AcTypeUser, model.AcActionSaveArticle, model.AcModelArticle, mdw.ULogURLArticleId),
 		).Post("/save", ar.Save)
 
-		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
+		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.srv.Permission, []string{
 			"article.react",
 		}, ar), mdw.UserLogger(
 			ar.uLogger, model.AcTypeUser, model.AcActionReactArticle, model.AcModelArticle, mdw.ULogURLArticleId),
 		).Post("/react", ar.React)
 
-		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.permissionSrv, []string{
+		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.srv.Permission, []string{
 			"article.subscribe",
 		}, ar), mdw.UserLogger(
 			ar.uLogger, model.AcTypeUser, model.AcActionSubscribeArticle, model.AcModelArticle, mdw.ULogURLArticleId),

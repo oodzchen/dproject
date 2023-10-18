@@ -27,6 +27,7 @@ type AppConfig struct {
 	ReplyDepthPageSize int
 	AdminEmail         string `env:"ADMIN_EMAIL"`
 	Redis              *RedisConfig
+	SMTP               *SMTPConfig
 }
 
 func (ac *AppConfig) GetServerURL() string {
@@ -62,6 +63,13 @@ type RedisConfig struct {
 	Port     string `env:"REDIS_PORT"`
 	User     string `env:"REDIS_USER"`
 	Password string `env:"REDIS_PASSWORD"`
+}
+
+type SMTPConfig struct {
+	Server     string `env:"SMTP_SERVER"`
+	ServerPort string `env:"SMTP_SERVER_PORT"`
+	User       string `env:"SMTP_USER"`
+	Password   string `env:"SMTP_PASSWORD"`
 }
 
 var Config *AppConfig
@@ -131,6 +139,11 @@ func ParseFromEnv() (*AppConfig, error) {
 		return nil, err
 	}
 
+	smtpCfg := &SMTPConfig{}
+	if err := env.Parse(smtpCfg); err != nil {
+		return nil, err
+	}
+
 	cfg := &AppConfig{
 		DB:                 dbCfg,
 		BrandName:          BrandName,
@@ -138,6 +151,7 @@ func ParseFromEnv() (*AppConfig, error) {
 		Slogan:             Slogan,
 		ReplyDepthPageSize: ReplyDepthPageSize,
 		Redis:              rdbCfg,
+		SMTP:               smtpCfg,
 	}
 	if err := env.Parse(cfg); err != nil {
 		return nil, err

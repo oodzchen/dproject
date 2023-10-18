@@ -36,10 +36,7 @@ type userProfile struct {
 func NewUserResource(renderer *Renderer) *UserResource {
 	return &UserResource{
 		renderer,
-		&service.User{
-			Store:         renderer.store,
-			SantizePolicy: renderer.sanitizePolicy,
-		},
+		renderer.srv.User,
 	}
 }
 
@@ -49,7 +46,7 @@ func (ur *UserResource) Routes() http.Handler {
 	rt.Route("/{userId}", func(r chi.Router) {
 		r.Get("/", ur.ItemPage)
 
-		r.With(mdw.AuthCheck(ur.sessStore), mdw.PermitCheck(ur.permissionSrv, []string{
+		r.With(mdw.AuthCheck(ur.sessStore), mdw.PermitCheck(ur.srv.Permission, []string{
 			"user.update_role",
 		}, ur)).Group(func(r chi.Router) {
 			// r.Get("/ban", ur.BanPage)
@@ -207,7 +204,7 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 	if tab != "activity" {
 		postList, err = ur.userSrv.GetPosts(userId, service.UserListType(tab))
 	} else {
-		if !ur.permissionSrv.PermissionData.Permit("user", "access_activity") {
+		if !ur.srv.Permission.PermissionData.Permit("user", "access_activity") {
 			ur.Error("", nil, w, r, http.StatusForbidden)
 			return
 		}
@@ -308,7 +305,7 @@ func (ur *UserResource) SetRole(w http.ResponseWriter, r *http.Request) {
 
 	// fmt.Println("roleFrontId: ", roleFrontId)
 	// role, err := ur.store.Role.Item(int)
-	// if !ur.permissionSrv.RoleData.Valid(roleFrontId) {
+	// if !ur.srv.Permission.RoleData.Valid(roleFrontId) {
 	// 	ur.Error("", errors.New("role front id dose not exist"), w, r, http.StatusBadRequest)
 	// 	return
 	// }
@@ -374,8 +371,8 @@ func (ur *UserResource) SetRolePage(w http.ResponseWriter, r *http.Request) {
 
 	var roleList []*model.Role
 
-	canSetModerate := ur.permissionSrv.PermissionData.Permit("user", "set_moderator")
-	canSetAdmin := ur.permissionSrv.PermissionData.Permit("user", "set_admin")
+	canSetModerate := ur.srv.Permission.PermissionData.Permit("user", "set_moderator")
+	canSetAdmin := ur.srv.Permission.PermissionData.Permit("user", "set_admin")
 	for _, item := range wholeRoleList {
 		if item.FrontId == "moderator" && !canSetModerate {
 			continue
@@ -399,8 +396,8 @@ func (ur *UserResource) SetRolePage(w http.ResponseWriter, r *http.Request) {
 	// var roleName string
 
 	// if strings.TrimSpace(roleFrontId) != "" {
-	// 	if ur.permissionSrv.RoleData.Valid(roleFrontId) {
-	// 		roleName = ur.permissionSrv.RoleData.Get(config.RoleId(roleFrontId)).Name
+	// 	if ur.srv.Permission.RoleData.Valid(roleFrontId) {
+	// 		roleName = ur.srv.Permission.RoleData.Get(config.RoleId(roleFrontId)).Name
 	// 	} else {
 	// 		ur.Error("", errors.New("role id dose not exist"), w, r, http.StatusBadRequest)
 	// 		return
@@ -421,7 +418,7 @@ func (ur *UserResource) SetRolePage(w http.ResponseWriter, r *http.Request) {
 			UserData: user,
 			// RoleFrontId: roleFrontId,
 			// RoleName:    roleName,
-			// RoleData: ur.permissionSrv.RoleData,
+			// RoleData: ur.srv.Permission.RoleData,
 			RoleList: roleList,
 		},
 		BreadCrumbs: []*model.BreadCrumb{
