@@ -188,11 +188,11 @@ other = "文章标题"
 
 [ArticleTitleTip]
 hash = "sha1-1147179bc508f06ce29ba087b05f0e9481be78d4"
-other = "最多80个字符，请用简洁的语言概括内容，不要故意使用吸引眼球的标题，不相关的内容将被删除"
+other = "最多80个字符，请用简洁的语言概括内容，不要故意使用吸引眼球的标题，不相关的内容将被删除。"
 
 [ArticleURLTip]
 hash = "sha1-ccaa51c0648fc07ca09a941bbfcdd1e5f7835582"
-other = "请提供直达链接，不要使用任何有重定向的网址，请尽量提供第一手消息来源"
+other = "请提供直达链接，不要使用任何有重定向的网址，请尽量提供第一手消息来源。"
 
 [Author]
 hash = "sha1-5fda23d62015b99fb2a9f86b38bcdf2bdf7609c8"

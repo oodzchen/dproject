@@ -2,6 +2,12 @@
 
     {{template "head" . -}}
 
+    <style>
+     .data-list .data-list__label{
+	 width: 4rem;
+     }
+    </style>
+
     {{- if permit "user" "manage" -}}
 	<fieldset>
 	    <legend>{{local "UserManage"}}</legend>
@@ -41,7 +47,7 @@
 	{{- if permit "user" "access_activity" -}}
 	    {{- $tabs = append $tabs "activity" -}}
 	{{- end -}}
-{{- end -}}
+    {{- end -}}
 
     <div class="tabs">
 	{{- range $tabs -}}

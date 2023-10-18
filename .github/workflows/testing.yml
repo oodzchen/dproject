@@ -52,7 +52,7 @@ jobs:
       run: |
         docker compose --env-file ./.env.testing -f ./docker-compose.dev.yml up -d
         docker ps
-        docker exec local-redis cat /usr/local/etc/redis/users.acl
+        # docker exec local-redis cat /usr/local/etc/redis/users.acl
 
     - name: Build
       run: CGO_ENABLED=0 GOOS=linux go build -o /usr/local/bin/app -v .
