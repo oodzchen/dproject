@@ -20,22 +20,22 @@ import (
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
 	"github.com/pkg/errors"
+	"github.com/redis/go-redis/v9"
 )
 
 type Renderer struct {
-	tmpl      *template.Template
-	sessStore *sessions.CookieStore
-	router    *chi.Mux
-	store     *store.Store
-	// permission *config.PermissionData
-	// permissionSrv  *service.Permission
+	tmpl           *template.Template
+	sessStore      *sessions.CookieStore
+	router         *chi.Mux
+	store          *store.Store
 	uLogger        *service.UserLogger
 	sanitizePolicy *bluemonday.Policy
 	i18nCustom     *i18nc.I18nCustom
 	srv            *service.Service
+	rdb            *redis.Client
 }
 
-func NewRenderer(tmpl *template.Template, sessStore *sessions.CookieStore, router *chi.Mux, store *store.Store, sp *bluemonday.Policy, ic *i18nc.I18nCustom, srv *service.Service) *Renderer {
+func NewRenderer(tmpl *template.Template, sessStore *sessions.CookieStore, router *chi.Mux, store *store.Store, sp *bluemonday.Policy, ic *i18nc.I18nCustom, srv *service.Service, rdb *redis.Client) *Renderer {
 	return &Renderer{
 		tmpl,
 		sessStore,
@@ -45,6 +45,7 @@ func NewRenderer(tmpl *template.Template, sessStore *sessions.CookieStore, route
 		sp,
 		ic,
 		srv,
+		rdb,
 	}
 }
 

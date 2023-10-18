@@ -18,6 +18,9 @@ const (
 	// AcActionRegister is a AcAction of type register.
 	// Register
 	AcActionRegister AcAction = "register"
+	// AcActionRegisterVerify is a AcAction of type register_verify.
+	// Registration verification
+	AcActionRegisterVerify AcAction = "register_verify"
 	// AcActionLogin is a AcAction of type login.
 	// Login
 	AcActionLogin AcAction = "login"
@@ -66,6 +69,7 @@ var ErrInvalidAcAction = fmt.Errorf("not a valid AcAction, try [%s]", strings.Jo
 
 var _AcActionNames = []string{
 	string(AcActionRegister),
+	string(AcActionRegisterVerify),
 	string(AcActionLogin),
 	string(AcActionLogout),
 	string(AcActionUpdateIntro),
@@ -93,6 +97,7 @@ func AcActionNames() []string {
 func AcActionValues() []AcAction {
 	return []AcAction{
 		AcActionRegister,
+		AcActionRegisterVerify,
 		AcActionLogin,
 		AcActionLogout,
 		AcActionUpdateIntro,
@@ -124,6 +129,7 @@ func (x AcAction) IsValid() bool {
 
 var _AcActionValue = map[string]AcAction{
 	"register":          AcActionRegister,
+	"register_verify":   AcActionRegisterVerify,
 	"login":             AcActionLogin,
 	"logout":            AcActionLogout,
 	"update_intro":      AcActionUpdateIntro,
@@ -154,6 +160,7 @@ func (x AcAction) I18nID() string {
 
 var _AcActionTextMap = map[AcAction]string{
 	AcActionRegister:         "Register",
+	AcActionRegisterVerify:   "Registration verification",
 	AcActionLogin:            "Login",
 	AcActionLogout:           "Logout",
 	AcActionUpdateIntro:      "Update introduction",
@@ -192,6 +199,10 @@ func AcActionAddI18nConfigs(ic *i18nc.I18nCustom) {
 	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "AcAction_register",
 		Other: "Register",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_register_verify",
+		Other: "Registration verification",
 	})
 	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "AcAction_login",

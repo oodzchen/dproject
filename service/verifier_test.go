@@ -34,8 +34,8 @@ func TestVerifier(t *testing.T) {
 	}
 
 	code := verifier.GenCode()
-	if len(code) != codeLength {
-		t.Fatalf("gen code error, want code length %d, but got %d", codeLength, len(code))
+	if len(code) != CodeLength {
+		t.Fatalf("gen code error, want code length %d, but got %d", CodeLength, len(code))
 	}
 	fmt.Println("gen code success: ", code)
 

@@ -214,8 +214,20 @@ func (u *User) Update(item *model.User, fieldNames []string) (int, error) {
 	return id, nil
 }
 
-func (u *User) Item(id int) (*model.User, error) {
-	// fmt.Println("userId: ", id)
+func (u *User) queryItem(fieldName string, val any) (*model.User, error) {
+	var conditionStr string
+	switch fieldName {
+	case "id":
+		conditionStr = "u.id = $1"
+	case "email":
+		conditionStr = "u.email = $1"
+	case "username":
+		conditionStr = "u.username = $1"
+	}
+
+	if conditionStr == "" {
+		return nil, errors.New("wrong field name")
+	}
 
 	sqlStr := `SELECT u.id, u.username, u.email, u.created_at, u.super_admin, COALESCE(u.introduction, '') as introduction,
 COALESCE(r.name, '') as role_name, COALESCE(r.front_id, '') AS role_front_id,
@@ -224,10 +236,9 @@ FROM users u
 LEFT JOIN user_roles ur ON ur.user_id = u.id
 LEFT JOIN roles r ON ur.role_id = r.id
 LEFT JOIN role_permissions rp ON rp.role_id = r.id
-LEFT JOIN permissions p ON p.id = rp.permission_id
-WHERE u.id = $1`
+LEFT JOIN permissions p ON p.id = rp.permission_id WHERE ` + conditionStr
 
-	rows, err := u.dbPool.Query(context.Background(), sqlStr, id)
+	rows, err := u.dbPool.Query(context.Background(), sqlStr, val)
 	if err != nil {
 		return nil, err
 	}
@@ -280,6 +291,31 @@ WHERE u.id = $1`
 	item.FormatNullVals()
 
 	return &item, nil
+}
+
+func (u *User) Item(id int) (*model.User, error) {
+	// fmt.Println("userId: ", id)
+	return u.queryItem("id", id)
+}
+
+func (u *User) ItemWithEmail(email string) (*model.User, error) {
+	// fmt.Println("userId: ", id)
+	return u.queryItem("email", email)
+}
+
+func (u *User) ItemWithUsername(username string) (*model.User, error) {
+	// fmt.Println("userId: ", id)
+	return u.queryItem("username", username)
+}
+
+func (u *User) Exists(email, username string) (int, error) {
+	var id int
+	err := u.dbPool.QueryRow(context.Background(), "SELECT id FROM users WHERE email = $1 OR username = $2", email, username).Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
 }
 
 func (u *User) Delete(id int) error {

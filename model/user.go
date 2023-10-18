@@ -64,7 +64,7 @@ func (u *User) TrimSpace() {
 	u.Name = strings.TrimSpace(u.Name)
 }
 
-func (u *User) Valid() error {
+func (u *User) Valid(withPassword bool) error {
 	lackField := ""
 
 	if u.Email == "" {
@@ -73,8 +73,11 @@ func (u *User) Valid() error {
 	if u.Name == "" {
 		lackField = translator.LocalTpl("Username")
 	}
-	if u.Password == "" {
-		lackField = translator.LocalTpl("Password")
+
+	if withPassword {
+		if u.Password == "" {
+			lackField = translator.LocalTpl("Password")
+		}
 	}
 
 	if lackField != "" {
@@ -93,10 +96,13 @@ func (u *User) Valid() error {
 	reLetter := regexp.MustCompile(`[A-Za-z]`)
 	reNum := regexp.MustCompile(`\d`)
 	reNotaion := regexp.MustCompile(`[[:graph:]]`)
-	originalPwd := []byte(u.Password)
-	if !rePassword.Match(originalPwd) || !reLetter.Match(originalPwd) || !reNum.Match(originalPwd) || !reNotaion.Match(originalPwd) {
-		// return userValidErr("password format error")
-		return userValidErr(translator.LocalTpl("FormatError", "FieldNames", translator.LocalTpl("Password")))
+
+	if withPassword {
+		originalPwd := []byte(u.Password)
+		if !rePassword.Match(originalPwd) || !reLetter.Match(originalPwd) || !reNum.Match(originalPwd) || !reNotaion.Match(originalPwd) {
+			// return userValidErr("password format error")
+			return userValidErr(translator.LocalTpl("FormatError", "FieldNames", translator.LocalTpl("Password")))
+		}
 	}
 
 	return nil

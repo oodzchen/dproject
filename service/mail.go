@@ -2,7 +2,6 @@ package service
 
 import (
 	"bytes"
-	"fmt"
 	"html/template"
 	"io"
 	"net"
@@ -84,7 +83,7 @@ func (m *Mail) SendVerificationCode(email, code string) error {
 	// msgTpl += "</body></html>"
 	// msgData := fmt.Sprintf(msgTpl, email, m.LoginEmail, code)
 
-	fmt.Println("msg data: ", buf.String())
+	// fmt.Println("msg data: ", buf.String())
 
 	// msg := strings.NewReader(msgData)
 	msg := strings.NewReader(buf.String())

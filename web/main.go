@@ -18,6 +18,7 @@ import (
 	"github.com/oodzchen/dproject/service"
 	"github.com/oodzchen/dproject/utils"
 	"github.com/pkg/errors"
+	"github.com/redis/go-redis/v9"
 )
 
 // https://www.postgresql.org/docs/current/errcodes-appendix.html
@@ -46,6 +47,10 @@ func (mr *MainResource) Routes() http.Handler {
 
 	rt.Get("/", mr.articleRs.List)
 	rt.Get("/register", mr.RegisterPage)
+	rt.Get("/register_verify", mr.VerifyRegisterPage)
+	rt.With(mdw.UserLogger(
+		mr.uLogger, model.AcTypeUser, model.AcActionRegisterVerify, model.AcModelEmpty, mdw.ULogEmpty),
+	).Post("/register_verify", mr.VerifyRegister)
 	rt.With(mdw.UserLogger(
 		mr.uLogger, model.AcTypeUser, model.AcActionRegister, model.AcModelEmpty, mdw.ULogEmpty),
 	).Post("/register", mr.Register)
@@ -90,7 +95,6 @@ func (mr *MainResource) RegisterPage(w http.ResponseWriter, r *http.Request) {
 		Data:  "",
 		BreadCrumbs: []*model.BreadCrumb{
 			{
-				Path: "/register",
 				Name: mr.Local("Register"),
 			},
 		},
@@ -102,7 +106,165 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 	username := r.PostFormValue("username")
 	password := r.PostFormValue("password")
 
-	_, err := mr.userSrv.Register(email, password, username)
+	user := &model.User{
+		Email:    email,
+		Name:     username,
+		Password: password,
+	}
+
+	user.TrimSpace()
+
+	if user.Name == "" {
+		user.Name = model.ExtractNameFromEmail(user.Email)
+	}
+
+	user.Sanitize(mr.sanitizePolicy)
+	err := user.Valid(true)
+	if err != nil {
+		mr.Error(err.Error(), err, w, r, http.StatusBadRequest)
+		return
+	}
+
+	// userData, err := mr.store.User.ItemWithEmail(email)
+	userId, err := mr.store.User.Exists(user.Email, user.Name)
+	if err != nil && err != pgx.ErrNoRows {
+		mr.ServerErrorp("", err, w, r)
+		return
+	} else {
+		if userId > 0 {
+			alreadyExistsTip := mr.Local("AlreadyExists", "FieldNames", mr.Local("Or", "A", mr.Local("Username"), "B", mr.Local("Email")))
+			mr.Error(alreadyExistsTip, err, w, r, http.StatusBadRequest)
+			return
+		}
+	}
+
+	// log.Printf("user model is %v", user)
+
+	err = user.EncryptPassword()
+	if err != nil {
+		mr.Error("", err, w, r, http.StatusInternalServerError)
+		return
+	}
+
+	err = mr.rdb.Set(context.Background(), "register_pass_"+user.Email, user.Password, service.DefaultCodeLifeTime).Err()
+	if err != nil {
+		mr.Error(err.Error(), err, w, r, http.StatusBadRequest)
+		return
+	}
+	mr.Session("one", w, r).SetValue("register_email", user.Email)
+	mr.Session("one", w, r).SetValue("register_username", user.Name)
+
+	go func() {
+		verifier := mr.srv.Verifier
+		code := verifier.GenCode()
+		encryptCode, err := verifier.EncryptCode(code)
+		if err != nil {
+			mr.Error("", err, w, r, http.StatusInternalServerError)
+			return
+		}
+		err = verifier.SaveCode(email, encryptCode)
+		if err != nil {
+			fmt.Println("save verification code error: ", err)
+			return
+		}
+
+		err = mr.srv.Mail.SendVerificationCode(email, code)
+		if err != nil {
+			fmt.Println("send verification code error: ", err)
+			return
+		}
+	}()
+
+	http.Redirect(w, r, "/register_verify", http.StatusFound)
+}
+
+func (mr *MainResource) VerifyRegisterPage(w http.ResponseWriter, r *http.Request) {
+	// email := mr.Session("one", w, r).GetStringValue("register_email")
+	// if len(email) == 0 {
+	// 	mr.Error("", errors.New("get register email failed"), w, r, http.StatusInternalServerError)
+	// 	return
+	// }
+
+	// username := mr.Session("one", w, r).GetStringValue("register_username")
+	// if len(email) == 0 {
+	// 	mr.Error("", errors.New("get register username failed"), w, r, http.StatusInternalServerError)
+	// 	return
+	// }
+
+	type PageData struct {
+		Email        string
+		Username     string
+		CodeLifeTime int
+	}
+	if IsLogin(mr.sessStore, w, r) {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
+
+	mr.Render(w, r, "register_verify", &model.PageData{
+		Title: mr.Local("EmailVerify") + " - " + mr.Local("Register"),
+		Data: &PageData{
+			// Email: email,
+			// Username: username,
+			CodeLifeTime: int(service.DefaultCodeLifeTime.Minutes()),
+		},
+		BreadCrumbs: []*model.BreadCrumb{
+			{
+				Name: mr.Local("EmailVerify"),
+			},
+		},
+	})
+}
+
+func (mr *MainResource) VerifyRegister(w http.ResponseWriter, r *http.Request) {
+	code := strings.TrimSpace(r.Form.Get("code"))
+	if len(code) == 0 {
+		mr.Error("lack of code", errors.New("lack of code"), w, r, http.StatusBadRequest)
+		return
+	}
+	// email := strings.TrimSpace(r.Form.Get("email"))
+	email := mr.Session("one", w, r).GetStringValue("register_email")
+	if len(email) == 0 {
+		mr.Error("", errors.New("get register email failed"), w, r, http.StatusInternalServerError)
+		return
+	}
+
+	username := mr.Session("one", w, r).GetStringValue("register_username")
+	if len(email) == 0 {
+		mr.Error("", errors.New("get register username failed"), w, r, http.StatusInternalServerError)
+		return
+	}
+
+	savedCode, err := mr.srv.Verifier.GetCode(email)
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			mr.Error("Verification code has expired", err, w, r, http.StatusBadRequest)
+		} else {
+			mr.ServerErrorp("", err, w, r)
+		}
+		return
+	}
+
+	err = mr.srv.Verifier.VerifyCode(code, savedCode)
+
+	if config.Config.Debug || config.Config.Testing {
+		if code == config.SuperCode {
+			err = nil
+		}
+	}
+
+	if err != nil {
+		mr.Error("incorrect verification code", err, w, r, http.StatusBadRequest)
+		return
+	}
+
+	password, err := mr.rdb.Get(context.Background(), "register_pass_"+email).Result()
+	if err != nil {
+		mr.ServerErrorp("", err, w, r)
+		return
+	}
+
+	_, err = mr.userSrv.Register(email, password, username)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.Is(err, model.AppErrUserValidFailed) {

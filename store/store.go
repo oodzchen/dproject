@@ -45,6 +45,9 @@ type UserStore interface {
 	Create(email, password, name string, roleFrontId string) (int, error)
 	Update(u *model.User, fields []string) (int, error)
 	Item(int) (*model.User, error)
+	ItemWithEmail(email string) (*model.User, error)
+	ItemWithUsername(username string) (*model.User, error)
+	Exists(email, username string) (int, error)
 	Delete(int) error
 	Ban(int) error
 	Login(username, pwd string) (int, error)

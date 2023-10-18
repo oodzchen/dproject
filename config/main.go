@@ -28,6 +28,7 @@ type AppConfig struct {
 	AdminEmail         string `env:"ADMIN_EMAIL"`
 	Redis              *RedisConfig
 	SMTP               *SMTPConfig
+	Testing            bool `env:"TEST"`
 }
 
 func (ac *AppConfig) GetServerURL() string {
@@ -79,6 +80,9 @@ var BrandName = "笛卡"
 var BrandDomainName = "DizKaz.com"
 var Slogan = ""
 var ReplyDepthPageSize = 10
+
+// For testing
+const SuperCode = "686868"
 
 func Init(envFile string) error {
 	cfg, err := Parse(envFile)

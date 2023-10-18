@@ -34,6 +34,10 @@ other = "對文章做出反應"
 hash = "sha1-d672995a14650d0e018026b64f297663d8c71c8d"
 other = "註冊"
 
+[AcAction_register_verify]
+hash = "sha1-223e48aeb62fd687b391670a95d6ec974ec7e86f"
+other = "註冊驗證"
+
 [AcAction_reply_article]
 hash = "sha1-95fb9370f1ef1ff2ea5083190cceb70c1a7bb956"
 other = "回覆文章"
@@ -222,6 +226,10 @@ other = "更多"
 hash = "sha1-4bfc194b68a3369d53aadcddc4f891771d91a3d9"
 other = "下一頁"
 
+[BtnNextStep]
+hash = "sha1-5500eef9fdb1576f57ac29498a8e4ae9b3b9dbba"
+other = "下一步"
+
 [BtnParent]
 hash = "sha1-23d692f07a3fb646a8e54fcd2dc724f4ea2ed2c6"
 other = "父級"
@@ -301,6 +309,10 @@ other = "編輯{{.Name}}"
 [Email]
 hash = "sha1-84add5b2952787581cb9a8851eef63d1ec75d22b"
 other = "郵箱"
+
+[EmailVerify]
+hash = "sha1-fa4351a21b9138db31a1a941eff4e66ac1b88ba1"
+other = "郵箱驗證"
 
 [FontCustom]
 hash = "sha1-081ae3fdc403609cf6e760849ebb14117b7a50cb"

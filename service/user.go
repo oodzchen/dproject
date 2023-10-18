@@ -1,6 +1,8 @@
 package service
 
 import (
+	"errors"
+
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/store"
@@ -33,33 +35,20 @@ type User struct {
 }
 
 func (u *User) Register(email string, password string, name string) (int, error) {
+	if len(password) == 0 {
+		return 0, errors.New("lack of password")
+	}
+
 	user := &model.User{
-		Email:    email,
-		Name:     name,
-		Password: password,
+		Email: email,
+		Name:  name,
 	}
-
-	user.TrimSpace()
-
-	if user.Name == "" {
-		user.Name = model.ExtractNameFromEmail(user.Email)
-	}
-
-	user.Sanitize(u.SantizePolicy)
-	err := user.Valid()
+	err := user.Valid(false)
 	if err != nil {
 		return 0, err
 	}
 
-	// log.Printf("user model is %v", user)
-
-	err = user.EncryptPassword()
-	if err != nil {
-		return 0, err
-	}
-
-	// fmt.Printf("Password value: %s\n", user.Password)
-	return u.Store.User.Create(user.Email, user.Password, user.Name, string(model.DefaultUserRoleCommon))
+	return u.Store.User.Create(email, password, name, string(model.DefaultUserRoleCommon))
 }
 
 func (u *User) GetPosts(userId int, listType UserListType) ([]*model.Article, error) {

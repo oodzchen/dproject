@@ -506,4 +506,9 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "NewReply",
 		Other: "New reply on {{.ArticleTitle}}",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "EmailVerify",
+		Other: "Email Verification",
+	})
 }

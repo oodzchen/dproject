@@ -6,6 +6,7 @@ package model
 /*
 ENUM(
    register, // Register
+   register_verify, // Registration verification
    login, // Login
    logout, // Logout
    update_intro, // Update introduction

@@ -76,7 +76,7 @@ func TestUserValid(t *testing.T) {
 				Email:    tt.in.Email,
 				Password: tt.in.Password,
 			}
-			err := u.Valid()
+			err := u.Valid(true)
 			// if err != nil {
 			// 	fmt.Println("err: ", err)
 			// 	fmt.Println("err is ErrValidUserFailed: ", errors.Is(err, ErrValidUserFailed))

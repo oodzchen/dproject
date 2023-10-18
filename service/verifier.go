@@ -17,7 +17,7 @@ type Verifier struct {
 }
 
 const DefaultCodeLifeTime = 5 * time.Minute
-const codeLength = 6
+const CodeLength = 6
 const keyPrefix = "verif_code_"
 
 func getKey(email string) string {
@@ -26,7 +26,7 @@ func getKey(email string) string {
 
 func (v *Verifier) GenCode() string {
 	var code string
-	for i := 0; i < codeLength; i++ {
+	for i := 0; i < CodeLength; i++ {
 		code += strconv.Itoa(rand.Intn(10))
 	}
 

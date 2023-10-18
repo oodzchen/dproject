@@ -116,6 +116,9 @@ func main() {
 	var resultText string
 	err = runTasks("register new user", ctx,
 		mock.Register(newUser),
+		chp.SetValue(`input[name="code"]`, config.SuperCode),
+		chp.Click(`body>form>button[type="submit"]`),
+		mock.WaitFooterReady(),
 		chp.TextContent(`#page-tip>span`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
 			mt.Logln("new user: ", newUser)

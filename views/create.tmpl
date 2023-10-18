@@ -12,7 +12,7 @@
     </style>
     {{- $isReply := ne .Data.ReplyTo 0 -}}
 
-    <div class="create-tip" style="padding: 10px;margin-bottom: 10px;background:var(--text-bg);color:var(--text-lighten);">
+    <div class="tip-block">
 	由于这里的内容将会公布在互联网上，请不要在发帖标题和内容中包含个人隐私信息，所有隐私数据将被移除。
     </div>
     <form class="form create-form" method="post" action="/articles{{- if .Data.Id -}}/{{.Data.Id}}/edit{{- end -}}">

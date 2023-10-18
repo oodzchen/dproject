@@ -115,6 +115,7 @@ func Service(c *ServiceConfig) http.Handler {
 		c.sanitizePolicy,
 		c.i18nCustom,
 		srv,
+		c.rdb,
 	)
 
 	r.Use(mdw.FetchUserData(c.store, sessStore, c.permisisonSrv, renderer))

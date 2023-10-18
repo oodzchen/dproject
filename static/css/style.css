@@ -489,3 +489,10 @@ a.text-lighten-3{
     padding-right: 4px;
     line-height: 30px;
 }
+
+.tip-block{
+    padding: 10px;
+    margin-bottom: 10px;
+    background:var(--text-bg);
+    color:var(--text-lighten);
+}
