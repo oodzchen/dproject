@@ -48,16 +48,17 @@ type UserStore interface {
 	Item(int) (*model.User, error)
 	ItemWithEmail(email string) (*model.User, error)
 	ItemWithUsername(username string) (*model.User, error)
+	ItemWithUsernameEmail(usernameEmail string) (*model.User, error)
 	Exists(email, username string) (int, error)
 	Delete(int) error
 	Ban(int) error
-	Login(username, pwd string) (int, error)
 	GetPosts(userId int, listType string) ([]*model.Article, error)
 	GetSavedPosts(int) ([]*model.Article, error)
 	GetSubscribedPosts(int) ([]*model.Article, error)
 	Count() (int, error)
 	SetRole(userId int, roleFrontId string) (int, error)
 	SetRoleManyWithFrontId([]*model.User) error
+	GetPassword(usernameEmail string) (string, error)
 }
 
 type PermissionStore interface {

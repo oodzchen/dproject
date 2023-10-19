@@ -10,7 +10,6 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/oodzchen/dproject/model"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -328,6 +327,19 @@ func (u *User) ItemWithUsername(username string) (*model.User, error) {
 	return u.queryItem("username", username)
 }
 
+func (u *User) ItemWithUsernameEmail(usernameEmail string) (*model.User, error) {
+	var isEmail = false
+
+	if regexp.MustCompile(`@`).Match([]byte(usernameEmail)) {
+		isEmail = true
+	}
+	if isEmail {
+		return u.queryItem("email", usernameEmail)
+	} else {
+		return u.queryItem("username", usernameEmail)
+	}
+}
+
 func (u *User) Exists(email, username string) (int, error) {
 	var id int
 	err := u.dbPool.QueryRow(context.Background(), "SELECT id FROM users WHERE email = $1 OR username = $2", email, username).Scan(&id)
@@ -362,8 +374,7 @@ func (u *User) Ban(id int) error {
 	return nil
 }
 
-func (u *User) Login(username string, pwd string) (int, error) {
-	var id int
+func (u *User) GetPassword(username string) (string, error) {
 	var hasedPwd string
 	var isEmail = false
 
@@ -371,33 +382,59 @@ func (u *User) Login(username string, pwd string) (int, error) {
 		isEmail = true
 	}
 
-	sqlStr := `SELECT id, password FROM users `
+	sqlStr := `SELECT password FROM users `
 	if isEmail {
 		sqlStr += "WHERE email = $1"
 	} else {
 		sqlStr += "WHERE username ILIKE $1"
 	}
 
-	sqlStr += "AND auth_from = 'self'"
+	sqlStr += " AND auth_from = 'self'"
 
-	err := u.dbPool.QueryRow(context.Background(), sqlStr, username).Scan(&id, &hasedPwd)
+	err := u.dbPool.QueryRow(context.Background(), sqlStr, username).Scan(&hasedPwd)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
-	// fmt.Printf("query result: password: %s\n", hasedPwd)
-	// fmt.Printf("query result: id: %d\n", id)
-
-	err = bcrypt.CompareHashAndPassword([]byte(hasedPwd), []byte(pwd))
-
-	if err != nil {
-		return 0, err
-	}
-
-	// fmt.Println("pass! user id: ", id)
-
-	return id, nil
+	return hasedPwd, nil
 }
+
+// func (u *User) Login(username string, pwd string) (int, error) {
+// 	var id int
+// 	var hasedPwd string
+// 	var isEmail = false
+
+// 	if regexp.MustCompile(`@`).Match([]byte(username)) {
+// 		isEmail = true
+// 	}
+
+// 	sqlStr := `SELECT id, password FROM users `
+// 	if isEmail {
+// 		sqlStr += "WHERE email = $1"
+// 	} else {
+// 		sqlStr += "WHERE username ILIKE $1"
+// 	}
+
+// 	sqlStr += " AND auth_from = 'self'"
+
+// 	err := u.dbPool.QueryRow(context.Background(), sqlStr, username).Scan(&id, &hasedPwd)
+// 	if err != nil {
+// 		return 0, err
+// 	}
+
+// 	// fmt.Printf("query result: password: %s\n", hasedPwd)
+// 	// fmt.Printf("query result: id: %d\n", id)
+
+// 	err = bcrypt.CompareHashAndPassword([]byte(hasedPwd), []byte(pwd))
+
+// 	if err != nil {
+// 		return 0, err
+// 	}
+
+// 	// fmt.Println("pass! user id: ", id)
+
+// 	return id, nil
+// }
 
 func (u *User) GetPosts(userId int, listType string) ([]*model.Article, error) {
 	sqlStrHead := `

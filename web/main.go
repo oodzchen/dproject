@@ -25,6 +25,7 @@ import (
 	"github.com/oodzchen/dproject/utils"
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // https://www.postgresql.org/docs/current/errcodes-appendix.html
@@ -405,7 +406,8 @@ func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, username
 		}
 	}
 
-	id, err := mr.store.User.Login(username, password)
+	// id, err := mr.store.User.Login(username, password)
+	hashedPwd, err := mr.store.User.GetPassword(username)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -418,7 +420,13 @@ func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, username
 		return
 	}
 
-	user, err := mr.store.User.Item(id)
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPwd), []byte(password))
+	if err != nil {
+		mr.Error(loginFailedTip, err, w, r, http.StatusBadRequest)
+		return
+	}
+
+	user, err := mr.store.User.ItemWithUsernameEmail(username)
 	if err != nil {
 		mr.Error("", err, w, r, http.StatusInternalServerError)
 	}
