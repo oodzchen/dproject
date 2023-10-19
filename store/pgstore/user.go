@@ -169,6 +169,25 @@ func (u *User) Create(email, password, name string, roleFrontId string) (int, er
 	return id, nil
 }
 
+func (u *User) CreateWithOAuth(email, username, roleFrontId, authType string) (int, error) {
+	// fmt.Printf("user.create item: %+v\n", item)
+	var id int
+	err := u.dbPool.QueryRow(context.Background(), "INSERT INTO users (email, username, auth_from) VALUES ($1, $2, $3) RETURNING (id)",
+		email,
+		username,
+		authType).Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+
+	_, err = u.dbPool.Exec(context.Background(), "INSERT INTO user_roles (user_id, role_id) SELECT $1, id FROM roles WHERE front_id = $2", id, roleFrontId)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
 func validUserUpdateField(key string) bool {
 	allowedFields := []string{"Introduction", "Banned"}
 	for _, field := range allowedFields {
@@ -229,7 +248,7 @@ func (u *User) queryItem(fieldName string, val any) (*model.User, error) {
 		return nil, errors.New("wrong field name")
 	}
 
-	sqlStr := `SELECT u.id, u.username, u.email, u.created_at, u.super_admin, COALESCE(u.introduction, '') as introduction,
+	sqlStr := `SELECT u.id, u.username, u.email, u.created_at, u.super_admin, COALESCE(u.introduction, '') as introduction, u.auth_from,
 COALESCE(r.name, '') as role_name, COALESCE(r.front_id, '') AS role_front_id,
 COALESCE(p.id, 0) AS p_id, COALESCE(p.name, '') AS p_name, COALESCE(p.front_id, '') AS p_front_id, COALESCE(p.module, 'user') AS p_module, COALESCE(p.created_at, NOW()) AS p_created_at
 FROM users u
@@ -257,6 +276,7 @@ LEFT JOIN permissions p ON p.id = rp.permission_id WHERE ` + conditionStr
 			&uItem.RegisteredAt,
 			&uItem.Super,
 			&uItem.Introduction,
+			&uItem.AuthFrom,
 			&uItem.RoleName,
 			&uItem.RoleFrontId,
 			&pItem.Id,
@@ -357,6 +377,8 @@ func (u *User) Login(username string, pwd string) (int, error) {
 	} else {
 		sqlStr += "WHERE username ILIKE $1"
 	}
+
+	sqlStr += "AND auth_from = 'self'"
 
 	err := u.dbPool.QueryRow(context.Background(), sqlStr, username).Scan(&id, &hasedPwd)
 	if err != nil {

@@ -22,6 +22,15 @@ const ReUsernameEdgeStr = `^[a-zA-Z0-9]+$`
 const MaxEmailLen = 254
 const MaxUsernameLen = 20
 
+type AuthType string
+
+const (
+	AuthTypeSelf      AuthType = "self"
+	AuthTypeGoogle             = "google"
+	AuthTypeGithub             = "github"
+	AuthTypeMicrosoft          = "microsoft"
+)
+
 type User struct {
 	Id               int
 	Name             string
@@ -38,6 +47,7 @@ type User struct {
 	RoleFrontId      string
 	Permissions      []*Permission
 	Super            bool
+	AuthFrom         AuthType
 }
 
 // func (u *User) FormatTimeStr() {

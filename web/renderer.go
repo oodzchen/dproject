@@ -270,6 +270,18 @@ func (rd *Renderer) ToRefererUrl(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, targetUrl, http.StatusFound)
 }
 
+func (rd *Renderer) ToTargetUrl(w http.ResponseWriter, r *http.Request) {
+	target := rd.Session("one", w, r).GetValue("target_url")
+
+	rd.Session("one", w, r).SetValue("target_url", "")
+
+	if targetUrl, ok := target.(string); ok && len(targetUrl) > 0 {
+		http.Redirect(w, r, targetUrl, http.StatusFound)
+	} else {
+		http.Redirect(w, r, "/", http.StatusFound)
+	}
+}
+
 func (rd *Renderer) SavePrevPage(w http.ResponseWriter, r *http.Request) {
 	referer := r.Referer()
 	refererUrl, _ := url.Parse(referer)

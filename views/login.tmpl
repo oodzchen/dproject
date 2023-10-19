@@ -13,10 +13,13 @@
 	    <input required name="password" id="password" type="password"/>
 	</div>
 	<div>
-	    <a href="/register">{{local "RegisterTip"}}</a>
+	    <a href="/register">{{local "RegisterTip"}}</a>, {{local "OAuthLoginTip"}}
+	    <br/>
+	    <br/>
+	    <a href="/login_auth?type=google">Google</a>
 	</div>
 	<br/>
-	<button type="submit">{{local "Login"}}</button>
+	<button type="submit" style="margin-right: 0.5rem;">{{local "Login"}}</button>&nbsp;&nbsp;<a href="">{{local "RetrievePassword"}}</a>
     </form>
 
     {{template "foot" . -}}

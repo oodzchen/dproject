@@ -28,7 +28,8 @@ type AppConfig struct {
 	AdminEmail         string `env:"ADMIN_EMAIL"`
 	Redis              *RedisConfig
 	SMTP               *SMTPConfig
-	Testing            bool `env:"TEST"`
+	Testing            bool   `env:"TEST"`
+	GoogleClientSecret string `env:"GOOGLE_CLIENT_SECRET"`
 }
 
 func (ac *AppConfig) GetServerURL() string {

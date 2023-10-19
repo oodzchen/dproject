@@ -559,4 +559,20 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "VerificationMailTitle",
 		Other: "Verification code for registration",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcountExistsTip",
+		Other: "This account has already been registered on this platform. Please log in using an alternative method.",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "OAuthLoginTip",
+		Other: "or log in using the following platform",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "RetrievePassword",
+		Other: "Retrieve password",
+	})
+
 }

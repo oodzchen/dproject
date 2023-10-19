@@ -1,13 +1,19 @@
 package web
 
 import (
+	"bytes"
 	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
@@ -23,6 +29,7 @@ import (
 
 // https://www.postgresql.org/docs/current/errcodes-appendix.html
 const PGErrUniqueViolation = "23505"
+const GOOGLE_CLIENT_ID = "758732161019-4e0t8ktkm70554mn3ubq4pvrga5ns69l.apps.googleusercontent.com"
 
 type MainResource struct {
 	*Renderer
@@ -76,6 +83,9 @@ func (mr *MainResource) Routes() http.Handler {
 		r.Get("/ui", mr.SettingsUIPage)
 		r.Post("/ui", mr.SaveUISettings)
 	})
+
+	rt.Get("/login_auth", mr.LoginWithOAuth)
+	rt.Get("/auth_callback", mr.LoginAuthCallback)
 
 	rt.With(mdw.AuthCheck(mr.sessStore)).Get("/messages", mr.MessageList)
 
@@ -364,17 +374,7 @@ func (mr *MainResource) Login(w http.ResponseWriter, r *http.Request) {
 
 	mr.doLogin(w, r, username, password)
 
-	// targetUrl, _ := sess.Values["target_url"].(string)
-
-	target := mr.Session("one", w, r).GetValue("target_url")
-
-	mr.Session("one", w, r).SetValue("target_url", "")
-	// fmt.Println("target: ", target)
-	if targetUrl, ok := target.(string); ok && len(targetUrl) > 0 {
-		http.Redirect(w, r, targetUrl, http.StatusFound)
-	} else {
-		http.Redirect(w, r, "/", http.StatusFound)
-	}
+	mr.ToTargetUrl(w, r)
 }
 
 func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, username, password string) {
@@ -423,6 +423,30 @@ func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, username
 		mr.Error("", err, w, r, http.StatusInternalServerError)
 	}
 
+	mr.saveUserInfo(w, r, user)
+}
+
+func (mr *MainResource) doLoginOAuth(w http.ResponseWriter, r *http.Request, email string) {
+	if email == "" {
+		mr.Error(mr.Local("Required", "FieldNames", mr.Local("Email")), nil, w, r, http.StatusBadRequest)
+		return
+	}
+
+	if err := model.ValidateEmail(email); err != nil {
+		emailValidTip := mr.Local("Incorrect", "FieldNames", mr.Local("Or", "A", mr.Local("Email"), "B", mr.Local("Password")))
+		mr.Error(emailValidTip, err, w, r, http.StatusBadRequest)
+		return
+	}
+
+	user, err := mr.store.User.ItemWithEmail(email)
+	if err != nil {
+		mr.Error("", err, w, r, http.StatusInternalServerError)
+	}
+
+	mr.saveUserInfo(w, r, user)
+}
+
+func (mr *MainResource) saveUserInfo(w http.ResponseWriter, r *http.Request, user *model.User) {
 	mr.srv.Permission.SetLoginedUser(user)
 
 	sess, err := mr.sessStore.Get(r, "one")
@@ -450,6 +474,31 @@ func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, username
 
 	ctx := context.WithValue(r.Context(), "user_data", user)
 	*r = *r.WithContext(ctx)
+}
+
+func (mr *MainResource) doRegisterWithOAuth(w http.ResponseWriter, r *http.Request, email string, authType model.AuthType) {
+	if email == "" {
+		mr.Error(mr.Local("Required", "FieldNames", mr.Local("Email")), nil, w, r, http.StatusBadRequest)
+		return
+	}
+
+	if err := model.ValidateEmail(email); err != nil {
+		emailValidTip := mr.Local("Incorrect", "FieldNames", mr.Local("Or", "A", mr.Local("Email"), "B", mr.Local("Password")))
+		mr.Error(emailValidTip, err, w, r, http.StatusBadRequest)
+		return
+	}
+
+	username := model.ExtractNameFromEmail(email)
+
+	_, err := mr.store.User.CreateWithOAuth(email, username, string(model.DefaultUserRoleCommon), string(authType))
+	if err != nil {
+		mr.ServerErrorp("", err, w, r)
+		return
+	}
+
+	mr.doLoginOAuth(w, r, email)
+
+	mr.ToTargetUrl(w, r)
 }
 
 func (mr *MainResource) LoginDebug(w http.ResponseWriter, r *http.Request) {
@@ -708,4 +757,205 @@ func (mr *MainResource) MessageList(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 	})
+}
+
+type AuthType string
+
+const (
+	AuthTypeGoogle    AuthType = "google"
+	AuthTypeGithub             = "github"
+	AuthTypeMicrosoft          = "microsoft"
+)
+
+var authTypeMap = map[AuthType]bool{
+	AuthTypeGoogle:    true,
+	AuthTypeGithub:    true,
+	AuthTypeMicrosoft: true,
+}
+
+func (mr *MainResource) LoginWithOAuth(w http.ResponseWriter, r *http.Request) {
+	authType := AuthType(r.URL.Query().Get("type"))
+	if _, ok := authTypeMap[authType]; !ok {
+		mr.Error("", errors.New("auth type not exist"), w, r, http.StatusBadRequest)
+		return
+	}
+
+	var authUrl string
+	switch authType {
+	case AuthTypeGoogle:
+		authUrl = getGoogleAuthUrl()
+	}
+
+	state, err := genCSRFToken()
+	if err != nil {
+		mr.ServerErrorp("", err, w, r)
+		return
+	}
+
+	mr.Session("one", w, r).SetValue("auth_state", state)
+
+	authUrl += fmt.Sprintf("&state=%s", state)
+
+	// fmt.Println("authUrl", authUrl)
+
+	http.Redirect(w, r, authUrl, http.StatusFound)
+}
+
+func getGoogleAuthUrl() string {
+	return fmt.Sprintf(
+		"https://accounts.google.com/o/oauth2/v2/auth?client_id=%s&redirect_uri=%s&response_type=%s&scope=%s",
+		GOOGLE_CLIENT_ID,
+		"http://local.dizkaz.com:3003/auth_callback",
+		"code",
+		"https://www.googleapis.com/auth/userinfo.email",
+	)
+}
+
+func genCSRFToken() (string, error) {
+	randomData := make([]byte, 1024)
+	// fmt.Println("randomData: ", randomData)
+
+	_, err := rand.Read(randomData)
+	if err != nil {
+		fmt.Println("read random data failed", err)
+		return "", err
+	}
+
+	// fmt.Println("randomData after read: ", randomData)
+
+	hash := sha256.New()
+	hash.Write(randomData)
+	hashInBytes := hash.Sum(nil)
+
+	hashString := hex.EncodeToString(hashInBytes)
+
+	return hashString, nil
+}
+
+type GoogleTokenResponse struct {
+	AccessToken      string `json:"access_token"`
+	ExpiresInSeconds int    `json:"expires_in"`
+	Scope            string `json:"scope"`
+	TokenType        string `json:"Bearer"`
+	IdToken          string `json:"id_token"`
+}
+
+type GoogleUserInfo struct {
+	SubId         string `json:"sub"`
+	Picture       string `json:"picture"`
+	Email         string `json:"email"`
+	EmailVerified bool   `json:"email_verified"`
+}
+
+func (mr *MainResource) LoginAuthCallback(w http.ResponseWriter, r *http.Request) {
+	state := r.URL.Query().Get("state")
+	code := r.URL.Query().Get("code")
+
+	savedState := mr.Session("one", w, r).GetStringValue("auth_state")
+	// fmt.Println("saved state: ", savedState)
+	if state == "" || state != savedState {
+		mr.Error("state is incorrect", errors.New("state is incorrect"), w, r, http.StatusBadRequest)
+		return
+	}
+
+	if code == "" {
+		mr.Error("", errors.New("code is required"), w, r, http.StatusBadRequest)
+		return
+	}
+
+	// fmt.Println("google auth code: ", code)
+	// fmt.Fprintf(w, "google auth code: %s", code)
+
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	payload := []byte(`{
+		"client_id":"` + GOOGLE_CLIENT_ID + `",
+		"client_secret":"` + config.Config.GoogleClientSecret + `",
+		"code":"` + code + `",
+		"grant_type": "authorization_code",
+		"redirect_uri": "http://local.dizkaz.com:3003/auth_callback",
+	}`)
+
+	// fmt.Println("payload: ", string(payload))
+
+	req, err := http.NewRequest("POST", "https://oauth2.googleapis.com/token", bytes.NewBuffer(payload))
+	if err != nil {
+		mr.ServerErrorp("", err, w, r)
+		return
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		mr.ServerErrorp("", err, w, r)
+		return
+	}
+	defer resp.Body.Close()
+
+	// fmt.Println("Response status: ", resp.Status)
+
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(resp.Body)
+	// fmt.Println("response body: ", buf.String())
+
+	var tokenData GoogleTokenResponse
+	err = json.Unmarshal(buf.Bytes(), &tokenData)
+	if err != nil {
+		mr.ServerErrorp("", err, w, r)
+		return
+	}
+	// fmt.Println("tokenData: ", tokenData)
+
+	// err := mr.rdb.Set(context.Background(), "google_token", value interface{}, expiration time.Duration)
+	req, err = http.NewRequest("GET", "https://www.googleapis.com/oauth2/v3/userinfo", nil)
+	req.Header.Set("Authorization", "Bearer "+tokenData.AccessToken)
+
+	resp, err = client.Do(req)
+	if err != nil {
+		mr.ServerErrorp("", err, w, r)
+		return
+	}
+	defer resp.Body.Close()
+
+	// fmt.Println("user info response status: ", resp.Status)
+
+	var userInfo GoogleUserInfo
+	buf = new(bytes.Buffer)
+	buf.ReadFrom(resp.Body)
+	// fmt.Println("user info response body: ", buf.String())
+
+	err = json.Unmarshal(buf.Bytes(), &userInfo)
+	if err != nil {
+		mr.ServerErrorp("", err, w, r)
+		return
+	}
+
+	if !userInfo.EmailVerified {
+		mr.Error("email is not verified", err, w, r, http.StatusBadRequest)
+		return
+	}
+
+	// userId, err := mr.store.User.Exists(userInfo.Email, "")
+	userData, err := mr.store.User.ItemWithEmail(userInfo.Email)
+	if err != nil {
+		if errors.Is(err, model.AppErrUserNotExist) {
+			mr.doRegisterWithOAuth(w, r, userInfo.Email, model.AuthTypeGoogle)
+		} else {
+			mr.ServerErrorp("", err, w, r)
+		}
+		return
+	}
+
+	// fmt.Printf("user data: %#v", userData)
+
+	if userData.AuthFrom == model.AuthTypeGoogle {
+		mr.doLoginOAuth(w, r, userInfo.Email)
+		mr.ToTargetUrl(w, r)
+	} else {
+		mr.Session("one", w, r).Flash(mr.Local("AcountExistsTip"))
+		http.Redirect(w, r, "/login", http.StatusFound)
+	}
 }

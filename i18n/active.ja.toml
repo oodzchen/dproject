@@ -106,6 +106,10 @@ other = "アカウントの作成に成功しました"
 hash = "sha1-1e1c0d37d3158bf5fa31981251bc8a57e0d0d320"
 other = "アカウントの設定が保存されました"
 
+[AcountExistsTip]
+hash = "sha1-3ba61dd01174fcc15da7cdc280854a9a8ac11a29"
+other = "このアカウントは既にこのプラットフォームに登録されています。別の方法を使用してログインしてください。"
+
 [Action]
 hash = "sha1-97c89a4d6630adeb18fa12ba9976a31413fe293e"
 other = "アクション"
@@ -462,6 +466,10 @@ other = "{{.FieldNames}}は{{.Num}}文字を超えてはいけません"
 hash = "sha1-c4dbd26f2d54aa07c16b121383c7a5bdfd3f7e18"
 other = "{{.FieldNames}}は未登録です"
 
+[OAuthLoginTip]
+hash = "sha1-b0cf04e8d1dbd2fa6ea93c35d758f54576888a8b"
+other = "または、以下のプラットフォームを使用してログインしてください"
+
 [Oldest]
 hash = "sha1-c47bb88fdba7f64b65e09ff995dd260647b5a5fc"
 other = "最古"
@@ -537,6 +545,10 @@ other = "{{.FieldNames}}は必須です"
 [ResendVerification]
 hash = "sha1-b06230933f952f7ee876b38574badc8e7b092b06"
 other = "メールに確認コードを再送してください。"
+
+[RetrievePassword]
+hash = "sha1-6c0f570a73f804b7649d9f3bb328eb4c75435fe2"
+other = "パスワードのリセット"
 
 [Role]
 hash = "sha1-47dcc27d6e87ece8baebe7e3877a261a5467093d"

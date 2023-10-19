@@ -7,19 +7,27 @@ CREATE DATABASE :db_name OWNER :db_user ENCODING 'UTF-8';
 -- 连接到 discuss 数据库
 \c :db_name :db_user;
 
+CREATE TYPE auth_type AS ENUM ('self', 'google', 'github', 'microsoft');
+
 -- 用户
 CREATE TABLE users (
 id SERIAL PRIMARY KEY,
 email VARCHAR(255) NOT NULL,
-password VARCHAR(255) NOT NULL,
+password VARCHAR(255),
 username VARCHAR(255) NOT NULL,
 introduction TEXT,
 created_at TIMESTAMP NOT NULL DEFAULT NOW(),
 super_admin BOOLEAN NOT NULL DEFAULT false,
 deleted BOOLEAN NOT NULL DEFAULT false,
 banned BOOLEAN NOT NULL DEFAULT false,
+auth_from auth_type NOT NULL DEFAULT 'self',
 UNIQUE(email),
 UNIQUE(username)
+);
+
+ALTER TABLE users ADD CONSTRAINT user_password_check CHECK(
+(auth_from = 'self' AND password IS NOT NULL) OR
+(auth_from <> 'self')
 );
 
 CREATE UNIQUE INDEX idx_unique_username
