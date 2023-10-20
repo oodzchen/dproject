@@ -32,4 +32,9 @@ func (ic *I18nCustom) AddErrorConfigs() {
 		ID:    "NotExceed",
 		Other: "{{.FieldNames}} must not exceed {{.Num}} characters",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "PasswordConfirmError",
+		Other: "The passwords entered do not match",
+	})
 }

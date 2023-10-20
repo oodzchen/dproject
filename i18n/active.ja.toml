@@ -526,10 +526,6 @@ other = "コンテンツに対する反応"
 hash = "sha1-d672995a14650d0e018026b64f297663d8c71c8d"
 other = "登録"
 
-[RegisterTip]
-hash = "sha1-7d4f1cb536460874d0458be43fab294a4e643d6f"
-other = "新しいアカウントを作成"
-
 [Reply]
 hash = "sha1-c8a103c73005ccd029f388a9b7336a994cad85ba"
 other = "返信"
@@ -541,10 +537,6 @@ other = "{{.Count}} 回答"
 [Required]
 hash = "sha1-1d2cc27d94564c97fda931d16fc110dcd9db0d09"
 other = "{{.FieldNames}}は必須です"
-
-[ResendVerification]
-hash = "sha1-b06230933f952f7ee876b38574badc8e7b092b06"
-other = "メールに確認コードを再送してください。"
 
 [RetrievePassword]
 hash = "sha1-6c0f570a73f804b7649d9f3bb328eb4c75435fe2"

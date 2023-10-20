@@ -220,11 +220,23 @@ func (u *User) Update(item *model.User, fieldNames []string) (int, error) {
 	sqlStr := "UPDATE users SET " + strings.Join(updateStr, ", ") + fmt.Sprintf(" WHERE id = $%d RETURNING(id)", len(updateStr)+1)
 	updateVals = append(updateVals, item.Id)
 
-	fmt.Println("update sql string: ", sqlStr)
-	fmt.Println("update vals: ", updateVals)
+	// fmt.Println("update sql string: ", sqlStr)
+	// fmt.Println("update vals: ", updateVals)
 
 	var id int
 	err := u.dbPool.QueryRow(context.Background(), sqlStr, updateVals...).Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+func (u *User) UpdatePassword(email, password string) (int, error) {
+	// fmt.Println("email: ", email)
+	// fmt.Println("password: ", password)
+	var id int
+	err := u.dbPool.QueryRow(context.Background(), "UPDATE users SET password = $1, auth_from = 'self' WHERE email = $2 RETURNING (id)", password, email).Scan(&id)
 	if err != nil {
 		return 0, err
 	}

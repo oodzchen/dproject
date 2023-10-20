@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -23,7 +24,6 @@ import (
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/service"
 	"github.com/oodzchen/dproject/utils"
-	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -31,6 +31,11 @@ import (
 // https://www.postgresql.org/docs/current/errcodes-appendix.html
 const PGErrUniqueViolation = "23505"
 const GOOGLE_CLIENT_ID = "758732161019-4e0t8ktkm70554mn3ubq4pvrga5ns69l.apps.googleusercontent.com"
+
+var (
+	// ErrCodeVerifyExpired = errors.New("verification code is expired")
+	ErrCodeVerifyIncorrect = errors.New("verification code is incorrect")
+)
 
 type MainResource struct {
 	*Renderer
@@ -56,7 +61,6 @@ func (mr *MainResource) Routes() http.Handler {
 	rt.Get("/", mr.articleRs.List)
 	rt.Get("/register", mr.RegisterPage)
 	rt.Get("/register_verify", mr.VerifyRegisterPage)
-	rt.Get("/register_send_code", mr.ResendVerifyEmail)
 	rt.With(mdw.UserLogger(
 		mr.uLogger, model.AcTypeUser, model.AcActionRegisterVerify, model.AcModelEmpty, mdw.ULogEmpty),
 	).Post("/register_verify", mr.VerifyRegister)
@@ -70,6 +74,16 @@ func (mr *MainResource) Routes() http.Handler {
 	rt.With(mdw.AuthCheck(mr.sessStore), mdw.UserLogger(
 		mr.uLogger, model.AcTypeUser, model.AcActionLogout, "", mdw.ULogEmpty),
 	).Post("/logout", mr.Logout)
+
+	rt.Get("/send_code", mr.ResendVerifyEmail)
+	rt.Get("/retrieve_password", mr.RetrievePasswordPage)
+	rt.With(mdw.UserLogger(
+		mr.uLogger, model.AcTypeUser, model.AcActionRetrievePassword, model.AcModelEmpty, mdw.ULogEmpty),
+	).Post("/retrieve_password", mr.RetrievePassword)
+	rt.Get("/reset_password", mr.ResetPasswordPage)
+	rt.With(mdw.UserLogger(
+		mr.uLogger, model.AcTypeUser, model.AcActionResetPassword, model.AcModelEmpty, mdw.ULogEmpty),
+	).Post("/reset_password", mr.ResetPassword)
 
 	rt.Route("/settings", func(r chi.Router) {
 		r.Get("/", mr.SettingsPage)
@@ -166,7 +180,7 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 	mr.Session("one", w, r).SetValue("register_email", user.Email)
 	mr.Session("one", w, r).SetValue("register_username", user.Name)
 
-	go mr.sendVerifyCode(email, w, r)
+	go mr.sendVerifyCode(email, service.VerifCodeRegister, w, r)
 
 	http.Redirect(w, r, "/register_verify", http.StatusFound)
 }
@@ -210,24 +224,59 @@ func (mr *MainResource) VerifyRegisterPage(w http.ResponseWriter, r *http.Reques
 }
 
 func (mr *MainResource) ResendVerifyEmail(w http.ResponseWriter, r *http.Request) {
-	email := mr.Session("one", w, r).GetStringValue("register_email")
+	codeType := service.VerifCodeType(r.URL.Query().Get("type"))
+	if _, ok := service.VerifCodeTypeMap[codeType]; !ok {
+		mr.Error("", errors.New("code type is invalid"), w, r, http.StatusBadRequest)
+		return
+	}
+
+	var email string
+	var redirectPath string
+	switch codeType {
+	case service.VerifCodeRegister:
+		email = mr.Session("one", w, r).GetStringValue("register_email")
+		username := mr.Session("one", w, r).GetStringValue("register_username")
+		if username == "" {
+			mr.Error("", errors.New("get register username failed"), w, r, http.StatusInternalServerError)
+			return
+		}
+
+		redirectPath = "/register_verify"
+	case service.VerifCodeResetPassword:
+		email = mr.Session("one", w, r).GetStringValue("email_reset_pass")
+		redirectPath = "reset_password"
+	}
+
 	if email == "" {
-		mr.Error("", errors.New("get register email failed"), w, r, http.StatusInternalServerError)
+		mr.Error("", errors.New("get email failed"), w, r, http.StatusInternalServerError)
 		return
 	}
 
-	username := mr.Session("one", w, r).GetStringValue("register_username")
-	if username == "" {
-		mr.Error("", errors.New("get register username failed"), w, r, http.StatusInternalServerError)
+	if redirectPath == "" {
+		mr.Error("", errors.New("redirect path is empty"), w, r, http.StatusInternalServerError)
 		return
 	}
 
-	go mr.sendVerifyCode(email, w, r)
+	var isRegistered bool
+	if userData, _ := mr.store.User.ItemWithEmail(email); userData != nil && userData.Id > 0 {
+		isRegistered = true
+	}
 
-	http.Redirect(w, r, "/register_verify", http.StatusFound)
+	switch codeType {
+	case service.VerifCodeRegister:
+		if !isRegistered {
+			go mr.sendVerifyCode(email, codeType, w, r)
+		}
+	case service.VerifCodeResetPassword:
+		if isRegistered {
+			go mr.sendVerifyCode(email, codeType, w, r)
+		}
+	}
+
+	http.Redirect(w, r, redirectPath, http.StatusFound)
 }
 
-func (mr *MainResource) sendVerifyCode(email string, w http.ResponseWriter, r *http.Request) {
+func (mr *MainResource) sendVerifyCode(email string, codeType service.VerifCodeType, w http.ResponseWriter, r *http.Request) {
 	verifier := mr.srv.Verifier
 	code := verifier.GenCode()
 	encryptCode, err := verifier.EncryptCode(code)
@@ -237,7 +286,7 @@ func (mr *MainResource) sendVerifyCode(email string, w http.ResponseWriter, r *h
 	}
 	// fmt.Println("saved code: ", encryptCode)
 
-	err = verifier.SaveCode(email, encryptCode)
+	err = verifier.SaveCode(email, encryptCode, codeType)
 	if err != nil {
 		fmt.Println("save verification code error: ", err)
 		return
@@ -249,7 +298,7 @@ func (mr *MainResource) sendVerifyCode(email string, w http.ResponseWriter, r *h
 	// }
 	// fmt.Println("get code from redis: ", savedCode)
 
-	err = mr.srv.Mail.SendVerificationCode(email, code)
+	err = mr.srv.Mail.SendVerificationCode(email, code, codeType)
 	if err != nil {
 		fmt.Println("send verification code error: ", err)
 		return
@@ -269,40 +318,10 @@ func (mr *MainResource) VerifyRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	username := mr.Session("one", w, r).GetStringValue("register_username")
-	if username == "" {
-		mr.Error("", errors.New("get register username failed"), w, r, http.StatusInternalServerError)
-		return
-	}
-
-	savedCode, err := mr.srv.Verifier.GetCode(email)
-	// fmt.Println("savedCode: ", savedCode)
-	// fmt.Println("err: ", err)
+	err := mr.verifyMailCode(email, code, service.VerifCodeRegister, w, r)
 	if err != nil {
-		if errors.Is(err, redis.Nil) {
-			mr.Error(mr.Local("VerificationExpired"), err, w, r, http.StatusBadRequest)
-		} else {
-			mr.ServerErrorp("", errors.Wrap(err, "get code failed"), w, r)
-		}
 		return
 	}
-
-	err = mr.srv.Verifier.VerifyCode(code, savedCode)
-	if config.Config.Debug || config.Config.Testing {
-		if code == config.SuperCode {
-			err = nil
-		}
-	}
-	if err != nil {
-		mr.Error(mr.Local("VerificationIncorrect"), err, w, r, http.StatusBadRequest)
-		return
-	}
-	go func() {
-		err = mr.srv.Verifier.DeleteCode(email)
-		if err != nil {
-			fmt.Println(errors.Wrap(err, "redis delete verification code failed"))
-		}
-	}()
 
 	password, err := mr.rdb.Get(context.Background(), "register_pass_"+email).Result()
 	if err != nil {
@@ -312,9 +331,15 @@ func (mr *MainResource) VerifyRegister(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		err = mr.rdb.Del(context.Background(), "register_pass"+email).Err()
 		if err != nil {
-			fmt.Println(errors.Wrap(err, "redis delete register password failed"))
+			fmt.Println(errors.Join(err, errors.New("redis delete register password failed")))
 		}
 	}()
+
+	username := mr.Session("one", w, r).GetStringValue("register_username")
+	if username == "" {
+		mr.Error("", errors.New("get register username failed"), w, r, http.StatusInternalServerError)
+		return
+	}
 
 	_, err = mr.userSrv.Register(email, password, username)
 	if err != nil {
@@ -325,7 +350,7 @@ func (mr *MainResource) VerifyRegister(w http.ResponseWriter, r *http.Request) {
 			alreadyExistsTip := mr.Local("AlreadyExists", "FieldNames", mr.Local("Or", "A", mr.Local("Username"), "B", mr.Local("Email")))
 			mr.Error(alreadyExistsTip, err, w, r, http.StatusBadRequest)
 		} else {
-			mr.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
+			mr.Error("", err, w, r, http.StatusInternalServerError)
 		}
 
 		return
@@ -337,6 +362,41 @@ func (mr *MainResource) VerifyRegister(w http.ResponseWriter, r *http.Request) {
 	mr.Session("one", w, r).Flash(mr.i18nCustom.MustLocalize("AccountCreateSuccess", "", ""))
 
 	http.Redirect(w, r, "/login", http.StatusFound)
+}
+
+func (mr *MainResource) verifyMailCode(email, code string, codeType service.VerifCodeType, w http.ResponseWriter, r *http.Request) error {
+	savedCode, err := mr.srv.Verifier.GetCode(email, codeType)
+	// fmt.Println("savedCode: ", savedCode)
+	// fmt.Println("err: ", err)
+
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			mr.Error(mr.Local("VerificationExpired"), err, w, r, http.StatusBadRequest)
+		} else {
+			mr.ServerErrorp("", errors.Join(err, errors.New("get code failed")), w, r)
+		}
+		return err
+	}
+
+	err = mr.srv.Verifier.VerifyCode(code, savedCode)
+	if config.Config.Debug || config.Config.Testing {
+		if code == config.SuperCode {
+			err = nil
+		}
+	}
+	if err != nil {
+		mr.Error(mr.Local("VerificationIncorrect"), err, w, r, http.StatusBadRequest)
+		return errors.Join(ErrCodeVerifyIncorrect, err)
+	}
+
+	go func() {
+		err = mr.srv.Verifier.DeleteCode(email, codeType)
+		if err != nil {
+			fmt.Println(errors.Join(err, errors.New("redis delete verification code failed")))
+		}
+	}()
+
+	return nil
 }
 
 func (mr *MainResource) LoginPage(w http.ResponseWriter, r *http.Request) {
@@ -459,7 +519,7 @@ func (mr *MainResource) saveUserInfo(w http.ResponseWriter, r *http.Request, use
 
 	sess, err := mr.sessStore.Get(r, "one")
 	if err != nil {
-		logSessError("one", errors.WithStack(err))
+		logSessError("one", err)
 		mr.Error("", err, w, r, http.StatusInternalServerError)
 		return
 	}
@@ -636,7 +696,7 @@ func (mr *MainResource) handleSettingsPage(w http.ResponseWriter, r *http.Reques
 		if userId, ok := userId.(int); ok {
 			user, err := mr.store.User.Item(userId)
 			if err != nil {
-				mr.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
+				mr.Error("", err, w, r, http.StatusInternalServerError)
 				return
 			}
 			pageData.AccountData = user
@@ -678,7 +738,7 @@ func (mr *MainResource) SaveAccountSettings(w http.ResponseWriter, r *http.Reque
 		user.Sanitize(mr.sanitizePolicy)
 		_, err := mr.store.User.Update(user, []string{"Introduction"})
 		if err != nil {
-			mr.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
+			mr.Error("", err, w, r, http.StatusInternalServerError)
 		}
 
 		oneSess := mr.Session("one", w, r)
@@ -966,4 +1026,120 @@ func (mr *MainResource) LoginAuthCallback(w http.ResponseWriter, r *http.Request
 		mr.Session("one", w, r).Flash(mr.Local("AcountExistsTip"))
 		http.Redirect(w, r, "/login", http.StatusFound)
 	}
+}
+
+func (mr *MainResource) RetrievePasswordPage(w http.ResponseWriter, r *http.Request) {
+	mr.Render(w, r, "retrieve_password", &model.PageData{
+		Title: "Retrieve Password",
+	})
+}
+
+func (mr *MainResource) RetrievePassword(w http.ResponseWriter, r *http.Request) {
+	email := r.Form.Get("email")
+
+	if email == "" {
+		mr.Error(mr.Local("Required", "FieldNames", mr.Local("Email")), nil, w, r, http.StatusBadRequest)
+		return
+	}
+
+	if err := model.ValidateEmail(email); err != nil {
+		emailValidTip := mr.Local("Incorrect", "FieldNames", mr.Local("Or", "A", mr.Local("Email"), "B", mr.Local("Password")))
+		mr.Error(emailValidTip, err, w, r, http.StatusBadRequest)
+		return
+	}
+
+	mr.Session("one", w, r).SetValue("email_reset_pass", email)
+
+	if userData, _ := mr.store.User.ItemWithEmail(email); userData != nil && userData.Id > 0 {
+		go mr.sendVerifyCode(email, service.VerifCodeResetPassword, w, r)
+	}
+
+	http.Redirect(w, r, "/reset_password", http.StatusFound)
+}
+
+func (mr *MainResource) ResetPasswordPage(w http.ResponseWriter, r *http.Request) {
+	var email string
+	userData := r.Context().Value("user_data")
+
+	if v, ok := userData.(model.User); ok {
+		email = v.Email
+	} else {
+		email = strings.TrimSpace(mr.Session("one", w, r).GetStringValue("email_reset_pass"))
+	}
+
+	if email == "" {
+		mr.Error(mr.Local("Required", "FieldNames", mr.Local("Email")), nil, w, r, http.StatusBadRequest)
+		return
+	}
+
+	type PageData struct {
+		Email        string
+		CodeLifeTime int
+	}
+
+	mr.Render(w, r, "reset_password", &model.PageData{
+		Title: "Reset Password",
+		Data: &PageData{
+			Email:        email,
+			CodeLifeTime: int(mr.srv.Verifier.CodeLifeTime.Minutes()),
+		},
+	})
+}
+
+func (mr *MainResource) ResetPassword(w http.ResponseWriter, r *http.Request) {
+	code := strings.TrimSpace(r.Form.Get("code"))
+	if code == "" {
+		mr.Error("lack of code", errors.New("lack of code"), w, r, http.StatusBadRequest)
+		return
+	}
+	// email := strings.TrimSpace(r.Form.Get("email"))
+	email := mr.Session("one", w, r).GetStringValue("email_reset_pass")
+	if email == "" {
+		mr.Error("", errors.New("get email failed"), w, r, http.StatusInternalServerError)
+		return
+	}
+
+	err := mr.verifyMailCode(email, code, service.VerifCodeResetPassword, w, r)
+	if err != nil {
+		return
+	}
+
+	password := r.Form.Get("password")
+	confirmPassword := r.Form.Get("confirm-password")
+
+	if password == "" || confirmPassword == "" {
+		mr.Error(mr.Local("Required", "FieldNames", mr.Local("Password")), errors.New("password is empty"), w, r, http.StatusBadRequest)
+		return
+	}
+
+	err = model.ValidPassword(password)
+	if err != nil {
+		mr.Error(mr.Local("FormatError", "FieldNames", mr.Local("Password")), errors.New("password format error"), w, r, http.StatusBadRequest)
+		return
+	}
+
+	if confirmPassword != password {
+		mr.Error(mr.Local("PasswordConfirmError"), errors.New("password confirm error"), w, r, http.StatusBadRequest)
+		return
+	}
+
+	encryptPassword, err := model.DoEncryptPassword(confirmPassword)
+	if err != nil {
+		mr.ServerErrorp("", err, w, r)
+		return
+	}
+
+	// fmt.Println("email: ", email)
+
+	_, err = mr.store.User.UpdatePassword(email, encryptPassword)
+	if err != nil {
+		mr.ServerErrorp("", err, w, r)
+		return
+	}
+
+	mr.Session("one", w, r).SetValue("target_url", "/")
+	mr.Session("one", w, r).SetValue("email_reset_pass", "")
+	mr.Session("one", w, r).Flash(mr.Local("PassResetSuccess"))
+
+	http.Redirect(w, r, "/login", http.StatusFound)
 }

@@ -102,24 +102,34 @@ func (u *User) Valid(withPassword bool) error {
 		return err
 	}
 
-	rePassword := regexp.MustCompile(`[A-Za-z\d[:graph:]]{8,}`)
-	reLetter := regexp.MustCompile(`[A-Za-z]`)
-	reNum := regexp.MustCompile(`\d`)
-	reNotaion := regexp.MustCompile(`[[:graph:]]`)
-
 	if withPassword {
-		originalPwd := []byte(u.Password)
-		if !rePassword.Match(originalPwd) || !reLetter.Match(originalPwd) || !reNum.Match(originalPwd) || !reNotaion.Match(originalPwd) {
-			// return userValidErr("password format error")
-			return userValidErr(translator.LocalTpl("FormatError", "FieldNames", translator.LocalTpl("Password")))
+		err := ValidPassword(u.Password)
+		if err != nil {
+			return userValidErr(err.Error())
 		}
 	}
 
 	return nil
 }
 
+func ValidPassword(pwd string) error {
+	rePassword := regexp.MustCompile(`[A-Za-z\d[:graph:]]{8,}`)
+	reLetter := regexp.MustCompile(`[A-Za-z]`)
+	reNum := regexp.MustCompile(`\d`)
+	reNotaion := regexp.MustCompile(`[[:graph:]]`)
+
+	pwdBytes := []byte(pwd)
+
+	if !rePassword.Match(pwdBytes) || !reLetter.Match(pwdBytes) || !reNum.Match(pwdBytes) || !reNotaion.Match(pwdBytes) {
+		// return userValidErr("password format error")
+		return errors.New(translator.LocalTpl("FormatError", "FieldNames", translator.LocalTpl("Password")))
+	}
+
+	return nil
+}
+
 func (u *User) EncryptPassword() error {
-	hashedPwd, err := hashPassword(u.Password)
+	hashedPwd, err := DoEncryptPassword(u.Password)
 	if err != nil {
 		return err
 	}
@@ -129,7 +139,7 @@ func (u *User) EncryptPassword() error {
 	return nil
 }
 
-func hashPassword(pwd string) (string, error) {
+func DoEncryptPassword(pwd string) (string, error) {
 	hashedPwd, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
 	if err != nil {
 		return "", nil

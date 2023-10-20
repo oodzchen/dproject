@@ -20,8 +20,8 @@ const DefaultCodeLifeTime = 5 * time.Minute
 const CodeLength = 6
 const keyPrefix = "verif_code_"
 
-func getKey(email string) string {
-	return fmt.Sprintf("%s%s", keyPrefix, email)
+func getKey(email string, codeType VerifCodeType) string {
+	return fmt.Sprintf("%s%s_%s", keyPrefix, codeType, email)
 }
 
 func (v *Verifier) GenCode() string {
@@ -46,14 +46,14 @@ func (v *Verifier) VerifyCode(code string, encryptCode string) error {
 	return bcrypt.CompareHashAndPassword([]byte(encryptCode), []byte(code))
 }
 
-func (v *Verifier) SaveCode(email string, code string) error {
-	return v.Rdb.Set(context.Background(), getKey(email), code, v.CodeLifeTime).Err()
+func (v *Verifier) SaveCode(email string, code string, codeType VerifCodeType) error {
+	return v.Rdb.Set(context.Background(), getKey(email, codeType), code, v.CodeLifeTime).Err()
 }
 
-func (v *Verifier) GetCode(email string) (string, error) {
-	return v.Rdb.Get(context.Background(), getKey(email)).Result()
+func (v *Verifier) GetCode(email string, codeType VerifCodeType) (string, error) {
+	return v.Rdb.Get(context.Background(), getKey(email, codeType)).Result()
 }
 
-func (v *Verifier) DeleteCode(email string) error {
-	return v.Rdb.Del(context.Background(), getKey(email)).Err()
+func (v *Verifier) DeleteCode(email string, codeType VerifCodeType) error {
+	return v.Rdb.Del(context.Background(), getKey(email, codeType)).Err()
 }

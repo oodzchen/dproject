@@ -46,13 +46,13 @@ func TestVerifier(t *testing.T) {
 	fmt.Println("encrypt code success: ", encryptCode)
 
 	email := mocktool.GenUser().Email
-	err = verifier.SaveCode(email, encryptCode)
+	err = verifier.SaveCode(email, encryptCode, VerifCodeRegister)
 	if err != nil {
 		t.Fatal(err)
 	}
 	fmt.Println("save code success")
 
-	savedCode, err := verifier.GetCode(email)
+	savedCode, err := verifier.GetCode(email, VerifCodeRegister)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,7 +67,7 @@ func TestVerifier(t *testing.T) {
 	time.Sleep(verifier.CodeLifeTime)
 	fmt.Println("sleep end")
 
-	_, err = verifier.GetCode(email)
+	_, err = verifier.GetCode(email, VerifCodeRegister)
 	if err != nil && err != redis.Nil {
 		t.Fatal(err)
 	}

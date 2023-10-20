@@ -7,14 +7,14 @@
 	{{.CSRFField -}}
 	<div class="form__row">
 	    <label class="form__label" for="code">{{local "VerificationCode"}} <small class="text-lighten-2" style="font-weight: normal">({{local "FormRequired"}})</small></label>
-	    <input required name="code" id="code" type="number"/>
+	    <input required name="code" placeholder="XXXXXX" style="width:6rem;appearance:textfield;" id="code" type="number"/>
 	</div>
+	<div>
+	    <a href="/send_code?type=register">{{local "ResendVerification"}}</a>
+	</div>
+	<br/>
 	<button type="submit">{{local "BtnSubmit"}}</button>
     </form>
-    <br/>
-    <div>
-	<a href="/register_send_code">{{local "ResendVerification"}}</a>
-    </div>
 
     {{template "foot" . -}}
 {{end -}}

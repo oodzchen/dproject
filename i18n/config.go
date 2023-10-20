@@ -282,7 +282,7 @@ func (ic *I18nCustom) AddConfigs() {
 
 	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "RegisterTip",
-		Other: "Create a new account.",
+		Other: "Create a new account",
 	})
 
 	ic.AddLocalizeConfig(&i18n.Message{
@@ -524,7 +524,7 @@ func (ic *I18nCustom) AddConfigs() {
 
 	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "ResendVerification",
-		Other: "Please resend the verification code to the email.",
+		Other: "Resend the verification code to the email.",
 	})
 
 	ic.AddLocalizeConfig(&i18n.Message{
@@ -556,8 +556,26 @@ func (ic *I18nCustom) AddConfigs() {
 	})
 
 	ic.AddLocalizeConfig(&i18n.Message{
+		ID: "VerificationResetPassMailTpl",
+		Other: `<html>
+<body>
+<p>You are resetting the password on {{.DomainName}}, here's the verfication code:</p>
+<p><large><b>{{.Code}}</b></large></p>
+<p>Valid for {{.Minutes}} minutes.</p>
+<hr>
+<p style="color:#666">{{.DomainName}}</p>
+</body>
+</html>`,
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "VerificationMailTitle",
 		Other: "Verification code for registration",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "VerificationResetPassMailTitle",
+		Other: "Verification code for resetting password",
 	})
 
 	ic.AddLocalizeConfig(&i18n.Message{
@@ -573,6 +591,31 @@ func (ic *I18nCustom) AddConfigs() {
 	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "RetrievePassword",
 		Other: "Retrieve password",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "PassResetSuccess",
+		Other: "Password reset successful",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "RetrievePassTip",
+		Other: "Please enter the email associated with your account.",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "ResetPassTip",
+		Other: "If a matching account is detected, the verification code will be sent to the email: {{.Email}}, valid for {{.Duration}} minute. Please enter the new password and the verification code to complete the password reset.",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "NewPassword",
+		Other: "New password",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "ConfirmNewPassword",
+		Other: "Confirm new password",
 	})
 
 }

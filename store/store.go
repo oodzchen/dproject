@@ -59,6 +59,7 @@ type UserStore interface {
 	SetRole(userId int, roleFrontId string) (int, error)
 	SetRoleManyWithFrontId([]*model.User) error
 	GetPassword(usernameEmail string) (string, error)
+	UpdatePassword(email, password string) (int, error)
 }
 
 type PermissionStore interface {

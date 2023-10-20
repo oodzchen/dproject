@@ -21,6 +21,8 @@ ENUM(
    add_role, // Add role
    edit_role, // Edit role
    subscribe_article, // Subscribe article
+   retrieve_password, // Retrieve password
+   reset_password, // Reset password
 )
 */
 type AcAction string

@@ -63,6 +63,12 @@ const (
 	// AcActionSubscribeArticle is a AcAction of type subscribe_article.
 	// Subscribe article
 	AcActionSubscribeArticle AcAction = "subscribe_article"
+	// AcActionRetrievePassword is a AcAction of type retrieve_password.
+	// Retrieve password
+	AcActionRetrievePassword AcAction = "retrieve_password"
+	// AcActionResetPassword is a AcAction of type reset_password.
+	// Reset password
+	AcActionResetPassword AcAction = "reset_password"
 )
 
 var ErrInvalidAcAction = fmt.Errorf("not a valid AcAction, try [%s]", strings.Join(_AcActionNames, ", "))
@@ -84,6 +90,8 @@ var _AcActionNames = []string{
 	string(AcActionAddRole),
 	string(AcActionEditRole),
 	string(AcActionSubscribeArticle),
+	string(AcActionRetrievePassword),
+	string(AcActionResetPassword),
 }
 
 // AcActionNames returns a list of possible string values of AcAction.
@@ -112,6 +120,8 @@ func AcActionValues() []AcAction {
 		AcActionAddRole,
 		AcActionEditRole,
 		AcActionSubscribeArticle,
+		AcActionRetrievePassword,
+		AcActionResetPassword,
 	}
 }
 
@@ -144,6 +154,8 @@ var _AcActionValue = map[string]AcAction{
 	"add_role":          AcActionAddRole,
 	"edit_role":         AcActionEditRole,
 	"subscribe_article": AcActionSubscribeArticle,
+	"retrieve_password": AcActionRetrievePassword,
+	"reset_password":    AcActionResetPassword,
 }
 
 // ParseAcAction attempts to convert a string to a AcAction.
@@ -175,6 +187,8 @@ var _AcActionTextMap = map[AcAction]string{
 	AcActionAddRole:          "Add role",
 	AcActionEditRole:         "Edit role",
 	AcActionSubscribeArticle: "Subscribe article",
+	AcActionRetrievePassword: "Retrieve password",
+	AcActionResetPassword:    "Reset password",
 }
 
 func (x AcAction) Text(upCaseHead bool, i18nCustom *i18nc.I18nCustom) string {
@@ -259,5 +273,13 @@ func AcActionAddI18nConfigs(ic *i18nc.I18nCustom) {
 	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "AcAction_subscribe_article",
 		Other: "Subscribe article",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_retrieve_password",
+		Other: "Retrieve password",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_reset_password",
+		Other: "Reset password",
 	})
 }
