@@ -1,23 +1,23 @@
-(function(){
-    var primaryTheme = getPrimaryTheme()
-    if (primaryTheme == 'system') {
-	setTheme(primaryTheme)
-	window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
-            setTheme(primaryTheme)
-	});
+(function() {
+    var rawTheme = getRawTheme()
+    if (rawTheme == 'system') {
+        setTheme(rawTheme)
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            setTheme(rawTheme)
+        });
     }
-    function getPrimaryTheme() {
-	return document.documentElement.getAttribute('data-theme')
+    function getRawTheme() {
+        return document.documentElement.getAttribute('data-theme')
     }
 
     function setTheme(themeName) {
-	if (themeName == "system") {
-	    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-		themeName = "dark"
-	    } else {
-		themeName = "light"
-	    }
-	}
-	document.documentElement.setAttribute("data-theme", themeName)
+        if (themeName == "system") {
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                themeName = "dark"
+            } else {
+                themeName = "light"
+            }
+        }
+        document.documentElement.setAttribute("data-theme", themeName)
     }
 })()

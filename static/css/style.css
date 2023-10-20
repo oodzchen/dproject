@@ -6,6 +6,7 @@
     --border-color-active: var(--theme-color);
     --reply-indent-size: 2rem;
 }
+:root,
 :root[data-theme="light"] {
     color-scheme: light;
     --text: black;
