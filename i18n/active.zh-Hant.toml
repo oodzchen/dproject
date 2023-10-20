@@ -42,6 +42,14 @@ other = "註冊驗證"
 hash = "sha1-95fb9370f1ef1ff2ea5083190cceb70c1a7bb956"
 other = "回覆文章"
 
+[AcAction_reset_password]
+hash = "sha1-5c4bc97ee5d0ac344829dbcef02d7302feb098a8"
+other = "重設密碼"
+
+[AcAction_retrieve_password]
+hash = "sha1-6c0f570a73f804b7649d9f3bb328eb4c75435fe2"
+other = "找回密碼"
+
 [AcAction_save_article]
 hash = "sha1-ac4ef2e88b1a1e62108c09a73bedbf5b2c1f17ec"
 other = "保存文章"
@@ -282,6 +290,10 @@ other = "取消投票"
 hash = "sha1-5c3d4418dea97785194bdc8d2ba60ca6dec1c61a"
 other = "確定刪除"
 
+[ConfirmNewPassword]
+hash = "sha1-f85039fd8e49f782229c7c4e0f1b3b2a0f95e9e4"
+other = "確認新密碼"
+
 [Content]
 hash = "sha1-4f9be057f0ea5d2ba72fd2c810e8d7b9aa98b469"
 other = "內容"
@@ -450,6 +462,10 @@ other = "未讀"
 hash = "sha1-19a532c8bc61c311f583455c80ffe37067bbc9bb"
 other = "編輯"
 
+[NewPassword]
+hash = "sha1-d850ee188c7c55b64bc3624534de5c5051a57dc6"
+other = "新密碼"
+
 [NewReply]
 hash = "sha1-5e9146c5767c612cb92c2ef21c78f9c32a1aebd8"
 other = "{{.ArticleTitle}}有新的回覆"
@@ -494,9 +510,17 @@ other = "鋪滿"
 hash = "sha1-37359838b12b097116ebcd735b4aeb0844331d8f"
 other = "參與者 {{.ParticipateNum}}"
 
+[PassResetSuccess]
+hash = "sha1-887e5f35f9f8e50b17044a8d6b49ae14f8f68e60"
+other = "密碼重設成功"
+
 [Password]
 hash = "sha1-8be3c943b1609fffbfc51aad666d0a04adf83c9d"
 other = "密碼"
+
+[PasswordConfirmError]
+hash = "sha1-cd83213966583c0cf4c74c224b0d3b743a9dea7a"
+other = "輸入的密碼不匹配"
 
 [PasswordFormatTip]
 hash = "sha1-0faa603d90df7715fa39d86e8ebd421c634e610f"
@@ -526,6 +550,10 @@ other = "對內容做出反應"
 hash = "sha1-d672995a14650d0e018026b64f297663d8c71c8d"
 other = "註冊"
 
+[RegisterTip]
+hash = "sha1-19e9305780271f6dd9b34ab42ebc137c5ff54251"
+other = "創建新帳號"
+
 [Reply]
 hash = "sha1-c8a103c73005ccd029f388a9b7336a994cad85ba"
 other = "回覆"
@@ -537,6 +565,18 @@ other = "{{.Count}} 回覆"
 [Required]
 hash = "sha1-1d2cc27d94564c97fda931d16fc110dcd9db0d09"
 other = "{{.FieldNames}}是必須的"
+
+[ResendVerification]
+hash = "sha1-319159367cfbb42d2f85f5dc6ab361550550daec"
+other = "重新發送驗證碼到郵箱"
+
+[ResetPassTip]
+hash = "sha1-fc4c924bc1f75287d3babe85966606fab501777b"
+other = "如果檢測到匹配的帳號，將會向郵箱 {{.Email}} 發送驗證碼，有效期 {{.Duration}} 分鐘。請輸入新密碼和驗證碼完成密碼重設。"
+
+[RetrievePassTip]
+hash = "sha1-2a1f97642dc312504c024a4aaa83d894aa196830"
+other = "請輸入與您的帳號相關聯的郵箱。"
 
 [RetrievePassword]
 hash = "sha1-6c0f570a73f804b7649d9f3bb328eb4c75435fe2"
@@ -661,6 +701,14 @@ other = "註冊驗證碼"
 [VerificationMailTpl]
 hash = "sha1-ef16ca8d40351d7371779a323c1bec3afa08c64a"
 other = "<html>\n<body>\n<p>你正在註冊 {{.DomainName}}, 驗證碼是:</p>\n<p><large><b>{{.Code}}</b></large></p>\n<p>{{.Minutes}} 分鐘內有效。</p>\n<hr>\n<p style=\"color:#666\">{{.DomainName}}</p>\n</body>\n</html>"
+
+[VerificationResetPassMailTitle]
+hash = "sha1-863ac8ceab617f2b8949f83fa94395de5ba0c41b"
+other = "重設密碼的驗證碼"
+
+[VerificationResetPassMailTpl]
+hash = "sha1-7b726144204ce0b0219cd6cf5f877313fbe5944b"
+other = "<html>\n<body>\n<p>您正在{{.DomainName}}上重設密碼，以下是驗證碼：</p>\n<p><large><b>{{.Code}}</b></large></p>\n<p>有效期為{{.Minutes}}分鐘。</p>\n<hr>\n<p style=\"color:#666\">{{.DomainName}}</p>\n</body>\n</html>"
 
 [VoteScore]
 hash = "sha1-8a59b65d21e42409585cf850b64587e2ee783489"

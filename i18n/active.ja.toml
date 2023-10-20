@@ -42,6 +42,14 @@ other = "登録確認"
 hash = "sha1-95fb9370f1ef1ff2ea5083190cceb70c1a7bb956"
 other = "記事に返信する"
 
+[AcAction_reset_password]
+hash = "sha1-5c4bc97ee5d0ac344829dbcef02d7302feb098a8"
+other = "パスワードをリセットする"
+
+[AcAction_retrieve_password]
+hash = "sha1-6c0f570a73f804b7649d9f3bb328eb4c75435fe2"
+other = "パスワードを取得する"
+
 [AcAction_save_article]
 hash = "sha1-ac4ef2e88b1a1e62108c09a73bedbf5b2c1f17ec"
 other = "記事を保存"
@@ -282,6 +290,10 @@ other = "投票を取り消す"
 hash = "sha1-5c3d4418dea97785194bdc8d2ba60ca6dec1c61a"
 other = "削除を確認"
 
+[ConfirmNewPassword]
+hash = "sha1-f85039fd8e49f782229c7c4e0f1b3b2a0f95e9e4"
+other = "新しいパスワードを確認する"
+
 [Content]
 hash = "sha1-4f9be057f0ea5d2ba72fd2c810e8d7b9aa98b469"
 other = "内容"
@@ -450,6 +462,10 @@ other = "みどく"
 hash = "sha1-19a532c8bc61c311f583455c80ffe37067bbc9bb"
 other = "編集"
 
+[NewPassword]
+hash = "sha1-d850ee188c7c55b64bc3624534de5c5051a57dc6"
+other = "新しいパスワード"
+
 [NewReply]
 hash = "sha1-5e9146c5767c612cb92c2ef21c78f9c32a1aebd8"
 other = "{{.ArticleTitle}}への新しい返信"
@@ -494,9 +510,17 @@ other = "全画面"
 hash = "sha1-37359838b12b097116ebcd735b4aeb0844331d8f"
 other = "参加者 {{.ParticipateNum}}"
 
+[PassResetSuccess]
+hash = "sha1-887e5f35f9f8e50b17044a8d6b49ae14f8f68e60"
+other = "パスワードのリセットに成功しました"
+
 [Password]
 hash = "sha1-8be3c943b1609fffbfc51aad666d0a04adf83c9d"
 other = "パスワード"
+
+[PasswordConfirmError]
+hash = "sha1-cd83213966583c0cf4c74c224b0d3b743a9dea7a"
+other = "入力したパスワードが一致しません"
 
 [PasswordFormatTip]
 hash = "sha1-0faa603d90df7715fa39d86e8ebd421c634e610f"
@@ -526,6 +550,10 @@ other = "コンテンツに対する反応"
 hash = "sha1-d672995a14650d0e018026b64f297663d8c71c8d"
 other = "登録"
 
+[RegisterTip]
+hash = "sha1-19e9305780271f6dd9b34ab42ebc137c5ff54251"
+other = "新しいアカウントを作成する"
+
 [Reply]
 hash = "sha1-c8a103c73005ccd029f388a9b7336a994cad85ba"
 other = "返信"
@@ -537,6 +565,18 @@ other = "{{.Count}} 回答"
 [Required]
 hash = "sha1-1d2cc27d94564c97fda931d16fc110dcd9db0d09"
 other = "{{.FieldNames}}は必須です"
+
+[ResendVerification]
+hash = "sha1-319159367cfbb42d2f85f5dc6ab361550550daec"
+other = "確認コードをメールに再送する"
+
+[ResetPassTip]
+hash = "sha1-fc4c924bc1f75287d3babe85966606fab501777b"
+other = "一致するアカウントが検出された場合、確認コードがメールに送信されます：{{.Email}}、有効期間{{.Duration}}分。パスワードリセットを完了するには、新しいパスワードと確認コードを入力してください。"
+
+[RetrievePassTip]
+hash = "sha1-2a1f97642dc312504c024a4aaa83d894aa196830"
+other = "アカウントに関連するメールアドレスを入力してください"
 
 [RetrievePassword]
 hash = "sha1-6c0f570a73f804b7649d9f3bb328eb4c75435fe2"
@@ -661,6 +701,14 @@ other = "登録のための認証コード"
 [VerificationMailTpl]
 hash = "sha1-ef16ca8d40351d7371779a323c1bec3afa08c64a"
 other = "<html>\n<body>\n<p>あなたは{{.DomainName}}に登録しています。以下は認証コードです：</p>\n<p><large><b>{{.Code}}</b></large></p>\n<p>{{.Minutes}} 分間有効です。</p>\n<hr>\n<p style=\"color:#666\">{{.DomainName}}</p>\n</body>\n</html>"
+
+[VerificationResetPassMailTitle]
+hash = "sha1-863ac8ceab617f2b8949f83fa94395de5ba0c41b"
+other = "パスワードリセットの確認コード"
+
+[VerificationResetPassMailTpl]
+hash = "sha1-7b726144204ce0b0219cd6cf5f877313fbe5944b"
+other = "<html>\n<body>\n<p>{{.DomainName}}でパスワードをリセットしています。以下が確認コードです：</p>\n<p><large><b>{{.Code}}</b></large></p>\n<p>{{.Minutes}}分間有効です。</p>\n<hr>\n<p style=\"color:#666\">{{.DomainName}}</p>\n</body>\n</html>"
 
 [VoteScore]
 hash = "sha1-8a59b65d21e42409585cf850b64587e2ee783489"
