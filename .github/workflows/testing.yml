@@ -34,6 +34,7 @@ jobs:
           APP_PORT: ${{ vars.APP_PORT }}
           APP_OUTER_PORT: ${{ vars.APP_OUTER_PORT }}
           NGINX_PORT: ${{ vars.APP_OUTER_PORT }}
+          NGINX_SSL_PORT: "0"
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
           CSRF_SECRET: ${{ secrets.CSRF_SECRET }}
           REDIS_HOST: "localhost"
