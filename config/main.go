@@ -30,6 +30,7 @@ type AppConfig struct {
 	SMTP               *SMTPConfig
 	Testing            bool   `env:"TEST"`
 	GoogleClientSecret string `env:"GOOGLE_CLIENT_SECRET"`
+	GithubClientSecret string `env:"GITHUB_CLIENT_SECRET"`
 }
 
 func (ac *AppConfig) GetServerURL() string {

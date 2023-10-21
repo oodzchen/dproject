@@ -31,6 +31,7 @@ import (
 // https://www.postgresql.org/docs/current/errcodes-appendix.html
 const PGErrUniqueViolation = "23505"
 const GOOGLE_CLIENT_ID = "758732161019-4e0t8ktkm70554mn3ubq4pvrga5ns69l.apps.googleusercontent.com"
+const GITHUB_CLIENT_ID = "09885bf7f1c35a930aa1"
 
 var (
 	// ErrCodeVerifyExpired = errors.New("verification code is expired")
@@ -101,6 +102,7 @@ func (mr *MainResource) Routes() http.Handler {
 
 	rt.Get("/login_auth", mr.LoginWithOAuth)
 	rt.Get("/auth_callback", mr.LoginAuthCallback)
+	rt.Get("/auth_callback_github", mr.LoginAuthCallbackGithub)
 
 	rt.With(mdw.AuthCheck(mr.sessStore)).Get("/messages", mr.MessageList)
 
@@ -852,6 +854,8 @@ func (mr *MainResource) LoginWithOAuth(w http.ResponseWriter, r *http.Request) {
 	switch authType {
 	case AuthTypeGoogle:
 		authUrl = getGoogleAuthUrl()
+	case AuthTypeGithub:
+		authUrl = getGithubAuthUrl()
 	}
 
 	state, err := genCSRFToken()
@@ -876,6 +880,15 @@ func getGoogleAuthUrl() string {
 		"http://local.dizkaz.com:3003/auth_callback",
 		"code",
 		"https://www.googleapis.com/auth/userinfo.email",
+	)
+}
+
+func getGithubAuthUrl() string {
+	return fmt.Sprintf(
+		"https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s&scope=%s",
+		GITHUB_CLIENT_ID,
+		"http://local.dizkaz.com:3003/auth_callback_github",
+		"user:email",
 	)
 }
 
@@ -977,6 +990,12 @@ func (mr *MainResource) LoginAuthCallback(w http.ResponseWriter, r *http.Request
 	}
 	// fmt.Println("tokenData: ", tokenData)
 
+	if tokenData.AccessToken == "" {
+		fmt.Println("google token response body: ", buf.String())
+		mr.Error("get access token failed", errors.Join(err, errors.New("get google access token failed")), w, r, http.StatusBadRequest)
+		return
+	}
+
 	// err := mr.rdb.Set(context.Background(), "google_token", value interface{}, expiration time.Duration)
 	req, err = http.NewRequest("GET", "https://www.googleapis.com/oauth2/v3/userinfo", nil)
 	req.Header.Set("Authorization", "Bearer "+tokenData.AccessToken)
@@ -990,14 +1009,19 @@ func (mr *MainResource) LoginAuthCallback(w http.ResponseWriter, r *http.Request
 
 	// fmt.Println("user info response status: ", resp.Status)
 
-	var userInfo GoogleUserInfo
 	buf = new(bytes.Buffer)
 	buf.ReadFrom(resp.Body)
 	// fmt.Println("user info response body: ", buf.String())
 
+	var userInfo GoogleUserInfo
 	err = json.Unmarshal(buf.Bytes(), &userInfo)
 	if err != nil {
 		mr.ServerErrorp("", err, w, r)
+		return
+	}
+
+	if userInfo.Email == "" {
+		mr.Error("can't get the email", err, w, r, http.StatusBadRequest)
 		return
 	}
 
@@ -1142,4 +1166,144 @@ func (mr *MainResource) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	mr.Session("one", w, r).Flash(mr.Local("PassResetSuccess"))
 
 	http.Redirect(w, r, "/login", http.StatusFound)
+}
+
+type GithubTokenResponse struct {
+	AccessToken string `json:"access_token"`
+	Scope       string `json:"scope"`
+	TokenType   string `json:"bearer"`
+}
+
+type GithubUserInfo struct {
+	LoginId   string `json:"login"`
+	AvatarUrl string `json:"avatar_url"`
+	HtmlUrl   string `json:"html_url"`
+	Name      string `json:"name"`
+	Email     string `json:"email"`
+}
+
+func (mr *MainResource) LoginAuthCallbackGithub(w http.ResponseWriter, r *http.Request) {
+	state := r.URL.Query().Get("state")
+	code := r.URL.Query().Get("code")
+
+	savedState := mr.Session("one", w, r).GetStringValue("auth_state")
+	// fmt.Println("saved state: ", savedState)
+	if state == "" || state != savedState {
+		mr.Error("state is incorrect", errors.New("state is incorrect"), w, r, http.StatusBadRequest)
+		return
+	}
+
+	if code == "" {
+		mr.Error("", errors.New("code is required"), w, r, http.StatusBadRequest)
+		return
+	}
+
+	// fmt.Println("github auth code: ", code)
+	// fmt.Fprintf(w, "github auth code: %s", code)
+
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	payload := []byte(`{
+		"client_id":"` + GITHUB_CLIENT_ID + `",
+		"client_secret":"` + config.Config.GithubClientSecret + `",
+		"code":"` + code + `",
+                "redirect_uri": "http://local.dizkaz.com:3003/auth_callback_github"
+	}`)
+
+	// fmt.Println("payload: ", string(payload))
+
+	req, err := http.NewRequest("POST", "https://github.com/login/oauth/access_token", bytes.NewBuffer(payload))
+	if err != nil {
+		mr.ServerErrorp("", err, w, r)
+		return
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		mr.ServerErrorp("", err, w, r)
+		return
+	}
+	defer resp.Body.Close()
+
+	// fmt.Println("github token response status: ", resp.Status)
+
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(resp.Body)
+
+	// fmt.Println("github token response body: ", buf.String())
+
+	// fmt.Fprint(w, buf.String())
+
+	var tokenData GithubTokenResponse
+	err = json.Unmarshal(buf.Bytes(), &tokenData)
+	if err != nil {
+		mr.ServerErrorp("", err, w, r)
+		return
+	}
+
+	if tokenData.AccessToken == "" {
+		fmt.Println("github token response body: ", buf.String())
+		mr.Error("get access token failed", errors.Join(err, errors.New("get github access token failed")), w, r, http.StatusBadRequest)
+		return
+	}
+	// fmt.Println("tokenData: ", tokenData)
+
+	req, err = http.NewRequest("GET", "https://api.github.com/user", nil)
+	req.Header.Set("Authorization", "Bearer "+tokenData.AccessToken)
+	req.Header.Set("Accept", "application/vnd.github+json")
+	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
+
+	resp, err = client.Do(req)
+	if err != nil {
+		mr.ServerErrorp("", err, w, r)
+		return
+	}
+	defer resp.Body.Close()
+
+	// fmt.Println("user info response status: ", resp.Status)
+
+	buf = new(bytes.Buffer)
+	buf.ReadFrom(resp.Body)
+
+	// fmt.Println("user info response body: ", buf.String())
+	// fmt.Fprint(w, buf.String())
+
+	var userInfo GithubUserInfo
+	err = json.Unmarshal(buf.Bytes(), &userInfo)
+	if err != nil {
+		mr.ServerErrorp("", err, w, r)
+		return
+	}
+
+	// fmt.Printf("response user info: %#v", userInfo)
+
+	if userInfo.Email == "" {
+		mr.Error("can't get the email, this may cause by your github privacy setting", err, w, r, http.StatusBadRequest)
+		return
+	}
+
+	userData, err := mr.store.User.ItemWithEmail(userInfo.Email)
+	if err != nil {
+		if errors.Is(err, model.AppErrUserNotExist) {
+			mr.doRegisterWithOAuth(w, r, userInfo.Email, model.AuthTypeGithub)
+		} else {
+			mr.ServerErrorp("", err, w, r)
+		}
+		return
+	}
+
+	// fmt.Printf("user data: %#v", userData)
+
+	if userData.AuthFrom == model.AuthTypeGithub {
+		mr.doLoginOAuth(w, r, userInfo.Email)
+		mr.ToTargetUrl(w, r)
+	} else {
+		mr.Session("one", w, r).Flash(mr.Local("AcountExistsTip"))
+		http.Redirect(w, r, "/login", http.StatusFound)
+	}
 }
