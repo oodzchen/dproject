@@ -8,7 +8,7 @@ services:
       DB_CONTAINER_NAME: "webapp-db-1"
       DB_HOST: "db"
       DB_PORT: 5432
-      # DOMAIN_NAME: $DOMAIN_NAME
+      DOMAIN_NAME: $DOMAIN_NAME
       DB_NAME: $DB_NAME
       DB_USER: $DB_USER
       ADMIN_PASSWORD: $ADMIN_PASSWORD
@@ -16,8 +16,23 @@ services:
       USER_DEFAULT_PASSWORD: $USER_DEFAULT_PASSWORD
       APP_PORT: $APP_PORT
       APP_OUTER_PORT: $APP_OUTER_PORT
+      NGINX_PORT: $NGINX_PORT
+      NGINX_SSL_PORT: $NGINX_SSL_PORT
       SESSION_SECRET: $SESSION_SECRET
       CSRF_SECRET: $CSRF_SECRET
+      REDIS_HOST: "redis"
+      REDIS_PORT: 6379
+      REDIS_USER: $REDIS_USER
+      REDIS_PASSWORD: $REDIS_PASSWORD
+      REDISCLI_AUTH: $REDISCLI_AUTH
+      SMTP_SERVER: $SMTP_SERVER
+      SMTP_SERVER_PORT: $SMTP_SERVER_PORT
+      SMTP_USER: $SMTP_USER
+      SMTP_PASSWORD: $SMTP_PASSWORD
+      GOOGLE_CLIENT_ID: $GOOGLE_CLIENT_ID
+      GOOGLE_CLIENT_SECRET: $GOOGLE_CLIENT_SECRET
+      GITHUB_CLIENT_ID: $GITHUB_CLIENT_ID
+      GITHUB_CLIENT_SECRET: $GITHUB_CLIENT_SECRET
     depends_on:
       db:
         condition: service_healthy
@@ -106,8 +121,6 @@ services:
     volumes:
       - redis-data:/data
       - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
-    ports:
-      - $REDIS_PORT:6379
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
