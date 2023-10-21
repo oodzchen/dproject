@@ -21,8 +21,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     links:
       - db
+      - redis
   db:
     image: postgres:15.4
     container_name: "local-webapp-db"
@@ -92,6 +95,24 @@ services:
   #   volumes:
   #     - ./nginx/certbot/conf:/etc/letsencrypt
   #     - ./nginx/certbot/www:/var/www/certbot
+  
+  redis:
+    image: kholinchen/credis:latest
+    container_name: "local-redis"
+    environment:
+      - REDIS_USER=$REDIS_USER
+      - REDIS_PASSWORD=$REDIS_PASSWORD
+      - REDISCLI_AUTH=$REDISCLI_AUTH
+    volumes:
+      - redis-data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    ports:
+      - $REDIS_PORT:6379
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   db-data:
