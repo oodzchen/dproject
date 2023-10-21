@@ -369,6 +369,10 @@ func (mr *MainResource) VerifyRegister(w http.ResponseWriter, r *http.Request) {
 }
 
 func (mr *MainResource) verifyMailCode(email, code string, codeType service.VerifCodeType, w http.ResponseWriter, r *http.Request) error {
+	if (config.Config.Debug || config.Config.Testing) && code == config.SuperCode {
+		return nil
+	}
+
 	savedCode, err := mr.srv.Verifier.GetCode(email, codeType)
 	// fmt.Println("savedCode: ", savedCode)
 	// fmt.Println("err: ", err)
@@ -383,11 +387,6 @@ func (mr *MainResource) verifyMailCode(email, code string, codeType service.Veri
 	}
 
 	err = mr.srv.Verifier.VerifyCode(code, savedCode)
-	if config.Config.Debug || config.Config.Testing {
-		if code == config.SuperCode {
-			err = nil
-		}
-	}
 	if err != nil {
 		mr.Error(mr.Local("VerificationIncorrect"), err, w, r, http.StatusBadRequest)
 		return errors.Join(ErrCodeVerifyIncorrect, err)

@@ -63,10 +63,12 @@ func main() {
 		fmt.Printf("ENV file path: %s\n", envFile)
 		cfg, err = config.Parse(envFile)
 	}
-
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	fmt.Println("Debug mode: ", cfg.Debug)
+	fmt.Println("Testing mode: ", cfg.Testing)
 
 	mock = mt.NewMock(cfg)
 

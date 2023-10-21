@@ -11,10 +11,13 @@ echo "USER_DEFAULT_PASSWORD=$USER_DEFAULT_PASSWORD" >> ./.env.testing
 echo "DB_HOST=$DB_HOST" >> ./.env.testing
 echo "DB_PORT=$DB_PORT" >> ./.env.testing
 echo "DEBUG=$DEBUG" >> ./.env.testing
-# echo "DOMAIN_NAME=$DOMAIN_NAME" >> ./.env.testing
+echo "TEST=1" >> ./.env.testing
+echo "DOMAIN_NAME=$DOMAIN_NAME" >> ./.env.testing
 echo "APP_LOCAL_HOST=$APP_LOCAL_HOST" >> ./.env.testing
 echo "APP_PORT=$APP_PORT" >> ./.env.testing
 echo "APP_OUTER_PORT=$APP_OUTER_PORT" >> ./.env.testing
+echo "NGINX_PORT=$NGINX_PORT" >> ./.env.testing
+echo "NGINX_SSL_PORT=$NGINX_SSL_PORT" >> ./.env.testing
 
 echo "REDIS_HOST=$REDIS_HOST" >> ./.env.testing
 echo "REDIS_PORT=$REDIS_PORT" >> ./.env.testing
