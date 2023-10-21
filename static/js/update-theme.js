@@ -7,7 +7,7 @@
         });
     }
     function getRawTheme() {
-        return document.documentElement.getAttribute('data-theme')
+        return document.documentElement.getAttribute('data-raw-theme')
     }
 
     function setTheme(themeName) {
