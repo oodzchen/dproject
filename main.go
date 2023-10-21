@@ -89,7 +89,7 @@ func main() {
 	}
 
 	redisAddr := net.JoinHostPort(appCfg.Redis.Host, appCfg.Redis.Port)
-	fmt.Println("connecting redis...")
+	fmt.Printf("connecting redis at %s ...\n", redisAddr)
 	redisDB := redis.NewClient(&redis.Options{
 		Addr:     redisAddr,
 		Username: appCfg.Redis.User,
