@@ -73,30 +73,36 @@
 		    </li>
 		</ul>
 	    </nav>
-	    {{- if .LoginedUser -}}
+	    
+	    {{- if and .LoginedUser (permit "manage" "access") -}}
 		<nav class="top-nav">
-		    <ul class="nav-menu nav-menu--left">
-			{{- if permit "manage" "access" -}}
-			    <li><a href="/manage/permissions">{{local "Permission" "Count" 2}}</a></li>
-			    <li><a href="/manage/roles">{{local "Role" "Count" 2}}</a></li>
-			    <li><a href="/manage/users">{{local "User" "Count" 2}}</a></li>
-			    <li><a href="/manage/activities">{{local "Activity" "Count" 2}}</a></li>
-			{{- end -}}
-		    </ul>
+		    <ul></ul>
 		    <ul class="nav-menu nav-menu--right">
-			{{- if .Debug -}}
-			    <li>
-				<form action="/login_debug" method="post">
-				    {{.CSRFField}}
-				    <select id="debug-user" name="debug-user-email">
-					{{- $loginedUser := .LoginedUser -}}
-					{{- range .DebugUsers -}}
-					    <option value="{{.Email}}" {{if eq $loginedUser.Email .Email}}selected{{end}}>{{.Name}}</option>
-					{{- end -}}
-				    </select>
-				</form>
-			    </li>
-			{{- end -}}
+			<li><a href="/manage/permissions">{{local "Permission" "Count" 2}}</a></li>
+			<li><a href="/manage/roles">{{local "Role" "Count" 2}}</a></li>
+			<li><a href="/manage/users">{{local "User" "Count" 2}}</a></li>
+			<li><a href="/manage/activities">{{local "Activity" "Count" 2}}</a></li>
+		    </ul>
+		</nav>
+		<hr/>
+	    {{- end -}}
+
+	    {{- if and .LoginedUser .Debug -}}
+		<nav class="top-nav">
+		    <ul></ul>
+		    <ul class="nav-menu nav-menu--right">
+			<li>
+			    <form action="/login_debug" method="post">
+				{{.CSRFField}}
+				<select id="debug-user" name="debug-user-email">
+				    {{- $loginedUser := .LoginedUser -}}
+				    {{- range .DebugUsers -}}
+					<option value="{{.Email}}" {{if eq $loginedUser.Email .Email}}selected{{end}}>{{.Name}}</option>
+				    {{- end -}}
+				</select>
+			    </form>
+			</li>
+			
 		    </ul>
 		</nav>
 		<hr/>
