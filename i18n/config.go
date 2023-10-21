@@ -281,6 +281,11 @@ func (ic *I18nCustom) AddConfigs() {
 	})
 
 	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "RegisterTipHead",
+		Other: "Not registered yet? You can ",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "RegisterTip",
 		Other: "Create a new account",
 	})
@@ -617,5 +622,4 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "ConfirmNewPassword",
 		Other: "Confirm new password",
 	})
-
 }

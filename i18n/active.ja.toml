@@ -554,6 +554,10 @@ other = "登録"
 hash = "sha1-19e9305780271f6dd9b34ab42ebc137c5ff54251"
 other = "新しいアカウントを作成する"
 
+[RegisterTipHead]
+hash = "sha1-c1ff3ef2fb92114876e8d158f7f39f18650fb76e"
+other = "まだ登録していませんか？これを行うことができます "
+
 [Reply]
 hash = "sha1-c8a103c73005ccd029f388a9b7336a994cad85ba"
 other = "返信"

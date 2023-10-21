@@ -74,6 +74,27 @@ func (u *User) TrimSpace() {
 	u.Name = strings.TrimSpace(u.Name)
 }
 
+var ErrEmailValidFailed error
+
+func UpdateErrI18n() {
+	ErrEmailValidFailed = errors.New(translator.LocalTpl(
+		"Or",
+		"A",
+		translator.LocalTpl("FormatError", "FieldNames", translator.LocalTpl("Email")),
+		"B",
+		translator.LocalTpl(
+			"AlreadyExists",
+			"FieldNames",
+			translator.LocalTpl(
+				"Or",
+				"A",
+				translator.LocalTpl("Username"),
+				"B",
+				translator.LocalTpl("Email")),
+		),
+	))
+}
+
 func (u *User) Valid(withPassword bool) error {
 	lackField := ""
 
@@ -95,7 +116,7 @@ func (u *User) Valid(withPassword bool) error {
 	}
 
 	if err := ValidateEmail(u.Email); err != nil {
-		return userValidErr(translator.LocalTpl("FormatError", "FieldNames", translator.LocalTpl("Email")))
+		return userValidErr(ErrEmailValidFailed.Error())
 	}
 
 	if err := ValidUsername(u.Name); err != nil {
@@ -105,7 +126,7 @@ func (u *User) Valid(withPassword bool) error {
 	if withPassword {
 		err := ValidPassword(u.Password)
 		if err != nil {
-			return userValidErr(err.Error())
+			return errors.Join(AppErrUserValidFailed, ErrEmailValidFailed)
 		}
 	}
 

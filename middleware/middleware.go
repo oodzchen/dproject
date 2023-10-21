@@ -262,6 +262,7 @@ func CreateUISettingsMiddleware(sessStore *sessions.CookieStore, ic *i18nc.I18nC
 						uiSettings.Lang = acceptLang
 					}
 					ic.SwitchLang(uiSettings.Lang.String())
+					model.UpdateErrI18n()
 				case "page_theme":
 					if theme, ok := sessVal.(string); ok {
 						uiSettings.Theme = theme

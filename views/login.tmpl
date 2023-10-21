@@ -12,15 +12,17 @@
 	    <label class="form__label" for="password">{{local "Password"}}:</label>
 	    <input required name="password" id="password" type="password"/>
 	</div>
+	<br/>
+	<button type="submit" style="margin-right: 0.5rem;">{{local "Login"}}</button>&nbsp;&nbsp;<a href="/retrieve_password">{{local "RetrievePassword"}}</a>
+	<br/>
+	<br/>
 	<div>
-	    <a href="/register">{{local "RegisterTip"}}</a>, {{local "OAuthLoginTip"}}
+	    {{local "RegisterTipHead"}}<a href="/register">{{local "RegisterTip"}}</a>, {{local "OAuthLoginTip"}}
 	    <br/>
 	    <br/>
 	    <a href="/login_auth?type=google">Google</a>
 	    &nbsp;&nbsp;&nbsp;<a href="/login_auth?type=github">Github</a>
 	</div>
-	<br/>
-	<button type="submit" style="margin-right: 0.5rem;">{{local "Login"}}</button>&nbsp;&nbsp;<a href="/retrieve_password">{{local "RetrievePassword"}}</a>
     </form>
 
     {{template "foot" . -}}

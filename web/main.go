@@ -149,7 +149,11 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 	user.Sanitize(mr.sanitizePolicy)
 	err := user.Valid(true)
 	if err != nil {
-		mr.Error(err.Error(), err, w, r, http.StatusBadRequest)
+		errStr := err.Error()
+		if errors.Is(err, model.ErrEmailValidFailed) {
+			errStr = model.ErrEmailValidFailed.Error()
+		}
+		mr.Error(errStr, err, w, r, http.StatusBadRequest)
 		return
 	}
 
@@ -160,8 +164,8 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		if userId > 0 {
-			alreadyExistsTip := mr.Local("AlreadyExists", "FieldNames", mr.Local("Or", "A", mr.Local("Username"), "B", mr.Local("Email")))
-			mr.Error(alreadyExistsTip, err, w, r, http.StatusBadRequest)
+			// alreadyExistsTip := mr.Local("AlreadyExists", "FieldNames", mr.Local("Or", "A", mr.Local("Username"), "B", mr.Local("Email")))
+			mr.Error(model.ErrEmailValidFailed.Error(), err, w, r, http.StatusBadRequest)
 			return
 		}
 	}
@@ -614,6 +618,7 @@ func (mr *MainResource) SaveUISettings(w http.ResponseWriter, r *http.Request) {
 		uiSettings.Lang = lang
 		mr.i18nCustom.SwitchLang(string(lang))
 		localSess.SetValue("lang", lang)
+		model.UpdateErrI18n()
 	}
 
 	if regexp.MustCompile(`^light|dark|system$`).Match([]byte(theme)) {

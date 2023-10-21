@@ -41,4 +41,6 @@ func SetupI18n(ic *i18nc.I18nCustom) {
 	AcTypeAddI18nConfigs(translator)
 	AcModelAddI18nConfigs(translator)
 	AppErrCodeAddI18nConfigs(translator)
+
+	UpdateErrI18n()
 }

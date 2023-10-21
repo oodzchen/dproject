@@ -21,12 +21,13 @@
 	    <small class="text-lighten-2">{{local "UsernameFormatTip"}}</small>
 	</div>
 	<br/>
+	<button type="submit">{{local "BtnNextStep"}}</button>
+	<br/>
+	<br/>
 	<div>
 	    {{- $loginLink :=  print "<a href=\"/login\">" (local "Login" | lower) "</a>" -}}
 	    {{local "LoginTip" "LoginLink" $loginLink}}
 	</div>
-	<br/>
-	<button type="submit">{{local "BtnNextStep"}}</button>
     </form>
 
     {{template "foot" . -}}
