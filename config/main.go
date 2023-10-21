@@ -8,17 +8,20 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 
 	"github.com/caarlos0/env/v9"
 	"github.com/joho/godotenv"
 )
 
 type AppConfig struct {
-	SessionSecret string `env:"SESSION_SECRET"`
-	CSRFSecret    string `env:"CSRF_SECRET"`
-	// DomainName         string `env:"DOMAIN_NAME" envDefault:"localhost"`
+	SessionSecret      string `env:"SESSION_SECRET"`
+	CSRFSecret         string `env:"CSRF_SECRET"`
+	DomainName         string `env:"DOMAIN_NAME" envDefault:"localhost"`
 	AppPort            int    `env:"APP_PORT" envDefault:"3000"`
 	AppOuterPort       int    `env:"APP_OUTER_PORT" envDefault:"3000"`
+	NginxPort          int    `env:"NGINX_PORT" envDefault:"80"`
+	NginxSSLPort       int    `env:"NGINX_SSL_PORT" envDefault:"443"`
 	Debug              bool   `env:"DEBUG" envDefault:"false"`
 	BrandName          string `env:"BRAND_NAME"`
 	BrandDomainName    string `env:"BRAND_DOMAIN_NAME"`
@@ -29,12 +32,24 @@ type AppConfig struct {
 	Redis              *RedisConfig
 	SMTP               *SMTPConfig
 	Testing            bool   `env:"TEST"`
+	GoogleClientID     string `env:"GOOGLE_CLIENT_ID"`
 	GoogleClientSecret string `env:"GOOGLE_CLIENT_SECRET"`
+	GithubClientID     string `env:"GITHUB_CLIENT_ID"`
 	GithubClientSecret string `env:"GITHUB_CLIENT_SECRET"`
 }
 
 func (ac *AppConfig) GetServerURL() string {
-	return fmt.Sprintf("http://%s:%d", "localhost", ac.AppOuterPort)
+	protocol := "http"
+	if ac.NginxSSLPort == 443 {
+		protocol += "s"
+	}
+
+	port := ":" + strconv.Itoa(ac.NginxPort)
+	if port == ":80" {
+		port = ""
+	}
+
+	return fmt.Sprintf("%s://%s%s", protocol, ac.DomainName, port)
 }
 
 // Get app host as host:port

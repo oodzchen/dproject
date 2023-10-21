@@ -34,7 +34,7 @@ services:
       - ./nginx/templates/webapp.dev.conf.template:/etc/nginx/templates/webapp.conf.template:ro
       - ./nginx/logs:/etc/nginx/logs
     ports:
-      - $APP_OUTER_PORT:80
+      - $NGINX_PORT:80
 
   redis:
     image: kholinchen/credis:latest

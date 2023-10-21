@@ -30,8 +30,6 @@ import (
 
 // https://www.postgresql.org/docs/current/errcodes-appendix.html
 const PGErrUniqueViolation = "23505"
-const GOOGLE_CLIENT_ID = "758732161019-4e0t8ktkm70554mn3ubq4pvrga5ns69l.apps.googleusercontent.com"
-const GITHUB_CLIENT_ID = "09885bf7f1c35a930aa1"
 
 var (
 	// ErrCodeVerifyExpired = errors.New("verification code is expired")
@@ -881,8 +879,8 @@ func (mr *MainResource) LoginWithOAuth(w http.ResponseWriter, r *http.Request) {
 func getGoogleAuthUrl() string {
 	return fmt.Sprintf(
 		"https://accounts.google.com/o/oauth2/v2/auth?client_id=%s&redirect_uri=%s&response_type=%s&scope=%s",
-		GOOGLE_CLIENT_ID,
-		"http://local.dizkaz.com:3003/auth_callback",
+		config.Config.GoogleClientID,
+		config.Config.GetServerURL()+"/auth_callback",
 		"code",
 		"https://www.googleapis.com/auth/userinfo.email",
 	)
@@ -891,8 +889,8 @@ func getGoogleAuthUrl() string {
 func getGithubAuthUrl() string {
 	return fmt.Sprintf(
 		"https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s&scope=%s",
-		GITHUB_CLIENT_ID,
-		"http://local.dizkaz.com:3003/auth_callback_github",
+		config.Config.GithubClientID,
+		config.Config.GetServerURL()+"/auth_callback_github",
 		"user:email",
 	)
 }
@@ -957,11 +955,11 @@ func (mr *MainResource) LoginAuthCallback(w http.ResponseWriter, r *http.Request
 	}
 
 	payload := []byte(`{
-		"client_id":"` + GOOGLE_CLIENT_ID + `",
+		"client_id":"` + config.Config.GoogleClientID + `",
 		"client_secret":"` + config.Config.GoogleClientSecret + `",
 		"code":"` + code + `",
 		"grant_type": "authorization_code",
-		"redirect_uri": "http://local.dizkaz.com:3003/auth_callback",
+		"redirect_uri": "` + config.Config.GetServerURL() + `/auth_callback",
 	}`)
 
 	// fmt.Println("payload: ", string(payload))
@@ -1211,10 +1209,10 @@ func (mr *MainResource) LoginAuthCallbackGithub(w http.ResponseWriter, r *http.R
 	}
 
 	payload := []byte(`{
-		"client_id":"` + GITHUB_CLIENT_ID + `",
+		"client_id":"` + config.Config.GithubClientID + `",
 		"client_secret":"` + config.Config.GithubClientSecret + `",
 		"code":"` + code + `",
-                "redirect_uri": "http://local.dizkaz.com:3003/auth_callback_github"
+                "redirect_uri": "` + config.Config.GetServerURL() + `/auth_callback_github"
 	}`)
 
 	// fmt.Println("payload: ", string(payload))

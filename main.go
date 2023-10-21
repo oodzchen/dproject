@@ -199,7 +199,7 @@ func main() {
 		// err = http.Serve(autocert.NewListener(appCfg.DomainName), server.Handler)
 	} else {
 		fmt.Printf("App listening at http://localhost:%d\n", port)
-		fmt.Printf("Nginx expose at http://localhost:%d\n", appCfg.AppOuterPort)
+		fmt.Println("Server url is: ", appCfg.GetServerURL())
 		err = server.ListenAndServe()
 	}
 
