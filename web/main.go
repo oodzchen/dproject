@@ -474,8 +474,9 @@ func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, username
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			notRegisterdTip := mr.Local("NotRegistered", "FieldNames", mr.Local("Or", "A", mr.Local("Username"), "B", mr.Local("Email")))
-			mr.Error(notRegisterdTip, err, w, r, http.StatusBadRequest)
+			// notRegisteredTip := mr.Local("NotRegistered", "FieldNames", mr.Local("Or", "A", mr.Local("Username"), "B", mr.Local("Email")))
+			notRegisteredTip := loginFailedTip
+			mr.Error(notRegisteredTip, err, w, r, http.StatusBadRequest)
 		} else {
 			mr.Error(loginFailedTip, err, w, r, http.StatusBadRequest)
 		}
