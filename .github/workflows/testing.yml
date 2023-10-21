@@ -33,6 +33,7 @@ jobs:
           APP_LOCAL_HOST: "172.17.0.1"
           APP_PORT: ${{ vars.APP_PORT }}
           APP_OUTER_PORT: ${{ vars.APP_OUTER_PORT }}
+          NGINX_PORT: ${{ vars.APP_OUTER_PORT }}
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
           CSRF_SECRET: ${{ secrets.CSRF_SECRET }}
           REDIS_HOST: "localhost"
