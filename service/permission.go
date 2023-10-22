@@ -146,3 +146,10 @@ func (pm *Permission) ResetPermissionData() error {
 
 	return nil
 }
+
+func (pm *Permission) Permit(module string, action string) bool {
+	if pm.PermissionData == nil {
+		return false
+	}
+	return pm.PermissionData.Permit(module, action)
+}

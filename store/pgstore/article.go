@@ -493,11 +493,10 @@ ORDER BY ar.created_at;`
 	return list, nil
 }
 
-func (a *Article) Delete(id int, authorId int) (rootArticleId int, err error) {
+func (a *Article) Delete(id int) (rootArticleId int, err error) {
 	err = a.dbPool.QueryRow(context.Background(),
-		"UPDATE posts SET deleted = true WHERE id = $1 AND author_id = $2 RETURNING (root_article_id)",
+		"UPDATE posts SET deleted = true WHERE id = $1 RETURNING (root_article_id)",
 		id,
-		authorId,
 	).Scan(&rootArticleId)
 	if rootArticleId == 0 {
 		rootArticleId = id

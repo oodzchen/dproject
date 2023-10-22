@@ -13,24 +13,29 @@ type UserLogger struct {
 }
 
 type UserLogData struct {
+	ActionType                  model.AcType
+	Action                      model.AcAction
+	TargetModel                 model.AcModel
 	TargetId                    int
 	IPAddr, DeviceInfo, Details string
 }
 
 type UserLogHandler func(r *http.Request) *UserLogData
 
-func (ul *UserLogger) Log(u *model.User, actType model.AcType, action model.AcAction, targetModel model.AcModel, handler UserLogHandler, r *http.Request) error {
+func (ul *UserLogger) Log(u *model.User, handler UserLogHandler, r *http.Request) error {
+	logData := handler(r)
+
 	var userId int
 
 	if u == nil {
 		userId = 1
-		actType = model.AcTypeAnonymous
+		logData.ActionType = model.AcTypeAnonymous
 	} else {
 		userId = u.Id
 	}
 
 	var lackedField string
-	if action == "" {
+	if logData.Action == "" {
 		lackedField = "action"
 	}
 
@@ -38,12 +43,19 @@ func (ul *UserLogger) Log(u *model.User, actType model.AcType, action model.AcAc
 		return model.ActivityValidErr(fmt.Sprintf("%s is required", lackedField))
 	}
 
-	logData := handler(r)
-
 	// fmt.Println("userId :", userId)
 	// fmt.Printf("logger data: %#v\n", logData)
 
-	_, err := ul.Store.Activity.Create(userId, string(actType), string(action), string(targetModel), logData.TargetId, logData.IPAddr, logData.DeviceInfo, logData.Details)
+	_, err := ul.Store.Activity.Create(
+		userId,
+		string(logData.ActionType),
+		string(logData.Action),
+		string(logData.TargetModel),
+		logData.TargetId,
+		logData.IPAddr,
+		logData.DeviceInfo,
+		logData.Details,
+	)
 	if err != nil {
 		return err
 	}

@@ -131,13 +131,12 @@
 			</form>
 		    {{- end -}}
 		    {{- if .currUser -}}
-			{{- if eq .currUser.Id .article.AuthorId -}}
-			    {{- if permit "article" "edit_mine" -}}
-				&nbsp;|&nbsp;<a class="btn-edit text-lighten-3" href="/articles/{{.article.Id}}/edit">{{local "BtnEdit" | lower}}</a>
-			    {{- end -}}
-			    {{- if permit "article" "delete_mine" -}}
-				&nbsp;|&nbsp;<a class="btn-del text-lighten-3" href="/articles/{{.article.Id}}/delete">{{local "BtnDelete" | lower}}</a>
-			    {{- end -}}
+			{{- $isSelf := eq .currUser.Id .article.AuthorId -}}
+			{{- if and $isSelf (permit "article" "edit_mine") -}}
+			    &nbsp;|&nbsp;<a class="btn-edit text-lighten-3" href="/articles/{{.article.Id}}/edit">{{local "BtnEdit" | lower}}</a>
+			{{- end -}}
+			{{- if or (and $isSelf (permit "article" "delete_mine")) (permit "article" "delete_others") -}}
+			    &nbsp;|&nbsp;<a class="btn-del text-lighten-3" href="/articles/{{.article.Id}}/delete">{{local "BtnDelete" | lower}}</a>
 			{{- end -}}
 		    {{- end -}}
 		{{- end -}}
@@ -160,13 +159,19 @@
     </article>
 
     {{if and $delPage .currUser -}}
-	{{- if permit "article" "delete_mine" -}}
-	    <form method="post" class="card" action="/articles/{{.article.Id}}/delete{{if gt .pageDepth 1}}?from=reply{{- end}}" id="del_form_{{.article.Id}}">
+	{{- if or (permit "article" "delete_mine") (permit "article" "delete_others") -}}
+	    <form method="post" class="form card" action="/articles/{{.article.Id}}/delete{{if gt .pageDepth 1}}?from=reply{{- end}}" id="del_form_{{.article.Id}}">
 		{{.CSRFField -}}
 		<input type="hidden" name="id" value="{{.article.Id}}">
 		<label>{{local "ConfirmDelete"}}?</label>
 		<br/>
 		<br/>
+		{{- if ne .currUser.Id .article.AuthorId -}}
+		    <div class="form__row">
+			<label class="form__label" for="reason">{{local "Reason"}}</label>
+			<input id="reason" name="reason" type="text" required/>
+		    </div>
+		{{- end -}}
 		<button type="submit">{{local "BtnDelete"}}</button>
 	    </form>
 	{{- end -}}

@@ -546,6 +546,10 @@ other = "回"
 hash = "sha1-eb5974127a583519aa5f64b126b3bb744ca15066"
 other = "對內容做出反應"
 
+[Reason]
+hash = "sha1-f219cc0614ae6860f43a3cd84b5cf31fc312cd9d"
+other = "原因"
+
 [Register]
 hash = "sha1-d672995a14650d0e018026b64f297663d8c71c8d"
 other = "註冊"

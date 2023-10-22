@@ -124,47 +124,51 @@ func PermitCheck(permissionSrv *service.Permission, needPermissionIds []string, 
 	}
 }
 
-type UserLoggerFn func(w http.ResponseWriter, r *http.Request) (targetId int)
+type UserLoggerFn func(uLogData *service.UserLogData, w http.ResponseWriter, r *http.Request) error
 
 var (
-	ULogEmpty UserLoggerFn = func(w http.ResponseWriter, r *http.Request) int {
-		return 0
+	ULogEmpty UserLoggerFn = func(u *service.UserLogData, w http.ResponseWriter, r *http.Request) error {
+		return nil
 	}
 
-	ULogLoginedUserId = func(w http.ResponseWriter, r *http.Request) (targetId int) {
+	ULogLoginedUserId = func(u *service.UserLogData, w http.ResponseWriter, r *http.Request) error {
 		id, err := strconv.Atoi(chi.URLParam(r, "userId"))
 		if err != nil {
-			return 0
+			return nil
 		}
-		return id
+		u.TargetId = id
+		return nil
 	}
 
-	ULogRoleId = func(w http.ResponseWriter, r *http.Request) (targetId int) {
+	ULogRoleId = func(u *service.UserLogData, w http.ResponseWriter, r *http.Request) error {
 		id, err := strconv.Atoi(chi.URLParam(r, "roleId"))
 		if err != nil {
-			return 0
+			return nil
 		}
-		return id
+		u.TargetId = id
+		return nil
 	}
 
-	ULogNewArticleId = func(w http.ResponseWriter, r *http.Request) (targetId int) {
+	ULogNewArticleId = func(u *service.UserLogData, w http.ResponseWriter, r *http.Request) error {
 		articleIdStr := r.Context().Value("article_id")
-		articleId, ok := articleIdStr.(int)
+		id, ok := articleIdStr.(int)
 		if !ok {
-			return 0
+			return nil
 		}
 
 		// fmt.Println("articleId: ", articleId)
 
-		return articleId
+		u.TargetId = id
+		return nil
 	}
 
-	ULogURLArticleId = func(w http.ResponseWriter, r *http.Request) (targetId int) {
+	ULogURLArticleId = func(u *service.UserLogData, w http.ResponseWriter, r *http.Request) error {
 		id, err := strconv.Atoi(chi.URLParam(r, "articleId"))
 		if err != nil {
-			return 0
+			return nil
 		}
-		return id
+		u.TargetId = id
+		return nil
 	}
 )
 
@@ -178,23 +182,40 @@ func getLoginedUserData(r *http.Request) (*model.User, error) {
 	return nil, errors.New("no user data in request context")
 }
 
-func UserLogger(uLogger *service.UserLogger, actType model.AcType, action model.AcAction, targetModel model.AcModel, uHandler UserLoggerFn) func(http.Handler) http.Handler {
+func UserLogger(uLogger *service.UserLogger, actType model.AcType, action model.AcAction, targetModel model.AcModel, uHandlers ...UserLoggerFn) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// fmt.Println("in middleware test before http")
 			next.ServeHTTP(w, r)
+
+			uLogData := &service.UserLogData{
+				ActionType:  actType,
+				Action:      action,
+				TargetModel: targetModel,
+				DeviceInfo:  r.UserAgent(),
+				IPAddr:      strings.Split(r.RemoteAddr, ":")[0],
+			}
 			// fmt.Println("in middleware test after http")
 			user, _ := getLoginedUserData(r)
 			// fmt.Println("user data: ", user)
 
-			var targetId int
+			// var targetId int
 
-			if uHandler != nil {
-				targetId = uHandler(w, r)
+			// if uHandler != nil {
+			// 	uLogData.TargetId = uHandler(w, r)
+			// }
+
+			for _, handler := range uHandlers {
+				if handler != nil {
+					err := handler(uLogData, w, r)
+					if err != nil {
+						fmt.Println("UserLogger error: ", err)
+					}
+				}
 			}
 
 			go func() {
-				err := uLogger.Log(user, actType, action, targetModel, func(r *http.Request) *service.UserLogData {
+				err := uLogger.Log(user, func(r *http.Request) *service.UserLogData {
 					postData := make(map[string]any)
 					for k, v := range r.PostForm {
 						if k == "tk" || k == "password" {
@@ -209,12 +230,8 @@ func UserLogger(uLogger *service.UserLogger, actType model.AcType, action model.
 					}
 
 					details := utils.SprintJSONf(postData, "", "")
-					return &service.UserLogData{
-						TargetId:   targetId,
-						Details:    details,
-						DeviceInfo: r.UserAgent(),
-						IPAddr:     strings.Split(r.RemoteAddr, ":")[0],
-					}
+					uLogData.Details = details
+					return uLogData
 				}, r)
 				if err != nil {
 					fmt.Println("user activity logger error:", err)

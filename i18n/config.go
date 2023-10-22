@@ -622,4 +622,10 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "ConfirmNewPassword",
 		Other: "Confirm new password",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Reason",
+		Other: "Reason",
+	})
+
 }

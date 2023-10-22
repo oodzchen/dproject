@@ -57,11 +57,31 @@ func (ar *ArticleResource) Routes() http.Handler {
 
 		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.srv.Permission, []string{
 			"article.delete_mine",
-			// "article.delete_others",
+			"article.delete_others",
 		}, ar)).Group(func(r chi.Router) {
 			r.Get("/delete", ar.DeletePage)
 			r.With(mdw.UserLogger(
-				ar.uLogger, model.AcTypeUser, model.AcActionDeleteArticle, model.AcModelArticle, mdw.ULogURLArticleId),
+				ar.uLogger, model.AcTypeUser, model.AcActionDeleteArticle, model.AcModelArticle, mdw.ULogURLArticleId, func(uLogData *service.UserLogData, w http.ResponseWriter, r *http.Request) error {
+					fmt.Println("uLogData: ", uLogData)
+					var currUserId int
+					if currUser, ok := r.Context().Value("user_data").(*model.User); ok {
+						// fmt.Println("curr user id: ", currUser.Id)
+						currUserId = currUser.Id
+					}
+
+					var deleteArticleAuthorId int
+					if v, ok := ar.Session("one", w, r).GetValue("deleted_article_author_id").(int); ok {
+						// fmt.Println("deleted article author id: ", v)
+						deleteArticleAuthorId = v
+						ar.Session("one", nil, r).SetValue("deleted_article_author_id", "")
+					}
+
+					if currUserId != 0 && deleteArticleAuthorId != 0 && currUserId != deleteArticleAuthorId {
+						uLogData.ActionType = model.AcTypeManage
+					}
+
+					return nil
+				}),
 			).Post("/delete", ar.Delete)
 		})
 
@@ -516,8 +536,9 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		// 	return
 		// }
 
-		if rootArticle.AuthorId != currUserId {
-			http.Redirect(w, r, fmt.Sprintf("/articles/%d", articleId), http.StatusFound)
+		if (rootArticle.AuthorId != currUserId && !ar.srv.Permission.Permit("article", "delete_others")) || !ar.srv.Permission.Permit("article", "delete_mine") {
+			// http.Redirect(w, r, fmt.Sprintf("/articles/%d", articleId), http.StatusFound)
+			ar.Error("", err, w, r, http.StatusForbidden)
 			return
 		}
 	}
@@ -541,9 +562,9 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 
 	rootArticle.UpdateDisplayTitle()
 
-	if rootArticle.Deleted {
-		w.WriteHeader(http.StatusGone)
-	}
+	// if rootArticle.Deleted {
+	// 	w.WriteHeader(http.StatusGone)
+	// }
 
 	type itemPageData struct {
 		Article *model.Article
@@ -654,19 +675,20 @@ func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if article.AuthorId != currUserId {
-		http.Redirect(w, r, fmt.Sprintf("/articles/%d", rId), http.StatusFound)
+	if (article.AuthorId != currUserId && !ar.srv.Permission.Permit("article", "delete_others")) || !ar.srv.Permission.Permit("article", "delete_mine") {
+		// http.Redirect(w, r, fmt.Sprintf("/articles/%d", rId), http.StatusFound)
 		ar.Error("", err, w, r, http.StatusForbidden)
 		return
 	}
 
-	rootArticleId, err := ar.store.Article.Delete(rId, currUserId)
+	rootArticleId, err := ar.store.Article.Delete(rId)
 	if err != nil {
 		ar.Error("", err, w, r, http.StatusBadRequest)
 		return
 	}
 
 	ar.Session("one", w, r).Flash(ar.Local("DeleteSuccess"))
+	ar.Session("one", w, r).SetValue("deleted_article_author_id", article.AuthorId)
 
 	http.Redirect(w, r, fmt.Sprintf("/articles/%d", rootArticleId), http.StatusFound)
 }

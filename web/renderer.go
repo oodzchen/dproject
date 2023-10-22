@@ -371,13 +371,20 @@ func (ss *Session) SetValue(key string, val any) {
 
 	err := ss.Raw.Save(ss.r, ss.w)
 	if err != nil {
-		// fmt.Println("save session error: ", err)
-		ss.rd.Error("", errors.WithStack(err), ss.w, ss.r, http.StatusInternalServerError)
+		if ss.w != nil {
+			ss.rd.Error("", errors.WithStack(err), ss.w, ss.r, http.StatusInternalServerError)
+		} else {
+			fmt.Println("ss.SetValue save session error: ", err)
+		}
+
 		return
 	}
 }
 
 func (ss *Session) Flash(data any, vars ...string) {
 	ss.Raw.AddFlash(data, vars...)
-	ss.Raw.Save(ss.r, ss.w)
+	err := ss.Raw.Save(ss.r, ss.w)
+	if err != nil {
+		fmt.Println("add flash save session error: ", err)
+	}
 }
