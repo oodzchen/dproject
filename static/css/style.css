@@ -18,6 +18,7 @@
     --text-lighten: #333;
     --text-lighten-2: #666;
     --text-lighten-3: #999;
+    --text-lighten-4: #CCC;
 
     --link: #1111FE;
     --link-visited: #9A3D9A;
@@ -38,6 +39,7 @@
     --text-lighten: #DDD;
     --text-lighten-2: #CCC;
     --text-lighten-3: #9D9B9B;
+    --text-lighten-4: #666;
 
     --link: #A3A3FF;
     --link-visited: #A35FA3;
@@ -278,11 +280,11 @@ a.text-lighten-3{
     font-size: 1rem;
     cursor: pointer;
     background: transparent;
-    color: var(--text-lighten-2);
+    color: var(--text-lighten-3);
 }
 .vote-form button[type="submit"]:hover,
 .vote-form button[type="submit"]:hover svg{
-    color: var(--text-lighten-3);
+    color: var(--text-lighten-4);
 }
 .vote-form.voted button[type="submit"],
 .vote-form.voted button[type="submit"] svg{
@@ -309,6 +311,10 @@ a.text-lighten-3{
 .article-operation svg,
 .article-operation button[type="submit"]{
     color: var(--text-lighten-2);
+}
+
+.article-operation svg{
+    color: var(--text-lighten-3);
     
 }
 
