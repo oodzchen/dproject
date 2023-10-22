@@ -495,7 +495,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	var rootArticle *model.Article
 	for _, item := range articleTreeList {
 		item.FormatNullValues()
-		item.FormatTimeStr()
+		item.ReplaceURLToLinkTag()
 		item.CalcScore()
 		item.CalcWeight()
 		item.CheckShowScore(currUserId)
@@ -526,11 +526,10 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		item.FormatDeleted()
 	}
 
-	rootArticle, err = genArticleTree(rootArticle, articleTreeList)
-	if err != nil {
-		// ar.Error("", err, w, r, http.StatusInternalServerError)
-		fmt.Printf("generate article tree error: %v", err)
-	}
+	rootArticle, _ = genArticleTree(rootArticle, articleTreeList)
+	// if err != nil {
+	// 	fmt.Printf("generate article tree error: %v\n", err)
+	// }
 
 	replySort := model.ReplySortBest
 	if model.ValidArticleSort(sortType) {
