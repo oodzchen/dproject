@@ -50,6 +50,7 @@ ArticleTitleTip = "Up to {{.Num}} characters, please summarize content concisely
 ArticleURLTip = "Please provide direct links, avoid using redirected URLs. Whenever possible, provide primary sources."
 Author = "Author"
 Best = "Best"
+BrandName = "DizKaz"
 BtnClose = "Close"
 BtnDelete = "Delete"
 BtnEdit = "Edit"

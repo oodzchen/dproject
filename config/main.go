@@ -94,7 +94,7 @@ var Config *AppConfig
 
 // var BrandName = "DizKaz"
 var BrandName = "笛卡"
-var BrandDomainName = "DizKaz.com"
+var BrandDomainName = "dizkaz.com"
 var Slogan = ""
 var ReplyDepthPageSize = 10
 

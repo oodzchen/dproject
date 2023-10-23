@@ -1,6 +1,6 @@
 :root{
     --font-size: 16px;
-    --tip-bg: #E5E4BE;
+    --flash-bg: #E5E4BE;
     --theme-color: #2F71AC;
     --theme-color-darken: #5050DC;
     --border-color-active: var(--theme-color);
@@ -12,7 +12,9 @@
     --text: black;
     --background-hover: #FAFAFA;
 
-    --text-bg: #E8F4FF;
+    --page-tip-bg: #FDF2E1;
+    --text-bg: #F4F4F4;
+    --nav-bg: #E8F4FF;
     
     --text-with-background: black;
     --text-lighten: #333;
@@ -30,10 +32,12 @@
     color-scheme: dark;
     --theme-color: #74BCFB;
     --theme-color-darken: #8C8CDC;
-    --text: white;
+    --text: #EEE;
     --background-hover: #383A45;
 
-    --text-bg: #2E3841;
+    --page-tip-bg: #4F4940;
+    --text-bg: #363948;
+    --nav-bg: #2E3841;
     
     --text-with-background: black;
     --text-lighten: #DDD;
@@ -105,7 +109,7 @@ label[for]{
 }
 
 .table-data thead th{
-    background: var(--text-bg);
+    background: var(--page-tip-bg);
 }
 
 .table-data th,
@@ -120,7 +124,22 @@ a.brand{
     color: var(--theme-color) !important;
 }
 a.brand b{
+    display: inline-block;
+    vertical-align: baseline;
     color: var(--theme-color) !important;
+}
+.logo{
+    display:inline-block;
+    width:1.2rem;
+    height:1.2rem;
+    border-radius:2px;
+    background:#225487;
+    font-family:Helvetica;
+    font-weight:bold;
+    color:#fff;
+    text-align:center;
+    line-height:1.1;
+    vertical-align: baseline;
 }
 .slogan{
     font-size: 0.8rem;
@@ -140,15 +159,15 @@ a.text-lighten-2{
 a.text-lighten-3{
     color: var(--text-lighten-3)
 }
-.page-tip{
+.page-flash{
     display:flex;
     padding: 10px;
     margin: 10px 0;
     justify-content:space-between;
-    background-color: var(--tip-bg);
+    background-color: var(--flash-bg);
     color: var(--text-with-background)
 }
-.page-tip a{
+.page-flash a{
     color: var(--text-with-background)
 }
 .article-list{
@@ -200,7 +219,7 @@ a.text-lighten-3{
     display: inline-block;
     padding: 0 10px 4px;
     margin-bottom: -1px;
-    line-height: 28px;
+    line-height: 1.2rem;
     color: var(--text-lighten);
     font-size: 0.9rem;
 }
@@ -273,7 +292,7 @@ a.text-lighten-3{
 }
 .vote-form button[type="submit"]{
     display: inline-block;
-    padding: 0;
+    padding: 2px 0 0;
     border: none;
     line-height: 1;
     vertical-align: text-top;
@@ -323,8 +342,12 @@ a.text-lighten-3{
     display: inline-block;
     vertical-align: baseline;
 }
-.article-operation svg{
+.article-operation .vote-form svg{
     vertical-align: -1px;
+}
+
+.article-operation .btn-react svg{
+    vertical-align: -3px;
 }
 
 .btn-form{
@@ -424,9 +447,9 @@ a.text-lighten-3{
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 0;
-    padding: 0.4rem 4px;
-    background: var(--text-bg);
+    margin: 0 -10px 10px;
+    padding: 0 10px;
+    background: var(--nav-bg);
 }
 .nav-menu{
     display: flex;
@@ -439,8 +462,11 @@ a.text-lighten-3{
 }
 .nav-menu li{
     vertical-align: middle;
-    
     line-height: 1.2rem;
+}
+.nav-menu li a{
+    display: inline-block;
+    padding: 6px 0;
 }
 .nav-menu li a,
 .nav-menu li b,
@@ -500,7 +526,7 @@ a.text-lighten-3{
 
 .tip-block{
     padding: 10px 6px;
-    margin-bottom: 10px;
-    background:var(--text-bg);
+    margin: 10px 0;
+    background:var(--page-tip-bg);
     color:var(--text-lighten);
 }

@@ -214,6 +214,10 @@ other = "作者"
 hash = "sha1-77003d07271f14977f2cf290c9d16c81e05ab6dd"
 other = "最佳"
 
+[BrandName]
+hash = "sha1-89dd3635b4b67d2f0953f56dc2f801b15588dd10"
+other = "笛卡"
+
 [BtnClose]
 hash = "sha1-bbfa773e5a63a5ea58c9b6207e608ca0120e592a"
 other = "关闭"

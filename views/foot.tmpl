@@ -1,6 +1,6 @@
 {{define "foot" -}}
     <hr style="margin-top: 100px;"/>
-    <footer>&copy; {{now | date "2006" -}}</footer>
+    <footer>&copy; {{now | date "2006" }} {{.BrandDomainName}}</footer>
 
     {{- if and .Debug .JSONStr -}}
 	<script>

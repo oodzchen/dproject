@@ -159,7 +159,8 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	data.CSRFField = string(csrf.TemplateField(r))
 	data.RoutePath = r.URL.Path
 	data.Debug = config.Config.Debug
-	data.BrandName = config.Config.BrandName
+	// data.BrandName = config.Config.BrandName
+	data.BrandName = rd.Local("BrandName")
 	data.BrandDomainName = config.Config.BrandDomainName
 	data.Slogan = config.Config.Slogan
 	data.PermissionEnabledList = rd.srv.Permission.PermissionData.EnabledFrondIdList

@@ -1,5 +1,5 @@
 (function() {
-    var pageTipClose = document.getElementById('page-tip-close')
+    var pageTipClose = document.getElementById('page-flash-close')
     if (pageTipClose) {
         pageTipClose.onclick = function(e) {
             e.preventDefault();

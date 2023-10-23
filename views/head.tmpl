@@ -36,7 +36,9 @@
 	    <nav class="top-nav">
 		{{- $breadIdx := 0 -}}
 		<ul class="nav-menu nav-menu--left">
-		    <li><a class="brand logo" href="/"><b>{{.BrandName}}</b> {{.BrandDomainName}}</a></li>
+		    <li><a class="brand" href="/">
+			<span class="logo">D</span>
+			<b>{{.BrandName}}</b></a></li>
 		    {{- range .BreadCrumbs -}}
 			{{- if gt $breadIdx 0 -}}
 			    <li class="separator">/</li>
@@ -84,7 +86,6 @@
 			<li><a href="/manage/activities">{{local "Activity" "Count" 2}}</a></li>
 		    </ul>
 		</nav>
-		<hr/>
 	    {{- end -}}
 
 	    {{- if and .LoginedUser .Debug -}}
@@ -105,13 +106,12 @@
 			
 		    </ul>
 		</nav>
-		<hr/>
 	    {{- end -}}
 
 	    {{range .TipMsg -}}
-		<div id="page-tip" class="page-tip">
+		<div id="page-flash" class="page-flash">
 		    <span>{{.}}</span>
-		    <a href="" title="{{local "BtnClose"}}" id="page-tip-close">&nbsp;&times;&nbsp;</a>
+		    <a href="" title="{{local "BtnClose"}}" id="page-flash-close">&nbsp;&times;&nbsp;</a>
 		</div>
 	    {{end -}}
 {{- end -}}

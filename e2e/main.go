@@ -121,7 +121,7 @@ func main() {
 		chp.SetValue(`input[name="code"]`, config.SuperCode),
 		chp.Click(`body>form>button[type="submit"]`),
 		mock.WaitFooterReady(),
-		chp.TextContent(`#page-tip>span`, &resultText),
+		chp.TextContent(`#page-flash>span`, &resultText),
 		chp.ActionFunc(func(ctx context.Context) error {
 			mt.Logln("new user: ", newUser)
 			if len(resultText) == 0 {
@@ -245,7 +245,7 @@ func main() {
 		chp.SetValue(`#content`, newReply, chp.ByID),
 		chp.Click(`#reply_form button[type="submit"]`),
 		mock.WaitFooterReady(),
-		chp.TextContent(`#page-tip>span`, &resultText, chp.ByQuery),
+		chp.TextContent(`#page-flash>span`, &resultText, chp.ByQuery),
 		chp.ActionFunc(func(ctx context.Context) error {
 			if successRE.Match([]byte(resultText)) {
 				return errors.New("reply article failed")
@@ -268,7 +268,7 @@ func main() {
 		chp.SetValue(`#content`, newReply, chp.ByID),
 		chp.Click(`#reply_form button[type="submit"]`),
 		mock.WaitFooterReady(),
-		chp.TextContent(`#page-tip>span`, &resultText, chp.ByQuery),
+		chp.TextContent(`#page-flash>span`, &resultText, chp.ByQuery),
 		chp.ActionFunc(func(ctx context.Context) error {
 			if successRE.Match([]byte(resultText)) {
 				return errors.New("reply comment failed")
