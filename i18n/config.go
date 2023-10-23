@@ -419,7 +419,7 @@ func (ic *I18nCustom) AddConfigs() {
 
 	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "ArticleTitleTip",
-		Other: "Up to 80 characters, please summarize content concisely without clickbait titles. Irrelevant content will be removed.",
+		Other: "Up to {{.Num}} characters, please summarize content concisely without clickbait titles. Irrelevant content will be removed.",
 	})
 
 	ic.AddLocalizeConfig(&i18n.Message{
@@ -429,7 +429,7 @@ func (ic *I18nCustom) AddConfigs() {
 
 	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "ArticleContentTip",
-		Other: "Up to 20,000 characters.",
+		Other: "Up to {{.Num}} characters.",
 	})
 
 	ic.AddLocalizeConfig(&i18n.Message{
@@ -627,5 +627,4 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "Reason",
 		Other: "Reason",
 	})
-
 }

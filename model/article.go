@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	MAX_ARTICLE_TITLE_LEN, MAX_ARTICLE_CONTENT_LEN int = 80, 24000
+	MAX_ARTICLE_TITLE_LEN, MAX_ARTICLE_CONTENT_LEN int = 255, 24000
 )
 
 type VoteType string

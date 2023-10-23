@@ -264,9 +264,19 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 
 	ar.SavePrevPage(w, r)
 
+	type PageData struct {
+		MaxTitleLen   int
+		MaxContentLen int
+		Article       *model.Article
+	}
+
 	ar.Render(w, r, "create", &model.PageData{
 		Title: pageTitle,
-		Data:  data,
+		Data: &PageData{
+			MaxTitleLen:   model.MAX_ARTICLE_TITLE_LEN,
+			MaxContentLen: model.MAX_ARTICLE_CONTENT_LEN,
+			Article:       data,
+		},
 		BreadCrumbs: []*model.BreadCrumb{
 			{
 				Name: moduleTitle,

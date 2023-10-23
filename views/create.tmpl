@@ -10,37 +10,38 @@
 	 box-sizing: border-box;
      }
     </style>
-    {{- $isReply := ne .Data.ReplyTo 0 -}}
+    {{- $article := .Data.Article -}}
+    {{- $isReply := ne $article.ReplyTo 0 -}}
 
     <div class="tip-block">
 	{{local "SubmitContentTip"}}
     </div>
-    <form class="form create-form" method="post" action="/articles{{- if .Data.Id -}}/{{.Data.Id}}/edit{{- end -}}">
+    <form class="form create-form" method="post" action="/articles{{- if $article.Id -}}/{{$article.Id}}/edit{{- end -}}">
 	{{.CSRFField -}}
-	{{if .Data.Id -}}
-	    <input type="hidden" name="id" value="{{.Data.Id}}">
-	    <input name="reply_depth" type="hidden" value="{{.Data.ReplyDepth}}"/>
+	{{if $article.Id -}}
+	    <input type="hidden" name="id" value="{{$article.Id}}">
+	    <input name="reply_depth" type="hidden" value="{{$article.ReplyDepth}}"/>
 	{{end -}}
 
-	{{if and .Data.Id (gt .Data.ReplyDepth 0) -}}
-	    <h1>{{local "Re"}}{{if gt .Data.ReplyDepth 1}} &times; {{.Data.ReplyDepth}}{{end}}: <a href="/articles/{{.Data.ReplyRootArticleId}}">{{.Data.ReplyRootArticleTitle}}</a></h1>
+	{{if and $article.Id (gt $article.ReplyDepth 0) -}}
+	    <h1>{{local "Re"}}{{if gt $article.ReplyDepth 1}} &times; {{$article.ReplyDepth}}{{end}}: <a href="/articles/{{$article.ReplyRootArticleId}}">{{$article.ReplyRootArticleTitle}}</a></h1>
 	{{else -}}
 	    <div class="form__row">
 		<label class="form__label" for="title">{{local "Title"}} <small class="text-lighten-2" style="font-weight: normal">({{local "FormRequired"}})</small></label>
-		<input required type="text" id="title" name="title" value="{{.Data.Title}}">
-		<small class="text-lighten-2">{{local "ArticleTitleTip"}}</small>
+		<input required type="text" id="title" name="title" value="{{$article.Title}}">
+		<small class="text-lighten-2">{{local "ArticleTitleTip" "Num" .Data.MaxTitleLen}}</small>
 	    </div>
 	    <div class="form__row">
 		<label class="form__label" for="url">{{local "URL"}} <small class="text-lighten-2" style="font-weight: normal">({{local "FormOptional"}})</small></label>
-		<input type="url" id="url" name="url" value="{{.Data.Link}}">
+		<input type="url" id="url" name="url" value="{{$article.Link}}">
 		<small class="text-lighten-2">{{local "ArticleURLTip"}}</small>
 	    </div>
 	{{end -}}
 	
 	<div class="form__row">
 	    <label class="form__label" for="content">{{local "Content"}} <small class="text-lighten-2" style="font-weight: normal">{{if not $isReply}} ({{local "FormOptional"}}){{end}}</small></label>
-	    <textarea id="content" name="content" cols="30" rows="10">{{.Data.Content}}</textarea>
-	    <small class="text-lighten-2">{{local "ArticleContentTip"}}</small>
+	    <textarea id="content" name="content" cols="30" rows="10">{{$article.Content}}</textarea>
+	    <small class="text-lighten-2">{{local "ArticleContentTip" "Num" .Data.MaxContentLen}}</small>
 	</div>
 	<!-- <div class="form__row">
 	     <label class="form__label" for="content">通知</label>

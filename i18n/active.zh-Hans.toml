@@ -191,16 +191,16 @@ hash = "sha1-9d58cf5b6dae3426741c668446d38abdc66e135a"
 other = "文章内容"
 
 [ArticleContentTip]
-hash = "sha1-f09551d9fd27a001334f1f0af9055e3b04ec0467"
-other = "最多两万个字符"
+hash = "sha1-a42d0ce65e79af4a4185fa475e7a2f9a7831eb18"
+other = "最多两{{.Num}}个字符"
 
 [ArticleTitle]
 hash = "sha1-1462c5df3e3961c5a25d0e87e872c270196e4576"
 other = "文章标题"
 
 [ArticleTitleTip]
-hash = "sha1-1147179bc508f06ce29ba087b05f0e9481be78d4"
-other = "最多80个字符，请用简洁的语言概括内容，不要故意使用吸引眼球的标题，不相关的内容将被删除。"
+hash = "sha1-5c5c8833616f6c2aabdff2c4ef8ba2afd915a044"
+other = "最多{{.Num}}个字符，请用简洁的语言概括内容，不要故意使用吸引眼球的标题，不相关的内容将被删除。"
 
 [ArticleURLTip]
 hash = "sha1-ccaa51c0648fc07ca09a941bbfcdd1e5f7835582"
