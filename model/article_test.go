@@ -3,6 +3,8 @@ package model
 import (
 	"os"
 	"testing"
+
+	"github.com/brianvoe/gofakeit/v6"
 )
 
 type articleData struct {
@@ -14,6 +16,7 @@ type articleData struct {
 }
 
 func TestArticleValid(t *testing.T) {
+	mockTitle := gofakeit.Sentence(MAX_ARTICLE_TITLE_LEN)
 	largeText, err := os.ReadFile("testdata/rfc791.txt")
 	if err != nil {
 		t.Errorf("read file content error: %v", err)
@@ -76,7 +79,7 @@ func TestArticleValid(t *testing.T) {
 		{
 			desc: "Title limit",
 			in: &articleData{
-				"This is Title This is Title This is Title This is Title This is Title This is Title This is Title This is Title",
+				mockTitle,
 				1,
 				"This is content",
 				0,
