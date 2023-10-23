@@ -627,4 +627,15 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "Reason",
 		Other: "Reason",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Emoji",
+		Other: "Emoji",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "ShowItem",
+		Other: "Show {{.Name}}",
+	})
+
 }

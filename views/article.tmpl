@@ -1,6 +1,6 @@
 {{define "article" -}}
     {{- $pageDepth := 0 -}}
-    {{- $data := dict "currUser" .LoginedUser "article" .Data.Article "pageType" .Data.PageType "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .Data.MaxDepth "debug" .Debug "reactOptions" .Data.ReactOptions "reactMap" .Data.ReactMap -}}
+    {{- $data := dict "currUser" .LoginedUser "article" .Data.Article "pageType" .Data.PageType "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .Data.MaxDepth "debug" .Debug "reactOptions" .Data.ReactOptions "reactMap" .Data.ReactMap "showEmoji" .UISettings.ShowEmoji -}}
 
     {{template "head" . -}}
 
@@ -86,7 +86,7 @@
     {{$pageDepth := add .pageDepth 1 -}}
     {{$delPage := eq .pageType "del"}}
     {{$replyPage := eq .pageType "reply"}}
-    {{$data := dict "currUser" .currUser "article" .article "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "isRootArticle" $isRoot "debug" .debug "reactOptions" .reactOptions "reactMap" .reactMap "pageType" .pageType -}}
+    {{$data := dict "currUser" .currUser "article" .article "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "isRootArticle" $isRoot "debug" .debug "reactOptions" .reactOptions "reactMap" .reactMap "pageType" .pageType "showEmoji" .showEmoji -}}
     <article {{if $isRoot}}id="ar_{{.article.Id}}"{{end}}>
 	{{if $isRoot -}}
 	    <h1>{{.article.Title}}</h1>
@@ -252,7 +252,7 @@
 
 	<small>
 	    {{- if not .article.Deleted -}}
-		{{- $showEmoji := false -}}
+		{{- $showEmoji := .showEmoji -}}
 		{{- $reactOptions := .reactOptions -}}
 		{{- $reactMap := .reactMap -}}
 		{{- $article := .article -}}

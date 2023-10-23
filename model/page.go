@@ -19,14 +19,16 @@ var DefaultUiSettings = &UISettings{
 	ContentLayout:  PageContentLayoutCentered,
 	FontSize:       16,
 	FontSizeCustom: false,
+	ShowEmoji:      true,
 }
 
 type UISettings struct {
-	Lang           Lang
-	Theme          string
-	ContentLayout  string
-	FontSize       int
-	FontSizeCustom bool
+	Lang           Lang   `json:"lang"`
+	Theme          string `json:"theme"`
+	ContentLayout  string `json:"content_layout"`
+	FontSize       int    `json:"font_size"`
+	FontSizeCustom bool   `json:"font_size_custom"`
+	ShowEmoji      bool   `json:"show_emoji"`
 }
 
 type BreadCrumb struct {

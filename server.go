@@ -90,6 +90,10 @@ func Service(c *ServiceConfig) http.Handler {
 		Store: c.store,
 	}
 
+	settingsManager := &service.SettingsManager{
+		Rdb:      c.rdb,
+		LifeTime: service.DefaultSettingsLifeTime,
+	}
 	srv := &service.Service{
 		Article: &service.Article{
 			Store:         c.store,
@@ -105,7 +109,8 @@ func Service(c *ServiceConfig) http.Handler {
 			CodeLifeTime: service.DefaultCodeLifeTime,
 			Rdb:          c.rdb,
 		},
-		Mail: c.mail,
+		Mail:            c.mail,
+		SettingsManager: settingsManager,
 	}
 	renderer := web.NewRenderer(
 		baseTmpl,
@@ -119,7 +124,7 @@ func Service(c *ServiceConfig) http.Handler {
 	)
 
 	r.Use(mdw.FetchUserData(c.store, sessStore, c.permisisonSrv, renderer))
-	r.Use(mdw.CreateUISettingsMiddleware(sessStore, c.i18nCustom))
+	r.Use(mdw.CreateUISettingsMiddleware(sessStore, settingsManager, c.i18nCustom))
 
 	articleResource := web.NewArticleResource(renderer)
 	userResource := web.NewUserResource(renderer)

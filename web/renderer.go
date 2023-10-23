@@ -139,12 +139,16 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 		data.LoginedUser = userData
 	}
 
+	// fmt.Printf("renderer ui settings: %v\n", data.UISettings)
+
 	if uiSettings, ok := r.Context().Value("ui_settings").(*model.UISettings); ok {
 		// fmt.Println("uiSettings in renderer: ", uiSettings)
 		data.UISettings = uiSettings
 	} else {
 		data.UISettings = model.DefaultUiSettings
 	}
+
+	// fmt.Printf("renderer ui settings: %v\n", data.UISettings)
 
 	err := sess.Save(r, w)
 	if err != nil {
@@ -371,13 +375,10 @@ func (ss *Session) SetValue(key string, val any) {
 
 	err := ss.Raw.Save(ss.r, ss.w)
 	if err != nil {
-		if ss.w != nil {
-			ss.rd.Error("", errors.WithStack(err), ss.w, ss.r, http.StatusInternalServerError)
-		} else {
-			fmt.Println("ss.SetValue save session error: ", err)
-		}
-
-		return
+		fmt.Println("ss.SetValue save session error: ", err)
+		// if ss.w != nil {
+		// 	ss.rd.Error("", errors.WithStack(err), ss.w, ss.r, http.StatusInternalServerError)
+		// }
 	}
 }
 

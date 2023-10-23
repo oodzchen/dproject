@@ -72,6 +72,10 @@
 		    {{- end -}}
 		</div>
 	    </div>
+	    <div class="form__row">
+		<label class="form__label">{{local "Emoji"}}:</label>
+		<label><input name="show_emoji" type="checkbox" autocomplete="off" {{if $settings.ShowEmoji}}checked{{end}} value="1"/> {{local "ShowItem" "Name" (local "Emoji")}}</label>
+	    </div>
 	    <br/>
 	    <button type="submit">{{local "BtnSave"}}</button>
 	</form>

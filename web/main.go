@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/oodzchen/dproject/config"
@@ -607,37 +608,31 @@ func (mr *MainResource) SaveUISettings(w http.ResponseWriter, r *http.Request) {
 	contentLayout := r.PostForm.Get("content_layout")
 	fontSizeStr := r.PostForm.Get("font_size")
 	fontSizeCustomStr := r.PostForm.Get("font_size_custom")
+	showEmoji := r.PostForm.Get("show_emoji")
 
 	uiSettings := &model.UISettings{}
 
-	localSess := mr.Session("local", w, r)
 	if lang, err := model.ParseLang(lang); err == nil {
-		// fmt.Println("post lang: ", lang)
 		uiSettings.Lang = lang
 		mr.i18nCustom.SwitchLang(string(lang))
-		localSess.SetValue("lang", lang)
 		model.UpdateErrI18n()
 	}
 
 	if regexp.MustCompile(`^light|dark|system$`).Match([]byte(theme)) {
 		uiSettings.Theme = theme
-		localSess.SetValue("page_theme", theme)
 	}
 
 	if regexp.MustCompile(`^full|centered$`).Match([]byte(contentLayout)) {
 		uiSettings.ContentLayout = contentLayout
-		localSess.SetValue("page_content_layout", contentLayout)
 	}
 
 	var fontSize int
 	if strings.TrimSpace(fontSizeStr) == "x" {
 		fontSize, _ = strconv.Atoi(fontSizeCustomStr)
 		uiSettings.FontSizeCustom = true
-		localSess.SetValue("font_size_custom", true)
 	} else {
 		fontSize, _ = strconv.Atoi(fontSizeStr)
 		uiSettings.FontSizeCustom = false
-		localSess.SetValue("font_size_custom", false)
 	}
 
 	if fontSize < 10 {
@@ -646,12 +641,30 @@ func (mr *MainResource) SaveUISettings(w http.ResponseWriter, r *http.Request) {
 	}
 
 	uiSettings.FontSize = fontSize
-	localSess.SetValue("font_size", fontSize)
+
+	if showEmoji == "1" {
+		uiSettings.ShowEmoji = true
+	} else {
+		uiSettings.ShowEmoji = false
+	}
+
+	localSess := mr.Session("local", w, r)
+	settingsId := localSess.GetStringValue("ui-settings-id")
+	// fmt.Println("settings id: ", settingsId)
+	if settingsId == "" {
+		settingsId = uuid.NewString()
+		localSess.SetValue("ui-settings-id", settingsId)
+	}
+
+	err := mr.srv.SettingsManager.SaveSettings(settingsId, uiSettings)
+	if err != nil {
+		mr.ServerErrorp("", err, w, r)
+		return
+	}
 
 	oneSess := mr.Session("one", w, r)
 	oneSess.Raw.AddFlash(mr.i18nCustom.MustLocalize("UISaveSuccess", "", 0))
 	oneSess.Raw.Save(r, w)
-	// fmt.Println("uiSettings after post: ", uiSettings)
 
 	ctx := context.WithValue(r.Context(), "ui_settings", uiSettings)
 
@@ -680,6 +693,7 @@ type SettingsPageData struct {
 }
 
 func (mr *MainResource) handleSettingsPage(w http.ResponseWriter, r *http.Request, pageKey SettingsPageKey) {
+	// fmt.Println("ui setting page type: ", pageKey)
 	settingsTitleMap := map[SettingsPageKey]string{
 		SettingsPageKeyUI:      mr.Local("UI"),
 		SettingsPageKeyAccount: mr.Local("Account"),

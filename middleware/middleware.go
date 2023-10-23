@@ -257,58 +257,28 @@ func isLogin(sessStore *sessions.CookieStore, w http.ResponseWriter, r *http.Req
 	return err == nil
 }
 
-func CreateUISettingsMiddleware(sessStore *sessions.CookieStore, ic *i18nc.I18nCustom) func(http.Handler) http.Handler {
+func CreateUISettingsMiddleware(sessStore *sessions.CookieStore, sm *service.SettingsManager, ic *i18nc.I18nCustom) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			localSess, err := sessStore.Get(r, "local")
 			logSessError("local", errors.WithStack(err))
 
-			uiSettings := &model.UISettings{}
-			uiSettingsKeys := []string{"lang", "page_theme", "page_content_layout", "font_size", "font_size_custom"}
-			acceptLang := getAcceptLang(r)
-			// fmt.Println("acceptLang: ", acceptLang)
+			uiSettings := model.DefaultUiSettings
+			uiSettings.Lang = getAcceptLang(r)
 
-			for _, key := range uiSettingsKeys {
-				sessVal := localSess.Values[key]
-				switch key {
-				case "lang":
-					// fmt.Println("sessionVal: ", sessVal)
-					if lang, ok := sessVal.(model.Lang); ok {
-						uiSettings.Lang = lang
-					} else {
-						uiSettings.Lang = acceptLang
-					}
-					ic.SwitchLang(uiSettings.Lang.String())
-					model.UpdateErrI18n()
-				case "page_theme":
-					if theme, ok := sessVal.(string); ok {
-						uiSettings.Theme = theme
-					} else {
-						uiSettings.Theme = model.DefaultUiSettings.Theme
-					}
-				case "page_content_layout":
-					if layout, ok := sessVal.(string); ok {
-						uiSettings.ContentLayout = layout
-					} else {
-						uiSettings.ContentLayout = model.PageContentLayoutCentered
-					}
-				case "font_size":
-					if fontSize, ok := sessVal.(int); ok {
-						uiSettings.FontSize = fontSize
-					} else {
-						uiSettings.FontSize = model.DefaultUiSettings.FontSize
-					}
-				case "font_size_custom":
-					if fontSizeCustom, ok := sessVal.(bool); ok {
-						uiSettings.FontSizeCustom = fontSizeCustom
-					} else {
-						uiSettings.FontSizeCustom = model.DefaultUiSettings.FontSizeCustom
-					}
+			settingsId := localSess.Values["ui-settings-id"]
+
+			if id, ok := settingsId.(string); ok {
+				settings, err := sm.GetSettings(id)
+				if err != nil {
+					fmt.Println("get ui settings error: ", err)
+				} else {
+					uiSettings = settings
 				}
-
 			}
 
-			// fmt.Println("uisettings in middleware: ", uiSettings)
+			ic.SwitchLang(uiSettings.Lang.String())
+			model.UpdateErrI18n()
 
 			ctx := context.WithValue(r.Context(), "ui_settings", uiSettings)
 			next.ServeHTTP(w, r.WithContext(ctx))

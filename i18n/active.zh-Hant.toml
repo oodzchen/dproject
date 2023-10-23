@@ -330,6 +330,10 @@ other = "郵箱"
 hash = "sha1-fa4351a21b9138db31a1a941eff4e66ac1b88ba1"
 other = "郵箱驗證"
 
+[Emoji]
+hash = "sha1-5090a9e78c899272a10648b39e7689bc40072825"
+other = "表情符號"
+
 [FontCustom]
 hash = "sha1-081ae3fdc403609cf6e760849ebb14117b7a50cb"
 other = "自定義"
@@ -601,6 +605,10 @@ other = "已保存"
 [Settings]
 hash = "sha1-c7f73bb54d928922c3838bb789ee9fb8a5b1eb37"
 other = "設置"
+
+[ShowItem]
+hash = "sha1-d2d5e066a1502d24f7e08a0f9bba2bfbcaf51feb"
+other = "顯示{{.Name}}"
 
 [SkipToContent]
 hash = "sha1-0a4470d64e9d32597eececc636ba833f0a727528"
