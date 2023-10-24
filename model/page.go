@@ -17,7 +17,7 @@ var DefaultUiSettings = &UISettings{
 	Lang:           LangEn,
 	Theme:          PageThemeSystem,
 	ContentLayout:  PageContentLayoutCentered,
-	FontSize:       16,
+	FontSize:       12,
 	FontSizeCustom: false,
 	ShowEmoji:      true,
 }
