@@ -1,7 +1,9 @@
 package model
 
 import (
+	"fmt"
 	"os"
+	"reflect"
 	"testing"
 
 	"github.com/brianvoe/gofakeit/v6"
@@ -189,6 +191,37 @@ func TestArticleValid(t *testing.T) {
 
 			if got != want {
 				t.Errorf("article: %+v \nvalidate result should be %t, but got %t, error: %v", tt.in, want, got, err)
+			}
+		})
+	}
+}
+
+func TestDeleteElement(t *testing.T) {
+	tests := []struct {
+		in       []any
+		deleteFn func(any) bool
+		want     []any
+	}{
+		{
+			in: []any{"a", "b", "c"},
+			deleteFn: func(a any) bool {
+				return a == "b"
+			},
+			want: []any{"a", "c"},
+		},
+		{
+			in: []any{1, 2, 3},
+			deleteFn: func(a any) bool {
+				return a == 3
+			},
+			want: []any{1, 2},
+		},
+	}
+
+	for idx, tt := range tests {
+		t.Run(fmt.Sprintf("delete item %d", idx), func(t *testing.T) {
+			if got := deleteElement(tt.in, tt.deleteFn); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("want %v, but got %v", tt.want, got)
 			}
 		})
 	}

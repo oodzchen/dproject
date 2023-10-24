@@ -599,9 +599,26 @@ const DefaultTopReplyPageSize = 50
 const DefaultReplyPageSize = 10
 
 func genArticleTree(root *model.Article, list []*model.Article) (*model.Article, error) {
+	parentMap := make(map[int]*model.Article)
 	nodeMap := make(map[int][]*model.Article)
 	for _, item := range list {
 		nodeMap[item.ReplyTo] = append(nodeMap[item.ReplyTo], item)
+	}
+
+	for _, item := range list {
+		if _, ok := nodeMap[item.Id]; ok {
+			parentMap[item.Id] = item
+		}
+	}
+
+	for parentId, replies := range nodeMap {
+		if parent, ok := parentMap[parentId]; ok {
+			// fmt.Printf("parent id: %#v \n", parent.Id)
+			for _, item := range replies {
+				// fmt.Printf("item reply to: %#v \n", item.ReplyTo)
+				item.TmpParent = parent
+			}
+		}
 	}
 
 	if replies, ok := nodeMap[root.Id]; ok {
@@ -617,7 +634,34 @@ func genArticleTree(root *model.Article, list []*model.Article) (*model.Article,
 			item.Replies = model.NewArticleList(replies, model.ReplySortBest, 1, DefaultReplyPageSize)
 		}
 	}
+
+	for _, item := range list {
+		if item.Id != root.Id && item.Deleted {
+			// fmt.Printf("item replies len: %#v \n", item.Replies.Len())
+			// fmt.Printf("item replies is nil : %#v \n", item.Replies == nil)
+			removeEmptyItem(item)
+		}
+	}
+
+	for _, item := range list {
+		item.TmpParent = nil
+	}
+
 	return root, nil
+}
+
+// Remove deleted replies with no replies
+func removeEmptyItem(item *model.Article) {
+	if item.ReplyTo == 0 {
+		return
+	}
+
+	if item.Deleted && item.TmpParent != nil {
+		if item.Replies == nil || (item.Replies != nil && item.Replies.Len() == 0) {
+			item.TmpParent.Replies.Remove(item.Id)
+			removeEmptyItem(item.TmpParent)
+		}
+	}
 }
 
 func sortArticleTree(root *model.Article, sortType model.ArticleSortType) *model.Article {

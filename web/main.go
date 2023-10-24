@@ -454,7 +454,8 @@ func (mr *MainResource) doLogin(w http.ResponseWriter, r *http.Request, username
 		return
 	}
 
-	loginFailedTip := mr.Local("Incorrect", "FieldNames", mr.Local("Or", "A", mr.Local("Username"), "B", mr.Local("Password")))
+	// mr.Local("NotRegistered", "FieldNames", mr.Local("Or", "A", mr.Local("Username"), "B", mr.Local("Email")))
+	loginFailedTip := mr.Local("Or", "A", mr.Local("NotRegistered", "FieldNames", mr.Local("Or", "A", mr.Local("Username"), "B", mr.Local("Email"))), "B", mr.Local("Incorrect", "FieldNames", mr.Local("Password")))
 
 	if regexp.MustCompile(`@`).Match([]byte(username)) {
 		if err := model.ValidateEmail(username); err != nil {

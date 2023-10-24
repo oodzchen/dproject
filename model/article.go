@@ -182,6 +182,23 @@ func (al *ArticleList) Swap(i, j int) {
 	al.List[i], al.List[j] = al.List[j], al.List[i]
 }
 
+func (al *ArticleList) Remove(id int) {
+	al.List = deleteElement(al.List, func(item *Article) bool {
+		return item.Id == id
+	})
+}
+
+func deleteElement[T any](slice []T, fn func(T) bool) []T {
+	var res []T
+	for _, item := range slice {
+		if toDelete := fn(item); toDelete {
+			continue
+		}
+		res = append(res, item)
+	}
+	return res
+}
+
 type Article struct {
 	Id                        int
 	Title                     string
@@ -213,6 +230,7 @@ type Article struct {
 	CurrUserState             *CurrUserState
 	ReactCounts               *ArticleReactCounts
 	ShowScore                 bool
+	TmpParent                 *Article // Only for temporary use, to avoid circular reference errors
 }
 
 const maxDisplayURLLength = 100
