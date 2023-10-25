@@ -163,7 +163,7 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		item.CalcWeight()
 	}
 
-	fmt.Printf("get article list duration: %dms", time.Since(startTime).Milliseconds())
+	fmt.Printf("get article list duration: %dms\n", time.Since(startTime).Milliseconds())
 
 	// fmt.Println("sortType: ", sortType)
 
@@ -521,7 +521,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		}
 		return
 	}
-	fmt.Printf("get article item duration: %dms", time.Since(startTime).Milliseconds())
+	fmt.Printf("get article item duration: %dms\n", time.Since(startTime).Milliseconds())
 
 	if len(articleTreeList) == 0 {
 		// http.Redirect(w, r, "/404", http.StatusNotFound)

@@ -31,21 +31,21 @@ SELECT tp.id, tp.title, COALESCE(tp.url, ''), u.username as author_name, tp.auth
 	   ON p.reply_to = pr.id
 	   WHERE p.deleted = false
 	)
-	SELECT COUNT(*)
+	SELECT COUNT(id)
 	FROM replies
 ) AS total_reply_count,
 (
 SELECT type FROM post_votes WHERE post_id = tp.id AND user_id = $3
 ) AS user_vote_type,
 (
-SELECT COUNT(*) FROM post_votes
+SELECT COUNT(post_id) FROM post_votes
 WHERE post_id = tp.id AND type = 'up'
 ) AS vote_up,
 (
-SELECT COUNT(*) FROM post_votes
+SELECT COUNT(post_id) FROM post_votes
 WHERE post_id = tp.id AND type = 'down'
 ) AS vote_down,
-(SELECT COUNT(*) FROM (
+(SELECT COUNT(user_id) FROM (
   WITH RECURSIVE postTree AS (
     SELECT id, author_id FROM posts WHERE reply_to = tp.id
     UNION ALL
