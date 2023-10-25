@@ -1,6 +1,9 @@
 package model
 
-import "net/url"
+import (
+	"net/url"
+	"time"
+)
 
 const (
 	PageThemeLight  string = "light"
@@ -55,4 +58,6 @@ type PageData struct {
 	Slogan                string
 	PermissionEnabledList []string
 	MessageCount          int
+	RespStart             time.Time
+	RenderStart           time.Time
 }

@@ -93,6 +93,9 @@
 		    <ul></ul>
 		    <ul class="nav-menu nav-menu--right">
 			<li>
+			    响应时间：{{calcDuration .RespStart}}
+			</li>
+			<li>
 			    <form action="/login_debug" method="post">
 				{{.CSRFField}}
 				<select id="debug-user" name="debug-user-email">

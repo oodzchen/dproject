@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/csrf"
@@ -176,6 +177,13 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 		data.MessageCount = messageCount
 	}
 
+	var startTime time.Time
+	if v, ok := r.Context().Value("req_duration_start").(time.Time); ok {
+		startTime = v
+	}
+
+	// fmt.Println("start time before render: ", startTime)
+
 	rd.tmpl = rd.tmpl.Funcs(template.FuncMap{
 		"permit":  rd.srv.Permission.PermissionData.Permit,
 		"local":   rd.i18nCustom.LocalTpl,
@@ -224,6 +232,9 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 		ClearSession(rd.sessStore, w, r)
 	}
 	w.WriteHeader(code)
+
+	data.RespStart = startTime
+	data.RenderStart = time.Now()
 
 	err = rd.tmpl.ExecuteTemplate(w, name, data)
 	if err != nil {

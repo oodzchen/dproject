@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
@@ -149,6 +150,7 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 
 	currUserId := ar.GetLoginedUserId(w, r)
 
+	startTime := time.Now()
 	wholeList, err := ar.store.Article.List(0, -1, currUserId)
 	// list, err := ar.store.Article.List(page, pageSize)
 	if err != nil {
@@ -160,6 +162,8 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		item.CalcScore()
 		item.CalcWeight()
 	}
+
+	fmt.Printf("get article list duration: %dms", time.Since(startTime).Milliseconds())
 
 	// fmt.Println("sortType: ", sortType)
 
@@ -499,6 +503,8 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 
 	var articleTreeList []*model.Article
 	var singleArticle *model.Article
+
+	startTime := time.Now()
 	if pageType == ArticlePageDetail {
 		articleTreeList, err = ar.store.Article.ItemTree(articleId, currUserId)
 	} else {
@@ -515,6 +521,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		}
 		return
 	}
+	fmt.Printf("get article item duration: %dms", time.Since(startTime).Milliseconds())
 
 	if len(articleTreeList) == 0 {
 		// http.Redirect(w, r, "/404", http.StatusNotFound)

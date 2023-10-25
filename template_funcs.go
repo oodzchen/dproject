@@ -7,19 +7,21 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/oodzchen/dproject/utils"
 )
 
 var TmplFuncs = template.FuncMap{
 	// "timeAgo":    formatTimeAgo,
-	"timeFormat": utils.FormatTime,
-	"intRange":   intRange,
-	"placehold":  placehold,
-	"joinStrArr": joinStrArr,
-	"upHead":     upCaseHead,
-	"downHead":   downCaseHead,
-	"pageStr":    pageStr,
+	"timeFormat":   utils.FormatTime,
+	"intRange":     intRange,
+	"placehold":    placehold,
+	"joinStrArr":   joinStrArr,
+	"upHead":       upCaseHead,
+	"downHead":     downCaseHead,
+	"pageStr":      pageStr,
+	"calcDuration": calcDuration,
 }
 
 func joinStrArr(arr []string, sep string) string {
@@ -88,4 +90,8 @@ func pageStr(path string, page int, query url.Values) string {
 	}
 
 	return path + "?" + query.Encode()
+}
+
+func calcDuration(start time.Time) string {
+	return fmt.Sprintf("%dms", time.Since(start).Milliseconds())
 }

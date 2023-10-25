@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/sessions"
@@ -314,4 +315,16 @@ func getAcceptLang(r *http.Request) model.Lang {
 	}
 
 	return parseStrLang(firstLang)
+}
+
+func RequestDuration(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		startTime := time.Now()
+		// fmt.Println("start time: ", startTime)
+		ctx := context.WithValue(r.Context(), "req_duration_start", startTime)
+		defer func() {
+			fmt.Printf("response duration: %dms\n", time.Since(startTime).Milliseconds())
+		}()
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }

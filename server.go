@@ -72,6 +72,7 @@ func Service(c *ServiceConfig) http.Handler {
 	baseTmpl = template.Must(baseTmpl.ParseGlob(tmplPath))
 
 	r := chi.NewRouter()
+	r.Use(mdw.RequestDuration)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.AllowContentEncoding("default", "gzip"))

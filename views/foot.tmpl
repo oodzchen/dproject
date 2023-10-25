@@ -1,6 +1,10 @@
 {{define "foot" -}}
     <hr style="margin-top: 100px;"/>
-    <footer>&copy; {{now | date "2006" }} {{.BrandDomainName}}</footer>
+    <footer>
+	&copy; {{now | date "2006" }} {{.BrandDomainName}}
+	&nbsp;&nbsp; 响应时间：{{calcDuration .RespStart}}
+	&nbsp;&nbsp; HTML渲染时间：{{calcDuration .RenderStart}}
+    </footer>
 
     {{- if and .Debug .JSONStr -}}
 	<script>
