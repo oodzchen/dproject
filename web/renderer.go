@@ -228,9 +228,9 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	header.Add("Content-Security-Policy", strings.Join(contentSecurity, ";"))
 
 	// fmt.Println("header", header.Values("Content-Security-Policy"))
-	if code == http.StatusInternalServerError {
-		ClearSession(rd.sessStore, w, r)
-	}
+	// if code == http.StatusInternalServerError {
+	// 	ClearSession(rd.sessStore, w, r)
+	// }
 	w.WriteHeader(code)
 
 	data.RespStart = startTime

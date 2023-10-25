@@ -18,22 +18,62 @@ type Article struct {
 }
 
 func (a *Article) List(page, pageSize, userId int) ([]*model.Article, error) {
+	// 	sqlStr := `
+	// SELECT tp.id, tp.title, COALESCE(tp.url, ''), u.username as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, tp.depth, p2.title as root_article_title, (
+	// 	WITH RECURSIVE replies AS (
+	// 	   SELECT id
+	// 	   FROM posts
+	// 	   WHERE reply_to = tp.id AND deleted = false
+	// 	   UNION ALL
+	// 	   SELECT p.id
+	// 	   FROM posts p
+	// 	   INNER JOIN replies pr
+	// 	   ON p.reply_to = pr.id
+	// 	   WHERE p.deleted = false
+	// 	)
+	// 	SELECT COUNT(id)
+	// 	FROM replies
+	// ) AS total_reply_count,
+	// (
+	// SELECT type FROM post_votes WHERE post_id = tp.id AND user_id = $3
+	// ) AS user_vote_type,
+	// (
+	// SELECT COUNT(post_id) FROM post_votes
+	// WHERE post_id = tp.id AND type = 'up'
+	// ) AS vote_up,
+	// (
+	// SELECT COUNT(post_id) FROM post_votes
+	// WHERE post_id = tp.id AND type = 'down'
+	// ) AS vote_down,
+	// (SELECT COUNT(user_id) FROM (
+	//   WITH RECURSIVE postTree AS (
+	//     SELECT id, author_id FROM posts WHERE reply_to = tp.id
+	//     UNION ALL
+	//     SELECT p1.id, p1.author_id FROM posts p1
+	//     JOIN postTree pt
+	//     ON p1.reply_to = pt.id
+	//   )
+	//   SELECT user_id
+	//     FROM (
+	//       SELECT user_id FROM post_votes WHERE post_id = tp.id
+	//       UNION ALL
+	//       SELECT user_id FROM post_saves WHERE post_id = tp.id
+	//       UNION ALL
+	//       SELECT user_id FROM post_reacts WHERE post_id = tp.id
+	//       UNION ALL
+	//       SELECT author_id AS user_id FROM postTree
+	//     ) AS p_users GROUP BY user_id
+	// ) AS participate_count)
+	// FROM posts tp
+	// LEFT JOIN posts p2 ON tp.root_article_id = p2.id
+	// LEFT JOIN users u ON u.id = tp.author_id
+	// WHERE tp.deleted = false AND tp.reply_to = 0
+	// ORDER BY tp.created_at DESC
+	// OFFSET $1
+	// LIMIT $2;`
+
 	sqlStr := `
-SELECT tp.id, tp.title, COALESCE(tp.url, ''), u.username as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, tp.depth, p2.title as root_article_title, (
-	WITH RECURSIVE replies AS (
-	   SELECT id
-	   FROM posts
-	   WHERE reply_to = tp.id AND deleted = false
-	   UNION ALL
-	   SELECT p.id
-	   FROM posts p
-	   INNER JOIN replies pr
-	   ON p.reply_to = pr.id
-	   WHERE p.deleted = false
-	)
-	SELECT COUNT(id)
-	FROM replies
-) AS total_reply_count,
+SELECT tp.id, tp.title, COALESCE(tp.url, ''), u.username as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, tp.depth, p2.title as root_article_title, COUNT(p3.id) AS total_reply_count,
 (
 SELECT type FROM post_votes WHERE post_id = tp.id AND user_id = $3
 ) AS user_vote_type,
@@ -45,29 +85,16 @@ WHERE post_id = tp.id AND type = 'up'
 SELECT COUNT(post_id) FROM post_votes
 WHERE post_id = tp.id AND type = 'down'
 ) AS vote_down,
-(SELECT COUNT(user_id) FROM (
-  WITH RECURSIVE postTree AS (
-    SELECT id, author_id FROM posts WHERE reply_to = tp.id
-    UNION ALL
-    SELECT p1.id, p1.author_id FROM posts p1
-    JOIN postTree pt
-    ON p1.reply_to = pt.id
-  )
-  SELECT user_id
-    FROM (
-      SELECT user_id FROM post_votes WHERE post_id = tp.id
-      UNION ALL
-      SELECT user_id FROM post_saves WHERE post_id = tp.id
-      UNION ALL
-      SELECT user_id FROM post_reacts WHERE post_id = tp.id
-      UNION ALL
-      SELECT author_id AS user_id FROM postTree
-    ) AS p_users GROUP BY user_id
-) AS participate_count)
+(COUNT(DISTINCT p3.author_id) + COUNT(DISTINCT pv.user_id) + COUNT(DISTINCT ps.user_id) + COUNT(DISTINCT pr.user_id)) AS participate_count
 FROM posts tp
 LEFT JOIN posts p2 ON tp.root_article_id = p2.id
+LEFT JOIN posts p3 ON tp.id = p3.root_article_id AND p3.deleted = false
 LEFT JOIN users u ON u.id = tp.author_id
+LEFT JOIN post_votes pv ON pv.post_id = tp.id
+LEFT JOIN post_saves ps ON ps.post_id = tp.id
+LEFT JOIN post_reacts pr ON pr.post_id = tp.id
 WHERE tp.deleted = false AND tp.reply_to = 0
+GROUP BY tp.id, u.username, p2.title
 ORDER BY tp.created_at DESC
 OFFSET $1
 LIMIT $2;`
@@ -351,6 +378,86 @@ WHERE p.id = $1;`
 }
 
 func (a *Article) ItemTree(id, userId int) ([]*model.Article, error) {
+	// 	sqlStr := `
+	// WITH RECURSIVE articleTree AS (
+	//      SELECT id, title, url, author_id, content, created_at, updated_at, deleted, reply_to, depth, 0 AS cur_depth, root_article_id
+	//      FROM posts
+	//      WHERE id = $1
+	//      UNION ALL
+	//      SELECT p.id, p.title, p.url, p.author_id, p.content, p.created_at,p.updated_at, p.deleted, p.reply_to, p.depth, ar.cur_depth + 1, p.root_article_id
+	//      FROM posts p
+	//      JOIN articleTree ar
+	//      ON p.reply_to = ar.id
+	//      WHERE ar.cur_depth < $2
+	// )
+	// SELECT ar.id, ar.title, COALESCE(ar.url, ''), u.username as author_name, ar.author_id, ar.content, ar.created_at, ar.updated_at, ar.deleted, ar.reply_to, ar.depth, ar.root_article_id, p2.title as root_article_title, (
+	// 	WITH RECURSIVE replies AS (
+	// 	   SELECT id
+	// 	   FROM posts
+	// 	   WHERE reply_to = ar.id AND deleted = false
+	// 	   UNION ALL
+	// 	   SELECT p.id
+	// 	   FROM posts p
+	// 	   INNER JOIN replies pr
+	// 	   ON p.reply_to = pr.id
+	// 	   WHERE p.deleted = false
+	// 	)
+	// 	SELECT COUNT(*)
+	// 	FROM replies
+	// ) AS total_reply_count,
+	// (
+	// SELECT type FROM post_votes WHERE post_id = ar.id AND user_id = $3
+	// ) AS user_vote_type,
+	// (
+	// SELECT COUNT(*) FROM post_votes
+	// WHERE post_id = ar.id AND type = 'up'
+	// ) AS vote_up,
+	// (
+	// SELECT COUNT(*) FROM post_votes
+	// WHERE post_id = ar.id AND type = 'down'
+	// ) AS vote_down,
+	// (
+	// SELECT
+	//   CASE
+	//     WHEN COUNT(*) > 0 THEN TRUE
+	//     ELSE FALSE
+	//   END
+	//  FROM post_saves WHERE post_id = ar.id AND user_id = $3
+	// ) AS saved,
+	// (
+	// SELECT
+	//   CASE
+	//     WHEN COUNT(*) > 0 THEN TRUE
+	//     ELSE FALSE
+	//   END
+	//  FROM post_subs WHERE post_id = ar.id AND user_id = $3
+	// ) AS subscribed,
+	// (
+	// SELECT type FROM post_reacts WHERE post_id = ar.id AND user_id = $3
+	// ) AS user_react_type,
+	// COALESCE(reacts.grinning, 0),
+	// COALESCE(reacts.confused, 0),
+	// COALESCE(reacts.eyes, 0),
+	// COALESCE(reacts.party, 0),
+	// COALESCE(reacts.thanks, 0)
+	// FROM articleTree ar
+	// LEFT OUTER JOIN(
+	//  SELECT post_id,
+	//    SUM(CASE WHEN type = 'grinning' THEN count ELSE 0 END) AS grinning,
+	//    SUM(CASE WHEN type = 'confused' THEN count ELSE 0 END) AS confused,
+	//    SUM(CASE WHEN type = 'eyes' THEN count ELSE 0 END) AS eyes,
+	//    SUM(CASE WHEN type = 'party' THEN count ELSE 0 END) AS party,
+	//    SUM(CASE WHEN type = 'thanks' THEN count ELSE 0 END) AS thanks
+	//    FROM
+	//    (
+	//      SELECT post_id, type, COUNT(*) AS count FROM post_reacts
+	//      GROUP BY type, post_id
+	//    ) AS react_types GROUP BY post_id
+	// ) AS reacts ON reacts.post_id = ar.id
+	// JOIN users u ON ar.author_id = u.id
+	// LEFT JOIN posts p2 ON ar.root_article_id = p2.id
+	// ORDER BY ar.created_at;`
+
 	sqlStr := `
 WITH RECURSIVE articleTree AS (
      SELECT id, title, url, author_id, content, created_at, updated_at, deleted, reply_to, depth, 0 AS cur_depth, root_article_id
@@ -363,57 +470,43 @@ WITH RECURSIVE articleTree AS (
      ON p.reply_to = ar.id
      WHERE ar.cur_depth < $2
 )
-SELECT ar.id, ar.title, COALESCE(ar.url, ''), u.username as author_name, ar.author_id, ar.content, ar.created_at, ar.updated_at, ar.deleted, ar.reply_to, ar.depth, ar.root_article_id, p2.title as root_article_title, (
-	WITH RECURSIVE replies AS (
-	   SELECT id
-	   FROM posts
-	   WHERE reply_to = ar.id AND deleted = false
-	   UNION ALL
-	   SELECT p.id
-	   FROM posts p
-	   INNER JOIN replies pr
-	   ON p.reply_to = pr.id
-	   WHERE p.deleted = false
-	)
-	SELECT COUNT(*)
-	FROM replies
-) AS total_reply_count,
+SELECT at.id, at.title, COALESCE(at.url, ''), u.username as author_name, at.author_id, at.content, at.created_at, at.updated_at, at.deleted, at.reply_to, at.depth, at.root_article_id, p2.title as root_article_title, COUNT(p3.id) AS total_reply_count,
 (
-SELECT type FROM post_votes WHERE post_id = ar.id AND user_id = $3
+  SELECT type FROM post_votes WHERE post_id = at.id AND user_id = $3
 ) AS user_vote_type,
 (
-SELECT COUNT(*) FROM post_votes
-WHERE post_id = ar.id AND type = 'up'
+  SELECT COUNT(*) FROM post_votes
+  WHERE post_id = at.id AND type = 'up'
 ) AS vote_up,
 (
-SELECT COUNT(*) FROM post_votes
-WHERE post_id = ar.id AND type = 'down'
+  SELECT COUNT(*) FROM post_votes
+  WHERE post_id = at.id AND type = 'down'
 ) AS vote_down,
 (
-SELECT
-  CASE
-    WHEN COUNT(*) > 0 THEN TRUE
-    ELSE FALSE
-  END
- FROM post_saves WHERE post_id = ar.id AND user_id = $3
+  SELECT
+    CASE
+      WHEN COUNT(*) > 0 THEN TRUE
+      ELSE FALSE
+    END
+   FROM post_saves WHERE post_id = at.id AND user_id = $3
 ) AS saved,
 (
-SELECT
-  CASE
-    WHEN COUNT(*) > 0 THEN TRUE
-    ELSE FALSE
-  END
- FROM post_subs WHERE post_id = ar.id AND user_id = $3
+  SELECT
+    CASE
+      WHEN COUNT(*) > 0 THEN TRUE
+      ELSE FALSE
+    END
+   FROM post_subs WHERE post_id = at.id AND user_id = $3
 ) AS subscribed,
 (
-SELECT type FROM post_reacts WHERE post_id = ar.id AND user_id = $3
+  SELECT type FROM post_reacts WHERE post_id = at.id AND user_id = $3
 ) AS user_react_type,
 COALESCE(reacts.grinning, 0),
 COALESCE(reacts.confused, 0),
 COALESCE(reacts.eyes, 0),
 COALESCE(reacts.party, 0),
 COALESCE(reacts.thanks, 0)
-FROM articleTree ar
+FROM articleTree at
 LEFT OUTER JOIN(
  SELECT post_id,
    SUM(CASE WHEN type = 'grinning' THEN count ELSE 0 END) AS grinning,
@@ -426,10 +519,12 @@ LEFT OUTER JOIN(
      SELECT post_id, type, COUNT(*) AS count FROM post_reacts
      GROUP BY type, post_id
    ) AS react_types GROUP BY post_id
-) AS reacts ON reacts.post_id = ar.id
-JOIN users u ON ar.author_id = u.id
-LEFT JOIN posts p2 ON ar.root_article_id = p2.id
-ORDER BY ar.created_at;`
+) AS reacts ON reacts.post_id = at.id
+LEFT JOIN users u ON at.author_id = u.id
+LEFT JOIN posts p2 ON at.root_article_id = p2.id
+LEFT JOIN posts p3 ON at.id = p3.reply_to AND p3.deleted = false
+GROUP BY at.id, at.title, at.url, u.username, at.author_id, at.content, at.created_at, at.updated_at, at.deleted, at.reply_to, at.depth, at.root_article_id, p2.title, reacts.grinning, reacts.confused, reacts.eyes, reacts.party, reacts.thanks
+ORDER BY at.created_at;`
 
 	rows, err := a.dbPool.Query(context.Background(), sqlStr, id, utils.GetReplyDepthSize(), userId)
 	if err != nil {
