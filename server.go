@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/gob"
+	"fmt"
 	"net/http"
 	"os"
 	"path"
@@ -170,6 +171,10 @@ func Service(c *ServiceConfig) http.Handler {
 
 	r.Mount("/", mainResource.Routes())
 	r.Mount("/articles", articleResource.Routes())
+	r.Mount("/u/{username}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		username := chi.URLParam(r, "username")
+		http.Redirect(w, r, fmt.Sprintf("/users/%s", username), http.StatusFound)
+	}))
 	r.Mount("/users", userResource.Routes())
 	r.Mount("/manage", manageResource.Routes())
 

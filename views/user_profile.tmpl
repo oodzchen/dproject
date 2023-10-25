@@ -5,7 +5,7 @@
     {{- if permit "user" "manage" -}}
 	<fieldset>
 	    <legend>{{local "UserManage"}}</legend>
-	    {{if permit "user" "update_role"}}<a href="/users/{{.Data.UserInfo.Id}}/set_role">{{local "UpdateRole"}}</a>&nbsp;&nbsp;{{end}}
+	    {{if permit "user" "update_role"}}<a href="/users/{{.Data.UserInfo.Name}}/set_role">{{local "UpdateRole"}}</a>&nbsp;&nbsp;{{end}}
 	    <hr/>
 	    <div>
 		<small>
@@ -45,7 +45,7 @@
 
     <div class="tabs">
 	{{- range $tabs -}}
-	    <a class="tab{{if eq $data.CurrTab .}} active{{end}}" href="/users/{{$data.UserInfo.Id}}{{if ne . "all"}}?tab={{.}}{{end}}">{{get $tabsMap .}}</a>
+	    <a class="tab{{if eq $data.CurrTab .}} active{{end}}" href="/users/{{$data.UserInfo.Name}}{{if ne . "all"}}?tab={{.}}{{end}}">{{get $tabsMap .}}</a>
 	{{- end -}}
     </div>
 

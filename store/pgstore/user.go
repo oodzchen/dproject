@@ -448,7 +448,7 @@ func (u *User) GetPassword(username string) (string, error) {
 // 	return id, nil
 // }
 
-func (u *User) GetPosts(userId int, listType string) ([]*model.Article, error) {
+func (u *User) GetPosts(username string, listType string) ([]*model.Article, error) {
 	sqlStrHead := `
 SELECT
 p.id,
@@ -462,9 +462,9 @@ u.username AS author_name,
 p.depth,
 p3.title AS root_article_title
 FROM posts p
-LEFT JOIN users u ON p.author_id = u.id
+JOIN users u ON p.author_id = u.id
 LEFT JOIN posts p3 ON p.root_article_id = p3.id
-WHERE p.author_id = $1 AND p.deleted = false`
+WHERE u.username = $1 AND p.deleted = false`
 	sqlStrTail := ` ORDER BY p.created_at DESC`
 
 	switch listType {
@@ -477,7 +477,7 @@ WHERE p.author_id = $1 AND p.deleted = false`
 
 	sqlStr := sqlStrHead + sqlStrTail
 
-	rows, err := u.dbPool.Query(context.Background(), sqlStr, userId)
+	rows, err := u.dbPool.Query(context.Background(), sqlStr, username)
 	if err != nil {
 		return nil, err
 	}
@@ -514,7 +514,7 @@ WHERE p.author_id = $1 AND p.deleted = false`
 	return posts, nil
 }
 
-func (u *User) GetSavedPosts(userId int) ([]*model.Article, error) {
+func (u *User) GetSavedPosts(username string) ([]*model.Article, error) {
 	sqlStr := `
 SELECT
 p.id,
@@ -528,12 +528,12 @@ u.username AS author_name,
 p.depth,
 p3.title AS root_article_title
 FROM post_saves ps
+JOIN users u ON p.author_id = u.id
 LEFT JOIN posts p ON p.id = ps.post_id
-LEFT JOIN users u ON p.author_id = u.id
 LEFT JOIN posts p3 ON p.root_article_id = p3.id
-WHERE ps.user_id = $1 AND p.deleted = false
+WHERE u.username = $1 AND p.deleted = false
 ORDER BY ps.created_at DESC`
-	rows, err := u.dbPool.Query(context.Background(), sqlStr, userId)
+	rows, err := u.dbPool.Query(context.Background(), sqlStr, username)
 	if err != nil {
 		return nil, err
 	}
@@ -621,7 +621,7 @@ func (u *User) SetRoleManyWithFrontId(list []*model.User) error {
 	return nil
 }
 
-func (u *User) GetSubscribedPosts(userId int) ([]*model.Article, error) {
+func (u *User) GetSubscribedPosts(username string) ([]*model.Article, error) {
 	sqlStr := `
 SELECT
 p.id,
@@ -643,12 +643,12 @@ SELECT
  FROM post_subs WHERE post_id = p.id AND user_id = $1
 ) AS subscribed
 FROM post_subs ps
+JOIN users u ON p.author_id = u.id
 LEFT JOIN posts p ON p.id = ps.post_id
-LEFT JOIN users u ON p.author_id = u.id
 LEFT JOIN posts p3 ON p.root_article_id = p3.id
-WHERE ps.user_id = $1 AND p.deleted = false
+WHERE u.username = $1 AND p.deleted = false
 ORDER BY ps.created_at DESC`
-	rows, err := u.dbPool.Query(context.Background(), sqlStr, userId)
+	rows, err := u.dbPool.Query(context.Background(), sqlStr, username)
 	if err != nil {
 		return nil, err
 	}

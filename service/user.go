@@ -51,13 +51,13 @@ func (u *User) Register(email string, password string, name string) (int, error)
 	return u.Store.User.Create(email, password, name, string(model.DefaultUserRoleCommon))
 }
 
-func (u *User) GetPosts(userId int, listType UserListType) ([]*model.Article, error) {
+func (u *User) GetPosts(username string, listType UserListType) ([]*model.Article, error) {
 	switch listType {
 	case UserListSaved:
-		return u.Store.User.GetSavedPosts(userId)
+		return u.Store.User.GetSavedPosts(username)
 	case UserListSubscribed:
-		return u.Store.User.GetSubscribedPosts(userId)
+		return u.Store.User.GetSubscribedPosts(username)
 	default:
-		return u.Store.User.GetPosts(userId, string(listType))
+		return u.Store.User.GetPosts(username, string(listType))
 	}
 }

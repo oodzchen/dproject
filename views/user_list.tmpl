@@ -51,7 +51,7 @@
 	{{- $debug := .Debug -}}
 	{{- range .Data.List -}}
 	    <li>
-		<a href="/users/{{.Id}}">{{.Name}}</a>
+		<a href="/users/{{.Name}}">{{.Name}}</a>
 		<div>{{.Email}}</div>
 		<div class="text-lighten-3">{{local "Register"}}{{ timeAgo .RegisteredAt }}</div>
 		<div>

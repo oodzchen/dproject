@@ -16,7 +16,7 @@ type UserLogData struct {
 	ActionType                  model.AcType
 	Action                      model.AcAction
 	TargetModel                 model.AcModel
-	TargetId                    int
+	TargetId                    any
 	IPAddr, DeviceInfo, Details string
 }
 

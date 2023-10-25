@@ -71,7 +71,7 @@ CREATE TABLE activities (
     type VARCHAR(255) NOT NULL,
     action VARCHAR(255) NOT NULL,
     target_model VARCHAR(255),
-    target_id INTEGER,
+    target_id VARCHAR(255),
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     ip_address VARCHAR(255) NOT NULL,
     device_info VARCHAR(255),

@@ -7,7 +7,7 @@
     {{- $roleList := .Data.RoleList -}}
 
     <div class="card">
-	<form class="form" action="/users/{{$userData.Id}}/set_role" method="POST">
+	<form class="form" action="/users/{{$userData.Name}}/set_role" method="POST">
 	    {{.CSRFField}}
 	    <div class="form__row">
 		<label class="form__label">Role:</label>

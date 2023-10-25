@@ -132,18 +132,18 @@ var (
 	}
 
 	ULogLoginedUserId = func(u *service.UserLogData, w http.ResponseWriter, r *http.Request) error {
-		id, err := strconv.Atoi(chi.URLParam(r, "userId"))
-		if err != nil {
-			return nil
+		username := chi.URLParam(r, "username")
+		if username == "" {
+			return errors.New("username is empty")
 		}
-		u.TargetId = id
+		u.TargetId = username
 		return nil
 	}
 
 	ULogRoleId = func(u *service.UserLogData, w http.ResponseWriter, r *http.Request) error {
 		id, err := strconv.Atoi(chi.URLParam(r, "roleId"))
 		if err != nil {
-			return nil
+			return err
 		}
 		u.TargetId = id
 		return nil
@@ -153,7 +153,7 @@ var (
 		articleIdStr := r.Context().Value("article_id")
 		id, ok := articleIdStr.(int)
 		if !ok {
-			return nil
+			return errors.New("get article id failed")
 		}
 
 		// fmt.Println("articleId: ", articleId)
@@ -165,7 +165,7 @@ var (
 	ULogURLArticleId = func(u *service.UserLogData, w http.ResponseWriter, r *http.Request) error {
 		id, err := strconv.Atoi(chi.URLParam(r, "articleId"))
 		if err != nil {
-			return nil
+			return err
 		}
 		u.TargetId = id
 		return nil

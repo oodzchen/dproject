@@ -14,7 +14,7 @@ type Activity struct {
 	UserName      string
 	Type          AcType
 	Action        string
-	TargetId      int
+	TargetId      string
 	TargetModel   string
 	CreatedAt     *time.Time
 	IpAddr        string
@@ -29,20 +29,20 @@ func ActivityValidErr(str string) error {
 
 func (act *Activity) Format(i18nCustom *i18nc.I18nCustom) {
 	acAction, _ := ParseAcAction(act.Action)
-	text := fmt.Sprintf("<a href=\"/users/%d\">%s</a> %s", act.UserId, act.UserName, acAction.Text(false, i18nCustom))
+	text := fmt.Sprintf("<a href=\"/users/%s\">%s</a> %s", act.UserName, act.UserName, acAction.Text(false, i18nCustom))
 	// if AcModel(act.TargetModel) == AcModelArticle {
 	// 	text += fmt.Sprintf(" <a href=\"/articles/%d\">/article/%d</a>", act.TargetId, act.TargetId)
 	// }
 
 	switch AcModel(act.TargetModel) {
 	case AcModelArticle:
-		text += fmt.Sprintf(" <a href=\"/articles/%d\">/article/%d</a>", act.TargetId, act.TargetId)
+		text += fmt.Sprintf(" <a href=\"/articles/%s\">/article/%s</a>", act.TargetId, act.TargetId)
 	case AcModelUser:
-		text += fmt.Sprintf(" <a href=\"/users/%d\">/users/%d</a>", act.TargetId, act.TargetId)
+		text += fmt.Sprintf(" <a href=\"/users/%s\">/users/%s</a>", act.TargetId, act.TargetId)
 	default:
 	}
 
-	text += fmt.Sprintf("<time title=\"%s\">%s</time>", act.CreatedAt.String(), i18nCustom.TimeAgo.Format(*act.CreatedAt))
+	text += fmt.Sprintf(" <time title=\"%s\">%s</time>", act.CreatedAt.String(), i18nCustom.TimeAgo.Format(*act.CreatedAt))
 
 	act.FormattedText = text
 }

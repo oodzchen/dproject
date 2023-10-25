@@ -101,7 +101,7 @@
 		{{- if or (permit "article" "view_score") (and .article.ShowScore (gt .article.VoteScore 0)) -}}
 		    {{local "VoteScore" "Score" .article.VoteScore | upHead 1}} |&nbsp;
 		{{- end -}}
-		{{- $author := print  "<a class=\"text-lighten-3\" href=\"/users/" .article.AuthorId "\">" .article.AuthorName "</a>" -}}
+		{{- $author := print  "<a class=\"text-lighten-3\" href=\"/users/" .article.AuthorName "\">" .article.AuthorName "</a>" -}}
 		{{- if .article.Deleted -}}
 		    {{- $author = print "<span>" (local "Deleted" | lower) "</span>" -}}
 		{{- end -}}

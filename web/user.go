@@ -43,7 +43,7 @@ func NewUserResource(renderer *Renderer) *UserResource {
 func (ur *UserResource) Routes() http.Handler {
 	rt := chi.NewRouter()
 
-	rt.Route("/{userId}", func(r chi.Router) {
+	rt.Route("/{username}", func(r chi.Router) {
 		r.Get("/", ur.ItemPage)
 
 		r.With(mdw.AuthCheck(ur.sessStore), mdw.PermitCheck(ur.srv.Permission, []string{
@@ -172,9 +172,15 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 		pageSize = DefaultPageSize
 	}
 
-	userId, err := strconv.Atoi(chi.URLParam(r, "userId"))
-	if err != nil {
-		ur.Error("", errors.WithStack(err), w, r, http.StatusBadRequest)
+	// userId, err := strconv.Atoi(chi.URLParam(r, "userId"))
+	// if err != nil {
+	// 	ur.Error("", errors.WithStack(err), w, r, http.StatusBadRequest)
+	// 	return
+	// }
+
+	username := chi.URLParam(r, "username")
+	if username == "" {
+		ur.Error("", errors.New("username is empty"), w, r, http.StatusBadRequest)
 		return
 	}
 
@@ -184,11 +190,11 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !IsLogin(ur.sessStore, w, r) && service.CheckUserTabAuthRequired(service.UserListType(tab)) {
-		http.Redirect(w, r, fmt.Sprintf("/users/%d", userId), http.StatusFound)
+		http.Redirect(w, r, fmt.Sprintf("/users/%s", username), http.StatusFound)
 		return
 	}
 
-	user, err := ur.store.User.Item(userId)
+	user, err := ur.store.User.ItemWithUsername(username)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) || errors.Is(err, model.AppErrUserNotExist) {
 			ur.Error("", nil, w, r, http.StatusNotFound)
@@ -202,7 +208,7 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 	var activityList []*model.Activity
 	var total int
 	if tab != "activity" {
-		postList, err = ur.userSrv.GetPosts(userId, service.UserListType(tab))
+		postList, err = ur.userSrv.GetPosts(username, service.UserListType(tab))
 	} else {
 		if !ur.srv.Permission.PermissionData.Permit("user", "access_activity") {
 			ur.Error("", nil, w, r, http.StatusForbidden)
@@ -245,7 +251,7 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 		},
 		BreadCrumbs: []*model.BreadCrumb{
 			{
-				Path: fmt.Sprintf("/users/%d", user.Id),
+				Path: fmt.Sprintf("/users/%s", user.Name),
 				Name: user.Name,
 			},
 		},
@@ -286,7 +292,7 @@ func (ur *UserResource) BanPage(w http.ResponseWriter, r *http.Request) {
 		},
 		BreadCrumbs: []*model.BreadCrumb{
 			{
-				Path: fmt.Sprintf("/users/%d", user.Id),
+				Path: fmt.Sprintf("/users/%s", user.Name),
 				Name: user.Name,
 			},
 		},
@@ -294,9 +300,9 @@ func (ur *UserResource) BanPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ur *UserResource) SetRole(w http.ResponseWriter, r *http.Request) {
-	userId, err := strconv.Atoi(chi.URLParam(r, "userId"))
-	if err != nil {
-		ur.Error("", errors.WithStack(err), w, r, http.StatusBadRequest)
+	username := chi.URLParam(r, "username")
+	if username == "" {
+		ur.Error("", errors.New("username is empty"), w, r, http.StatusBadRequest)
 		return
 	}
 
@@ -320,7 +326,7 @@ func (ur *UserResource) SetRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := ur.store.User.Item(userId)
+	user, err := ur.store.User.ItemWithUsername(username)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			ur.Error("", nil, w, r, http.StatusNotFound)
@@ -331,7 +337,7 @@ func (ur *UserResource) SetRole(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if user.RoleFrontId == roleFrontId {
-		http.Redirect(w, r, fmt.Sprintf("/users/%d", user.Id), http.StatusFound)
+		http.Redirect(w, r, fmt.Sprintf("/users/%s", user.Name), http.StatusFound)
 		return
 	}
 
@@ -341,19 +347,19 @@ func (ur *UserResource) SetRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/users/%d", user.Id), http.StatusFound)
+	http.Redirect(w, r, fmt.Sprintf("/users/%s", user.Name), http.StatusFound)
 }
 
 func (ur *UserResource) SetRolePage(w http.ResponseWriter, r *http.Request) {
-	userId, err := strconv.Atoi(chi.URLParam(r, "userId"))
-	if err != nil {
-		ur.Error("", errors.WithStack(err), w, r, http.StatusBadRequest)
+	username := chi.URLParam(r, "username")
+	if username == "" {
+		ur.Error("", errors.New("username is empty"), w, r, http.StatusBadRequest)
 		return
 	}
 
 	// roleFrontId := r.URL.Query().Get("role_id")
 
-	user, err := ur.store.User.Item(userId)
+	user, err := ur.store.User.ItemWithUsername(username)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			ur.Error("", nil, w, r, http.StatusNotFound)
@@ -423,7 +429,7 @@ func (ur *UserResource) SetRolePage(w http.ResponseWriter, r *http.Request) {
 		},
 		BreadCrumbs: []*model.BreadCrumb{
 			{
-				Path: fmt.Sprintf("/users/%d", user.Id),
+				Path: fmt.Sprintf("/users/%s", user.Name),
 				Name: user.Name,
 			},
 		},

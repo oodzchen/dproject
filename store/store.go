@@ -50,11 +50,11 @@ type UserStore interface {
 	ItemWithUsername(username string) (*model.User, error)
 	ItemWithUsernameEmail(usernameEmail string) (*model.User, error)
 	Exists(email, username string) (int, error)
-	Delete(int) error
-	Ban(int) error
-	GetPosts(userId int, listType string) ([]*model.Article, error)
-	GetSavedPosts(int) ([]*model.Article, error)
-	GetSubscribedPosts(int) ([]*model.Article, error)
+	// Delete(int) error
+	// Ban(int) error
+	GetPosts(username string, listType string) ([]*model.Article, error)
+	GetSavedPosts(username string) ([]*model.Article, error)
+	GetSubscribedPosts(username string) ([]*model.Article, error)
 	Count() (int, error)
 	SetRole(userId int, roleFrontId string) (int, error)
 	SetRoleManyWithFrontId([]*model.User) error
@@ -91,7 +91,7 @@ type RoleStore interface {
 
 type ActivityStore interface {
 	List(userId int, userName, actType, action string, page, pageSize int) ([]*model.Activity, int, error)
-	Create(userId int, actType, action, targetModel string, targetId int, ipAddr, deviceInfo, details string) (int, error)
+	Create(userId int, actType, action, targetModel string, targetId any, ipAddr, deviceInfo, details string) (int, error)
 }
 
 type MessageStore interface {

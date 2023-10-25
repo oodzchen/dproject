@@ -62,7 +62,7 @@ func (ar *ArticleResource) Routes() http.Handler {
 			r.Get("/delete", ar.DeletePage)
 			r.With(mdw.UserLogger(
 				ar.uLogger, model.AcTypeUser, model.AcActionDeleteArticle, model.AcModelArticle, mdw.ULogURLArticleId, func(uLogData *service.UserLogData, w http.ResponseWriter, r *http.Request) error {
-					fmt.Println("uLogData: ", uLogData)
+					// fmt.Println("uLogData: ", uLogData)
 					var currUserId int
 					if currUser, ok := r.Context().Value("user_data").(*model.User); ok {
 						// fmt.Println("curr user id: ", currUser.Id)
@@ -73,7 +73,7 @@ func (ar *ArticleResource) Routes() http.Handler {
 					if v, ok := ar.Session("one", w, r).GetValue("deleted_article_author_id").(int); ok {
 						// fmt.Println("deleted article author id: ", v)
 						deleteArticleAuthorId = v
-						ar.Session("one", nil, r).SetValue("deleted_article_author_id", "")
+						ar.Session("one", w, r).SetValue("deleted_article_author_id", "")
 					}
 
 					if currUserId != 0 && deleteArticleAuthorId != 0 && currUserId != deleteArticleAuthorId {

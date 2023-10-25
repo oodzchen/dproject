@@ -3,6 +3,7 @@ package pgstore
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -99,7 +100,16 @@ LEFT JOIN users u ON u.id = ua.user_id`
 	return list, total, nil
 }
 
-func (a *Activity) Create(userId int, actType, action, targetModel string, targetId int, ipAddr, deviceInfo, details string) (int, error) {
+func (a *Activity) Create(userId int, actType, action, targetModel string, targetId any, ipAddr, deviceInfo, details string) (int, error) {
+	var targetIdStr string
+	if targetId != nil {
+		if v, ok := targetId.(string); ok {
+			targetIdStr = v
+		} else if v, ok := targetId.(int); ok {
+			targetIdStr = strconv.Itoa(v)
+		}
+	}
+
 	var id int
 	err := a.dbPool.QueryRow(
 		context.Background(),
@@ -112,7 +122,7 @@ RETURNING (id)`,
 		actType,
 		action,
 		targetModel,
-		targetId,
+		targetIdStr,
 		ipAddr,
 		deviceInfo,
 		details,
