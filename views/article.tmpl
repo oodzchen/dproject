@@ -159,7 +159,7 @@
 	{{if .article.Deleted -}}
 	    <i class="text-lighten-2">&lt;{{local "Deleted"}}&gt;</i>
 	{{- else -}}
-	    <section class="{{if lt .article.VoteScore 0}}text-lighten-3{{else}}text-lighten{{end}}" style="white-space: break-spaces">{{- .article.Content -}}</section>
+	    <section class="{{if lt .article.VoteScore 0}}text-lighten-3{{else}}text-lighten{{end}}" style="white-space: break-spaces">{{- replaceLink .article.Content -}}</section>
 	{{- end -}}
 
 	{{if not $delPage -}}

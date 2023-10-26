@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"text/template"
@@ -22,6 +23,7 @@ var TmplFuncs = template.FuncMap{
 	"downHead":     downCaseHead,
 	"pageStr":      pageStr,
 	"calcDuration": calcDuration,
+	"replaceLink":  replaceLink,
 }
 
 func joinStrArr(arr []string, sep string) string {
@@ -94,4 +96,20 @@ func pageStr(path string, page int, query url.Values) string {
 
 func calcDuration(start time.Time) string {
 	return fmt.Sprintf("%dms", time.Since(start).Milliseconds())
+}
+
+const maxDisplayURLLength = 100
+
+// https://stackoverflow.com/a/3809435
+var urlRegex = regexp.MustCompile(`https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)`)
+
+func replaceLink(str string) string {
+	return urlRegex.ReplaceAllStringFunc(str, func(s string) string {
+		shortenUrl := s
+		if len(s) > maxDisplayURLLength {
+			shortenUrl = string([]rune(s)[:maxDisplayURLLength]) + "..."
+		}
+
+		return fmt.Sprintf("<a title=\"%s\" href=\"%s\">%s</a>", s, s, shortenUrl)
+	})
 }

@@ -233,21 +233,6 @@ type Article struct {
 	TmpParent                 *Article // Only for temporary use, to avoid circular reference errors
 }
 
-const maxDisplayURLLength = 100
-
-func (a *Article) ReplaceURLToLinkTag() {
-	// https://stackoverflow.com/a/3809435
-	urlRegex := regexp.MustCompile(`https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)`)
-	a.Content = urlRegex.ReplaceAllStringFunc(a.Content, func(s string) string {
-		shortenUrl := s
-		if len(s) > maxDisplayURLLength {
-			shortenUrl = string([]rune(s)[:maxDisplayURLLength]) + "..."
-		}
-
-		return fmt.Sprintf("<a title=\"%s\" href=\"%s\">%s</a>", s, s, shortenUrl)
-	})
-}
-
 func (a *Article) FormatNullValues() {
 	if a.Title == "" && a.NullTitle.Valid {
 		a.Title = a.NullTitle.String

@@ -529,10 +529,10 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		return
 	}
 
+	start1 := time.Now()
 	var rootArticle *model.Article
 	for _, item := range articleTreeList {
 		item.FormatNullValues()
-		item.ReplaceURLToLinkTag()
 		item.CalcScore()
 		item.CalcWeight()
 		item.CheckShowScore(currUserId)
@@ -541,6 +541,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 			rootArticle = item
 		}
 	}
+	fmt.Printf("format article item duration: %dms\n", time.Since(start1).Milliseconds())
 
 	// if rootArticle.Id == 0 {
 	// 	ar.Error("the article is gone", err, w, r, http.StatusGone)
