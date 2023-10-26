@@ -7,13 +7,25 @@ created_at TIMESTAMP NOT NULL DEFAULT NOW(),
 type save_type
 );
 
-CREATE TYPE react_type AS ENUM ('grinning', 'confused', 'eyes', 'party', 'thanks');
+CREATE TYPE react_type AS ENUM ('emoji', 'pic');
+
+CREATE TABLE reacts (
+    id SERIAL PRIMARY KEY,
+    type react_type
+    emoji VARCHAR(50),
+    pic_url VARCHAR(255),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    front_id VARCHAR(50) NOT NULL,
+    describe VARCHAR(255),
+    UNIQUE(front_id),
+    CHECK (emoji IS NOT NULL OR pic_url IS NOT NULL)
+)
 
 CREATE TABLE post_reacts (
 user_id INTEGER REFERENCES users(id),
 post_id INTEGER REFERENCES posts(id),
 created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-type react_type
+react_id INTEGER REFERENCES reacts(id)
 );
 
 CREATE TABLE post_subs (
@@ -104,3 +116,10 @@ CREATE TABLE activities (
 -- INSERT INTO user_roles (user_id, role_id)
 -- SELECT id, 1
 -- FROM users;
+
+INSERT INTO reacts (type, emoji, front_id, describe) VALUES
+('emoji', '❤', 'thanks', 'Thanks'),
+('emoji', '😀', 'happy', 'Haha'),
+('emoji', '😕', 'confused', 'Confuse'),
+('emoji', '👀', 'eyes', 'Watching'),
+('emoji', '🎉', 'party', 'Yeah');

@@ -500,30 +500,12 @@ SELECT at.id, at.title, COALESCE(at.url, ''), u.username as author_name, at.auth
 ) AS subscribed,
 (
   SELECT type FROM post_reacts WHERE post_id = at.id AND user_id = $3
-) AS user_react_type,
-COALESCE(reacts.grinning, 0),
-COALESCE(reacts.confused, 0),
-COALESCE(reacts.eyes, 0),
-COALESCE(reacts.party, 0),
-COALESCE(reacts.thanks, 0)
+) AS user_react_type
 FROM articleTree at
-LEFT OUTER JOIN(
- SELECT post_id,
-   SUM(CASE WHEN type = 'grinning' THEN count ELSE 0 END) AS grinning,
-   SUM(CASE WHEN type = 'confused' THEN count ELSE 0 END) AS confused,
-   SUM(CASE WHEN type = 'eyes' THEN count ELSE 0 END) AS eyes,
-   SUM(CASE WHEN type = 'party' THEN count ELSE 0 END) AS party,
-   SUM(CASE WHEN type = 'thanks' THEN count ELSE 0 END) AS thanks
-   FROM
-   (
-     SELECT post_id, type, COUNT(*) AS count FROM post_reacts
-     GROUP BY type, post_id
-   ) AS react_types GROUP BY post_id
-) AS reacts ON reacts.post_id = at.id
 LEFT JOIN users u ON at.author_id = u.id
 LEFT JOIN posts p2 ON at.root_article_id = p2.id
 LEFT JOIN posts p3 ON at.id = p3.reply_to AND p3.deleted = false
-GROUP BY at.id, at.title, at.url, u.username, at.author_id, at.content, at.created_at, at.updated_at, at.deleted, at.reply_to, at.depth, at.root_article_id, p2.title, reacts.grinning, reacts.confused, reacts.eyes, reacts.party, reacts.thanks
+GROUP BY at.id, at.title, at.url, u.username, at.author_id, at.content, at.created_at, at.updated_at, at.deleted, at.reply_to, at.depth, at.root_article_id, p2.title
 ORDER BY at.created_at;`
 
 	rows, err := a.dbPool.Query(context.Background(), sqlStr, id, utils.GetReplyDepthSize(), userId)
@@ -536,11 +518,8 @@ ORDER BY at.created_at;`
 	var list []*model.Article
 	for rows.Next() {
 		var userState model.CurrUserState
-		var reactCounts model.ArticleReactCounts = make(model.ArticleReactCounts)
-		var grinning, confused, eyes, party, thanks int
 		item := model.Article{
 			CurrUserState: &userState,
-			ReactCounts:   &reactCounts,
 		}
 
 		err = rows.Scan(
@@ -564,22 +543,11 @@ ORDER BY at.created_at;`
 			&item.CurrUserState.Saved,
 			&item.CurrUserState.Subscribed,
 			&item.CurrUserState.NullReactType,
-			&grinning,
-			&confused,
-			&eyes,
-			&party,
-			&thanks,
 		)
 
 		if err != nil {
 			return nil, err
 		}
-
-		reactCounts[model.ArticleReactGrinning] = grinning
-		reactCounts[model.ArticleReactConfused] = confused
-		reactCounts[model.ArticleReactEyes] = eyes
-		reactCounts[model.ArticleReactParty] = party
-		reactCounts[model.ArticleReactThanks] = thanks
 
 		// fmt.Printf("row item: %+v\n", &item)
 		list = append(list, &item)
