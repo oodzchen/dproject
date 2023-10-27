@@ -31,6 +31,7 @@ type ArticleStore interface {
 	Delete(id int) (int, error)
 	ItemTree(ariticleId, userId int) ([]*model.Article, error)
 	Count() (int, error)
+	CountTotalReply(id int) (int, error)
 	VoteCheck(id, userId int) (error, string)
 	Vote(id, loginedUserId int, voteType string) error
 	Save(id, loginedUserId int) error

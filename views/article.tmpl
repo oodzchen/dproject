@@ -106,11 +106,11 @@
 		    {{- $author = print "<span>" (local "Deleted" | lower) "</span>" -}}
 		{{- end -}}
 		{{- local "PublishInfo" "Username" $author -}}
-		<time title="{{.article.CreatedAt}}">{{timeAgo .article.CreatedAt}}</time> |&nbsp;
+		<time title="{{.article.CreatedAt}}">{{timeAgo .article.CreatedAt}}</time>
 		{{- if ne .article.CreatedAt .article.UpdatedAt -}}
-		    {{local "Modified"}}<time title="{{.article.UpdatedAt}}">{{timeAgo .article.UpdatedAt}}</time> |&nbsp;
+		    &nbsp;|&nbsp;{{local "Modified"}}<time title="{{.article.UpdatedAt}}">{{timeAgo .article.UpdatedAt}}</time>
 		{{- end -}}
-		<span>{{- local "ReplyNum" "Count" .article.TotalReplyCount -}}</span>
+		{{- if $isRoot -}}&nbsp;|&nbsp;<span>{{- local "ReplyNum" "Count" .article.TotalReplyCount -}}</span>{{- end -}}
 		{{- if not .article.Deleted -}}
 		    &nbsp;|&nbsp;<a class="text-lighten-3" href="/articles/{{.article.Id}}">{{local "Link" | lower}}</a> |&nbsp;
 		    <a class="text-lighten-3" href="#ar_{{.article.Id}}">{{local "Anchor" | lower}}</a> |&nbsp;

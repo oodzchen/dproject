@@ -170,6 +170,24 @@ func (a *Article) Count() (int, error) {
 	return count, nil
 }
 
+func (a *Article) CountTotalReply(id int) (int, error) {
+	var count int
+	sqlStr := `
+WITH RECURSIVE replyTree AS(
+  SELECT id FROM posts WHERE reply_to = $1 AND deleted = false
+  UNION ALL
+  SELECT p1.id FROM posts p1
+  JOIN replyTree rt ON p1.reply_to = rt.id AND p1.deleted = false
+)
+SELECT COUNT(*) FROM replyTree`
+
+	err := a.dbPool.QueryRow(context.Background(), sqlStr, id).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
 func (a *Article) Create(title, url, content string, authorId, replyTo int) (int, error) {
 	var id int
 	sqlStr := `
@@ -258,21 +276,7 @@ func (a *Article) Update(item *model.Article, fieldNames []string) (int, error) 
 
 func (a *Article) Item(id, userId int) (*model.Article, error) {
 	sqlStr := `
-SELECT p.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title as root_article_title, (
-	WITH RECURSIVE replies AS (
-	   SELECT id
-	   FROM posts
-	   WHERE reply_to = p.id AND deleted = false
-	   UNION ALL
-	   SELECT p1.id
-	   FROM posts p1
-	   INNER JOIN replies pr
-	   ON p1.reply_to = pr.id
-	   WHERE p1.deleted = false
-	)
-	SELECT COUNT(*)
-	FROM replies
-) AS total_reply_count,
+SELECT p.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title as root_article_title, 0 AS total_reply_count,
 (
 SELECT type FROM post_votes WHERE post_id = p.id AND user_id = $2
 ) AS user_vote_type,
@@ -470,18 +474,17 @@ WITH RECURSIVE articleTree AS (
      ON p.reply_to = ar.id
      WHERE ar.cur_depth < $2
 )
-SELECT at.id, at.title, COALESCE(at.url, ''), u.username as author_name, at.author_id, at.content, at.created_at, at.updated_at, at.deleted, at.reply_to, at.depth, at.root_article_id, p2.title as root_article_title, COUNT(p3.id) AS total_reply_count,
-(
-  SELECT type FROM post_votes WHERE post_id = at.id AND user_id = $3
-) AS user_vote_type,
+SELECT at.id, at.title, COALESCE(at.url, ''), u.username AS author_name, at.author_id, at.content, at.created_at, at.updated_at, at.deleted, at.reply_to, at.depth, at.root_article_id, p2.title AS root_article_title,
+0 AS total_reply_count,
+pv.type AS vote_type,
 (
   SELECT COUNT(*) FROM post_votes
   WHERE post_id = at.id AND type = 'up'
-) AS vote_up,
+) AS vote_up_count,
 (
   SELECT COUNT(*) FROM post_votes
   WHERE post_id = at.id AND type = 'down'
-) AS vote_down,
+) AS vote_down_count,
 (
   SELECT
     CASE
@@ -498,14 +501,11 @@ SELECT at.id, at.title, COALESCE(at.url, ''), u.username as author_name, at.auth
     END
    FROM post_subs WHERE post_id = at.id AND user_id = $3
 ) AS subscribed,
-(
-  SELECT type FROM post_reacts WHERE post_id = at.id AND user_id = $3
-) AS user_react_type
+null
 FROM articleTree at
 LEFT JOIN users u ON at.author_id = u.id
 LEFT JOIN posts p2 ON at.root_article_id = p2.id
-LEFT JOIN posts p3 ON at.id = p3.reply_to AND p3.deleted = false
-GROUP BY at.id, at.title, at.url, u.username, at.author_id, at.content, at.created_at, at.updated_at, at.deleted, at.reply_to, at.depth, at.root_article_id, p2.title
+LEFT JOIN post_votes pv ON pv.post_id = at.id AND pv.user_id = $3
 ORDER BY at.created_at;`
 
 	rows, err := a.dbPool.Query(context.Background(), sqlStr, id, utils.GetReplyDepthSize(), userId)

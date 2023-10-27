@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -502,25 +503,73 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	}
 
 	var articleTreeList []*model.Article
-	var singleArticle *model.Article
+	var totalReplyCount int
 
 	startTime := time.Now()
-	if pageType == ArticlePageDetail {
-		articleTreeList, err = ar.store.Article.ItemTree(articleId, currUserId)
-	} else {
-		singleArticle, err = ar.store.Article.Item(articleId, currUserId)
-		articleTreeList = []*model.Article{singleArticle}
+
+	var wg sync.WaitGroup
+	ch := make(chan any, 2)
+
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		totalReplyCount, err = ar.store.Article.CountTotalReply(articleId)
+		if err != nil {
+			ch <- err
+			return
+		}
+		// fmt.Printf("get total count duration: %dms\n", time.Since(startTime).Milliseconds())
+		ch <- totalReplyCount
+	}()
+
+	go func() {
+		defer wg.Done()
+		var list []*model.Article
+		if pageType == ArticlePageDetail {
+			list, err = ar.store.Article.ItemTree(articleId, currUserId)
+			if err != nil {
+				ch <- err
+				return
+			}
+		} else {
+			singleArticle, err := ar.store.Article.Item(articleId, currUserId)
+			if err != nil {
+				ch <- err
+				return
+			}
+			list = []*model.Article{singleArticle}
+		}
+
+		// fmt.Printf("get list duration: %dms\n", time.Since(startTime).Milliseconds())
+		ch <- list
+	}()
+
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+
+	for result := range ch {
+		switch v := result.(type) {
+		case error:
+			if v != nil {
+				if errors.Is(v, pgx.ErrNoRows) {
+					// http.Redirect(w, r, "/404", http.StatusNotFound)
+					ar.Error("", nil, w, r, http.StatusNotFound)
+				} else {
+					ar.Error("", v, w, r, http.StatusInternalServerError)
+				}
+				return
+			}
+		case int:
+			totalReplyCount = v
+		case []*model.Article:
+			articleTreeList = v
+		}
 	}
 
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			// http.Redirect(w, r, "/404", http.StatusNotFound)
-			ar.Error("", nil, w, r, http.StatusNotFound)
-		} else {
-			ar.Error("", err, w, r, http.StatusInternalServerError)
-		}
-		return
-	}
+	fmt.Println("totalReplyCount:", totalReplyCount)
 	fmt.Printf("get article item duration: %dms\n", time.Since(startTime).Milliseconds())
 
 	if len(articleTreeList) == 0 {
@@ -543,9 +592,11 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	}
 	fmt.Printf("format article item duration: %dms\n", time.Since(start1).Milliseconds())
 
-	// if rootArticle.Id == 0 {
-	// 	ar.Error("the article is gone", err, w, r, http.StatusGone)
-	// }
+	if rootArticle.Id == 0 {
+		ar.Error("the article is gone", err, w, r, http.StatusNotFound)
+	}
+
+	rootArticle.TotalReplyCount = totalReplyCount
 
 	if pageType == ArticlePageDel {
 		// currUserId, err := GetLoginUserId(ar.sessStore, w, r)
@@ -609,6 +660,7 @@ const DefaultReplyPageSize = 10
 func genArticleTree(root *model.Article, list []*model.Article) (*model.Article, error) {
 	parentMap := make(map[int]*model.Article)
 	nodeMap := make(map[int][]*model.Article)
+
 	for _, item := range list {
 		nodeMap[item.ReplyTo] = append(nodeMap[item.ReplyTo], item)
 	}
