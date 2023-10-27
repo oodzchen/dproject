@@ -17,7 +17,7 @@ type Article struct {
 	dbPool *pgxpool.Pool
 }
 
-func (a *Article) List(page, pageSize, userId int) ([]*model.Article, error) {
+func (a *Article) List(page, pageSize, userId int) ([]*model.Article, int, error) {
 	// 	sqlStr := `
 	// SELECT tp.id, tp.title, COALESCE(tp.url, ''), u.username as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, tp.depth, p2.title as root_article_title, (
 	// 	WITH RECURSIVE replies AS (
@@ -85,7 +85,8 @@ WHERE post_id = tp.id AND type = 'up'
 SELECT COUNT(post_id) FROM post_votes
 WHERE post_id = tp.id AND type = 'down'
 ) AS vote_down,
-(COUNT(DISTINCT p3.author_id) + COUNT(DISTINCT pv.user_id) + COUNT(DISTINCT ps.user_id) + COUNT(DISTINCT pr.user_id)) AS participate_count
+(COUNT(DISTINCT p3.author_id) + COUNT(DISTINCT pv.user_id) + COUNT(DISTINCT ps.user_id) + COUNT(DISTINCT pr.user_id)) AS participate_count,
+COUNT(tp.id) OVER()
 FROM posts tp
 LEFT JOIN posts p2 ON tp.root_article_id = p2.id
 LEFT JOIN posts p3 ON tp.id = p3.root_article_id AND p3.deleted = false
@@ -121,11 +122,12 @@ LIMIT $2;`
 
 	if err != nil {
 		fmt.Printf("Query database error: %v\n", err)
-		return nil, err
+		return nil, 0, err
 	}
 
 	defer rows.Close()
 
+	var total int
 	var list []*model.Article
 	for rows.Next() {
 		var currUserState model.CurrUserState
@@ -149,16 +151,17 @@ LIMIT $2;`
 			&item.VoteUp,
 			&item.VoteDown,
 			&item.ParticipateCount,
+			&total,
 		)
 		if err != nil {
 			fmt.Printf("Collect rows error: %v\n", err)
-			return nil, err
+			return nil, 0, err
 		}
 
 		list = append(list, &item)
 	}
 
-	return list, nil
+	return list, total, nil
 }
 
 func (a *Article) Count() (int, error) {

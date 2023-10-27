@@ -152,27 +152,28 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	currUserId := ar.GetLoginedUserId(w, r)
 
 	startTime := time.Now()
-	wholeList, err := ar.store.Article.List(0, -1, currUserId)
-	// list, err := ar.store.Article.List(page, pageSize)
+	// wholeList, err := ar.store.Article.List(0, -1, currUserId)
+	list, total, err := ar.store.Article.List(page, pageSize, currUserId)
 	if err != nil {
 		ar.Error("", err, w, r, http.StatusInternalServerError)
 		return
 	}
+	wholeArticleList := model.NewArticleList(list, sortType, page, pageSize)
 
-	for _, item := range wholeList {
-		item.CalcScore()
-		item.CalcWeight()
-	}
+	// for _, item := range wholeList {
+	// 	item.CalcScore()
+	// 	item.CalcWeight()
+	// }
 
 	fmt.Printf("get article list duration: %dms\n", time.Since(startTime).Milliseconds())
 
 	// fmt.Println("sortType: ", sortType)
 
-	wholeArticleList := model.NewArticleList(wholeList, sortType, page, pageSize)
+	// wholeArticleList := model.NewArticleList(wholeList, sortType, page, pageSize)
 	// sort.Sort(wholeArticleList)
 	wholeArticleList.Sort(sortType)
 
-	list := wholeArticleList.PagingList(page, pageSize)
+	// list := wholeArticleList.PagingList(page, pageSize)
 
 	for _, item := range list {
 		// fmt.Println("item.VoteScore: ", item.VoteScore)
@@ -201,10 +202,10 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	pageData := &model.PageData{
 		Data: &ListData{
 			list,
-			wholeArticleList.Total,
+			total,
 			wholeArticleList.CurrPage,
 			wholeArticleList.PageSize,
-			wholeArticleList.TotalPage,
+			CeilInt(total, pageSize),
 			wholeArticleList.SortType,
 		},
 	}
