@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 	"time"
 
@@ -36,6 +37,10 @@ func main() {
 	}
 
 	appCfg := config.Config
+
+	if appCfg.Debug {
+		runtime.GOMAXPROCS(1)
+	}
 
 	// fmt.Printf("App config: %#v\n", appCfg)
 	if appCfg.Debug {

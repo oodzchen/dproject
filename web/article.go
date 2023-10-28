@@ -520,7 +520,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 			ch <- err
 			return
 		}
-		// fmt.Printf("get total count duration: %dms\n", time.Since(startTime).Milliseconds())
+		fmt.Printf("get total count duration: %dms\n", time.Since(startTime).Milliseconds())
 		ch <- totalReplyCount
 	}()
 
@@ -542,7 +542,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 			list = []*model.Article{singleArticle}
 		}
 
-		// fmt.Printf("get list duration: %dms\n", time.Since(startTime).Milliseconds())
+		fmt.Printf("get list duration: %dms\n", time.Since(startTime).Milliseconds())
 		ch <- list
 	}()
 

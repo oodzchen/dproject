@@ -51,6 +51,9 @@ list_weight INTEGER DEFAULT 0 NOT NULL
 -- child_count INTEGER DEFAULT 0 NOT NULL
 );
 
+CREATE INDEX idx_posts_id ON posts (id);
+CREATE INDEX idx_posts_reply_to ON posts (reply_to);
+
 CREATE TYPE vote_type AS ENUM ('up', 'down');
 
 CREATE TABLE post_votes (

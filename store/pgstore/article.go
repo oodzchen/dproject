@@ -480,14 +480,8 @@ WITH RECURSIVE articleTree AS (
 SELECT at.id, at.title, COALESCE(at.url, ''), u.username AS author_name, at.author_id, at.content, at.created_at, at.updated_at, at.deleted, at.reply_to, at.depth, at.root_article_id, p2.title AS root_article_title,
 0 AS total_reply_count,
 pv.type AS vote_type,
-(
-  SELECT COUNT(*) FROM post_votes
-  WHERE post_id = at.id AND type = 'up'
-) AS vote_up_count,
-(
-  SELECT COUNT(*) FROM post_votes
-  WHERE post_id = at.id AND type = 'down'
-) AS vote_down_count,
+COUNT(pv1.id) AS vote_up_count,
+COUNT(pv2.id) AS vote_down_count,
 (
   SELECT
     CASE
@@ -509,6 +503,9 @@ FROM articleTree at
 LEFT JOIN users u ON at.author_id = u.id
 LEFT JOIN posts p2 ON at.root_article_id = p2.id
 LEFT JOIN post_votes pv ON pv.post_id = at.id AND pv.user_id = $3
+LEFT JOIN post_votes pv1 ON pv1.post_id = at.id AND pv1.type = 'up'
+LEFT JOIN post_votes pv2 ON pv2.post_id = at.id AND pv2.type = 'down'
+GROUP BY at.id, at.title, at.url, u.username, at.author_id, at.content, at.created_at, at.updated_at, at.deleted, at.reply_to, at.depth, at.root_article_id, p2.title, pv.type
 ORDER BY at.created_at;`
 
 	rows, err := a.dbPool.Query(context.Background(), sqlStr, id, utils.GetReplyDepthSize(), userId)

@@ -1,10 +1,11 @@
 CREATE TYPE save_type AS ENUM ('fav');
 
 CREATE TABLE post_saves (
-user_id INTEGER REFERENCES users(id),
-post_id INTEGER REFERENCES posts(id),
-created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-type save_type
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    post_id INTEGER REFERENCES posts(id),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    type save_type
 );
 
 CREATE TYPE react_type AS ENUM ('emoji', 'pic');
@@ -22,16 +23,18 @@ CREATE TABLE reacts (
 )
 
 CREATE TABLE post_reacts (
-user_id INTEGER REFERENCES users(id),
-post_id INTEGER REFERENCES posts(id),
-created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-react_id INTEGER REFERENCES reacts(id)
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    post_id INTEGER REFERENCES posts(id),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    react_id INTEGER REFERENCES reacts(id)
 );
 
 CREATE TABLE post_subs (
-user_id INTEGER REFERENCES users(id),
-post_id INTEGER REFERENCES posts(id),
-created_at TIMESTAMP NOT NULL DEFAULT NOW()
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    post_id INTEGER REFERENCES posts(id),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE messages (
@@ -66,12 +69,14 @@ CREATE TABLE permissions (
 );
 
 CREATE TABLE role_permissions (
+    id SERIAL PRIMARY KEY,
     role_id INTEGER REFERENCES roles(id),
     permission_id INTEGER REFERENCES permissions(id),
     UNIQUE(role_id, permission_id)
 );
 
 CREATE TABLE user_roles (
+    id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id),
     role_id INTEGER REFERENCES roles(id),
     UNIQUE(user_id)
