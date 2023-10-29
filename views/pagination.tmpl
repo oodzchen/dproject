@@ -1,8 +1,15 @@
 {{ define "pagination" }}
     {{- $path := .pathPrefix -}}
     {{- $query := .query -}}
-    
-    <div>
+
+    <style>
+     .pagination > a{
+	 display: inline-block;
+	 padding: 0 6px;
+	 margin: 0 2px;
+     }
+    </style>
+    <div class="pagination">
 	{{- if gt .currPage 1 -}}
 	    <a href="{{pageStr $path (int (add .currPage -1)) $query}}">{{local "BtnPrevPage"}}</a>&nbsp;&nbsp;
 	{{- end -}}
@@ -13,7 +20,7 @@
 		{{- if eq $currPage $page -}}
 		    &nbsp;{{$page}}&nbsp;&nbsp;
 		{{- else -}}
-		    &nbsp;<a href="{{pageStr $path $page $query}}">{{$page}}</a>&nbsp;&nbsp;
+		    <a href="{{pageStr $path $page $query}}">{{$page}}</a>
 		{{- end -}}
 	    {{- end -}}
 	{{- end -}}
