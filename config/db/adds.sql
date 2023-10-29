@@ -12,7 +12,7 @@ CREATE TYPE react_type AS ENUM ('emoji', 'pic');
 
 CREATE TABLE reacts (
     id SERIAL PRIMARY KEY,
-    type react_type
+    type react_type,
     emoji VARCHAR(50),
     pic_url VARCHAR(255),
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -20,7 +20,7 @@ CREATE TABLE reacts (
     describe VARCHAR(255),
     UNIQUE(front_id),
     CHECK (emoji IS NOT NULL OR pic_url IS NOT NULL)
-)
+);
 
 CREATE TABLE post_reacts (
     id SERIAL PRIMARY KEY,

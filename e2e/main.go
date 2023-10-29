@@ -89,22 +89,6 @@ func main() {
 	ctx, tcancel := context.WithTimeout(ctx, time.Duration(timeoutDuration*int(time.Second)))
 	defer tcancel()
 
-	var content string
-	err = runTasks("visit article and get content", ctx,
-		chp.Navigate(mock.ServerURL),
-		mock.WaitFooterReady(),
-		chp.Click(`ol>li .article-list__title`, chp.NodeReady),
-		mock.WaitFooterReady(),
-		chp.TextContent(`body>article>section`, &content),
-		chp.ActionFunc(func(ctx context.Context) error {
-			if len(content) == 0 {
-				return errors.New("article content is empty")
-			}
-			return nil
-		}),
-	)
-	mt.LogFailed(err)
-
 	err = runTasks("add new as anonymous", ctx,
 		chp.Navigate(mock.ServerURL),
 		mock.WaitFooterReady(),
@@ -197,6 +181,22 @@ func main() {
 	err = runTasks("create article as logined user", ctx,
 		mock.Login(newUser),
 		mock.CreateArticle(newArticle),
+	)
+	mt.LogFailed(err)
+
+	var content string
+	err = runTasks("visit article and get content", ctx,
+		chp.Navigate(mock.ServerURL),
+		mock.WaitFooterReady(),
+		chp.Click(`ol>li .article-list__title`, chp.NodeReady),
+		mock.WaitFooterReady(),
+		chp.TextContent(`body>article>section`, &content),
+		chp.ActionFunc(func(ctx context.Context) error {
+			if len(content) == 0 {
+				return errors.New("article content is empty")
+			}
+			return nil
+		}),
 	)
 	mt.LogFailed(err)
 

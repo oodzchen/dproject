@@ -57,6 +57,7 @@ CREATE INDEX idx_posts_reply_to ON posts (reply_to);
 CREATE TYPE vote_type AS ENUM ('up', 'down');
 
 CREATE TABLE post_votes (
+id SERIAL PRIMARY KEY,
 user_id INTEGER REFERENCES users(id),
 post_id INTEGER REFERENCES posts(id),
 created_at TIMESTAMP NOT NULL DEFAULT NOW(),
