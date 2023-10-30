@@ -73,6 +73,13 @@ func (a *Article) List(page, pageSize, userId int) ([]*model.Article, int, error
 	// LIMIT $2;`
 
 	sqlStr := `
+WITH postIds AS (
+    SELECT id, COUNT(id) OVER() AS total FROM posts
+    WHERE deleted = false AND reply_to = 0
+    ORDER BY created_at DESC
+    OFFSET $1
+    LIMIT $2
+)
 SELECT tp.id, tp.title, COALESCE(tp.url, ''), u.username as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, tp.depth, p2.title as root_article_title, COUNT(p3.id) AS total_reply_count,
 (
 SELECT type FROM post_votes WHERE post_id = tp.id AND user_id = $3
@@ -86,19 +93,16 @@ SELECT COUNT(post_id) FROM post_votes
 WHERE post_id = tp.id AND type = 'down'
 ) AS vote_down,
 (COUNT(DISTINCT p3.author_id) + COUNT(DISTINCT pv.user_id) + COUNT(DISTINCT ps.user_id) + COUNT(DISTINCT pr.user_id)) AS participate_count,
-COUNT(tp.id) OVER()
+pi.total AS total
 FROM posts tp
+JOIN postIds pi ON tp.id = pi.id
 LEFT JOIN posts p2 ON tp.root_article_id = p2.id
 LEFT JOIN posts p3 ON tp.id = p3.root_article_id AND p3.deleted = false
 LEFT JOIN users u ON u.id = tp.author_id
 LEFT JOIN post_votes pv ON pv.post_id = tp.id
 LEFT JOIN post_saves ps ON ps.post_id = tp.id
 LEFT JOIN post_reacts pr ON pr.post_id = tp.id
-WHERE tp.deleted = false AND tp.reply_to = 0
-GROUP BY tp.id, u.username, p2.title
-ORDER BY tp.created_at DESC
-OFFSET $1
-LIMIT $2;`
+GROUP BY tp.id, u.username, p2.title, pi.total;`
 
 	var args []any
 	if page < 1 {
@@ -493,7 +497,7 @@ WITH RECURSIVE articleTree AS (
      ON p.reply_to = ar.id
      WHERE ar.cur_depth < $2
 )
-SELECT at.id, at.title, COALESCE(at.url, ''), u.username AS author_name, at.author_id, at.content, at.created_at, at.updated_at, at.deleted, at.reply_to, at.depth, at.root_article_id, p2.title AS root_article_title,
+SELECT p.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title AS root_article_title,
 0 AS total_reply_count,
 pv.type AS vote_type,
 COUNT(pv1.id) AS vote_up_count,
@@ -504,7 +508,7 @@ COUNT(pv2.id) AS vote_down_count,
       WHEN COUNT(*) > 0 THEN TRUE
       ELSE FALSE
     END
-   FROM post_saves WHERE post_id = at.id AND user_id = $3
+   FROM post_saves WHERE post_id = p.id AND user_id = $3
 ) AS saved,
 (
   SELECT
@@ -512,17 +516,17 @@ COUNT(pv2.id) AS vote_down_count,
       WHEN COUNT(*) > 0 THEN TRUE
       ELSE FALSE
     END
-   FROM post_subs WHERE post_id = at.id AND user_id = $3
+   FROM post_subs WHERE post_id = p.id AND user_id = $3
 ) AS subscribed,
 null
-FROM articleTree at
-LEFT JOIN users u ON at.author_id = u.id
-LEFT JOIN posts p2 ON at.root_article_id = p2.id
-LEFT JOIN post_votes pv ON pv.post_id = at.id AND pv.user_id = $3
-LEFT JOIN post_votes pv1 ON pv1.post_id = at.id AND pv1.type = 'up'
-LEFT JOIN post_votes pv2 ON pv2.post_id = at.id AND pv2.type = 'down'
-GROUP BY at.id, at.title, at.url, u.username, at.author_id, at.content, at.created_at, at.updated_at, at.deleted, at.reply_to, at.depth, at.root_article_id, p2.title, pv.type
-ORDER BY at.created_at;`
+FROM articleTree p
+LEFT JOIN users u ON p.author_id = u.id
+LEFT JOIN posts p2 ON p.root_article_id = p2.id
+LEFT JOIN post_votes pv ON pv.post_id = p.id AND pv.user_id = $3
+LEFT JOIN post_votes pv1 ON pv1.post_id = p.id AND pv1.type = 'up'
+LEFT JOIN post_votes pv2 ON pv2.post_id = p.id AND pv2.type = 'down'
+GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title, pv.type
+ORDER BY p.created_at;`
 
 	rows, err := a.dbPool.Query(context.Background(), sqlStr, id, utils.GetReplyDepthSize(), userId)
 	if err != nil {
