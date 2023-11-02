@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -17,7 +18,7 @@ type Article struct {
 	dbPool *pgxpool.Pool
 }
 
-func (a *Article) List(page, pageSize, userId int) ([]*model.Article, int, error) {
+func (a *Article) List(page, pageSize, userId int, start, end time.Time) ([]*model.Article, int, error) {
 	// 	sqlStr := `
 	// SELECT tp.id, tp.title, COALESCE(tp.url, ''), u.username as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, tp.depth, p2.title as root_article_title, (
 	// 	WITH RECURSIVE replies AS (
@@ -75,7 +76,7 @@ func (a *Article) List(page, pageSize, userId int) ([]*model.Article, int, error
 	sqlStr := `
 WITH postIds AS (
     SELECT id, COUNT(id) OVER() AS total FROM posts
-    WHERE deleted = false AND reply_to = 0
+    WHERE deleted = false AND reply_to = 0 AND created_at BETWEEN $4 AND $5
     ORDER BY created_at DESC
     OFFSET $1
     LIMIT $2
@@ -102,7 +103,8 @@ LEFT JOIN users u ON u.id = tp.author_id
 LEFT JOIN post_votes pv ON pv.post_id = tp.id
 LEFT JOIN post_saves ps ON ps.post_id = tp.id
 LEFT JOIN post_reacts pr ON pr.post_id = tp.id
-GROUP BY tp.id, u.username, p2.title, pi.total;`
+GROUP BY tp.id, u.username, p2.title, pi.total
+ORDER BY created_at DESC;`
 
 	var args []any
 	if page < 1 {
@@ -110,12 +112,12 @@ GROUP BY tp.id, u.username, p2.title, pi.total;`
 	}
 
 	if pageSize < 0 {
-		args = []any{0, nil, userId}
+		args = []any{0, nil, userId, start, end}
 	} else {
 		if pageSize < 1 {
 			pageSize = defaultPageSize
 		}
-		args = []any{pageSize * (page - 1), pageSize, userId}
+		args = []any{pageSize * (page - 1), pageSize, userId, start, end}
 	}
 
 	// fmt.Println("page", page)
@@ -171,6 +173,20 @@ GROUP BY tp.id, u.username, p2.title, pi.total;`
 func (a *Article) Count() (int, error) {
 	var count int
 	err := a.dbPool.QueryRow(context.Background(), `SELECT COUNT(*) FROM posts WHERE reply_to = 0 AND deleted = false;`).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (a *Article) ListLatestCount(start, end time.Time) (int, error) {
+	var count int
+	err := a.dbPool.QueryRow(
+		context.Background(),
+		`SELECT COUNT(*) FROM posts WHERE reply_to = 0 AND deleted = false AND created_at BETWEEN $1 AND $2;`,
+		start,
+		end,
+	).Scan(&count)
 	if err != nil {
 		return 0, err
 	}

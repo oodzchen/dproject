@@ -125,6 +125,8 @@ func (ar *ArticleResource) Routes() http.Handler {
 	return rt
 }
 
+var oldestStartTime = time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
+
 func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
@@ -152,28 +154,59 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	currUserId := ar.GetLoginedUserId(w, r)
 
 	startTime := time.Now()
-	// wholeList, err := ar.store.Article.List(0, -1, currUserId)
-	list, total, err := ar.store.Article.List(page, pageSize, currUserId)
-	if err != nil {
-		ar.Error("", err, w, r, http.StatusInternalServerError)
-		return
+
+	var wg sync.WaitGroup
+	var ch = make(chan any, 2)
+	var total int
+	var list []*model.Article
+
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		total, err := ar.store.Article.Count()
+		if err != nil {
+			ch <- err
+			return
+		}
+		ch <- total
+		fmt.Printf("get article count duration: %dms\n", time.Since(startTime).Milliseconds())
+	}()
+
+	go func() {
+		defer wg.Done()
+		list, err := ar.getArticleList(page, pageSize, currUserId, sortType)
+		if err != nil {
+			ch <- err
+			return
+		}
+		ch <- list
+	}()
+
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+
+	for res := range ch {
+		switch v := res.(type) {
+		case error:
+			if v != nil {
+				if errors.Is(v, pgx.ErrNoRows) {
+					ar.Error("", nil, w, r, http.StatusNotFound)
+				} else {
+					ar.Error("", v, w, r, http.StatusInternalServerError)
+				}
+				return
+			}
+		case int:
+			total = v
+		case []*model.Article:
+			list = v
+		}
 	}
-	wholeArticleList := model.NewArticleList(list, sortType, page, pageSize)
 
-	// for _, item := range wholeList {
-	// 	item.CalcScore()
-	// 	item.CalcWeight()
-	// }
-
-	fmt.Printf("get article list duration: %dms\n", time.Since(startTime).Milliseconds())
-
-	// fmt.Println("sortType: ", sortType)
-
-	// wholeArticleList := model.NewArticleList(wholeList, sortType, page, pageSize)
-	// sort.Sort(wholeArticleList)
-	wholeArticleList.Sort(sortType)
-
-	// list := wholeArticleList.PagingList(page, pageSize)
+	// fmt.Printf("get article list total duration: %dms\n", time.Since(startTime).Milliseconds())
 
 	for _, item := range list {
 		// fmt.Println("item.VoteScore: ", item.VoteScore)
@@ -203,14 +236,64 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		Data: &ListData{
 			list,
 			total,
-			wholeArticleList.CurrPage,
-			wholeArticleList.PageSize,
+			page,
+			pageSize,
 			CeilInt(total, pageSize),
-			wholeArticleList.SortType,
+			sortType,
 		},
 	}
 
 	ar.Render(w, r, "article_list", pageData)
+}
+
+func (ar *ArticleResource) getArticleList(page, pageSize, userId int, sortType model.ArticleSortType) ([]*model.Article, error) {
+	currTime := time.Now()
+
+	wholeList, _, err := ar.store.Article.List(0, -1, userId, currTime.Add(-24*time.Hour), currTime)
+	// fmt.Println("article total:", total)
+
+	if err != nil {
+		return nil, err
+	}
+	wholeArticleList := model.NewArticleList(wholeList, sortType, page, pageSize)
+
+	// fmt.Println("whole total:", wholeArticleList.TotalPage)
+
+	var list []*model.Article
+	if page > wholeArticleList.TotalPage {
+		list, _, err = ar.store.Article.List(page, pageSize, userId, oldestStartTime, currTime)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		for _, item := range wholeList {
+			item.CalcScore()
+			item.CalcWeight()
+		}
+
+		// fmt.Println("sortType: ", sortType)
+
+		// wholeArticleList := model.NewArticleList(wholeList, sortType, page, pageSize)
+		// sort.Sort(wholeArticleList)
+		wholeArticleList.Sort(sortType)
+
+		list = wholeArticleList.PagingList(page, pageSize)
+
+		if page == wholeArticleList.TotalPage && len(list) < pageSize {
+			addList, _, err := ar.store.Article.List(1, pageSize-len(list), userId, oldestStartTime, currTime.Add(-24*time.Hour))
+			// fmt.Println("article add total:", addTotal)
+			if err != nil {
+				return nil, err
+			}
+
+			list = append(list, addList...)
+		}
+	}
+
+	fmt.Printf("get article list duration: %dms\n", time.Since(currTime).Milliseconds())
+
+	return list, nil
+
 }
 
 func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
