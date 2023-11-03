@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/httprate"
 	"github.com/jackc/pgx/v5"
 	mdw "github.com/oodzchen/dproject/middleware"
 	"github.com/oodzchen/dproject/model"
@@ -34,9 +35,20 @@ func (ar *ArticleResource) Routes() http.Handler {
 	rt := chi.NewRouter()
 
 	rt.Get("/", ar.List)
-	rt.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.srv.Permission, []string{
-		"article.create",
-	}, ar), mdw.UserLogger(ar.uLogger, model.AcTypeUser, model.AcActionCreateArticle, model.AcModelArticle, mdw.ULogNewArticleId),
+	rt.With(
+		mdw.AuthCheck(ar.sessStore),
+		mdw.PermitCheck(ar.srv.Permission, []string{
+			"article.create",
+		}, ar),
+		mdw.UserLogger(ar.uLogger, model.AcTypeUser, model.AcActionCreateArticle, model.AcModelArticle, mdw.ULogNewArticleId),
+		httprate.Limit(
+			6,
+			1*time.Minute,
+			httprate.WithKeyByIP(),
+			httprate.WithLimitHandler(func(w http.ResponseWriter, r *http.Request) {
+				ar.Error("", nil, w, r, http.StatusTooManyRequests)
+			}),
+		),
 	).Post("/", ar.Submit)
 
 	rt.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.srv.Permission, []string{
