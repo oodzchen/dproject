@@ -6,7 +6,7 @@ import (
 
 var translator *i18nc.I18nCustom
 
-func Init() {
+func init() {
 	InitConfidences()
 	ic := i18nc.New([]string{})
 	SetupI18n(ic)

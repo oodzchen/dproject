@@ -54,7 +54,6 @@ func main() {
 		"./i18n/active.ja.toml",
 	}
 
-	model.Init()
 	i18nCustom := i18nc.New(langFiles)
 	model.SetupI18n(i18nCustom)
 
