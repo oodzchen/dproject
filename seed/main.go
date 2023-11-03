@@ -10,6 +10,7 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/oodzchen/dproject/config"
 	"github.com/oodzchen/dproject/mocktool"
+	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/service"
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/store/pgstore"
@@ -89,6 +90,7 @@ func main() {
 	// defer cancel()
 
 	// ----------------------- by database operations -------------------------------
+	model.Init()
 	pg := pgstore.New(&pgstore.DBConfig{
 		DSN: cfg.DB.GetDSN(),
 	})

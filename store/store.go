@@ -26,7 +26,7 @@ type DBStore interface {
 
 type ArticleStore interface {
 	// pageSize < 0 to list all undeleted data
-	List(page, pageSize, userId int, start, end time.Time) ([]*model.Article, int, error)
+	List(page, pageSize, userId int, sortType model.ArticleSortType) ([]*model.Article, int, error)
 	ListLatestCount(start, end time.Time) (int, error)
 	Create(title, url, content string, authorId, replyTo int) (int, error)
 	Update(a *model.Article, fields []string) (int, error)

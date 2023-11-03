@@ -175,7 +175,9 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		defer wg.Done()
-		list, err := ar.getArticleList(page, pageSize, currUserId, sortType)
+		// list, err := ar.getArticleList(page, pageSize, currUserId, sortType)
+		list, _, err := ar.store.Article.List(page, pageSize, currUserId, sortType)
+		fmt.Printf("get article list duration: %dms\n", time.Since(startTime).Milliseconds())
 		if err != nil {
 			ch <- err
 			return
@@ -206,7 +208,7 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// fmt.Printf("get article list total duration: %dms\n", time.Since(startTime).Milliseconds())
+	fmt.Printf("get article list total duration: %dms\n", time.Since(startTime).Milliseconds())
 
 	for _, item := range list {
 		// fmt.Println("item.VoteScore: ", item.VoteScore)
@@ -246,55 +248,53 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	ar.Render(w, r, "article_list", pageData)
 }
 
-func (ar *ArticleResource) getArticleList(page, pageSize, userId int, sortType model.ArticleSortType) ([]*model.Article, error) {
-	currTime := time.Now()
+// func (ar *ArticleResource) getArticleList(page, pageSize, userId int, sortType model.ArticleSortType) ([]*model.Article, error) {
+// 	currTime := time.Now()
 
-	wholeList, _, err := ar.store.Article.List(0, -1, userId, currTime.Add(-24*time.Hour), currTime)
-	// fmt.Println("article total:", total)
+// 	wholeList, _, err := ar.store.Article.List(0, -1, userId, currTime.Add(-24*time.Hour), currTime)
+// 	// fmt.Println("article total:", total)
 
-	if err != nil {
-		return nil, err
-	}
-	wholeArticleList := model.NewArticleList(wholeList, sortType, page, pageSize)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	wholeArticleList := model.NewArticleList(wholeList, sortType, page, pageSize)
 
-	// fmt.Println("whole total:", wholeArticleList.TotalPage)
+// 	// fmt.Println("whole total:", wholeArticleList.TotalPage)
 
-	var list []*model.Article
-	if page > wholeArticleList.TotalPage {
-		list, _, err = ar.store.Article.List(page, pageSize, userId, oldestStartTime, currTime)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		for _, item := range wholeList {
-			item.CalcScore()
-			item.CalcWeight()
-		}
+// 	var list []*model.Article
+// 	if page > wholeArticleList.TotalPage {
+// 		list, _, err = ar.store.Article.List(page, pageSize, userId, oldestStartTime, currTime)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 	} else {
+// 		for _, item := range wholeList {
+// 			item.CalcScore()
+// 			item.CalcWeight()
+// 		}
 
-		// fmt.Println("sortType: ", sortType)
+// 		// fmt.Println("sortType: ", sortType)
 
-		// wholeArticleList := model.NewArticleList(wholeList, sortType, page, pageSize)
-		// sort.Sort(wholeArticleList)
-		wholeArticleList.Sort(sortType)
+// 		// wholeArticleList := model.NewArticleList(wholeList, sortType, page, pageSize)
+// 		// sort.Sort(wholeArticleList)
+// 		wholeArticleList.Sort(sortType)
 
-		list = wholeArticleList.PagingList(page, pageSize)
+// 		list = wholeArticleList.PagingList(page, pageSize)
 
-		if page == wholeArticleList.TotalPage && len(list) < pageSize {
-			addList, _, err := ar.store.Article.List(1, pageSize-len(list), userId, oldestStartTime, currTime.Add(-24*time.Hour))
-			// fmt.Println("article add total:", addTotal)
-			if err != nil {
-				return nil, err
-			}
+// 		if page == wholeArticleList.TotalPage && len(list) < pageSize {
+// 			addList, _, err := ar.store.Article.List(1, pageSize-len(list), userId, oldestStartTime, currTime.Add(-24*time.Hour))
+// 			// fmt.Println("article add total:", addTotal)
+// 			if err != nil {
+// 				return nil, err
+// 			}
 
-			list = append(list, addList...)
-		}
-	}
+// 			list = append(list, addList...)
+// 		}
+// 	}
 
-	fmt.Printf("get article list duration: %dms\n", time.Since(currTime).Milliseconds())
+// 	return list, nil
 
-	return list, nil
-
-}
+// }
 
 func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 	if !IsLogin(ar.sessStore, w, r) {

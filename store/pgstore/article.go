@@ -18,7 +18,7 @@ type Article struct {
 	dbPool *pgxpool.Pool
 }
 
-func (a *Article) List(page, pageSize, userId int, start, end time.Time) ([]*model.Article, int, error) {
+func (a *Article) List(page, pageSize, userId int, sortType model.ArticleSortType) ([]*model.Article, int, error) {
 	// 	sqlStr := `
 	// SELECT tp.id, tp.title, COALESCE(tp.url, ''), u.username as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, tp.depth, p2.title as root_article_title, (
 	// 	WITH RECURSIVE replies AS (
@@ -73,15 +73,29 @@ func (a *Article) List(page, pageSize, userId int, start, end time.Time) ([]*mod
 	// OFFSET $1
 	// LIMIT $2;`
 
+	var orderSqlStrHead, orderSqlStrTail string
+	switch sortType {
+	case model.ListSortBest:
+		orderSqlStrHead = ` ORDER BY list_weight DESC `
+		orderSqlStrTail = ` ORDER BY tp.list_weight DESC `
+	case model.ListSortHot:
+		orderSqlStrHead = ` ORDER BY participate_count DESC `
+		orderSqlStrTail = ` ORDER BY tp.participate_count DESC `
+	case model.ListSortLatest:
+		fallthrough
+	default:
+		orderSqlStrHead = ` ORDER BY created_at DESC `
+		orderSqlStrTail = ` ORDER BY tp.created_at DESC `
+	}
+
 	sqlStr := `
 WITH postIds AS (
     SELECT id, COUNT(id) OVER() AS total FROM posts
-    WHERE deleted = false AND reply_to = 0 AND created_at BETWEEN $4 AND $5
-    ORDER BY created_at DESC
+    WHERE deleted = false AND reply_to = 0` + orderSqlStrHead + `
     OFFSET $1
     LIMIT $2
 )
-SELECT tp.id, tp.title, COALESCE(tp.url, ''), u.username as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, tp.depth, p2.title as root_article_title, COUNT(p3.id) AS total_reply_count,
+SELECT tp.id, tp.title, COALESCE(tp.url, ''), u.username as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, tp.depth, tp.list_weight, tp.reply_weight, tp.participate_count, p2.title as root_article_title, COUNT(p3.id) AS total_reply_count,
 (
 SELECT type FROM post_votes WHERE post_id = tp.id AND user_id = $3
 ) AS user_vote_type,
@@ -93,18 +107,13 @@ WHERE post_id = tp.id AND type = 'up'
 SELECT COUNT(post_id) FROM post_votes
 WHERE post_id = tp.id AND type = 'down'
 ) AS vote_down,
-(COUNT(DISTINCT p3.author_id) + COUNT(DISTINCT pv.user_id) + COUNT(DISTINCT ps.user_id) + COUNT(DISTINCT pr.user_id)) AS participate_count,
 pi.total AS total
 FROM posts tp
 JOIN postIds pi ON tp.id = pi.id
 LEFT JOIN posts p2 ON tp.root_article_id = p2.id
 LEFT JOIN posts p3 ON tp.id = p3.root_article_id AND p3.deleted = false
 LEFT JOIN users u ON u.id = tp.author_id
-LEFT JOIN post_votes pv ON pv.post_id = tp.id
-LEFT JOIN post_saves ps ON ps.post_id = tp.id
-LEFT JOIN post_reacts pr ON pr.post_id = tp.id
-GROUP BY tp.id, u.username, p2.title, pi.total
-ORDER BY created_at DESC;`
+GROUP BY tp.id, u.username, p2.title, pi.total` + orderSqlStrTail
 
 	var args []any
 	if page < 1 {
@@ -112,17 +121,18 @@ ORDER BY created_at DESC;`
 	}
 
 	if pageSize < 0 {
-		args = []any{0, nil, userId, start, end}
+		args = []any{0, nil, userId}
 	} else {
 		if pageSize < 1 {
 			pageSize = defaultPageSize
 		}
-		args = []any{pageSize * (page - 1), pageSize, userId, start, end}
+		args = []any{pageSize * (page - 1), pageSize, userId}
 	}
 
 	// fmt.Println("page", page)
 	// fmt.Println("pageSize", pageSize)
 	// fmt.Println("args: ", args)
+	// fmt.Println("article list sql: ", sqlStr)
 
 	rows, err := a.dbPool.Query(context.Background(), sqlStr, args...)
 
@@ -151,12 +161,14 @@ ORDER BY created_at DESC;`
 			&item.CreatedAt,
 			&item.UpdatedAt,
 			&item.ReplyDepth,
+			&item.ListWeight,
+			&item.Weight,
+			&item.ParticipateCount,
 			&item.NullReplyRootArticleTitle,
 			&item.TotalReplyCount,
 			&item.CurrUserState.NullVoteType,
 			&item.VoteUp,
 			&item.VoteDown,
-			&item.ParticipateCount,
 			&total,
 		)
 		if err != nil {
@@ -245,6 +257,12 @@ RETURNING (id);`
 	if err != nil {
 		return 0, err
 	}
+
+	err = a.updateWeights(id)
+	if err != nil {
+		return 0, err
+	}
+
 	return id, nil
 }
 
@@ -290,6 +308,11 @@ func (a *Article) Update(item *model.Article, fieldNames []string) (int, error) 
 
 	var id int
 	err := a.dbPool.QueryRow(context.Background(), sqlStr, updateVals...).Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+
+	err = a.updateWeights(id)
 	if err != nil {
 		return 0, err
 	}
@@ -656,6 +679,11 @@ func (a *Article) Vote(id, userId int, voteType string) error {
 		}
 	}
 
+	err = a.updateWeights(id)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -897,4 +925,46 @@ func (a *Article) subscribeCheck(id, userId int) (error, bool) {
 	}
 
 	return nil, count > 0
+}
+
+func (a *Article) updateWeights(id int) error {
+	var voteUp, voteDown, participateCount int
+	var createdAt time.Time
+
+	err := a.dbPool.QueryRow(
+		context.Background(),
+		`SELECT COUNT(pv1.id), COUNT(pv2.id), p.created_at, (COUNT(DISTINCT p2.author_id) + COUNT(DISTINCT pv.user_id) + COUNT(DISTINCT ps.user_id) + COUNT(DISTINCT pr.user_id)) AS participate_count
+FROM posts p
+LEFT JOIN post_votes pv1 ON pv1.post_id = p.id AND pv1.type = 'up'
+LEFT JOIN post_votes pv2 ON pv2.post_id = p.id AND pv2.type = 'down'
+LEFT JOIN posts p2 ON p2.root_article_id = p.id
+LEFT JOIN post_votes pv ON pv.post_id = p.id
+LEFT JOIN post_saves ps ON ps.post_id = p.id
+LEFT JOIN post_reacts pr ON pr.post_id = p.id
+WHERE p.id = $1
+GROUP BY p.created_at`,
+		id,
+	).Scan(&voteUp, &voteDown, &createdAt, &participateCount)
+	if err != nil {
+		return err
+	}
+
+	listWeight := model.CalcArticleListWeight(voteUp, voteDown, createdAt)
+	replyWeight := model.CalcArticleReplyWeight(voteUp, voteDown)
+
+	// fmt.Println("listWeight: ", listWeight)
+
+	_, err = a.dbPool.Exec(
+		context.Background(),
+		`UPDATE posts SET list_weight = $1, participate_count = $2, reply_weight = $3 WHERE id = $4`,
+		listWeight,
+		participateCount,
+		replyWeight,
+		id,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -360,6 +360,14 @@ func (a *Article) CalcWeight() {
 	a.ListWeight = hot(a.VoteUp, a.VoteDown, a.CreatedAt)
 }
 
+func CalcArticleReplyWeight(voteUpCount, voteDownCount int) float64 {
+	return confidence(voteUpCount, voteDownCount)
+}
+
+func CalcArticleListWeight(voteUpCount, voteDownCount int, createdAt time.Time) float64 {
+	return hot(voteUpCount, voteDownCount, createdAt)
+}
+
 func (a *Article) CheckShowScore(loginedUserId int) {
 	// a.VoteScore = a.VoteUp - a.VoteDown - 1
 	if time.Now().Sub(a.CreatedAt).Hours() > 1 || a.AuthorId == loginedUserId {
@@ -452,9 +460,13 @@ func InitConfidences() {
 			confidences = append(confidences, doConfidence(i, j))
 		}
 	}
+
+	// fmt.Println("confidence len: ", len(confidences))
 }
 
 func confidence(ups, downs int) float64 {
+	// fmt.Println("confidence len: ", len(confidences))
+	// fmt.Println("ups:", ups, "downs:", downs)
 	if (ups + downs) == 0 {
 		return 0
 	} else if (ups < upRange) && (downs < downRange) {

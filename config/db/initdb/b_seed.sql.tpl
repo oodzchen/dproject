@@ -46,9 +46,9 @@ reply_to INTEGER DEFAULT 0,
 deleted BOOLEAN NOT NULL DEFAULT false,
 depth INTEGER DEFAULT 0 NOT NULL,
 root_article_id INTEGER DEFAULT 0 NOT NULL,
-list_weight INTEGER DEFAULT 0 NOT NULL
--- total_reply_count INTEGER DEFAULT 0 NOT NULL,
--- child_count INTEGER DEFAULT 0 NOT NULL
+list_weight DOUBLE PRECISION DEFAULT 0 NOT NULL,
+participate_count INTEGER DEFAULT 0 NOT NULL,
+reply_weight DOUBLE PRECISION DEFAULT 0 NOT NULL
 );
 
 CREATE INDEX idx_posts_id ON posts (id);
