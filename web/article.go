@@ -224,7 +224,8 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 
 	for _, item := range list {
 		// fmt.Println("item.VoteScore: ", item.VoteScore)
-		item.FormatTimeStr()
+		// item.FormatTimeStr()
+		item.CalcScore()
 		item.FormatNullValues()
 		item.UpdateDisplayTitle()
 		item.GenSummary(200)
@@ -281,7 +282,6 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 // 		}
 // 	} else {
 // 		for _, item := range wholeList {
-// 			item.CalcScore()
 // 			item.CalcWeight()
 // 		}
 

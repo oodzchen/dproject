@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -258,7 +259,43 @@ RETURNING (id);`
 		return 0, err
 	}
 
-	err = a.updateWeights(id)
+	var wg sync.WaitGroup
+	var ch = make(chan error, 2)
+
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		err = a.updateWeights(id)
+		if err != nil {
+			ch <- err
+		}
+	}()
+
+	if replyTo == 0 {
+		wg.Done()
+	} else {
+		go func() {
+			defer wg.Done()
+			err = a.updateWeights(replyTo)
+			if err != nil {
+				ch <- err
+			}
+		}()
+	}
+
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+
+	for res := range ch {
+		switch v := res.(type) {
+		case error:
+			err = v
+		}
+	}
+
 	if err != nil {
 		return 0, err
 	}
@@ -731,6 +768,11 @@ func (a *Article) Save(id, userId int) error {
 		}
 	}
 
+	err = a.updateWeights(id)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -802,6 +844,11 @@ func (a *Article) React(id, userId int, reactType string) error {
 		}
 	}
 
+	err = a.updateWeights(id)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -847,6 +894,11 @@ func (a *Article) Subscribe(id, userId int) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	err = a.updateWeights(id)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -928,26 +980,40 @@ func (a *Article) subscribeCheck(id, userId int) (error, bool) {
 }
 
 func (a *Article) updateWeights(id int) error {
+	if id == 0 {
+		return nil
+	}
+
 	var voteUp, voteDown, participateCount int
 	var createdAt time.Time
 
 	err := a.dbPool.QueryRow(
 		context.Background(),
-		`SELECT COUNT(pv1.id), COUNT(pv2.id), p.created_at, (COUNT(DISTINCT p2.author_id) + COUNT(DISTINCT pv.user_id) + COUNT(DISTINCT ps.user_id) + COUNT(DISTINCT pr.user_id)) AS participate_count
+		`WITH partiUsers AS (
+  SELECT p2.author_id AS user_id FROM posts p2 WHERE p2.root_article_id = $1
+  UNION ALL
+  SELECT pv.user_id FROM post_votes pv WHERE pv.post_id = $1
+  UNION ALL
+  SELECT ps.user_id FROM post_saves ps WHERE ps.post_id = $1
+  UNION ALL
+  SELECT pr.user_id FROM post_reacts pr WHERE pr.post_id = $1
+)
+SELECT COUNT(pv1.id) AS vote_up_count, COUNT(pv2.id) AS vote_down_count, p.created_at,
+(SELECT COUNT(DISTINCT user_id) FROM partiUsers) AS participate_count
 FROM posts p
 LEFT JOIN post_votes pv1 ON pv1.post_id = p.id AND pv1.type = 'up'
 LEFT JOIN post_votes pv2 ON pv2.post_id = p.id AND pv2.type = 'down'
-LEFT JOIN posts p2 ON p2.root_article_id = p.id
-LEFT JOIN post_votes pv ON pv.post_id = p.id
-LEFT JOIN post_saves ps ON ps.post_id = p.id
-LEFT JOIN post_reacts pr ON pr.post_id = p.id
 WHERE p.id = $1
-GROUP BY p.created_at`,
+GROUP BY p.created_at;`,
 		id,
 	).Scan(&voteUp, &voteDown, &createdAt, &participateCount)
 	if err != nil {
 		return err
 	}
+
+	// fmt.Println("vote up", voteUp)
+	// fmt.Println("vote down", voteDown)
+	// fmt.Println("participate count", participateCount)
 
 	listWeight := model.CalcArticleListWeight(voteUp, voteDown, createdAt)
 	replyWeight := model.CalcArticleReplyWeight(voteUp, voteDown)
