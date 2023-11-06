@@ -123,6 +123,9 @@ a.brand{
     font-size: 1.2rem;
     color: var(--theme-color) !important;
 }
+a.brand svg{
+    vertical-align: -2px;
+}
 a.brand b{
     display: inline-block;
     vertical-align: baseline;
