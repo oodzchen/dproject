@@ -221,6 +221,7 @@ type Article struct {
 	ReplyRootArticleTitle     string
 	DisplayTitle              string // only for display
 	TotalReplyCount           int
+	ChildrenCount             int
 	VoteUp                    int
 	VoteDown                  int
 	VoteScore                 int

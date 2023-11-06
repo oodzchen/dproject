@@ -32,7 +32,7 @@ type ArticleStore interface {
 	Update(a *model.Article, fields []string) (int, error)
 	Item(id, loginedUserId int) (*model.Article, error)
 	Delete(id int) (int, error)
-	ItemTree(ariticleId, userId int) ([]*model.Article, error)
+	ItemTree(page, pageSize, ariticleId, userId int, sortType model.ArticleSortType) ([]*model.Article, error)
 	Count() (int, error)
 	CountTotalReply(id int) (int, error)
 	VoteCheck(id, userId int) (error, string)

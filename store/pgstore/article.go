@@ -480,7 +480,7 @@ GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at,
 	return &item, nil
 }
 
-func (a *Article) ItemTree(id, userId int) ([]*model.Article, error) {
+func (a *Article) ItemTree(page, pageSize, id, userId int, sortType model.ArticleSortType) ([]*model.Article, error) {
 	// 	sqlStr := `
 	// WITH RECURSIVE articleTree AS (
 	//      SELECT id, title, url, author_id, content, created_at, updated_at, deleted, reply_to, depth, 0 AS cur_depth, root_article_id
@@ -561,20 +561,34 @@ func (a *Article) ItemTree(id, userId int) ([]*model.Article, error) {
 	// LEFT JOIN posts p2 ON ar.root_article_id = p2.id
 	// ORDER BY ar.created_at;`
 
+	// var orderSqlStrHead, orderSqlStrTail string
+	// switch sortType {
+	// case model.ReplySortBest:
+	// 	orderSqlStrHead = ` ORDER BY reply_weight DESC `
+	// 	orderSqlStrTail = ` ORDER BY p.reply_weight DESC `
+	// case model.ListSortLatest:
+	// 	fallthrough
+	// default:
+	// 	orderSqlStrHead = ` ORDER BY created_at DESC `
+	// 	orderSqlStrTail = ` ORDER BY p.created_at DESC `
+	// }
+
+	// fmt.Println("orderStr:", orderSqlStrHead)
+
 	sqlStr := `
 WITH RECURSIVE articleTree AS (
-     SELECT id, title, url, author_id, content, created_at, updated_at, deleted, reply_to, depth, 0 AS cur_depth, root_article_id
+     SELECT id, title, url, author_id, content, created_at, updated_at, deleted, reply_to, depth, 0 AS cur_depth, root_article_id, reply_weight
      FROM posts
      WHERE id = $1
      UNION ALL
-     SELECT p.id, p.title, p.url, p.author_id, p.content, p.created_at,p.updated_at, p.deleted, p.reply_to, p.depth, ar.cur_depth + 1, p.root_article_id
+     SELECT p.id, p.title, p.url, p.author_id, p.content, p.created_at,p.updated_at, p.deleted, p.reply_to, p.depth, ar.cur_depth + 1, p.root_article_id, p.reply_weight
      FROM posts p
      JOIN articleTree ar
      ON p.reply_to = ar.id
      WHERE ar.cur_depth < $2
 )
-SELECT p.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title AS root_article_title,
-0 AS total_reply_count,
+SELECT p.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title AS root_article_title,
+COUNT(p3.id) AS children_count,
 pv.type AS vote_type,
 COUNT(pv1.id) AS vote_up_count,
 COUNT(pv2.id) AS vote_down_count,
@@ -598,12 +612,20 @@ null
 FROM articleTree p
 LEFT JOIN users u ON p.author_id = u.id
 LEFT JOIN posts p2 ON p.root_article_id = p2.id
+LEFT JOIN posts p3 ON p.id = p3.reply_to
 LEFT JOIN post_votes pv ON pv.post_id = p.id AND pv.user_id = $3
 LEFT JOIN post_votes pv1 ON pv1.post_id = p.id AND pv1.type = 'up'
 LEFT JOIN post_votes pv2 ON pv2.post_id = p.id AND pv2.type = 'down'
-GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title, pv.type
-ORDER BY p.created_at;`
+GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title, pv.type`
+	if page < 1 {
+		page = defaultPage
+	}
 
+	if pageSize < 1 {
+		pageSize = defaultPageSize
+	}
+
+	// rows, err := a.dbPool.Query(context.Background(), sqlStr, id, utils.GetReplyDepthSize(), userId, pageSize*(page-1), pageSize)
 	rows, err := a.dbPool.Query(context.Background(), sqlStr, id, utils.GetReplyDepthSize(), userId)
 	if err != nil {
 		return nil, err
@@ -631,8 +653,10 @@ ORDER BY p.created_at;`
 			&item.ReplyTo,
 			&item.ReplyDepth,
 			&item.ReplyRootArticleId,
+			&item.Weight,
 			&item.NullReplyRootArticleTitle,
-			&item.TotalReplyCount,
+			// &item.TotalReplyCount,
+			&item.ChildrenCount,
 			&item.CurrUserState.NullVoteType,
 			&item.VoteUp,
 			&item.VoteDown,

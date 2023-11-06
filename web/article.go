@@ -623,7 +623,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		defer wg.Done()
 		var list []*model.Article
 		if pageType == ArticlePageDetail {
-			list, err = ar.store.Article.ItemTree(articleId, currUserId)
+			list, err = ar.store.Article.ItemTree(page, DefaultTopReplyPageSize, articleId, currUserId, model.ArticleSortType(sortType))
 			if err != nil {
 				ch <- err
 				return
@@ -679,7 +679,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	for _, item := range articleTreeList {
 		item.FormatNullValues()
 		item.CalcScore()
-		item.CalcWeight()
+		// item.CalcWeight()
 		item.CheckShowScore(currUserId)
 
 		if item.Id == articleId {
@@ -688,8 +688,10 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	}
 	fmt.Printf("format article item duration: %dms\n", time.Since(start1).Milliseconds())
 
-	if rootArticle.Id == 0 {
-		ar.Error("the article is gone", err, w, r, http.StatusNotFound)
+	if rootArticle == nil || rootArticle.Id == 0 {
+		// ar.Error("the article is gone", err, w, r, http.StatusNotFound)
+		ar.NotFound(w, r)
+		return
 	}
 
 	rootArticle.TotalReplyCount = totalReplyCount

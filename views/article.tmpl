@@ -346,7 +346,7 @@
 	    <li id="ar_{{.Id}}" data-id="{{.Id}}" data-reply-num-self-include-text="{{local "ReplyNum" "Count" $replyNumIncludeSelf}}">
 		{{template "article_content" $subData -}}
 	    </li>
-	    {{if and (gt .TotalReplyCount 0) (eq $pageDepth $maxDepth) -}}
+	    {{if and (gt .ChildrenCount 0) (eq $pageDepth $maxDepth) -}}
 		<li style="padding-top:6px"><small><a href="/articles/{{.Id}}">{{local "BtnMore"}}</a></small></li>
 	    {{- end -}}
 	{{- end -}}
