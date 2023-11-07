@@ -577,11 +577,11 @@ func (a *Article) ItemTree(page, pageSize, id, userId int, sortType model.Articl
 
 	sqlStr := `
 WITH RECURSIVE articleTree AS (
-     SELECT id, title, url, author_id, content, created_at, updated_at, deleted, reply_to, depth, 0 AS cur_depth, root_article_id, reply_weight
+     SELECT id, 0 AS cur_depth
      FROM posts
      WHERE id = $1
      UNION ALL
-     SELECT p.id, p.title, p.url, p.author_id, p.content, p.created_at,p.updated_at, p.deleted, p.reply_to, p.depth, ar.cur_depth + 1, p.root_article_id, p.reply_weight
+     SELECT p.id, ar.cur_depth + 1
      FROM posts p
      JOIN articleTree ar
      ON p.reply_to = ar.id
@@ -609,7 +609,8 @@ COUNT(pv2.id) AS vote_down_count,
    FROM post_subs WHERE post_id = p.id AND user_id = $3
 ) AS subscribed,
 null
-FROM articleTree p
+FROM articleTree ar
+LEFT JOIN posts p ON p.id = ar.id
 LEFT JOIN users u ON p.author_id = u.id
 LEFT JOIN posts p2 ON p.root_article_id = p2.id
 LEFT JOIN posts p3 ON p.id = p3.reply_to
