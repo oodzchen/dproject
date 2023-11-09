@@ -29,6 +29,12 @@
 	    <link href="/static/css/style.css" rel="stylesheet"/>
 	</head>
 	<body {{if and .UISettings (eq .UISettings.ContentLayout "centered") -}}style="max-width:1000px"{{end}}>
+	    {{- if and .Debug .JSONStr -}}
+		<script>
+		     const DEBUG_DATA = {{.JSONStr -}};
+		 console.dir(DEBUG_DATA);
+		</script>
+	    {{- end -}}
 	    <script src="/static/js/update-theme.js"></script>
 	    {{- if or (eq .RoutePath "/") (eq .RoutePath "/articles") -}}
 		<a id="skip-button" class="skip-button" tab-index="0" href="#article-list-head">{{local "SkipToContent"}}</a>

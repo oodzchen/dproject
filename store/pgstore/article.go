@@ -481,6 +481,7 @@ GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at,
 }
 
 func (a *Article) ItemTree(page, pageSize, id, userId int, sortType model.ArticleSortType) ([]*model.Article, error) {
+	// fmt.Println("item tree args: ", page, pageSize, id, userId, string(sortType))
 	// 	sqlStr := `
 	// WITH RECURSIVE articleTree AS (
 	//      SELECT id, title, url, author_id, content, created_at, updated_at, deleted, reply_to, depth, 0 AS cur_depth, root_article_id
@@ -589,9 +590,13 @@ WITH RECURSIVE articleTree AS (
 )
 SELECT p.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title AS root_article_title,
 COUNT(p3.id) AS children_count,
-pv.type AS vote_type,
 COUNT(pv1.id) AS vote_up_count,
 COUNT(pv2.id) AS vote_down_count,
+COALESCE(r.id, 0) AS react_id,
+COALESCE(r.emoji, '') AS react_emoji,
+COALESCE(r.front_id, '') AS react_front_id,
+COALESCE(r.describe, '') AS react_describe,
+COALESCE(r.created_at, NOW()) AS react_created_at,
 (
   SELECT
     CASE
@@ -608,7 +613,8 @@ COUNT(pv2.id) AS vote_down_count,
     END
    FROM post_subs WHERE post_id = p.id AND user_id = $3
 ) AS subscribed,
-null
+COALESCE(r2.front_id, '') AS curr_react_front_id,
+pv.type AS vote_type
 FROM articleTree ar
 LEFT JOIN posts p ON p.id = ar.id
 LEFT JOIN users u ON p.author_id = u.id
@@ -617,7 +623,12 @@ LEFT JOIN posts p3 ON p.id = p3.reply_to
 LEFT JOIN post_votes pv ON pv.post_id = p.id AND pv.user_id = $3
 LEFT JOIN post_votes pv1 ON pv1.post_id = p.id AND pv1.type = 'up'
 LEFT JOIN post_votes pv2 ON pv2.post_id = p.id AND pv2.type = 'down'
-GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title, pv.type`
+LEFT JOIN post_reacts pr ON pr.post_id = p.id
+LEFT JOIN reacts r ON r.id = pr.react_id
+LEFT JOIN post_reacts pr2 ON pr2.post_id = p.id AND pr2.user_id = $3
+LEFT JOIN reacts r2 ON r2.id = pr2.react_id
+GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title, pv.type, r.id, r2.front_id, pr.id`
+
 	if page < 1 {
 		page = defaultPage
 	}
@@ -625,6 +636,8 @@ GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at,
 	if pageSize < 1 {
 		pageSize = defaultPageSize
 	}
+
+	// fmt.Println("item tree sql:", sqlStr)
 
 	// rows, err := a.dbPool.Query(context.Background(), sqlStr, id, utils.GetReplyDepthSize(), userId, pageSize*(page-1), pageSize)
 	rows, err := a.dbPool.Query(context.Background(), sqlStr, id, utils.GetReplyDepthSize(), userId)
@@ -635,11 +648,11 @@ GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at,
 	defer rows.Close()
 
 	var list []*model.Article
+	listMap := make(map[int]*model.Article)
 	for rows.Next() {
 		var userState model.CurrUserState
-		item := model.Article{
-			CurrUserState: &userState,
-		}
+		var react model.ArticleReact
+		var item model.Article
 
 		err = rows.Scan(
 			&item.Id,
@@ -656,22 +669,78 @@ GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at,
 			&item.ReplyRootArticleId,
 			&item.Weight,
 			&item.NullReplyRootArticleTitle,
-			// &item.TotalReplyCount,
 			&item.ChildrenCount,
-			&item.CurrUserState.NullVoteType,
+
 			&item.VoteUp,
 			&item.VoteDown,
-			&item.CurrUserState.Saved,
-			&item.CurrUserState.Subscribed,
-			&item.CurrUserState.NullReactType,
+			&react.Id,
+			&react.Emoji,
+			&react.FrontId,
+			&react.Describe,
+			&react.CreatedAt,
+
+			&userState.Saved,
+			&userState.Subscribed,
+			&userState.ReactFrontId,
+			&userState.NullVoteType,
+		)
+
+		// fmt.Println("item.id: ", item.Id)
+		// fmt.Println("userState: ", userState)
+		// fmt.Println("react: ", react)
+
+		if err != nil {
+			return nil, err
+		}
+
+		var article *model.Article
+		if item.Id > 0 {
+			if v, ok := listMap[item.Id]; ok {
+				article = v
+			} else {
+				article = &item
+				list = append(list, article)
+				listMap[article.Id] = article
+			}
+
+			article.CurrUserState = &userState
+
+			if react.Id > 0 {
+				// fmt.Println("react: ", react)
+				if article.Reacts == nil {
+					article.Reacts = []*model.ArticleReact{&react}
+				} else {
+					article.Reacts = append(article.Reacts, &react)
+				}
+			}
+		}
+	}
+
+	return list, nil
+}
+
+func (a *Article) GetReactList() ([]*model.ArticleReact, error) {
+	rows, err := a.dbPool.Query(context.Background(), `SELECT id, emoji, front_id, describe, created_at FROM reacts ORDER BY created_at`)
+	if err != nil {
+		return nil, err
+	}
+
+	var list []*model.ArticleReact
+	for rows.Next() {
+		var react model.ArticleReact
+		err := rows.Scan(
+			&react.Id,
+			&react.Emoji,
+			&react.FrontId,
+			&react.Describe,
+			&react.CreatedAt,
 		)
 
 		if err != nil {
 			return nil, err
 		}
 
-		// fmt.Printf("row item: %+v\n", &item)
-		list = append(list, &item)
+		list = append(list, &react)
 	}
 
 	return list, nil
@@ -816,7 +885,7 @@ func (a *Article) saveCheck(id, userId int) (error, bool) {
 	return nil, count > 0
 }
 
-func (a *Article) React(id, userId int, reactType string) error {
+func (a *Article) React(id, userId, reactId int) error {
 	err, rt := a.ReactCheck(id, userId)
 	// fmt.Println("check error: ", err)
 	// fmt.Println("check vote type: ", rt)
@@ -825,10 +894,10 @@ func (a *Article) React(id, userId int, reactType string) error {
 			// var aId int
 			err = a.dbPool.QueryRow(
 				context.Background(),
-				`INSERT INTO post_reacts (post_id, user_id, type) VALUES ($1, $2, $3) RETURNING (post_id, user_id)`,
+				`INSERT INTO post_reacts (post_id, user_id, react_id) VALUES ($1, $2, $3) RETURNING (post_id, user_id)`,
 				id,
 				userId,
-				reactType,
+				reactId,
 			).Scan(nil)
 
 			// fmt.Println("after insert, aId: ", aId)
@@ -841,7 +910,7 @@ func (a *Article) React(id, userId int, reactType string) error {
 			return err
 		}
 	} else {
-		if rt == reactType {
+		if rt == reactId {
 			err = a.dbPool.QueryRow(
 				context.Background(),
 				`DELETE FROM post_reacts WHERE post_id = $1 AND user_id = $2 RETURNING (post_id, user_id)`,
@@ -855,8 +924,8 @@ func (a *Article) React(id, userId int, reactType string) error {
 			// fmt.Println("change vote type to: ", reactType)
 			err = a.dbPool.QueryRow(
 				context.Background(),
-				`UPDATE post_reacts SET type = $1 WHERE post_id = $2 AND user_id = $3 RETURNING (post_id, user_id)`,
-				reactType,
+				`UPDATE post_reacts SET react_id = $1 WHERE post_id = $2 AND user_id = $3 RETURNING (post_id, user_id)`,
+				reactId,
 				id,
 				userId,
 			).Scan(nil)
@@ -877,19 +946,39 @@ func (a *Article) React(id, userId int, reactType string) error {
 	return nil
 }
 
-func (a *Article) ReactCheck(id, userId int) (error, string) {
-	var rt string
+func (a *Article) ReactCheck(id, userId int) (error, int) {
+	var rt int
 	err := a.dbPool.QueryRow(
 		context.Background(),
-		`SELECT type FROM post_reacts WHERE post_id = $1 AND user_id = $2`,
+		`SELECT react_id FROM post_reacts WHERE post_id = $1 AND user_id = $2`,
 		id,
 		userId,
 	).Scan(&rt)
 	if err != nil {
-		return err, ""
+		return err, 0
 	}
 
 	return nil, rt
+}
+
+func (a *Article) ReactItem(reactId int) (*model.ArticleReact, error) {
+	var react model.ArticleReact
+	err := a.dbPool.QueryRow(
+		context.Background(),
+		`SELECT id, emoji, front_id, describe, created_at FROM reacts WHERE id = $1`,
+		reactId,
+	).Scan(
+		&react.Id,
+		&react.Emoji,
+		&react.FrontId,
+		&react.Describe,
+		&react.CreatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &react, nil
 }
 
 func (a *Article) Subscribe(id, userId int) error {

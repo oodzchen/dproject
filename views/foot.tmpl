@@ -5,13 +5,6 @@
 	&nbsp;&nbsp; 响应时间：{{calcDuration .RespStart}}
 	&nbsp;&nbsp; HTML渲染时间：{{calcDuration .RenderStart}}
     </footer>
-
-    {{- if and .Debug .JSONStr -}}
-	<script>
-	 const DEBUG_DATA = {{.JSONStr -}};
-	 console.dir(DEBUG_DATA);
-	</script>
-    {{- end -}}
     <script src="/static/js/app.js"></script>
 </body>
 

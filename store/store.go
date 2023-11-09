@@ -38,10 +38,12 @@ type ArticleStore interface {
 	VoteCheck(id, userId int) (error, string)
 	Vote(id, loginedUserId int, voteType string) error
 	Save(id, loginedUserId int) error
-	React(id, loginedUserId int, reactType string) error
+	React(id, loginedUserId, reactId int) error
 	Subscribe(id, loginedUserId int) error
 	CheckSubscribe(id, loginedUserId int) (int, error)
 	Notify(senderUserId, sourceArticleId int, content string) error
+	GetReactList() ([]*model.ArticleReact, error)
+	ReactItem(int) (*model.ArticleReact, error)
 }
 
 type UserStore interface {

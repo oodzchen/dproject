@@ -35,54 +35,19 @@ func IsValidVoteType(t VoteType) bool {
 	return validVoteType[t]
 }
 
-type ArticleReact string
-
-const (
-	ArticleReactGrinning ArticleReact = "grinning"
-	ArticleReactConfused              = "confused"
-	ArticleReactEyes                  = "eyes"
-	ArticleReactParty                 = "party"
-	ArticleReactThanks                = "thanks"
-)
-
-func GetArticleReactOptions() []ArticleReact {
-	return []ArticleReact{
-		ArticleReactThanks,
-		ArticleReactGrinning,
-		ArticleReactConfused,
-		ArticleReactEyes,
-		ArticleReactParty,
-	}
-}
-
-func GetArticleReactEmojiMap() map[ArticleReact]string {
-	return map[ArticleReact]string{
-		ArticleReactThanks:   "❤",
-		ArticleReactGrinning: "😀",
-		ArticleReactConfused: "😕",
-		ArticleReactEyes:     "👀",
-		ArticleReactParty:    "🎉",
-	}
-}
-
-type ArticleReactCounts map[ArticleReact]int
+type ArticleReactCounts map[string]int
 
 type CurrUserState struct {
-	VoteType      VoteType
-	NullVoteType  pgtype.Text
-	Saved         bool
-	NullReactType pgtype.Text
-	ReactType     ArticleReact
-	Subscribed    bool
+	VoteType     VoteType
+	NullVoteType pgtype.Text
+	Saved        bool
+	ReactFrontId string
+	Subscribed   bool
 }
 
 func (cus *CurrUserState) FormatNullValues() {
 	if cus.VoteType == "" && cus.NullVoteType.Valid {
 		cus.VoteType = VoteType(cus.NullVoteType.String)
-	}
-
-	if cus.ReactType == "" && cus.NullReactType.Valid {
-		cus.ReactType = ArticleReact(cus.NullReactType.String)
 	}
 }
 
@@ -229,9 +194,18 @@ type Article struct {
 	ListWeight                float64 // weight in list page
 	ParticipateCount          int
 	CurrUserState             *CurrUserState
-	ReactCounts               *ArticleReactCounts
+	Reacts                    []*ArticleReact
+	ReactCounts               ArticleReactCounts
 	ShowScore                 bool
 	TmpParent                 *Article // Only for temporary use, to avoid circular reference errors
+}
+
+type ArticleReact struct {
+	Id        int
+	Emoji     string
+	FrontId   string
+	Describe  string
+	CreatedAt time.Time
 }
 
 func (a *Article) FormatNullValues() {
@@ -249,6 +223,20 @@ func (a *Article) FormatNullValues() {
 
 	if a.CurrUserState != nil {
 		a.CurrUserState.FormatNullValues()
+	}
+}
+
+func (a *Article) FormatReactCounts() {
+	if len(a.Reacts) > 0 && a.ReactCounts == nil {
+		a.ReactCounts = make(map[string]int)
+	}
+
+	for _, react := range a.Reacts {
+		if count, ok := a.ReactCounts[react.FrontId]; ok {
+			a.ReactCounts[react.FrontId] = count + 1
+		} else {
+			a.ReactCounts[react.FrontId] = 1
+		}
 	}
 }
 

@@ -8,18 +8,13 @@ CREATE TABLE post_saves (
     type save_type
 );
 
-CREATE TYPE react_type AS ENUM ('emoji', 'pic');
-
 CREATE TABLE reacts (
     id SERIAL PRIMARY KEY,
-    type react_type,
-    emoji VARCHAR(50),
-    pic_url VARCHAR(255),
+    emoji VARCHAR(50) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     front_id VARCHAR(50) NOT NULL,
     describe VARCHAR(255),
-    UNIQUE(front_id),
-    CHECK (emoji IS NOT NULL OR pic_url IS NOT NULL)
+    UNIQUE(front_id)
 );
 
 CREATE TABLE post_reacts (
@@ -122,9 +117,9 @@ CREATE TABLE activities (
 -- SELECT id, 1
 -- FROM users;
 
-INSERT INTO reacts (type, emoji, front_id, describe) VALUES
-('emoji', '❤', 'thanks', 'Thanks'),
-('emoji', '😀', 'happy', 'Haha'),
-('emoji', '😕', 'confused', 'Confuse'),
-('emoji', '👀', 'eyes', 'Watching'),
-('emoji', '🎉', 'party', 'Yeah');
+INSERT INTO reacts (emoji, front_id, describe) VALUES
+('❤', 'thanks', 'Thanks'),
+('😀', 'happy', 'Haha'),
+('😕', 'confused', 'Confuse'),
+('👀', 'eyes', 'Watching'),
+('🎉', 'party', 'Yeah');

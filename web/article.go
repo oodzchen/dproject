@@ -678,6 +678,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	var rootArticle *model.Article
 	for _, item := range articleTreeList {
 		item.FormatNullValues()
+		item.FormatReactCounts()
 		item.CalcScore()
 		// item.CalcWeight()
 		item.CheckShowScore(currUserId)
@@ -733,13 +734,25 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	// 	w.WriteHeader(http.StatusGone)
 	// }
 
+	reactList, err := ar.store.Article.GetReactList()
+	if err != nil {
+		ar.ServerErrorp("", err, w, r)
+		return
+	}
+
+	reactMap := make(map[string]*model.ArticleReact)
+
+	for _, item := range reactList {
+		reactMap[item.FrontId] = item
+	}
+
 	type itemPageData struct {
 		Article *model.Article
 		// DelPage  bool
 		MaxDepth     int
 		PageType     ArticlePageType
-		ReactOptions []model.ArticleReact
-		ReactMap     map[model.ArticleReact]string
+		ReactOptions []*model.ArticleReact
+		ReactMap     map[string]*model.ArticleReact
 	}
 
 	ar.Render(w, r, "article", &model.PageData{Title: rootArticle.DisplayTitle, Data: &itemPageData{
@@ -747,8 +760,8 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		// delPage,
 		utils.GetReplyDepthSize(),
 		pageType,
-		model.GetArticleReactOptions(),
-		model.GetArticleReactEmojiMap(),
+		reactList,
+		reactMap,
 	}})
 }
 
@@ -997,18 +1010,32 @@ func (ar *ArticleResource) React(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rootId := r.Form.Get("root")
-	react := r.Form.Get("react")
-	reactMap := model.GetArticleReactEmojiMap()
+	reactId, err := strconv.Atoi(r.Form.Get("react_id"))
+	if err != nil {
+		ar.Error("", err, w, r, http.StatusBadRequest)
+		return
+	}
+	// reactMap := model.GetArticleReactEmojiMap()
 
-	reactType := model.ArticleReact(react)
-	if _, ok := reactMap[reactType]; !ok {
-		ar.Error("react type error", nil, w, r, http.StatusBadRequest)
+	// reactType := model.ArticleReact(react)
+	// if _, ok := reactMap[reactType]; !ok {
+	// 	ar.Error("react type error", nil, w, r, http.StatusBadRequest)
+	// 	return
+	// }
+	_, err = ar.store.Article.ReactItem(reactId)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			ar.Error("react type error", nil, w, r, http.StatusBadRequest)
+			return
+		}
+
+		ar.ServerErrorp("", err, w, r)
 		return
 	}
 
 	userId := ar.GetLoginedUserId(w, r)
 	if userId != 0 {
-		err = ar.store.Article.React(articleId, userId, string(reactType))
+		err = ar.store.Article.React(articleId, userId, reactId)
 		if err != nil {
 			ar.ServerErrorp("", err, w, r)
 			return

@@ -280,7 +280,7 @@ LEFT JOIN permissions p ON p.id = rp.permission_id WHERE ` + conditionStr
 		var uItem model.User
 		var pItem model.Permission
 
-		rows.Scan(
+		err = rows.Scan(
 			&uItem.Id,
 			&uItem.Name,
 			&uItem.Email,
@@ -296,6 +296,10 @@ LEFT JOIN permissions p ON p.id = rp.permission_id WHERE ` + conditionStr
 			&pItem.Module,
 			&pItem.CreatedAt,
 		)
+
+		if err != nil {
+			return nil, err
+		}
 
 		if item.Id < 1 {
 			item = uItem
