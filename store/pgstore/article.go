@@ -627,7 +627,8 @@ LEFT JOIN post_reacts pr ON pr.post_id = p.id
 LEFT JOIN reacts r ON r.id = pr.react_id
 LEFT JOIN post_reacts pr2 ON pr2.post_id = p.id AND pr2.user_id = $3
 LEFT JOIN reacts r2 ON r2.id = pr2.react_id
-GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title, pv.type, r.id, r2.front_id, pr.id`
+GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title, pv.type, r.id, r2.front_id, pr.id
+ORDER BY p.created_at`
 
 	if page < 1 {
 		page = defaultPage
