@@ -340,15 +340,22 @@
     {{$reactOptions := .reactOptions -}}
     {{$reactMap := .reactMap -}}
     {{$showEmoji := .showEmoji -}}
+    {{$pageMore := and (gt $pageDepth 1) (gt .replies.Total .replies.PageSize) -}}
+    {{$replies := .replies -}}
     <ul class="replies" {{if eq $pageDepth 1}}id="replies-box"{{end}} style="{{if eq $pageDepth 1}}padding-left:0;{{- end}}">
-	{{range .replies.List -}}
+	{{range $index, $el := .replies.List -}}
 	    {{$subData := dict "currUser" $currUser "article" . "pageDepth" $pageDepth "CSRFField" $CSRFField "maxDepth" $maxDepth "debug" $debug "reactOptions" $reactOptions "reactMap" $reactMap "showEmoji" $showEmoji -}}
-	    {{- $replyNumIncludeSelf := add .TotalReplyCount 1 -}}
+	    {{- $replyNumIncludeSelf := add .ChildrenCount 1 -}}
+	    {{$deepMore := and (gt .ChildrenCount 0) (eq $pageDepth $maxDepth) -}}
 	    <li id="ar_{{.Id}}" data-id="{{.Id}}" data-reply-num-self-include-text="{{local "ReplyNum" "Count" $replyNumIncludeSelf}}">
 		{{template "article_content" $subData -}}
 	    </li>
-	    {{if and (gt .ChildrenCount 0) (eq $pageDepth $maxDepth) -}}
+	    {{- if $deepMore -}}
 		<li style="padding-top:6px"><small><a href="/articles/{{.Id}}">{{local "BtnMore"}}</a></small></li>
+	    {{- end -}}
+	    <!-- <div>index: {{$index}}, last index: {{add (len $replies.List) -1}}</div> -->
+	    {{- if and $pageMore (eq $index (add (len $replies.List) -1)) -}}
+		<li style="padding-top:6px"><small><a href="/articles/{{.ReplyTo}}?page=2">{{local "BtnNextPage"}}</a></small></li>
 	    {{- end -}}
 	{{- end -}}
     </ul>

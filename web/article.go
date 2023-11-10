@@ -623,7 +623,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		defer wg.Done()
 		var list []*model.Article
 		if pageType == ArticlePageDetail {
-			list, err = ar.store.Article.ItemTree(page, DefaultTopReplyPageSize, articleId, currUserId, model.ArticleSortType(sortType))
+			list, err = ar.store.Article.ItemTree(page, DefaultReplyPageSize, articleId, currUserId, model.ArticleSortType(sortType))
 			if err != nil {
 				ch <- err
 				return
@@ -765,8 +765,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	}})
 }
 
-const DefaultTopReplyPageSize = 50
-const DefaultReplyPageSize = 10
+const DefaultReplyPageSize = 50
 
 func genArticleTree(root *model.Article, list []*model.Article) (*model.Article, error) {
 	parentMap := make(map[int]*model.Article)
@@ -793,7 +792,7 @@ func genArticleTree(root *model.Article, list []*model.Article) (*model.Article,
 	}
 
 	if replies, ok := nodeMap[root.Id]; ok {
-		root.Replies = model.NewArticleList(replies, model.ReplySortBest, 1, DefaultTopReplyPageSize)
+		root.Replies = model.NewArticleList(replies, model.ReplySortBest, 1, DefaultReplyPageSize)
 	} else {
 		if len(list) > 0 {
 			return root, errors.New("no reply to the root in the list")
