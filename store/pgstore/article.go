@@ -588,10 +588,10 @@ WITH RECURSIVE articleTree AS (
      ON p.reply_to = ar.id
      WHERE ar.cur_depth < $2
 )
-SELECT p.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title AS root_article_title,
-COUNT(p3.id) AS children_count,
-COUNT(pv1.id) AS vote_up_count,
-COUNT(pv2.id) AS vote_down_count,
+SELECT ar.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title AS root_article_title,
+COUNT(DISTINCT p3.id) AS children_count,
+COUNT(DISTINCT pv1.id) AS vote_up_count,
+COUNT(DISTINCT pv2.id) AS vote_down_count,
 COALESCE(r.id, 0) AS react_id,
 COALESCE(r.emoji, '') AS react_emoji,
 COALESCE(r.front_id, '') AS react_front_id,
@@ -627,7 +627,7 @@ LEFT JOIN post_reacts pr ON pr.post_id = p.id
 LEFT JOIN reacts r ON r.id = pr.react_id
 LEFT JOIN post_reacts pr2 ON pr2.post_id = p.id AND pr2.user_id = $3
 LEFT JOIN reacts r2 ON r2.id = pr2.react_id
-GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title, pv.type, r.id, r2.front_id, pr.id
+GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title, pv.type, r.id, r2.front_id, pr.id
 ORDER BY p.created_at`
 
 	if page < 1 {

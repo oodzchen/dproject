@@ -5,8 +5,11 @@ CREATE TABLE post_saves (
     user_id INTEGER REFERENCES users(id),
     post_id INTEGER REFERENCES posts(id),
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    type save_type
+    type save_type,
+    UNIQUE(user_id, post_id)
 );
+
+CREATE INDEX idx_post_saves_post_id ON post_saves (post_id);
 
 CREATE TABLE reacts (
     id SERIAL PRIMARY KEY,
@@ -22,15 +25,22 @@ CREATE TABLE post_reacts (
     user_id INTEGER REFERENCES users(id),
     post_id INTEGER REFERENCES posts(id),
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    react_id INTEGER REFERENCES reacts(id)
+    react_id INTEGER REFERENCES reacts(id),
+    UNIQUE(user_id, post_id),
+    UNIQUE(user_id, post_id, react_id)
 );
+
+CREATE INDEX idx_post_reacts_post_id ON post_reacts (post_id);
 
 CREATE TABLE post_subs (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id),
     post_id INTEGER REFERENCES posts(id),
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    UNIQUE(user_id, post_id)
 );
+
+CREATE INDEX idx_post_subs_post_id ON post_subs (post_id);
 
 CREATE TABLE messages (
     id SERIAL PRIMARY KEY,

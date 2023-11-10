@@ -51,8 +51,8 @@ participate_count INTEGER DEFAULT 0 NOT NULL,
 reply_weight DOUBLE PRECISION DEFAULT 0 NOT NULL
 );
 
-CREATE INDEX idx_posts_id ON posts (id);
 CREATE INDEX idx_posts_reply_to ON posts (reply_to);
+CREATE INDEX idx_posts_root_article_id ON posts (root_article_id);
 
 CREATE TYPE vote_type AS ENUM ('up', 'down');
 
@@ -64,6 +64,8 @@ created_at TIMESTAMP NOT NULL DEFAULT NOW(),
 type vote_type,
 UNIQUE(user_id, post_id)
 );
+
+CREATE INDEX idx_posts_votes_post_id ON post_votes (post_id);
 
 -- reply_to 为空时候标题不能为空，replay_to 不为空时标题可以为空
 ALTER TABLE posts ADD CONSTRAINT posts_reply_to_title_check CHECK (
