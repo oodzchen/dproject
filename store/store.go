@@ -4,9 +4,11 @@ import (
 	"time"
 
 	"github.com/oodzchen/dproject/model"
+	"github.com/redis/go-redis/v9"
 )
 
 type Store struct {
+	rdb        *redis.Client
 	Article    ArticleStore
 	User       UserStore
 	Role       RoleStore
@@ -24,9 +26,13 @@ type DBStore interface {
 	NewMessage() (any, error)
 }
 
+type ArticleCache interface {
+	List(page, pageSize, userId int, sortType model.ArticleSortType) ([]*model.Article, int, error)
+}
+
 type ArticleStore interface {
 	// pageSize < 0 to list all undeleted data
-	List(page, pageSize, userId int, sortType model.ArticleSortType) ([]*model.Article, int, error)
+	ArticleCache
 	ListLatestCount(start, end time.Time) (int, error)
 	Create(title, url, content string, authorId, replyTo int) (int, error)
 	Update(a *model.Article, fields []string) (int, error)
@@ -108,7 +114,7 @@ type MessageStore interface {
 	UnreadCount(loginedUserId int) (int, error)
 }
 
-func New(dbStore DBStore) (*Store, error) {
+func New(dbStore DBStore, rdb *redis.Client) (*Store, error) {
 	article, err := dbStore.NewArticleStore()
 	user, err := dbStore.NewUserStore()
 	permission, err := dbStore.NewPermissionStore()
@@ -128,11 +134,33 @@ func New(dbStore DBStore) (*Store, error) {
 	messageStore := message.(MessageStore)
 
 	return &Store{
-		Article:    articleStore,
+		rdb:        rdb,
+		Article:    proxyArticleStore(articleStore, rdb),
 		User:       userStore,
 		Role:       roleStore,
 		Permission: permissionStore,
 		Activity:   activityStore,
 		Message:    messageStore,
 	}, nil
+}
+
+func proxyArticleStore(store ArticleStore, rdb *redis.Client) ArticleStore {
+	// originalList := store.List
+	// store.List = func(page, pageSize, userId int, sortType model.ArticleSortType) ([]*model.Article, int, error) {
+	// 	var list []*model.Article
+	// 	err := rdb.ZRangeByScore(context.Background(), "store_article_list", &redis.ZRangeBy{
+	// 		Offset: int64(pageSize) * int64(page - 1),
+	// 		Count: int64(pageSize),
+	// 	}).ScanSlice(&list)
+	// 	if err != nil {
+	// 		return nil, 0, err
+	// 	}
+
+	// 	list, total, err := originalList(page, pageSize, userId, sortType)
+	// 	if err != nil{
+	// 		return nil, 0, err
+	// 	}
+	// }
+
+	return store
 }
