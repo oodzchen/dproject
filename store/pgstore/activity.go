@@ -23,10 +23,10 @@ LEFT JOIN users u ON u.id = ua.user_id`
 	var conditions []string
 	conditionCount := 0
 	if page < 1 {
-		page = defaultPage
+		page = DefaultPage
 	}
 	if pageSize < 1 {
-		pageSize = defaultPageSize
+		pageSize = DefaultPageSize
 	}
 
 	if userId > 0 {

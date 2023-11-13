@@ -18,6 +18,7 @@ import (
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/service"
 	"github.com/oodzchen/dproject/store"
+	"github.com/oodzchen/dproject/store/cache"
 	"github.com/oodzchen/dproject/store/pgstore"
 	"github.com/oodzchen/dproject/utils"
 	"github.com/redis/go-redis/v9"
@@ -116,7 +117,7 @@ func main() {
 
 	dataStore := &store.Store{
 		Activity:   pg.Activity,
-		Article:    pg.Article,
+		Article:    &cache.ArticleCache{Article: pg.Article, Rdb: redisDB},
 		Message:    pg.Message,
 		Permission: pg.Permission,
 		Role:       pg.Role,

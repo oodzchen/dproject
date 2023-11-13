@@ -15,11 +15,11 @@ type Role struct {
 
 func (r *Role) List(page, pageSize int) ([]*model.Role, error) {
 	if page < 1 {
-		page = defaultPage
+		page = DefaultPage
 	}
 
 	if pageSize < 1 {
-		pageSize = defaultPage
+		pageSize = DefaultPage
 	}
 
 	sqlStr := `

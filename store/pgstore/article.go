@@ -118,14 +118,14 @@ GROUP BY tp.id, u.username, p2.title, pi.total` + orderSqlStrTail
 
 	var args []any
 	if page < 1 {
-		page = defaultPage
+		page = DefaultPage
 	}
 
 	if pageSize < 0 {
 		args = []any{0, nil, userId}
 	} else {
 		if pageSize < 1 {
-			pageSize = defaultPageSize
+			pageSize = DefaultPageSize
 		}
 		args = []any{pageSize * (page - 1), pageSize, userId}
 	}
@@ -631,11 +631,11 @@ GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.crea
 ORDER BY p.created_at`
 
 	if page < 1 {
-		page = defaultPage
+		page = DefaultPage
 	}
 
 	if pageSize < 1 {
-		pageSize = defaultPageSize
+		pageSize = DefaultPageSize
 	}
 
 	// fmt.Println("item tree sql:", sqlStr)

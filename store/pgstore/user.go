@@ -18,11 +18,11 @@ type User struct {
 
 func (u *User) List(page, pageSize int, oldest bool, username, roleFrontId string) ([]*model.User, int, error) {
 	if page < 1 {
-		page = defaultPage
+		page = DefaultPage
 	}
 
 	if pageSize < 1 {
-		pageSize = defaultPage
+		pageSize = DefaultPage
 	}
 
 	// 	sqlStr := `SELECT

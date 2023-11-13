@@ -36,10 +36,10 @@ LEFT JOIN posts p2 ON p.root_article_id = p2.id`
 	var conditions []string
 	conditionCount := 0
 	if page < 1 {
-		page = defaultPage
+		page = DefaultPage
 	}
 	if pageSize < 1 {
-		pageSize = defaultPageSize
+		pageSize = DefaultPageSize
 	}
 
 	if userId > 0 {

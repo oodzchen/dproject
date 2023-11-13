@@ -17,11 +17,11 @@ func (p *Permission) List(page, pageSize int, module string) ([]*model.Permissio
 	// fmt.Println("permission list args:", page, pageSize, module)
 	// fmt.Println("pool:", p.dbPool)
 	// if page < 1 {
-	// 	page = defaultPage
+	// 	page = DefaultPage
 	// }
 
 	// if pageSize < 1 {
-	// 	pageSize = defaultPage
+	// 	pageSize = DefaultPage
 	// }
 
 	sqlStrHead := `SELECT id, name, front_id, created_at, module FROM permissions`
