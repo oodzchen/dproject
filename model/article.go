@@ -38,11 +38,11 @@ func IsValidVoteType(t VoteType) bool {
 type ArticleReactCounts map[string]int
 
 type CurrUserState struct {
-	VoteType     VoteType
-	NullVoteType pgtype.Text
-	Saved        bool
-	ReactFrontId string
-	Subscribed   bool
+	VoteType     VoteType    `json:"vote_type"`
+	NullVoteType pgtype.Text `json:"null_vote_type"`
+	Saved        bool        `json:"saved"`
+	ReactFrontId string      `json:"react_front_id"`
+	Subscribed   bool        `json:"subscribed"`
 }
 
 func (cus *CurrUserState) FormatNullValues() {
@@ -72,12 +72,12 @@ func ValidArticleSort(sortType string) bool {
 }
 
 type ArticleList struct {
-	List      []*Article
-	SortType  ArticleSortType
-	CurrPage  int
-	PageSize  int
-	Total     int
-	TotalPage int
+	List      []*Article      `json:"list"`
+	SortType  ArticleSortType `json:"sort_type"`
+	CurrPage  int             `json:"curr_page"`
+	PageSize  int             `json:"page_size"`
+	Total     int             `json:"total"`
+	TotalPage int             `json:"total_page"`
 }
 
 func CeilInt(a, b int) int {
@@ -165,47 +165,47 @@ func deleteElement[T any](slice []T, fn func(T) bool) []T {
 }
 
 type Article struct {
-	Id                        int
-	Title                     string
-	Link                      string
-	NullTitle                 pgtype.Text
-	AuthorName                string
-	AuthorId                  int
-	Content                   string
-	Summary                   string
-	CreatedAt                 time.Time
-	UpdatedAt                 time.Time
-	CreatedAtStr              string
-	UpdatedAtStr              string
-	ReplyTo                   int
-	Deleted                   bool
-	Replies                   *ArticleList
-	ReplyDepth                int
-	ReplyRootArticleId        int
-	NullReplyRootArticleTitle pgtype.Text
-	ReplyRootArticleTitle     string
-	DisplayTitle              string // only for display
-	TotalReplyCount           int
-	ChildrenCount             int
-	VoteUp                    int
-	VoteDown                  int
-	VoteScore                 int
-	Weight                    float64 // weight in replise
-	ListWeight                float64 // weight in list page
-	ParticipateCount          int
-	CurrUserState             *CurrUserState
-	Reacts                    []*ArticleReact
-	ReactCounts               ArticleReactCounts
-	ShowScore                 bool
-	TmpParent                 *Article // Only for temporary use, to avoid circular reference errors
+	Id                        int                `json:"id"`
+	Title                     string             `json:"title"`
+	Link                      string             `json:"link"`
+	NullTitle                 pgtype.Text        `json:"null_title"`
+	AuthorName                string             `json:"author_name"`
+	AuthorId                  int                `json:"author_id"`
+	Content                   string             `json:"content"`
+	Summary                   string             `json:"summary"`
+	CreatedAt                 time.Time          `json:"created_at"`
+	UpdatedAt                 time.Time          `json:"updated_at"`
+	CreatedAtStr              string             `json:"created_at_str"`
+	UpdatedAtStr              string             `json:"updated_at_str"`
+	ReplyTo                   int                `json:"reply_to"`
+	Deleted                   bool               `json:"deleted"`
+	Replies                   *ArticleList       `json:"replies"`
+	ReplyDepth                int                `json:"reply_depth"`
+	ReplyRootArticleId        int                `json:"reply_root_article_id"`
+	NullReplyRootArticleTitle pgtype.Text        `json:"null_reply_root_article_title"`
+	ReplyRootArticleTitle     string             `json:"reply_root_article_title"`
+	DisplayTitle              string             `json:"display_title"` // only for display
+	TotalReplyCount           int                `json:"total_reply_count"`
+	ChildrenCount             int                `json:"children_count"`
+	VoteUp                    int                `json:"vote_up"`
+	VoteDown                  int                `json:"vote_down"`
+	VoteScore                 int                `json:"vote_score"`
+	Weight                    float64            `json:"weight"`      // weight in replise
+	ListWeight                float64            `json:"list_weight"` // weight in list page
+	ParticipateCount          int                `json:"participate_count"`
+	CurrUserState             *CurrUserState     `json:"curr_user_state"`
+	Reacts                    []*ArticleReact    `json:"reacts"`
+	ReactCounts               ArticleReactCounts `json:"react_counts"`
+	ShowScore                 bool               `json:"show_score"`
+	TmpParent                 *Article           // Only for temporary use, to avoid circular reference errors
 }
 
 type ArticleReact struct {
-	Id        int
-	Emoji     string
-	FrontId   string
-	Describe  string
-	CreatedAt time.Time
+	Id        int       `json:"id"`
+	Emoji     string    `json:"emoji"`
+	FrontId   string    `json:"front_id"`
+	Describe  string    `json:"describe"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 func (a *Article) FormatNullValues() {

@@ -8,7 +8,7 @@ import (
 )
 
 type Store struct {
-	rdb        *redis.Client
+	Rdb        *redis.Client
 	Article    ArticleStore
 	User       UserStore
 	Role       RoleStore
@@ -17,22 +17,18 @@ type Store struct {
 	Message    MessageStore
 }
 
-type DBStore interface {
-	NewArticleStore() (any, error)
-	NewUserStore() (any, error)
-	NewPermissionStore() (any, error)
-	NewRoleStore() (any, error)
-	NewActivity() (any, error)
-	NewMessage() (any, error)
-}
-
-type ArticleCache interface {
-	List(page, pageSize, userId int, sortType model.ArticleSortType) ([]*model.Article, int, error)
-}
+// type DBStore interface {
+// 	NewArticleStore() (any, error)
+// 	NewUserStore() (any, error)
+// 	NewPermissionStore() (any, error)
+// 	NewRoleStore() (any, error)
+// 	NewActivity() (any, error)
+// 	NewMessage() (any, error)
+// }
 
 type ArticleStore interface {
 	// pageSize < 0 to list all undeleted data
-	ArticleCache
+	List(page, pageSize, userId int, sortType model.ArticleSortType) ([]*model.Article, int, error)
 	ListLatestCount(start, end time.Time) (int, error)
 	Create(title, url, content string, authorId, replyTo int) (int, error)
 	Update(a *model.Article, fields []string) (int, error)
@@ -114,52 +110,62 @@ type MessageStore interface {
 	UnreadCount(loginedUserId int) (int, error)
 }
 
-func New(dbStore DBStore, rdb *redis.Client) (*Store, error) {
-	article, err := dbStore.NewArticleStore()
-	user, err := dbStore.NewUserStore()
-	permission, err := dbStore.NewPermissionStore()
-	role, err := dbStore.NewRoleStore()
-	activity, err := dbStore.NewActivity()
-	message, err := dbStore.NewMessage()
+// func New(dbStore DBStore, rdb *redis.Client) (*Store, error) {
+// 	article, err := dbStore.NewArticleStore()
+// 	user, err := dbStore.NewUserStore()
+// 	permission, err := dbStore.NewPermissionStore()
+// 	role, err := dbStore.NewRoleStore()
+// 	activity, err := dbStore.NewActivity()
+// 	message, err := dbStore.NewMessage()
 
-	if err != nil {
-		return nil, err
-	}
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	articleStore := article.(ArticleStore)
-	userStore := user.(UserStore)
-	permissionStore := permission.(PermissionStore)
-	roleStore := role.(RoleStore)
-	activityStore := activity.(ActivityStore)
-	messageStore := message.(MessageStore)
+// 	articleStore := article.(ArticleStore)
+// 	userStore := user.(UserStore)
+// 	permissionStore := permission.(PermissionStore)
+// 	roleStore := role.(RoleStore)
+// 	activityStore := activity.(ActivityStore)
+// 	messageStore := message.(MessageStore)
 
-	return &Store{
-		rdb:        rdb,
-		Article:    proxyArticleStore(articleStore, rdb),
-		User:       userStore,
-		Role:       roleStore,
-		Permission: permissionStore,
-		Activity:   activityStore,
-		Message:    messageStore,
-	}, nil
-}
+// 	cache := &Cache{rdb}
 
-func proxyArticleStore(store ArticleStore, rdb *redis.Client) ArticleStore {
+// 	return &Store{
+// 		rdb:        rdb,
+// 		cache:      cache,
+// 		Article:    proxyArticleStore(articleStore, cache),
+// 		User:       userStore,
+// 		Role:       roleStore,
+// 		Permission: permissionStore,
+// 		Activity:   activityStore,
+// 		Message:    messageStore,
+// 	}, nil
+// }
+
+func proxyArticleStore(store ArticleStore) ArticleStore {
 	// originalList := store.List
 	// store.List = func(page, pageSize, userId int, sortType model.ArticleSortType) ([]*model.Article, int, error) {
-	// 	var list []*model.Article
-	// 	err := rdb.ZRangeByScore(context.Background(), "store_article_list", &redis.ZRangeBy{
-	// 		Offset: int64(pageSize) * int64(page - 1),
-	// 		Count: int64(pageSize),
-	// 	}).ScanSlice(&list)
+	// 	// var list []*model.Article
+	// 	// err := rdb.ZRangeByScore(context.Background(), "store_article_list", &redis.ZRangeBy{
+	// 	// 	Offset: int64(pageSize) * int64(page - 1),
+	// 	// 	Count: int64(pageSize),
+	// 	// }).ScanSlice(&list)
+	// 	// if err != nil {
+	// 	// 	return nil, 0, err
+	// 	// }
+
+	// 	list, total, err := originalList(page, pageSize, userId, sortType)
 	// 	if err != nil {
 	// 		return nil, 0, err
 	// 	}
 
-	// 	list, total, err := originalList(page, pageSize, userId, sortType)
-	// 	if err != nil{
+	// 	err = cache.SetList(page, pageSize, userId, sortType, list)
+	// 	if err != nil {
 	// 		return nil, 0, err
 	// 	}
+
+	// 	return list, total, nil
 	// }
 
 	return store

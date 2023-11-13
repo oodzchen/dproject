@@ -14,6 +14,8 @@ type Permission struct {
 }
 
 func (p *Permission) List(page, pageSize int, module string) ([]*model.Permission, error) {
+	// fmt.Println("permission list args:", page, pageSize, module)
+	// fmt.Println("pool:", p.dbPool)
 	// if page < 1 {
 	// 	page = defaultPage
 	// }

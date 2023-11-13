@@ -5,7 +5,14 @@ import (
 	"errors"
 )
 
-type PGStore struct{}
+type PGStore struct {
+	Activity   *Activity
+	Article    *Article
+	Message    *Message
+	Permission *Permission
+	Role       *Role
+	User       *User
+}
 
 type DBConfig struct {
 	DSN string
@@ -58,50 +65,66 @@ func CheckDB(beforeConnect bool) error {
 	return nil
 }
 
-func (pg *PGStore) NewArticleStore() (any, error) {
+func (pg *PGStore) InitModules() error {
 	err := CheckDB(false)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &Article{pgDB.Pool}, nil
+
+	pg.Activity = &Activity{pgDB.Pool}
+	pg.Article = &Article{pgDB.Pool}
+	pg.Message = &Message{pgDB.Pool}
+	pg.Permission = &Permission{pgDB.Pool}
+	pg.Role = &Role{pgDB.Pool}
+	pg.User = &User{pgDB.Pool}
+
+	return nil
 }
 
-func (pg *PGStore) NewUserStore() (any, error) {
-	err := CheckDB(false)
-	if err != nil {
-		return nil, err
-	}
-	return &User{pgDB.Pool}, nil
-}
+// func (pg *PGStore) NewArticleStore() (any, error) {
+// 	err := CheckDB(false)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return &Article{pgDB.Pool}, nil
+// }
 
-func (pg *PGStore) NewRoleStore() (any, error) {
-	err := CheckDB(false)
-	if err != nil {
-		return nil, err
-	}
-	return &Role{pgDB.Pool}, nil
-}
+// func (pg *PGStore) NewUserStore() (any, error) {
+// 	err := CheckDB(false)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return &User{pgDB.Pool}, nil
+// }
 
-func (pg *PGStore) NewPermissionStore() (any, error) {
-	err := CheckDB(false)
-	if err != nil {
-		return nil, err
-	}
-	return &Permission{pgDB.Pool}, nil
-}
+// func (pg *PGStore) NewRoleStore() (any, error) {
+// 	err := CheckDB(false)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return &Role{pgDB.Pool}, nil
+// }
 
-func (pg *PGStore) NewActivity() (any, error) {
-	err := CheckDB(false)
-	if err != nil {
-		return nil, err
-	}
-	return &Activity{pgDB.Pool}, nil
-}
+// func (pg *PGStore) NewPermissionStore() (any, error) {
+// 	err := CheckDB(false)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return &Permission{pgDB.Pool}, nil
+// }
 
-func (pg *PGStore) NewMessage() (any, error) {
-	err := CheckDB(false)
-	if err != nil {
-		return nil, err
-	}
-	return &Message{pgDB.Pool}, nil
-}
+// func (pg *PGStore) NewActivity() (any, error) {
+// 	err := CheckDB(false)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return &Activity{pgDB.Pool}, nil
+// }
+
+// func (pg *PGStore) NewMessage() (any, error) {
+// 	err := CheckDB(false)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return &Message{pgDB.Pool}, nil
+// }

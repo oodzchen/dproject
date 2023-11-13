@@ -27,6 +27,7 @@ func (pm *Permission) SetLoginedUser(u *model.User) {
 }
 
 func (pm *Permission) InitPermissionTable() error {
+	// fmt.Println("permission store: ", pm.Store)
 	pList, err := pm.Store.Permission.List(1, 999, "all")
 	if err != nil {
 		return err

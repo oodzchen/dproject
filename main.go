@@ -104,9 +104,23 @@ func main() {
 	defer redisDB.Close()
 	fmt.Println("connected redis successfully")
 
-	dataStore, err := store.New(pg, redisDB)
+	err = pg.InitModules()
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	// dataStore, err := store.New(pg, redisDB)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	dataStore := &store.Store{
+		Activity:   pg.Activity,
+		Article:    pg.Article,
+		Message:    pg.Message,
+		Permission: pg.Permission,
+		Role:       pg.Role,
+		User:       pg.User,
 	}
 
 	permissionSrv := &service.Permission{
