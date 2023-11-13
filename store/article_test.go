@@ -50,9 +50,18 @@ func TestArticleVote(t *testing.T) {
 	}
 	defer pg.CloseDB()
 
-	store, err := New(pg)
+	err = pg.InitModules()
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	store := &Store{
+		Activity:   pg.Activity,
+		Article:    pg.Article,
+		Message:    pg.Message,
+		Permission: pg.Permission,
+		Role:       pg.Role,
+		User:       pg.User,
 	}
 
 	uId, err := registerNewUser(store, appCfg)
@@ -102,9 +111,18 @@ func TestArticleCheckVote(t *testing.T) {
 	}
 	defer pg.CloseDB()
 
-	store, err := New(pg)
+	err = pg.InitModules()
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	store := &Store{
+		Activity:   pg.Activity,
+		Article:    pg.Article,
+		Message:    pg.Message,
+		Permission: pg.Permission,
+		Role:       pg.Role,
+		User:       pg.User,
 	}
 
 	uId, err := registerNewUser(store, appCfg)

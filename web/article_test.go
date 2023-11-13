@@ -79,7 +79,7 @@ func TestGenArticleTree(t *testing.T) {
 					},
 					model.ReplySortBest,
 					1,
-					DefaultTopReplyPageSize,
+					DefaultReplyPageSize,
 				),
 			},
 		},

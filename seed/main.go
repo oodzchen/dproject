@@ -99,10 +99,20 @@ func main() {
 	}
 	defer pg.CloseDB()
 
-	dataStore, err := store.New(pg)
+	err = pg.InitModules()
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	dataStore := &store.Store{
+		Activity:   pg.Activity,
+		Article:    pg.Article,
+		Message:    pg.Message,
+		Permission: pg.Permission,
+		Role:       pg.Role,
+		User:       pg.User,
+	}
+
 	policy := bluemonday.UGCPolicy()
 	userSrv := &service.User{Store: dataStore, SantizePolicy: policy}
 	articleSrv := &service.Article{Store: dataStore, SantizePolicy: policy}
