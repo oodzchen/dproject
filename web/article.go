@@ -188,12 +188,33 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		defer wg.Done()
 		// list, err := ar.getArticleList(page, pageSize, currUserId, sortType)
-		list, _, err := ar.store.Article.List(page, pageSize, currUserId, sortType)
-		fmt.Printf("get article list duration: %dms\n", time.Since(startTime).Milliseconds())
+		list, _, err := ar.store.Article.List(page, pageSize, sortType)
 		if err != nil {
 			ch <- err
 			return
 		}
+		fmt.Printf("get article list duration: %dms\n", time.Since(startTime).Milliseconds())
+
+		var ids []int
+		listMap := make(map[int]*model.Article)
+		for _, item := range list {
+			ids = append(ids, item.Id)
+			listMap[item.Id] = item
+		}
+
+		userStateList, err := ar.store.Article.ListUserState(ids, currUserId)
+		if err != nil {
+			ch <- err
+			return
+		}
+		fmt.Printf("get user state article list duration: %dms\n", time.Since(startTime).Milliseconds())
+
+		for _, stateItem := range userStateList {
+			if item, ok := listMap[stateItem.Id]; ok {
+				item.CurrUserState = stateItem.CurrUserState
+			}
+		}
+
 		ch <- list
 	}()
 

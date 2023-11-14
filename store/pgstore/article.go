@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -19,61 +20,7 @@ type Article struct {
 	dbPool *pgxpool.Pool
 }
 
-func (a *Article) List(page, pageSize, userId int, sortType model.ArticleSortType) ([]*model.Article, int, error) {
-	// 	sqlStr := `
-	// SELECT tp.id, tp.title, COALESCE(tp.url, ''), u.username as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, tp.depth, p2.title as root_article_title, (
-	// 	WITH RECURSIVE replies AS (
-	// 	   SELECT id
-	// 	   FROM posts
-	// 	   WHERE reply_to = tp.id AND deleted = false
-	// 	   UNION ALL
-	// 	   SELECT p.id
-	// 	   FROM posts p
-	// 	   INNER JOIN replies pr
-	// 	   ON p.reply_to = pr.id
-	// 	   WHERE p.deleted = false
-	// 	)
-	// 	SELECT COUNT(id)
-	// 	FROM replies
-	// ) AS total_reply_count,
-	// (
-	// SELECT type FROM post_votes WHERE post_id = tp.id AND user_id = $3
-	// ) AS user_vote_type,
-	// (
-	// SELECT COUNT(post_id) FROM post_votes
-	// WHERE post_id = tp.id AND type = 'up'
-	// ) AS vote_up,
-	// (
-	// SELECT COUNT(post_id) FROM post_votes
-	// WHERE post_id = tp.id AND type = 'down'
-	// ) AS vote_down,
-	// (SELECT COUNT(user_id) FROM (
-	//   WITH RECURSIVE postTree AS (
-	//     SELECT id, author_id FROM posts WHERE reply_to = tp.id
-	//     UNION ALL
-	//     SELECT p1.id, p1.author_id FROM posts p1
-	//     JOIN postTree pt
-	//     ON p1.reply_to = pt.id
-	//   )
-	//   SELECT user_id
-	//     FROM (
-	//       SELECT user_id FROM post_votes WHERE post_id = tp.id
-	//       UNION ALL
-	//       SELECT user_id FROM post_saves WHERE post_id = tp.id
-	//       UNION ALL
-	//       SELECT user_id FROM post_reacts WHERE post_id = tp.id
-	//       UNION ALL
-	//       SELECT author_id AS user_id FROM postTree
-	//     ) AS p_users GROUP BY user_id
-	// ) AS participate_count)
-	// FROM posts tp
-	// LEFT JOIN posts p2 ON tp.root_article_id = p2.id
-	// LEFT JOIN users u ON u.id = tp.author_id
-	// WHERE tp.deleted = false AND tp.reply_to = 0
-	// ORDER BY tp.created_at DESC
-	// OFFSET $1
-	// LIMIT $2;`
-
+func (a *Article) List(page, pageSize int, sortType model.ArticleSortType) ([]*model.Article, int, error) {
 	var orderSqlStrHead, orderSqlStrTail string
 	switch sortType {
 	case model.ListSortBest:
@@ -98,9 +45,6 @@ WITH postIds AS (
 )
 SELECT tp.id, tp.title, COALESCE(tp.url, ''), u.username as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, tp.depth, tp.list_weight, tp.reply_weight, tp.participate_count, p2.title as root_article_title, COUNT(p3.id) AS total_reply_count,
 (
-SELECT type FROM post_votes WHERE post_id = tp.id AND user_id = $3
-) AS user_vote_type,
-(
 SELECT COUNT(post_id) FROM post_votes
 WHERE post_id = tp.id AND type = 'up'
 ) AS vote_up,
@@ -122,12 +66,12 @@ GROUP BY tp.id, u.username, p2.title, pi.total` + orderSqlStrTail
 	}
 
 	if pageSize < 0 {
-		args = []any{0, nil, userId}
+		args = []any{0, nil}
 	} else {
 		if pageSize < 1 {
 			pageSize = DefaultPageSize
 		}
-		args = []any{pageSize * (page - 1), pageSize, userId}
+		args = []any{pageSize * (page - 1), pageSize}
 	}
 
 	// fmt.Println("page", page)
@@ -167,7 +111,6 @@ GROUP BY tp.id, u.username, p2.title, pi.total` + orderSqlStrTail
 			&item.ParticipateCount,
 			&item.NullReplyRootArticleTitle,
 			&item.TotalReplyCount,
-			&item.CurrUserState.NullVoteType,
 			&item.VoteUp,
 			&item.VoteDown,
 			&total,
@@ -181,6 +124,41 @@ GROUP BY tp.id, u.username, p2.title, pi.total` + orderSqlStrTail
 	}
 
 	return list, total, nil
+}
+
+func (a *Article) ListUserState(ids []int, userId int) ([]*model.Article, error) {
+	var idsStr []string
+	for _, id := range ids {
+		idsStr = append(idsStr, strconv.Itoa(id))
+	}
+
+	sqlStr := `
+SELECT p.id,
+(
+  SELECT type FROM post_votes WHERE post_id = p.id AND user_id = $1
+) AS user_vote_type
+FROM posts p
+WHERE p.id = ANY($2)
+`
+	rows, err := a.dbPool.Query(context.Background(), sqlStr, userId, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	var list []*model.Article
+	for rows.Next() {
+		var article model.Article
+		var userState model.CurrUserState
+
+		err = rows.Scan(&article.Id, &userState.NullVoteType)
+		if err != nil {
+			return nil, err
+		}
+		article.CurrUserState = &userState
+		list = append(list, &article)
+	}
+
+	return list, nil
 }
 
 func (a *Article) Count() (int, error) {

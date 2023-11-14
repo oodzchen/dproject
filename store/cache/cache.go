@@ -23,11 +23,11 @@ type CachedList struct {
 	List  []*model.Article `json:"list"`
 }
 
-func (ac *ArticleCache) List(page, pageSize, userId int, sortType model.ArticleSortType) ([]*model.Article, int, error) {
-	cachedList, total, err := ac.getList(page, pageSize, userId, sortType)
+func (ac *ArticleCache) List(page, pageSize int, sortType model.ArticleSortType) ([]*model.Article, int, error) {
+	cachedList, total, err := ac.getList(page, pageSize, sortType)
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			list, total, err := ac.Article.List(page, pageSize, userId, sortType)
+			list, total, err := ac.Article.List(page, pageSize, sortType)
 			if err != nil {
 				return nil, 0, err
 			}
@@ -82,8 +82,8 @@ func (ac *ArticleCache) setList(page, pageSize, userId int, sortType model.Artic
 }
 
 // Get list data from redis
-func (ac *ArticleCache) getList(page, pageSize, userId int, sortType model.ArticleSortType) ([]*model.Article, int, error) {
-	str, err := ac.Rdb.Get(context.Background(), fmt.Sprintf("article_list?page=%d&pageSize=%d&userId=%d&sortType=%s", page, pageSize, userId, string(sortType))).Result()
+func (ac *ArticleCache) getList(page, pageSize int, sortType model.ArticleSortType) ([]*model.Article, int, error) {
+	str, err := ac.Rdb.Get(context.Background(), fmt.Sprintf("article_list?page=%d&pageSize=%d&sortType=%s", page, pageSize, string(sortType))).Result()
 	if err != nil {
 		return nil, 0, err
 	}
@@ -119,7 +119,7 @@ func (ac *ArticleCache) refreshListCache() error {
 		fmt.Println("cache list sort type:", string(sortType))
 		for i := 1; i <= maxPage; i++ {
 			fmt.Println("cache list page:", i)
-			list, total, err := ac.Article.List(i, pgstore.DefaultPageSize, 0, sortType)
+			list, total, err := ac.Article.List(i, pgstore.DefaultPageSize, sortType)
 			// fmt.Println("total from db:", total)
 			if err != nil {
 				return err
