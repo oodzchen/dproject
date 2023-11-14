@@ -644,10 +644,26 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		defer wg.Done()
 		var list []*model.Article
 		if pageType == ArticlePageDetail {
-			list, err = ar.store.Article.ItemTree(page, DefaultReplyPageSize, articleId, currUserId, model.ArticleSortType(sortType))
+			list, err = ar.store.Article.ItemTree(page, DefaultReplyPageSize, articleId, model.ArticleSortType(sortType))
 			if err != nil {
 				ch <- err
 				return
+			}
+			var ids []int
+			listMap := make(map[int]*model.Article)
+			for _, item := range list {
+				ids = append(ids, item.Id)
+				listMap[item.Id] = item
+			}
+			listUserState, err := ar.store.Article.ItemTreeUserState(ids, currUserId)
+			if err != nil {
+				ch <- err
+				return
+			}
+			for _, stateItem := range listUserState {
+				if article, ok := listMap[stateItem.Id]; ok {
+					article.CurrUserState = stateItem.CurrUserState
+				}
 			}
 		} else {
 			singleArticle, err := ar.store.Article.Item(articleId, currUserId)

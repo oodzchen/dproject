@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -127,11 +126,6 @@ GROUP BY tp.id, u.username, p2.title, pi.total` + orderSqlStrTail
 }
 
 func (a *Article) ListUserState(ids []int, userId int) ([]*model.Article, error) {
-	var idsStr []string
-	for _, id := range ids {
-		idsStr = append(idsStr, strconv.Itoa(id))
-	}
-
 	sqlStr := `
 SELECT p.id,
 (
@@ -458,102 +452,7 @@ GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at,
 	return &item, nil
 }
 
-func (a *Article) ItemTree(page, pageSize, id, userId int, sortType model.ArticleSortType) ([]*model.Article, error) {
-	// fmt.Println("item tree args: ", page, pageSize, id, userId, string(sortType))
-	// 	sqlStr := `
-	// WITH RECURSIVE articleTree AS (
-	//      SELECT id, title, url, author_id, content, created_at, updated_at, deleted, reply_to, depth, 0 AS cur_depth, root_article_id
-	//      FROM posts
-	//      WHERE id = $1
-	//      UNION ALL
-	//      SELECT p.id, p.title, p.url, p.author_id, p.content, p.created_at,p.updated_at, p.deleted, p.reply_to, p.depth, ar.cur_depth + 1, p.root_article_id
-	//      FROM posts p
-	//      JOIN articleTree ar
-	//      ON p.reply_to = ar.id
-	//      WHERE ar.cur_depth < $2
-	// )
-	// SELECT ar.id, ar.title, COALESCE(ar.url, ''), u.username as author_name, ar.author_id, ar.content, ar.created_at, ar.updated_at, ar.deleted, ar.reply_to, ar.depth, ar.root_article_id, p2.title as root_article_title, (
-	// 	WITH RECURSIVE replies AS (
-	// 	   SELECT id
-	// 	   FROM posts
-	// 	   WHERE reply_to = ar.id AND deleted = false
-	// 	   UNION ALL
-	// 	   SELECT p.id
-	// 	   FROM posts p
-	// 	   INNER JOIN replies pr
-	// 	   ON p.reply_to = pr.id
-	// 	   WHERE p.deleted = false
-	// 	)
-	// 	SELECT COUNT(*)
-	// 	FROM replies
-	// ) AS total_reply_count,
-	// (
-	// SELECT type FROM post_votes WHERE post_id = ar.id AND user_id = $3
-	// ) AS user_vote_type,
-	// (
-	// SELECT COUNT(*) FROM post_votes
-	// WHERE post_id = ar.id AND type = 'up'
-	// ) AS vote_up,
-	// (
-	// SELECT COUNT(*) FROM post_votes
-	// WHERE post_id = ar.id AND type = 'down'
-	// ) AS vote_down,
-	// (
-	// SELECT
-	//   CASE
-	//     WHEN COUNT(*) > 0 THEN TRUE
-	//     ELSE FALSE
-	//   END
-	//  FROM post_saves WHERE post_id = ar.id AND user_id = $3
-	// ) AS saved,
-	// (
-	// SELECT
-	//   CASE
-	//     WHEN COUNT(*) > 0 THEN TRUE
-	//     ELSE FALSE
-	//   END
-	//  FROM post_subs WHERE post_id = ar.id AND user_id = $3
-	// ) AS subscribed,
-	// (
-	// SELECT type FROM post_reacts WHERE post_id = ar.id AND user_id = $3
-	// ) AS user_react_type,
-	// COALESCE(reacts.grinning, 0),
-	// COALESCE(reacts.confused, 0),
-	// COALESCE(reacts.eyes, 0),
-	// COALESCE(reacts.party, 0),
-	// COALESCE(reacts.thanks, 0)
-	// FROM articleTree ar
-	// LEFT OUTER JOIN(
-	//  SELECT post_id,
-	//    SUM(CASE WHEN type = 'grinning' THEN count ELSE 0 END) AS grinning,
-	//    SUM(CASE WHEN type = 'confused' THEN count ELSE 0 END) AS confused,
-	//    SUM(CASE WHEN type = 'eyes' THEN count ELSE 0 END) AS eyes,
-	//    SUM(CASE WHEN type = 'party' THEN count ELSE 0 END) AS party,
-	//    SUM(CASE WHEN type = 'thanks' THEN count ELSE 0 END) AS thanks
-	//    FROM
-	//    (
-	//      SELECT post_id, type, COUNT(*) AS count FROM post_reacts
-	//      GROUP BY type, post_id
-	//    ) AS react_types GROUP BY post_id
-	// ) AS reacts ON reacts.post_id = ar.id
-	// JOIN users u ON ar.author_id = u.id
-	// LEFT JOIN posts p2 ON ar.root_article_id = p2.id
-	// ORDER BY ar.created_at;`
-
-	// var orderSqlStrHead, orderSqlStrTail string
-	// switch sortType {
-	// case model.ReplySortBest:
-	// 	orderSqlStrHead = ` ORDER BY reply_weight DESC `
-	// 	orderSqlStrTail = ` ORDER BY p.reply_weight DESC `
-	// case model.ListSortLatest:
-	// 	fallthrough
-	// default:
-	// 	orderSqlStrHead = ` ORDER BY created_at DESC `
-	// 	orderSqlStrTail = ` ORDER BY p.created_at DESC `
-	// }
-
-	// fmt.Println("orderStr:", orderSqlStrHead)
-
+func (a *Article) ItemTree(page, pageSize, id int, sortType model.ArticleSortType) ([]*model.Article, error) {
 	sqlStr := `
 WITH RECURSIVE articleTree AS (
      SELECT id, 0 AS cur_depth
@@ -574,38 +473,17 @@ COALESCE(r.id, 0) AS react_id,
 COALESCE(r.emoji, '') AS react_emoji,
 COALESCE(r.front_id, '') AS react_front_id,
 COALESCE(r.describe, '') AS react_describe,
-COALESCE(r.created_at, NOW()) AS react_created_at,
-(
-  SELECT
-    CASE
-      WHEN COUNT(*) > 0 THEN TRUE
-      ELSE FALSE
-    END
-   FROM post_saves WHERE post_id = p.id AND user_id = $3
-) AS saved,
-(
-  SELECT
-    CASE
-      WHEN COUNT(*) > 0 THEN TRUE
-      ELSE FALSE
-    END
-   FROM post_subs WHERE post_id = p.id AND user_id = $3
-) AS subscribed,
-COALESCE(r2.front_id, '') AS curr_react_front_id,
-pv.type AS vote_type
+COALESCE(r.created_at, NOW()) AS react_created_at
 FROM articleTree ar
 LEFT JOIN posts p ON p.id = ar.id
 LEFT JOIN users u ON p.author_id = u.id
 LEFT JOIN posts p2 ON p.root_article_id = p2.id
 LEFT JOIN posts p3 ON p.id = p3.reply_to
-LEFT JOIN post_votes pv ON pv.post_id = p.id AND pv.user_id = $3
 LEFT JOIN post_votes pv1 ON pv1.post_id = p.id AND pv1.type = 'up'
 LEFT JOIN post_votes pv2 ON pv2.post_id = p.id AND pv2.type = 'down'
 LEFT JOIN post_reacts pr ON pr.post_id = p.id
 LEFT JOIN reacts r ON r.id = pr.react_id
-LEFT JOIN post_reacts pr2 ON pr2.post_id = p.id AND pr2.user_id = $3
-LEFT JOIN reacts r2 ON r2.id = pr2.react_id
-GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title, pv.type, r.id, r2.front_id, pr.id
+GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title, r.id, pr.id
 ORDER BY p.created_at`
 
 	if page < 1 {
@@ -619,7 +497,7 @@ ORDER BY p.created_at`
 	// fmt.Println("item tree sql:", sqlStr)
 
 	// rows, err := a.dbPool.Query(context.Background(), sqlStr, id, utils.GetReplyDepthSize(), userId, pageSize*(page-1), pageSize)
-	rows, err := a.dbPool.Query(context.Background(), sqlStr, id, utils.GetReplyDepthSize(), userId)
+	rows, err := a.dbPool.Query(context.Background(), sqlStr, id, utils.GetReplyDepthSize())
 	if err != nil {
 		return nil, err
 	}
@@ -629,7 +507,6 @@ ORDER BY p.created_at`
 	var list []*model.Article
 	listMap := make(map[int]*model.Article)
 	for rows.Next() {
-		var userState model.CurrUserState
 		var react model.ArticleReact
 		var item model.Article
 
@@ -657,11 +534,6 @@ ORDER BY p.created_at`
 			&react.FrontId,
 			&react.Describe,
 			&react.CreatedAt,
-
-			&userState.Saved,
-			&userState.Subscribed,
-			&userState.ReactFrontId,
-			&userState.NullVoteType,
 		)
 
 		// fmt.Println("item.id: ", item.Id)
@@ -682,8 +554,6 @@ ORDER BY p.created_at`
 				listMap[article.Id] = article
 			}
 
-			article.CurrUserState = &userState
-
 			if react.Id > 0 {
 				// fmt.Println("react: ", react)
 				if article.Reacts == nil {
@@ -693,6 +563,61 @@ ORDER BY p.created_at`
 				}
 			}
 		}
+	}
+
+	return list, nil
+}
+
+func (a *Article) ItemTreeUserState(ids []int, userId int) ([]*model.Article, error) {
+	sqlStr := `
+SELECT p.id,
+(
+  SELECT type FROM post_votes WHERE post_id = p.id AND user_id = $1
+) AS user_vote_type,
+(
+  SELECT
+    CASE
+      WHEN COUNT(*) > 0 THEN TRUE
+      ELSE FALSE
+    END
+   FROM post_saves WHERE post_id = p.id AND user_id = $1
+) AS saved,
+(
+  SELECT
+    CASE
+      WHEN COUNT(*) > 0 THEN TRUE
+      ELSE FALSE
+    END
+   FROM post_subs WHERE post_id = p.id AND user_id = $1
+) AS subscribed,
+COALESCE(r2.front_id, '') AS curr_react_front_id
+FROM posts p
+LEFT JOIN post_reacts pr2 ON pr2.post_id = p.id AND pr2.user_id = $1
+LEFT JOIN reacts r2 ON r2.id = pr2.react_id
+WHERE p.id = ANY($2)
+`
+	rows, err := a.dbPool.Query(context.Background(), sqlStr, userId, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	var list []*model.Article
+	for rows.Next() {
+		var article model.Article
+		var userState model.CurrUserState
+
+		err = rows.Scan(
+			&article.Id,
+			&userState.NullVoteType,
+			&userState.Saved,
+			&userState.Subscribed,
+			&userState.ReactFrontId,
+		)
+		if err != nil {
+			return nil, err
+		}
+		article.CurrUserState = &userState
+		list = append(list, &article)
 	}
 
 	return list, nil

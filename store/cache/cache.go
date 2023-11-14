@@ -57,7 +57,7 @@ func (ac *ArticleCache) Create(title, url, content string, authorId, replyTo int
 }
 
 // Set list data to redis
-func (ac *ArticleCache) setList(page, pageSize, userId int, sortType model.ArticleSortType, list []*model.Article, total int) error {
+func (ac *ArticleCache) setList(page, pageSize int, sortType model.ArticleSortType, list []*model.Article, total int) error {
 	jsonStr, err := json.Marshal(&CachedList{
 		List:  list,
 		Total: total,
@@ -73,7 +73,7 @@ func (ac *ArticleCache) setList(page, pageSize, userId int, sortType model.Artic
 	// }
 
 	// fmt.Println("article_list json string:", string(jsonStr))
-	err = ac.Rdb.Set(context.Background(), fmt.Sprintf("article_list?page=%d&pageSize=%d&userId=%d&sortType=%s", page, pageSize, userId, string(sortType)), string(jsonStr), 30*24*time.Hour).Err()
+	err = ac.Rdb.Set(context.Background(), fmt.Sprintf("article_list?page=%d&pageSize=%d&sortType=%s", page, pageSize, string(sortType)), string(jsonStr), 30*24*time.Hour).Err()
 	if err != nil {
 		return err
 	}
@@ -125,7 +125,7 @@ func (ac *ArticleCache) refreshListCache() error {
 				return err
 			}
 
-			err = ac.setList(i, pgstore.DefaultPageSize, 0, sortType, list, total)
+			err = ac.setList(i, pgstore.DefaultPageSize, sortType, list, total)
 			if err != nil {
 				return err
 			}
