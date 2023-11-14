@@ -1,11 +1,9 @@
 package store
 
 import (
-	"errors"
 	"log"
 	"testing"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/oodzchen/dproject/config"
 	mt "github.com/oodzchen/dproject/mocktool"
 	"github.com/oodzchen/dproject/store/pgstore"
@@ -132,10 +130,13 @@ func TestArticleCheckVote(t *testing.T) {
 	mt.LogFailed(err)
 
 	t.Run("Check unvote article", func(t *testing.T) {
-		err, _ = store.Article.VoteCheck(aId, uId)
+		err, voteType := store.Article.VoteCheck(aId, uId)
+		if err != nil {
+			t.Errorf("vote check error %v", err)
+		}
 		// fmt.Println("vote check result: ", err)
-		if !errors.Is(err, pgx.ErrNoRows) {
-			t.Errorf("vote check should get %v, but get %v", pgx.ErrNoRows, err)
+		if voteType != "up" {
+			t.Errorf("vote check type should be %s, but got %v", "up", voteType)
 		}
 	})
 

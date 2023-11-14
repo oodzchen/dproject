@@ -599,9 +599,20 @@ const (
 
 func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pageType ArticlePageType) {
 	idParam := chi.URLParam(r, "articleId")
-	sortType := r.URL.Query().Get("sort")
+	sortTypeQ := r.URL.Query().Get("sort")
 	pageQ := r.URL.Query().Get("page")
 	page, _ := strconv.Atoi(pageQ)
+
+	var sortType model.ArticleSortType
+	if page < 1 {
+		page = 1
+	}
+
+	if model.ValidArticleSort(sortTypeQ) {
+		sortType = model.ArticleSortType(sortTypeQ)
+	} else {
+		sortType = model.ReplySortBest
+	}
 
 	// fmt.Println("sort type", sortType)
 	// fmt.Printf("idParam: %v\n", idParam)
@@ -613,6 +624,8 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	}
 
 	currUserId := ar.GetLoginedUserId(w, r)
+
+	// fmt.Println("curr user id:", currUserId)
 
 	if pageType != ArticlePageDetail && currUserId == 0 {
 		ar.ToLogin(w, r)
@@ -640,43 +653,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		ch <- totalReplyCount
 	}()
 
-	go func() {
-		defer wg.Done()
-		var list []*model.Article
-		if pageType == ArticlePageDetail {
-			list, err = ar.store.Article.ItemTree(page, DefaultReplyPageSize, articleId, model.ArticleSortType(sortType))
-			if err != nil {
-				ch <- err
-				return
-			}
-			var ids []int
-			listMap := make(map[int]*model.Article)
-			for _, item := range list {
-				ids = append(ids, item.Id)
-				listMap[item.Id] = item
-			}
-			listUserState, err := ar.store.Article.ItemTreeUserState(ids, currUserId)
-			if err != nil {
-				ch <- err
-				return
-			}
-			for _, stateItem := range listUserState {
-				if article, ok := listMap[stateItem.Id]; ok {
-					article.CurrUserState = stateItem.CurrUserState
-				}
-			}
-		} else {
-			singleArticle, err := ar.store.Article.Item(articleId, currUserId)
-			if err != nil {
-				ch <- err
-				return
-			}
-			list = []*model.Article{singleArticle}
-		}
-
-		fmt.Printf("get list duration: %dms\n", time.Since(startTime).Milliseconds())
-		ch <- list
-	}()
+	go ar.getArticleTreeList(articleId, currUserId, page, DefaultPageSize, sortType, pageType, &wg, ch, startTime)
 
 	go func() {
 		wg.Wait()
@@ -702,7 +679,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		}
 	}
 
-	fmt.Println("totalReplyCount:", totalReplyCount)
+	// fmt.Println("totalReplyCount:", totalReplyCount)
 	fmt.Printf("get article item duration: %dms\n", time.Since(startTime).Milliseconds())
 
 	if len(articleTreeList) == 0 {
@@ -752,18 +729,13 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		item.FormatDeleted()
 	}
 
-	rootArticle, _ = genArticleTree(rootArticle, articleTreeList)
+	rootArticle, _ = genArticleTree(rootArticle, articleTreeList, page, sortType)
 	// if err != nil {
 	// 	fmt.Printf("generate article tree error: %v\n", err)
 	// }
-
-	replySort := model.ReplySortBest
-	if model.ValidArticleSort(sortType) {
-		replySort = model.ArticleSortType(sortType)
-	}
 	// fmt.Println("replySort: ", replySort)
-	rootArticle = sortArticleTree(rootArticle, replySort)
-	rootArticle = pagingArticleTree(rootArticle, page)
+	// rootArticle = sortArticleTree(rootArticle, sortType)
+	// rootArticle = pagingArticleTree(rootArticle, page)
 
 	rootArticle.UpdateDisplayTitle()
 
@@ -802,9 +774,56 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	}})
 }
 
+func (ar *ArticleResource) getArticleTreeList(articleId, currUserId, page, pageSize int, sortType model.ArticleSortType, pageType ArticlePageType, wg *sync.WaitGroup, ch chan<- any, startTime time.Time) {
+	// fmt.Println("get article tree list root id:", articleId)
+	// fmt.Println("get article tree list pageType:", string(pageType))
+	defer wg.Done()
+	var list []*model.Article
+	var err error
+	if pageType == ArticlePageDetail {
+		list, err = ar.store.Article.ItemTree(page, pageSize, articleId, sortType)
+		if err != nil {
+			ch <- err
+			return
+		}
+		fmt.Println("item tree list top id:", list[0].Id)
+		fmt.Printf("item tree duration: %dms\n", time.Since(startTime).Milliseconds())
+
+		var ids []int
+		listMap := make(map[int]*model.Article)
+		for _, item := range list {
+			ids = append(ids, item.Id)
+			listMap[item.Id] = item
+		}
+
+		listUserState, err := ar.store.Article.ItemTreeUserState(ids, currUserId)
+		if err != nil {
+			ch <- err
+			return
+		}
+		fmt.Printf("item tree user state duration: %dms\n", time.Since(startTime).Milliseconds())
+
+		for _, stateItem := range listUserState {
+			if article, ok := listMap[stateItem.Id]; ok {
+				article.CurrUserState = stateItem.CurrUserState
+			}
+		}
+	} else {
+		singleArticle, err := ar.store.Article.Item(articleId, currUserId)
+		if err != nil {
+			ch <- err
+			return
+		}
+		list = []*model.Article{singleArticle}
+	}
+
+	fmt.Printf("tree list total duration: %dms\n", time.Since(startTime).Milliseconds())
+	ch <- list
+}
+
 const DefaultReplyPageSize = 50
 
-func genArticleTree(root *model.Article, list []*model.Article) (*model.Article, error) {
+func genArticleTree(root *model.Article, list []*model.Article, page int, sortType model.ArticleSortType) (*model.Article, error) {
 	parentMap := make(map[int]*model.Article)
 	nodeMap := make(map[int][]*model.Article)
 
@@ -829,7 +848,7 @@ func genArticleTree(root *model.Article, list []*model.Article) (*model.Article,
 	}
 
 	if replies, ok := nodeMap[root.Id]; ok {
-		root.Replies = model.NewArticleList(replies, model.ReplySortBest, 1, DefaultReplyPageSize)
+		root.Replies = model.NewArticleList(replies, sortType, page, DefaultReplyPageSize, root.ChildrenCount)
 	} else {
 		if len(list) > 0 {
 			return root, errors.New("no reply to the root in the list")
@@ -838,7 +857,7 @@ func genArticleTree(root *model.Article, list []*model.Article) (*model.Article,
 
 	for _, item := range list {
 		if replies, ok := nodeMap[item.Id]; ok && item.Id != root.Id {
-			item.Replies = model.NewArticleList(replies, model.ReplySortBest, 1, DefaultReplyPageSize)
+			item.Replies = model.NewArticleList(replies, sortType, page, DefaultReplyPageSize, item.ChildrenCount)
 		}
 	}
 
@@ -871,32 +890,32 @@ func removeEmptyItem(item *model.Article) {
 	}
 }
 
-func sortArticleTree(root *model.Article, sortType model.ArticleSortType) *model.Article {
-	if root.Replies != nil && root.Replies.Len() > 0 {
-		root.Replies.Sort(sortType)
-		for idx, item := range root.Replies.List {
-			root.Replies.List[idx] = sortArticleTree(item, sortType)
-		}
-	}
-	return root
-}
+// func sortArticleTree(root *model.Article, sortType model.ArticleSortType) *model.Article {
+// 	if root.Replies != nil && root.Replies.Len() > 0 {
+// 		root.Replies.Sort(sortType)
+// 		for idx, item := range root.Replies.List {
+// 			root.Replies.List[idx] = sortArticleTree(item, sortType)
+// 		}
+// 	}
+// 	return root
+// }
 
-func pagingArticleTree(root *model.Article, page int) *model.Article {
-	if root.Replies != nil && root.Replies.Len() > 0 {
-		if page < 1 {
-			page = 1
-		}
-		if page > root.Replies.TotalPage {
-			page = root.Replies.TotalPage
-		}
+// func pagingArticleTree(root *model.Article, page int) *model.Article {
+// 	if root.Replies != nil && root.Replies.Len() > 0 {
+// 		if page < 1 {
+// 			page = 1
+// 		}
+// 		if page > root.Replies.TotalPage {
+// 			page = root.Replies.TotalPage
+// 		}
 
-		root.Replies.List = root.Replies.PagingList(page, root.Replies.PageSize)
-		for idx, item := range root.Replies.List {
-			root.Replies.List[idx] = pagingArticleTree(item, 1)
-		}
-	}
-	return root
-}
+// 		root.Replies.List = root.Replies.PagingList(page, root.Replies.PageSize)
+// 		for idx, item := range root.Replies.List {
+// 			root.Replies.List[idx] = pagingArticleTree(item, 1)
+// 		}
+// 	}
+// 	return root
+// }
 
 func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()

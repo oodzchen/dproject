@@ -15,6 +15,8 @@ import (
 	"github.com/oodzchen/dproject/utils"
 )
 
+var afterUpdateWeights func() error
+
 type Article struct {
 	dbPool *pgxpool.Pool
 }
@@ -227,6 +229,11 @@ RETURNING (id);`
 		replyTo,
 		url,
 	).Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+
+	err = a.Vote(id, authorId, "up")
 	if err != nil {
 		return 0, err
 	}
@@ -453,17 +460,32 @@ GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at,
 }
 
 func (a *Article) ItemTree(page, pageSize, id int, sortType model.ArticleSortType) ([]*model.Article, error) {
+	var orderSqlStrTail string
+	switch sortType {
+	case model.ReplySortBest:
+		// orderSqlStrHead = ` ORDER BY reply_weight DESC `
+		orderSqlStrTail = ` ORDER BY p.reply_weight DESC `
+	case model.ListSortLatest:
+		fallthrough
+	default:
+		// orderSqlStrHead = ` ORDER BY created_at DESC `
+		orderSqlStrTail = ` ORDER BY p.created_at DESC `
+	}
+
 	sqlStr := `
 WITH RECURSIVE articleTree AS (
-     SELECT id, 0 AS cur_depth
+     SELECT id, reply_to, created_at, reply_weight, 0 AS cur_depth
      FROM posts
      WHERE id = $1
      UNION ALL
-     SELECT p.id, ar.cur_depth + 1
+     SELECT p.id, p.reply_to, p.created_at, p.reply_weight, ar.cur_depth + 1
      FROM posts p
      JOIN articleTree ar
      ON p.reply_to = ar.id
      WHERE ar.cur_depth < $2
+), groupedList AS (
+    SELECT p.*, ROW_NUMBER() OVER (PARTITION BY p.reply_to ` + orderSqlStrTail + `) AS rn
+    FROM articleTree p
 )
 SELECT ar.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title AS root_article_title,
 COUNT(DISTINCT p3.id) AS children_count,
@@ -474,7 +496,7 @@ COALESCE(r.emoji, '') AS react_emoji,
 COALESCE(r.front_id, '') AS react_front_id,
 COALESCE(r.describe, '') AS react_describe,
 COALESCE(r.created_at, NOW()) AS react_created_at
-FROM articleTree ar
+FROM groupedList ar
 LEFT JOIN posts p ON p.id = ar.id
 LEFT JOIN users u ON p.author_id = u.id
 LEFT JOIN posts p2 ON p.root_article_id = p2.id
@@ -483,8 +505,9 @@ LEFT JOIN post_votes pv1 ON pv1.post_id = p.id AND pv1.type = 'up'
 LEFT JOIN post_votes pv2 ON pv2.post_id = p.id AND pv2.type = 'down'
 LEFT JOIN post_reacts pr ON pr.post_id = p.id
 LEFT JOIN reacts r ON r.id = pr.react_id
+WHERE ar.id = $1 OR (ar.cur_depth = 1 AND ar.rn BETWEEN $3 AND $4) OR (ar.cur_depth > 1 AND ar.rn BETWEEN 0 AND $5)
 GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title, r.id, pr.id
-ORDER BY p.created_at`
+` + orderSqlStrTail
 
 	if page < 1 {
 		page = DefaultPage
@@ -497,7 +520,7 @@ ORDER BY p.created_at`
 	// fmt.Println("item tree sql:", sqlStr)
 
 	// rows, err := a.dbPool.Query(context.Background(), sqlStr, id, utils.GetReplyDepthSize(), userId, pageSize*(page-1), pageSize)
-	rows, err := a.dbPool.Query(context.Background(), sqlStr, id, utils.GetReplyDepthSize())
+	rows, err := a.dbPool.Query(context.Background(), sqlStr, id, utils.GetReplyDepthSize(), pageSize*(page-1), pageSize*page, pageSize)
 	if err != nil {
 		return nil, err
 	}
@@ -569,6 +592,8 @@ ORDER BY p.created_at`
 }
 
 func (a *Article) ItemTreeUserState(ids []int, userId int) ([]*model.Article, error) {
+	// fmt.Println("item tree user state ids:", ids)
+	// fmt.Println("item tree user id:", userId)
 	sqlStr := `
 SELECT p.id,
 (
@@ -590,10 +615,10 @@ SELECT p.id,
     END
    FROM post_subs WHERE post_id = p.id AND user_id = $1
 ) AS subscribed,
-COALESCE(r2.front_id, '') AS curr_react_front_id
+COALESCE(r.front_id, '') AS curr_react_front_id
 FROM posts p
-LEFT JOIN post_reacts pr2 ON pr2.post_id = p.id AND pr2.user_id = $1
-LEFT JOIN reacts r2 ON r2.id = pr2.react_id
+LEFT JOIN post_reacts pr ON pr.post_id = p.id AND pr.user_id = $1
+LEFT JOIN reacts r ON r.id = pr.react_id
 WHERE p.id = ANY($2)
 `
 	rows, err := a.dbPool.Query(context.Background(), sqlStr, userId, ids)
@@ -616,6 +641,7 @@ WHERE p.id = ANY($2)
 		if err != nil {
 			return nil, err
 		}
+		// fmt.Println("react front id:", userState.ReactFrontId)
 		article.CurrUserState = &userState
 		list = append(list, &article)
 	}
@@ -1050,5 +1076,23 @@ GROUP BY p.created_at;`,
 		return err
 	}
 
+	if afterUpdateWeights != nil {
+		err = afterUpdateWeights()
+		if err != nil {
+			return err
+		}
+
+		// go func() {
+		// 	err = afterUpdateWeights()
+		// 	if err != nil {
+		// 		fmt.Println("error in afterUpdateWeights:", err)
+		// 	}
+		// }()
+	}
+
 	return nil
+}
+
+func (a *Article) SetAfterUpdateWeights(fn func() error) {
+	afterUpdateWeights = fn
 }

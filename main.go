@@ -114,10 +114,15 @@ func main() {
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }
+	cacheableArticle := &cache.ArticleCache{
+		Article: pg.Article,
+		Rdb:     redisDB,
+	}
+	cacheableArticle.SetAfterUpdateWeights(cacheableArticle.RefreshListCache)
 
 	dataStore := &store.Store{
 		Activity:   pg.Activity,
-		Article:    &cache.ArticleCache{Article: pg.Article, Rdb: redisDB},
+		Article:    cacheableArticle,
 		Message:    pg.Message,
 		Permission: pg.Permission,
 		Role:       pg.Role,

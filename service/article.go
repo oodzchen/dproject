@@ -34,7 +34,7 @@ func (a *Article) Create(title, url, content string, authorId, replyTo int) (int
 	if err != nil {
 		return 0, err
 	}
-	err = a.Store.Article.Vote(id, authorId, "up")
+
 	return id, nil
 }
 
