@@ -35,13 +35,45 @@ func joinStrArr(arr []string, sep string) string {
 // 	return timeago.Chinese.Format(t)
 // }
 
-func intRange(start, end int) []int {
+const (
+	pageMiddleNum = 5
+	pageEndNum    = 5
+)
+
+func intRange(start, end, curr int) []int {
 	// fmt.Println("start: ", start, "end", end)
 	n := end - start + 1
-	result := make([]int, n)
+	all := make([]int, n)
 	for i := 0; i < n; i++ {
-		result[i] = start + i
+		all[i] = start + i
 	}
+
+	halfMiddleNum := (pageMiddleNum / 2)
+	currIndex := curr - 1
+	var result []int
+
+	if n > pageMiddleNum+pageEndNum*2 {
+		middleLeft := currIndex - halfMiddleNum
+		middleRight := currIndex + halfMiddleNum + 1
+
+		leftOverley := pageEndNum + halfMiddleNum
+		rightOverley := end - 1 - pageEndNum - halfMiddleNum
+
+		if currIndex < leftOverley || currIndex > rightOverley {
+			result = append(result, all[:leftOverley]...)
+			result = append(result, 0)
+			result = append(result, all[rightOverley:]...)
+		} else {
+			result = append(result, all[:pageEndNum]...)
+			result = append(result, 0)
+			result = append(result, all[middleLeft:middleRight]...)
+			result = append(result, 0)
+			result = append(result, all[n-pageEndNum:]...)
+		}
+	} else {
+		result = all
+	}
+
 	return result
 }
 
