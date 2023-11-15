@@ -52,6 +52,7 @@ func (u *User) Register(email string, password string, name string) (int, error)
 }
 
 func (u *User) GetPosts(username string, listType UserListType) ([]*model.Article, error) {
+	// fmt.Println("user tab:", listType)
 	switch listType {
 	case UserListSaved:
 		return u.Store.User.GetSavedPosts(username)

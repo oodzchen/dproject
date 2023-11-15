@@ -337,63 +337,8 @@ func (a *Article) Update(item *model.Article, fieldNames []string) (int, error) 
 }
 
 func (a *Article) Item(id, userId int) (*model.Article, error) {
-	// 	sqlStr := `
-	// SELECT p.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title as root_article_title, 0 AS total_reply_count,
-	// (
-	// SELECT type FROM post_votes WHERE post_id = p.id AND user_id = $2
-	// ) AS user_vote_type,
-	// (
-	// SELECT COUNT(*) FROM post_votes
-	// WHERE post_id = p.id AND type = 'up'
-	// ) AS vote_up,
-	// (
-	// SELECT COUNT(*) FROM post_votes
-	// WHERE post_id = p.id AND type = 'down'
-	// ) AS vote_down,
-	// (
-	// SELECT
-	//   CASE
-	//     WHEN COUNT(*) > 0 THEN TRUE
-	//     ELSE FALSE
-	//   END
-	//  FROM post_saves WHERE post_id = p.id AND user_id = $2
-	// ) AS saved,
-	// (
-	// SELECT
-	//   CASE
-	//     WHEN COUNT(*) > 0 THEN TRUE
-	//     ELSE FALSE
-	//   END
-	//  FROM post_subs WHERE post_id = p.id AND user_id = $2
-	// ) AS subscribed,
-	// (
-	// SELECT type FROM post_reacts WHERE post_id = p.id AND user_id = $2
-	// ) AS user_react_type,
-	// COALESCE(reacts.grinning, 0),
-	// COALESCE(reacts.confused, 0),
-	// COALESCE(reacts.eyes, 0),
-	// COALESCE(reacts.party, 0),
-	// COALESCE(reacts.thanks, 0)
-	// FROM posts p
-	// LEFT OUTER JOIN(
-	//  SELECT post_id,
-	//    SUM(CASE WHEN type = 'grinning' THEN count ELSE 0 END) AS grinning,
-	//    SUM(CASE WHEN type = 'confused' THEN count ELSE 0 END) AS confused,
-	//    SUM(CASE WHEN type = 'eyes' THEN count ELSE 0 END) AS eyes,
-	//    SUM(CASE WHEN type = 'party' THEN count ELSE 0 END) AS party,
-	//    SUM(CASE WHEN type = 'thanks' THEN count ELSE 0 END) AS thanks
-	//    FROM
-	//    (
-	//      SELECT post_id, type, COUNT(*) AS count FROM post_reacts
-	//      GROUP BY type, post_id
-	//    ) AS react_types GROUP BY post_id
-	// ) AS reacts ON reacts.post_id = p.id
-	// LEFT JOIN users u ON p.author_id = u.id
-	// LEFT JOIN posts p2 ON p.root_article_id = p2.id
-	// WHERE p.id = $1;`
-
 	sqlStr := `
-SELECT p.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title as root_article_title, 0 AS total_reply_count,
+SELECT p.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title as root_article_title,
 pv.type AS user_vote_type,
 COUNT(pv1.id) AS vote_up,
 COUNT(pv2.id) AS vote_down,
@@ -440,7 +385,6 @@ GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at,
 		&item.ReplyDepth,
 		&item.ReplyRootArticleId,
 		&item.NullReplyRootArticleTitle,
-		&item.TotalReplyCount,
 		&item.CurrUserState.NullVoteType,
 		&item.VoteUp,
 		&item.VoteDown,

@@ -532,10 +532,10 @@ u.username AS author_name,
 p.depth,
 p3.title AS root_article_title
 FROM post_saves ps
-JOIN users u ON p.author_id = u.id
+JOIN users u ON u.id = ps.user_id AND u.username = $1
 LEFT JOIN posts p ON p.id = ps.post_id
 LEFT JOIN posts p3 ON p.root_article_id = p3.id
-WHERE u.username = $1 AND p.deleted = false
+WHERE p.deleted = false
 ORDER BY ps.created_at DESC`
 	rows, err := u.dbPool.Query(context.Background(), sqlStr, username)
 	if err != nil {
@@ -638,19 +638,12 @@ p.author_id,
 u.username AS author_name,
 p.depth,
 p3.title AS root_article_title,
-(
-SELECT
-  CASE
-    WHEN COUNT(*) > 0 THEN TRUE
-    ELSE FALSE
-  END
- FROM post_subs WHERE post_id = p.id AND user_id = $1
-) AS subscribed
+true
 FROM post_subs ps
-JOIN users u ON p.author_id = u.id
+JOIN users u ON u.id = ps.user_id AND u.username = $1
 LEFT JOIN posts p ON p.id = ps.post_id
 LEFT JOIN posts p3 ON p.root_article_id = p3.id
-WHERE u.username = $1 AND p.deleted = false
+WHERE p.deleted = false
 ORDER BY ps.created_at DESC`
 	rows, err := u.dbPool.Query(context.Background(), sqlStr, username)
 	if err != nil {
