@@ -100,15 +100,6 @@ CREATE TABLE activities (
     details TEXT
 );
 
-CREATE TABLE categories (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    describe TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    author_id INTEGER REFERENCES users(id),
-    approved BOOLEAN NOT NULL DEFAULT false
-)
-
 -- CREATE TABLE verification_codes (
 --     id SERIAL PRIMARY KEY,
 --     email VARCHAR(255) NOT NULL,
@@ -143,9 +134,3 @@ INSERT INTO reacts (emoji, front_id, describe) VALUES
 ('👀', 'eyes', 'Watching'),
 ('🎉', 'party', 'Yeah');
 
-INSERT INTO categories (name, author_id, describe, approved) VALUES
-("Linux", 1, "GNU/Linux及各Linux发行版相关", true),
-("编程", 1, “编程相关语言、技术及遇到的问题”,, true),
-("互联网", 1, ”互联网上发生了什么”, 1, true),
-("黑客新闻", 1, "HackerNews上的热门讨论", true),
-("DizKaz", 1, “本站点系统功能建议和Bug反馈等”,true);

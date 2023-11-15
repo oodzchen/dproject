@@ -33,6 +33,15 @@ ALTER TABLE users ADD CONSTRAINT user_password_check CHECK(
 CREATE UNIQUE INDEX idx_unique_username
 ON users (LOWER(username));
 
+CREATE TABLE categories (
+id SERIAL PRIMARY KEY,
+name VARCHAR(255) NOT NULL,
+describe TEXT,
+created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+author_id INTEGER REFERENCES users(id),
+approved BOOLEAN NOT NULL DEFAULT false
+);
+
 -- 创建文章数据表格
 CREATE TABLE posts (
 id SERIAL PRIMARY KEY,
@@ -86,6 +95,14 @@ VALUES
 ('lisi@example.com', :user_default_password, 'lisi', '这是李四的自我介绍', false),
 ('wangwu@example.com', :user_default_password, 'wangwu', '这是王五的自我介绍', false),
 ('mazi@example.com', :user_default_password, 'mazi', '这是麻子的自我介绍', false);
+
+INSERT INTO categories (name, author_id, describe, approved)
+VALUES
+('Linux', 1, 'GNU/Linux及各Linux发行版相关', true),
+('编程', 1, '编程相关语言、技术及遇到的问题', true),
+('互联网', 1, '互联网上发生了什么', true),
+('黑客新闻', 1, 'HackerNews上的热门讨论', true),
+('DizKaz', 1, '本站点系统功能建议和Bug反馈等', true);
 
 -- -- 文章样例
 -- INSERT INTO posts (title, content, author_id)
