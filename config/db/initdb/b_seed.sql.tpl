@@ -48,7 +48,8 @@ depth INTEGER DEFAULT 0 NOT NULL,
 root_article_id INTEGER DEFAULT 0 NOT NULL,
 list_weight DOUBLE PRECISION DEFAULT 0 NOT NULL,
 participate_count INTEGER DEFAULT 0 NOT NULL,
-reply_weight DOUBLE PRECISION DEFAULT 0 NOT NULL
+reply_weight DOUBLE PRECISION DEFAULT 0 NOT NULL,
+category_id INTEGER REFERENCES categories(id)
 );
 
 CREATE INDEX idx_posts_reply_to ON posts (reply_to);
