@@ -31,7 +31,7 @@ func registerNewUser(store *Store, appCfg *config.AppConfig) (int, error) {
 
 func createNewArticle(store *Store, userId int) (int, error) {
 	article := mt.GenArticle()
-	return store.Article.Create(article.Title, "", article.Content, userId, 0)
+	return store.Article.Create(article.Title, "", article.Content, userId, 0, "general")
 }
 
 func TestArticleVote(t *testing.T) {

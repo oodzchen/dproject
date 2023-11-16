@@ -162,6 +162,10 @@ other = "已注册"
 hash = "sha1-28b79d62521142f818df6c69c148bb69bcaa3e45"
 other = "文章数据校验失败"
 
+[AppErrCode_CategoryValidFailed]
+hash = "sha1-7a2e1e1b18950dcf8a0dc55c24d77f9d256d2e6e"
+other = "分类数据校验失败"
+
 [AppErrCode_NotRegistered]
 hash = "sha1-b2115c5fa95f4a4a102bddcbb41b3e25c2913528"
 other = "未注册"
@@ -289,6 +293,10 @@ other = "取消订阅"
 [CancelVote]
 hash = "sha1-9f021898ec33f40be86f32bb614b7676044e2590"
 other = "取消投票"
+
+[Category]
+hash = "sha1-a3c686e711e4720f99b4562bb3dbaae7ab658cf2"
+other = "分类"
 
 [ConfirmDelete]
 hash = "sha1-5c3d4418dea97785194bdc8d2ba60ca6dec1c61a"

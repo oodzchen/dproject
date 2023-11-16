@@ -60,6 +60,9 @@ func permissionValidErr(str string) error {
 const PermissionFrontIdMaxLen int = 50
 const PermissionNameMaxLen int = 50
 
+var rePermissionFrontId = regexp.MustCompile(`^[\w\d_.]{1,` + strconv.Itoa(PermissionFrontIdMaxLen) + `}$`)
+var rePermissionName = regexp.MustCompile(`^[\w\d\s]{1,` + strconv.Itoa(PermissionNameMaxLen) + `}$`)
+
 func (p *Permission) TrimSpace() {
 	p.FrontId = strings.TrimSpace(p.FrontId)
 	p.Name = strings.TrimSpace(p.Name)
@@ -90,8 +93,7 @@ func (p *Permission) Valid() error {
 		return permissionValidErr(fmt.Sprintf("front id length limit in %d characters", PermissionFrontIdMaxLen))
 	}
 
-	reFrontId := regexp.MustCompile(`^[\w\d_.]{1,` + strconv.Itoa(PermissionFrontIdMaxLen) + `}$`)
-	if !reFrontId.Match([]byte(p.FrontId)) {
+	if !rePermissionFrontId.Match([]byte(p.FrontId)) {
 		return permissionValidErr("front id format error")
 	}
 
@@ -99,8 +101,7 @@ func (p *Permission) Valid() error {
 		return permissionValidErr(fmt.Sprintf("name length limit in %d characters", PermissionNameMaxLen))
 	}
 
-	reName := regexp.MustCompile(`^[\w\d\s]{1,` + strconv.Itoa(PermissionNameMaxLen) + `}$`)
-	if !reName.Match([]byte(p.Name)) {
+	if !rePermissionName.Match([]byte(p.Name)) {
 		return permissionValidErr("name format error")
 	}
 

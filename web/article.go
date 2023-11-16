@@ -417,6 +417,7 @@ func (ar *ArticleResource) handleSubmit(w http.ResponseWriter, r *http.Request, 
 	title := r.Form.Get("title")
 	url := r.Form.Get("url")
 	content := r.Form.Get("content")
+	categoryFrontId := r.Form.Get("category_front_id")
 	paramReplyTo := chi.URLParam(r, "articleId")
 
 	var replyTo int
@@ -456,7 +457,7 @@ func (ar *ArticleResource) handleSubmit(w http.ResponseWriter, r *http.Request, 
 	if isReply {
 		id, err = ar.articleSrv.Reply(replyTo, content, authorId)
 	} else {
-		id, err = ar.articleSrv.Create(title, url, content, authorId, 0)
+		id, err = ar.articleSrv.Create(title, url, content, authorId, 0, categoryFrontId)
 	}
 	// id, err := ar.articleSrv.Create(title, content, authorId, replyTo)
 	if err != nil {
@@ -786,7 +787,7 @@ func (ar *ArticleResource) getArticleTreeList(articleId, currUserId, page, pageS
 			ch <- err
 			return
 		}
-		fmt.Println("item tree list top id:", list[0].Id)
+		// fmt.Println("item tree list top id:", list[0].Id)
 		fmt.Printf("item tree duration: %dms\n", time.Since(startTime).Milliseconds())
 
 		var ids []int

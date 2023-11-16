@@ -7,11 +7,14 @@ package model
    ENUM(
    AlreadyRegistered = 1000, // already registered
    NotRegistered, // not registered
+
    UserValidFailed, // user data validation failed
    ArticleValidFailed, // article data validation failed
    PermissionValidFailed, // permission data validation failed
    RoleValidFailed, // role data validation failed
    ActivityValidFailed, // activity data validation failed
+   CategoryValidFailed, // category data validation failed
+
    UserNotExist, // user dose not exist
    )
 */

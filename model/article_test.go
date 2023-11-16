@@ -10,11 +10,12 @@ import (
 )
 
 type articleData struct {
-	Title    string
-	AuthorId int
-	Content  string
-	Depth    int
-	Link     string
+	Title           string
+	AuthorId        int
+	Content         string
+	Depth           int
+	Link            string
+	CategoryFrontId string
 }
 
 func TestArticleValid(t *testing.T) {
@@ -38,6 +39,7 @@ func TestArticleValid(t *testing.T) {
 				"This is content",
 				0,
 				"https://test.com",
+				"general",
 			},
 			isUpdate: false,
 			valid:    true,
@@ -50,6 +52,7 @@ func TestArticleValid(t *testing.T) {
 				"This is content",
 				0,
 				"https://test.com",
+				"general",
 			},
 			isUpdate: false,
 			valid:    false,
@@ -62,6 +65,7 @@ func TestArticleValid(t *testing.T) {
 				"This is content",
 				0,
 				"https://test.com",
+				"general",
 			},
 			isUpdate: false,
 			valid:    false,
@@ -74,6 +78,7 @@ func TestArticleValid(t *testing.T) {
 				" ",
 				0,
 				"https://test.com",
+				"general",
 			},
 			isUpdate: false,
 			valid:    true,
@@ -86,6 +91,7 @@ func TestArticleValid(t *testing.T) {
 				"This is content",
 				0,
 				"https://test.com",
+				"general",
 			},
 			isUpdate: false,
 			valid:    false,
@@ -98,6 +104,7 @@ func TestArticleValid(t *testing.T) {
 				string(largeText),
 				0,
 				"https://test.com",
+				"general",
 			},
 			isUpdate: false,
 			valid:    false,
@@ -110,6 +117,7 @@ func TestArticleValid(t *testing.T) {
 				"This is Content",
 				0,
 				"https://test.com",
+				"general",
 			},
 			isUpdate: true,
 			valid:    false,
@@ -122,6 +130,7 @@ func TestArticleValid(t *testing.T) {
 				"This is Content",
 				1,
 				"https://test.com",
+				"general",
 			},
 			isUpdate: true,
 			valid:    true,
@@ -134,6 +143,7 @@ func TestArticleValid(t *testing.T) {
 				"This is Content",
 				1,
 				"https://test.com",
+				"general",
 			},
 			isUpdate: true,
 			valid:    true,
@@ -146,6 +156,7 @@ func TestArticleValid(t *testing.T) {
 				"",
 				1,
 				"https://test.com",
+				"general",
 			},
 			isUpdate: true,
 			valid:    false,
@@ -158,6 +169,7 @@ func TestArticleValid(t *testing.T) {
 				"",
 				0,
 				"",
+				"general",
 			},
 			isUpdate: false,
 			valid:    true,
@@ -170,6 +182,20 @@ func TestArticleValid(t *testing.T) {
 				"",
 				0,
 				"abc.com",
+				"general",
+			},
+			isUpdate: false,
+			valid:    false,
+		},
+		{
+			desc: "Category is required",
+			in: &articleData{
+				"This is Title",
+				1,
+				"This is content",
+				0,
+				"https://test.com",
+				"",
 			},
 			isUpdate: false,
 			valid:    false,
@@ -179,11 +205,12 @@ func TestArticleValid(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
 			a := &Article{
-				Title:      tt.in.Title,
-				AuthorId:   tt.in.AuthorId,
-				Content:    tt.in.Content,
-				ReplyDepth: tt.in.Depth,
-				Link:       tt.in.Link,
+				Title:           tt.in.Title,
+				AuthorId:        tt.in.AuthorId,
+				Content:         tt.in.Content,
+				ReplyDepth:      tt.in.Depth,
+				Link:            tt.in.Link,
+				CategoryFrontId: tt.in.CategoryFrontId,
 			}
 			err := a.Valid(tt.isUpdate)
 			got := err == nil

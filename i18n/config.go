@@ -642,4 +642,9 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "BrandName",
 		Other: "DizKaz",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Category",
+		Other: "Category",
+	})
 }

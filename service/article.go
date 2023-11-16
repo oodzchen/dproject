@@ -11,13 +11,14 @@ type Article struct {
 	SantizePolicy *bluemonday.Policy
 }
 
-func (a *Article) Create(title, url, content string, authorId, replyTo int) (int, error) {
+func (a *Article) Create(title, url, content string, authorId, replyTo int, categoryFrontId string) (int, error) {
 	article := &model.Article{
-		Title:    title,
-		AuthorId: authorId,
-		Link:     url,
-		Content:  content,
-		ReplyTo:  replyTo,
+		Title:           title,
+		AuthorId:        authorId,
+		Link:            url,
+		Content:         content,
+		ReplyTo:         replyTo,
+		CategoryFrontId: categoryFrontId,
 	}
 
 	article.TrimSpace()
@@ -30,7 +31,7 @@ func (a *Article) Create(title, url, content string, authorId, replyTo int) (int
 		return 0, err
 	}
 
-	id, err := a.Store.Article.Create(article.Title, article.Link, article.Content, authorId, replyTo)
+	id, err := a.Store.Article.Create(article.Title, article.Link, article.Content, article.AuthorId, article.ReplyTo, article.CategoryFrontId)
 	if err != nil {
 		return 0, err
 	}
@@ -39,5 +40,21 @@ func (a *Article) Create(title, url, content string, authorId, replyTo int) (int
 }
 
 func (a *Article) Reply(target int, content string, authorId int) (int, error) {
-	return a.Create("", "", content, authorId, target)
+	article := &model.Article{
+		AuthorId: authorId,
+		Content:  content,
+		ReplyTo:  target,
+	}
+
+	article.TrimSpace()
+	article.Sanitize(a.SantizePolicy)
+
+	err := article.Valid(true)
+	if err != nil {
+		// ar.Error(err.Error(), err, w, r, http.StatusBadRequest)
+		// return
+		return 0, err
+	}
+
+	return a.Create("", "", content, authorId, target, "")
 }

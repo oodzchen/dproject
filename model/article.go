@@ -198,6 +198,8 @@ type Article struct {
 	ReactCounts               ArticleReactCounts
 	ShowScore                 bool
 	TmpParent                 *Article // Only for temporary use, to avoid circular reference errors
+	CategoryFrontId           string
+	Category                  *Category
 }
 
 type ArticleReact struct {
@@ -294,14 +296,14 @@ func (a *Article) TrimSpace() {
 	a.Link = strings.TrimSpace(a.Link)
 }
 
+var reArticleURLStr = `^(https?|ftp)://[^\s/$.?#].[^\s]*$`
+
 func (a *Article) Valid(isUpdate bool) error {
 	isReply := a.ReplyDepth > 0 || a.ReplyTo != 0
 	authorId := a.AuthorId
 	title := strings.TrimSpace(a.Title)
 	content := strings.TrimSpace(a.Content)
 	link := strings.TrimSpace(a.Link)
-
-	reURLStr := `^(https?|ftp)://[^\s/$.?#].[^\s]*$`
 
 	if !isUpdate && authorId == 0 {
 		return articleValidErr(translator.LocalTpl("Required", "FieldNames", translator.LocalTpl("Author")))
@@ -317,9 +319,13 @@ func (a *Article) Valid(isUpdate bool) error {
 		}
 
 		if link != "" {
-			if !regexp.MustCompile(reURLStr).Match([]byte(link)) {
+			if !regexp.MustCompile(reArticleURLStr).Match([]byte(link)) {
 				return articleValidErr(translator.LocalTpl("FormatError", "FieldNames", translator.LocalTpl("URL")))
 			}
+		}
+
+		if a.CategoryFrontId == "" {
+			return articleValidErr(translator.LocalTpl("Required", "FieldNames", translator.LocalTpl("Category")))
 		}
 
 	} else {

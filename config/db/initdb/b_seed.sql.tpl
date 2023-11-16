@@ -35,11 +35,15 @@ ON users (LOWER(username));
 
 CREATE TABLE categories (
 id SERIAL PRIMARY KEY,
+front_id VARCHAR(255) NOT NULL,
 name VARCHAR(255) NOT NULL,
 describe TEXT,
 created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-author_id INTEGER REFERENCES users(id),
-approved BOOLEAN NOT NULL DEFAULT false
+author_id INTEGER REFERENCES users(id) NOT NULL,
+approved BOOLEAN NOT NULL DEFAULT false,
+approval_comment TEXT,
+deleted BOOLEAN NOT NULL DEFAULT false,
+UNIQUE(front_id)
 );
 
 -- 创建文章数据表格
@@ -47,7 +51,7 @@ CREATE TABLE posts (
 id SERIAL PRIMARY KEY,
 title VARCHAR(255),
 url VARCHAR(255),
-author_id INTEGER REFERENCES users(id),
+author_id INTEGER REFERENCES users(id) NOT NULL,
 content TEXT,
 created_at TIMESTAMP NOT NULL DEFAULT NOW(),
 updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -58,7 +62,7 @@ root_article_id INTEGER DEFAULT 0 NOT NULL,
 list_weight DOUBLE PRECISION DEFAULT 0 NOT NULL,
 participate_count INTEGER DEFAULT 0 NOT NULL,
 reply_weight DOUBLE PRECISION DEFAULT 0 NOT NULL,
-category_id INTEGER REFERENCES categories(id)
+category_id INTEGER REFERENCES categories(id) NOT NULL
 );
 
 CREATE INDEX idx_posts_reply_to ON posts (reply_to);
@@ -68,8 +72,8 @@ CREATE TYPE vote_type AS ENUM ('up', 'down');
 
 CREATE TABLE post_votes (
 id SERIAL PRIMARY KEY,
-user_id INTEGER REFERENCES users(id),
-post_id INTEGER REFERENCES posts(id),
+user_id INTEGER REFERENCES users(id) NOT NULL,
+post_id INTEGER REFERENCES posts(id) NOT NULL,
 created_at TIMESTAMP NOT NULL DEFAULT NOW(),
 type vote_type,
 UNIQUE(user_id, post_id)
@@ -96,13 +100,14 @@ VALUES
 ('wangwu@example.com', :user_default_password, 'wangwu', '这是王五的自我介绍', false),
 ('mazi@example.com', :user_default_password, 'mazi', '这是麻子的自我介绍', false);
 
-INSERT INTO categories (name, author_id, describe, approved)
+INSERT INTO categories (front_id, name, author_id, describe, approved)
 VALUES
-('Linux', 1, 'GNU/Linux及各Linux发行版相关', true),
-('编程', 1, '编程相关语言、技术及遇到的问题', true),
-('互联网', 1, '互联网上发生了什么', true),
-('黑客新闻', 1, 'HackerNews上的热门讨论', true),
-('DizKaz', 1, '本站点系统功能建议和Bug反馈等', true);
+('computer-science', '计算机技术', 1, '所有与计算机相关的技术讨论，包括不限于编程、操作系统、数据库、机器学习等', true),
+('internet', '网上冲浪', 1, '互联网冲浪时发现的值得分享和讨论的文章、博客、推文等', true),
+('hacker-news', '黑客新闻', 1, '仅用于分享HackerNews上的热门讨论', true),
+('qna', '问与答', 1, '任何你想问的', true),
+('general', '常规', 1, '暂时找不到分类的内容', true),
+('dizkaz', '笛卡', 1, '本站点系统功能建议和Bug反馈等', true);
 
 -- -- 文章样例
 -- INSERT INTO posts (title, content, author_id)

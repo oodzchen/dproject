@@ -36,6 +36,9 @@ const (
 	// AppErrCodeActivityValidFailed is a AppErrCode of type ActivityValidFailed.
 	// activity data validation failed
 	AppErrCodeActivityValidFailed
+	// AppErrCodeCategoryValidFailed is a AppErrCode of type CategoryValidFailed.
+	// category data validation failed
+	AppErrCodeCategoryValidFailed
 	// AppErrCodeUserNotExist is a AppErrCode of type UserNotExist.
 	// user dose not exist
 	AppErrCodeUserNotExist
@@ -43,7 +46,7 @@ const (
 
 var ErrInvalidAppErrCode = fmt.Errorf("not a valid AppErrCode, try [%s]", strings.Join(_AppErrCodeNames, ", "))
 
-const _AppErrCodeName = "AlreadyRegisteredNotRegisteredUserValidFailedArticleValidFailedPermissionValidFailedRoleValidFailedActivityValidFailedUserNotExist"
+const _AppErrCodeName = "AlreadyRegisteredNotRegisteredUserValidFailedArticleValidFailedPermissionValidFailedRoleValidFailedActivityValidFailedCategoryValidFailedUserNotExist"
 
 var _AppErrCodeNames = []string{
 	_AppErrCodeName[0:17],
@@ -53,7 +56,8 @@ var _AppErrCodeNames = []string{
 	_AppErrCodeName[63:84],
 	_AppErrCodeName[84:99],
 	_AppErrCodeName[99:118],
-	_AppErrCodeName[118:130],
+	_AppErrCodeName[118:137],
+	_AppErrCodeName[137:149],
 }
 
 // AppErrCodeNames returns a list of possible string values of AppErrCode.
@@ -73,6 +77,7 @@ func AppErrCodeValues() []AppErrCode {
 		AppErrCodePermissionValidFailed,
 		AppErrCodeRoleValidFailed,
 		AppErrCodeActivityValidFailed,
+		AppErrCodeCategoryValidFailed,
 		AppErrCodeUserNotExist,
 	}
 }
@@ -85,7 +90,8 @@ var _AppErrCodeMap = map[AppErrCode]string{
 	AppErrCodePermissionValidFailed: _AppErrCodeName[63:84],
 	AppErrCodeRoleValidFailed:       _AppErrCodeName[84:99],
 	AppErrCodeActivityValidFailed:   _AppErrCodeName[99:118],
-	AppErrCodeUserNotExist:          _AppErrCodeName[118:130],
+	AppErrCodeCategoryValidFailed:   _AppErrCodeName[118:137],
+	AppErrCodeUserNotExist:          _AppErrCodeName[137:149],
 }
 
 // String implements the Stringer interface.
@@ -111,7 +117,8 @@ var _AppErrCodeValue = map[string]AppErrCode{
 	_AppErrCodeName[63:84]:   AppErrCodePermissionValidFailed,
 	_AppErrCodeName[84:99]:   AppErrCodeRoleValidFailed,
 	_AppErrCodeName[99:118]:  AppErrCodeActivityValidFailed,
-	_AppErrCodeName[118:130]: AppErrCodeUserNotExist,
+	_AppErrCodeName[118:137]: AppErrCodeCategoryValidFailed,
+	_AppErrCodeName[137:149]: AppErrCodeUserNotExist,
 }
 
 // ParseAppErrCode attempts to convert a string to a AppErrCode.
@@ -130,6 +137,7 @@ var (
 	AppErrPermissionValidFailed = NewAppError(AppErrCodePermissionValidFailed)
 	AppErrRoleValidFailed       = NewAppError(AppErrCodeRoleValidFailed)
 	AppErrActivityValidFailed   = NewAppError(AppErrCodeActivityValidFailed)
+	AppErrCategoryValidFailed   = NewAppError(AppErrCodeCategoryValidFailed)
 	AppErrUserNotExist          = NewAppError(AppErrCodeUserNotExist)
 )
 
@@ -145,6 +153,7 @@ var _AppErrCodeTextMap = map[AppErrCode]string{
 	AppErrCodePermissionValidFailed: "permission data validation failed",
 	AppErrCodeRoleValidFailed:       "role data validation failed",
 	AppErrCodeActivityValidFailed:   "activity data validation failed",
+	AppErrCodeCategoryValidFailed:   "category data validation failed",
 	AppErrCodeUserNotExist:          "user dose not exist",
 }
 
@@ -194,6 +203,10 @@ func AppErrCodeAddI18nConfigs(ic *i18nc.I18nCustom) {
 	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "AppErrCode_ActivityValidFailed",
 		Other: "activity data validation failed",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AppErrCode_CategoryValidFailed",
+		Other: "category data validation failed",
 	})
 	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "AppErrCode_UserNotExist",

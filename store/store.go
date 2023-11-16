@@ -17,21 +17,12 @@ type Store struct {
 	Message    MessageStore
 }
 
-// type DBStore interface {
-// 	NewArticleStore() (any, error)
-// 	NewUserStore() (any, error)
-// 	NewPermissionStore() (any, error)
-// 	NewRoleStore() (any, error)
-// 	NewActivity() (any, error)
-// 	NewMessage() (any, error)
-// }
-
 type ArticleStore interface {
 	// pageSize < 0 to list all undeleted data
 	List(page, pageSize int, sortType model.ArticleSortType) ([]*model.Article, int, error)
 	ListUserState(ids []int, userId int) ([]*model.Article, error)
 	ListLatestCount(start, end time.Time) (int, error)
-	Create(title, url, content string, authorId, replyTo int) (int, error)
+	Create(title, url, content string, authorId, replyTo int, categoryFrontId string) (int, error)
 	Update(a *model.Article, fields []string) (int, error)
 	Item(id, loginedUserId int) (*model.Article, error)
 	Delete(id int) (int, error)
@@ -48,6 +39,7 @@ type ArticleStore interface {
 	Notify(senderUserId, sourceArticleId int, content string) error
 	GetReactList() ([]*model.ArticleReact, error)
 	ReactItem(int) (*model.ArticleReact, error)
+	Tag(id int, tagFrontId string) error
 }
 
 type UserStore interface {
@@ -80,6 +72,15 @@ type PermissionStore interface {
 	Item(int) (*model.Permission, error)
 	Clear() error
 	// Delete(int) error
+}
+
+type CategoryStore interface {
+	List(page, pageSize int, state model.CategoryState) ([]*model.Category, error)
+	Create(frontId, name, describe string, authorId int) (int, error)
+	Update(frontId, name, describe string) (int, error)
+	Item(frontId string) (*model.Category, error)
+	Approval(frontId string, pass bool, comment string) error
+	Delete(frontId string) error
 }
 
 type RoleStore interface {

@@ -53,13 +53,17 @@ WHERE post_id = tp.id AND type = 'up'
 SELECT COUNT(post_id) FROM post_votes
 WHERE post_id = tp.id AND type = 'down'
 ) AS vote_down,
-pi.total AS total
+pi.total AS total,
+c.id AS category_id,
+c.front_id AS category_front_id,
+c.name AS category_name
 FROM posts tp
 JOIN postIds pi ON tp.id = pi.id
 LEFT JOIN posts p2 ON tp.root_article_id = p2.id
 LEFT JOIN posts p3 ON tp.id = p3.root_article_id AND p3.deleted = false
 LEFT JOIN users u ON u.id = tp.author_id
-GROUP BY tp.id, u.username, p2.title, pi.total` + orderSqlStrTail
+LEFT JOIN categories c ON c.id = tp.category_id
+GROUP BY tp.id, u.username, p2.title, pi.total, c.id` + orderSqlStrTail
 
 	var args []any
 	if page < 1 {
@@ -93,9 +97,12 @@ GROUP BY tp.id, u.username, p2.title, pi.total` + orderSqlStrTail
 	var list []*model.Article
 	for rows.Next() {
 		var currUserState model.CurrUserState
+		var category model.Category
 		item := model.Article{
 			CurrUserState: &currUserState,
+			Category:      &category,
 		}
+
 		// var item model.Article
 		err := rows.Scan(
 			&item.Id,
@@ -115,11 +122,18 @@ GROUP BY tp.id, u.username, p2.title, pi.total` + orderSqlStrTail
 			&item.VoteUp,
 			&item.VoteDown,
 			&total,
+
+			&category.Id,
+			&category.FrontId,
+			&category.Name,
 		)
+
 		if err != nil {
 			fmt.Printf("Collect rows error: %v\n", err)
 			return nil, 0, err
 		}
+
+		item.CategoryFrontId = category.FrontId
 
 		list = append(list, &item)
 	}
@@ -198,10 +212,10 @@ SELECT COUNT(*) FROM replyTree`
 	return count, nil
 }
 
-func (a *Article) Create(title, url, content string, authorId, replyTo int) (int, error) {
+func (a *Article) Create(title, url, content string, authorId, replyTo int, categoryFrontId string) (int, error) {
 	var id int
 	sqlStr := `
-INSERT INTO posts (title, author_id, content, reply_to, url, root_article_id, depth)
+INSERT INTO posts (title, author_id, content, reply_to, url, root_article_id, depth, category_id)
 VALUES (
     $1,
     $2,
@@ -219,6 +233,11 @@ VALUES (
              WHEN (SELECT p.reply_to FROM posts p WHERE $4 = p.id) = 0 THEN 1
              ELSE (SELECT p.depth + 1 FROM posts p WHERE $4 = p.id)
         END
+    ),
+    (
+        CASE WHEN $4 = 0 THEN (SELECT id FROM categories WHERE front_id = $6)
+             ELSE (SELECT p.category_id FROM posts p WHERE $4 = p.id)
+        END
     )
 )
 RETURNING (id);`
@@ -228,6 +247,7 @@ RETURNING (id);`
 		content,
 		replyTo,
 		url,
+		categoryFrontId,
 	).Scan(&id)
 	if err != nil {
 		return 0, err
@@ -357,19 +377,25 @@ SELECT
     ELSE FALSE
   END
  FROM post_subs WHERE post_id = p.id AND user_id = $2
-) AS subscribed
+) AS subscribed,
+c.id AS category_id,
+c.front_id AS category_front_id,
+c.name AS category_name
 FROM posts p
 LEFT JOIN users u ON p.author_id = u.id
 LEFT JOIN posts p2 ON p.root_article_id = p2.id
 LEFT JOIN post_votes pv ON pv.post_id = p.id AND pv.user_id = $2
 LEFT JOIN post_votes pv1 ON pv1.post_id = p.id AND pv1.type = 'up'
 LEFT JOIN post_votes pv2 ON pv2.post_id = p.id AND pv2.type = 'down'
+LEFT JOIN categories c ON c.id = p.category_id
 WHERE p.id = $1
-GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title, pv.type;`
+GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title, pv.type, c.id;`
 
 	var userState model.CurrUserState
+	var category model.Category
 	item := model.Article{
 		CurrUserState: &userState,
+		Category:      &category,
 	}
 	err := a.dbPool.QueryRow(context.Background(), sqlStr, id, userId).Scan(
 		&item.Id,
@@ -390,11 +416,17 @@ GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at,
 		&item.VoteDown,
 		&item.CurrUserState.Saved,
 		&item.CurrUserState.Subscribed,
+
+		&category.Id,
+		&category.FrontId,
+		&category.Name,
 	)
 
 	if err != nil {
 		return nil, err
 	}
+
+	item.CategoryFrontId = category.FrontId
 
 	item.FormatNullValues()
 	item.FormatTimeStr()
@@ -439,7 +471,10 @@ COALESCE(r.id, 0) AS react_id,
 COALESCE(r.emoji, '') AS react_emoji,
 COALESCE(r.front_id, '') AS react_front_id,
 COALESCE(r.describe, '') AS react_describe,
-COALESCE(r.created_at, NOW()) AS react_created_at
+COALESCE(r.created_at, NOW()) AS react_created_at,
+c.id AS category_id,
+c.front_id AS category_front_id,
+c.name AS category_name
 FROM groupedList ar
 LEFT JOIN posts p ON p.id = ar.id
 LEFT JOIN users u ON p.author_id = u.id
@@ -449,8 +484,9 @@ LEFT JOIN post_votes pv1 ON pv1.post_id = p.id AND pv1.type = 'up'
 LEFT JOIN post_votes pv2 ON pv2.post_id = p.id AND pv2.type = 'down'
 LEFT JOIN post_reacts pr ON pr.post_id = p.id
 LEFT JOIN reacts r ON r.id = pr.react_id
+LEFT JOIN categories c ON c.id = p.category_id
 WHERE ar.id = $1 OR (ar.cur_depth = 1 AND ar.rn BETWEEN $3 AND $4) OR (ar.cur_depth > 1 AND ar.rn BETWEEN 0 AND $5)
-GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title, r.id, pr.id
+GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title, r.id, pr.id, c.id
 ` + orderSqlStrTail
 
 	if page < 1 {
@@ -476,6 +512,7 @@ GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.crea
 	for rows.Next() {
 		var react model.ArticleReact
 		var item model.Article
+		var category model.Category
 
 		err = rows.Scan(
 			&item.Id,
@@ -501,6 +538,10 @@ GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.crea
 			&react.FrontId,
 			&react.Describe,
 			&react.CreatedAt,
+
+			&category.Id,
+			&category.FrontId,
+			&category.Name,
 		)
 
 		// fmt.Println("item.id: ", item.Id)
@@ -529,6 +570,9 @@ GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.crea
 					article.Reacts = append(article.Reacts, &react)
 				}
 			}
+
+			item.Category = &category
+			item.CategoryFrontId = category.FrontId
 		}
 	}
 
@@ -1039,4 +1083,8 @@ GROUP BY p.created_at;`,
 
 func (a *Article) SetAfterUpdateWeights(fn func() error) {
 	afterUpdateWeights = fn
+}
+
+func (a *Article) Tag(id int, tagFrontId string) error {
+	return nil
 }
