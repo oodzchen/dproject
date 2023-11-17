@@ -647,4 +647,9 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "Category",
 		Other: "Category",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "ResetPassword",
+		Other: "Reset Password",
+	})
 }

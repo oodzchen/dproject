@@ -598,6 +598,10 @@ other = "重新发送验证码到邮箱"
 hash = "sha1-fc4c924bc1f75287d3babe85966606fab501777b"
 other = "如果检测到匹配的帐号，将会向邮箱 {{.Email}} 发送验证码，有效期 {{.Duration}} 分钟。请输入新密码和验证码以完成密码重置。"
 
+[ResetPassword]
+hash = "sha1-3fb75e3bfe4de94eb5198656fa9de95352dab915"
+other = "重置密码"
+
 [RetrievePassTip]
 hash = "sha1-2a1f97642dc312504c024a4aaa83d894aa196830"
 other = "请输入与您的帐号相关联的邮箱。"

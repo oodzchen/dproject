@@ -598,6 +598,10 @@ other = "確認コードをメールに再送する"
 hash = "sha1-fc4c924bc1f75287d3babe85966606fab501777b"
 other = "一致するアカウントが検出された場合、確認コードがメールに送信されます：{{.Email}}、有効期間{{.Duration}}分。パスワードリセットを完了するには、新しいパスワードと確認コードを入力してください。"
 
+[ResetPassword]
+hash = "sha1-3fb75e3bfe4de94eb5198656fa9de95352dab915"
+other = "パスワードをリセットする"
+
 [RetrievePassTip]
 hash = "sha1-2a1f97642dc312504c024a4aaa83d894aa196830"
 other = "アカウントに関連するメールアドレスを入力してください"

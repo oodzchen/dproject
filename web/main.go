@@ -431,7 +431,7 @@ func (mr *MainResource) LoginPage(w http.ResponseWriter, r *http.Request) {
 		Data:  "",
 		BreadCrumbs: []*model.BreadCrumb{
 			{
-				Path: "/login",
+				// Path: "/login",
 				Name: mr.Local("Login"),
 			},
 		},
@@ -1077,7 +1077,12 @@ func (mr *MainResource) LoginAuthCallback(w http.ResponseWriter, r *http.Request
 
 func (mr *MainResource) RetrievePasswordPage(w http.ResponseWriter, r *http.Request) {
 	mr.Render(w, r, "retrieve_password", &model.PageData{
-		Title: "Retrieve Password",
+		Title: mr.Local("RetrievePassword"),
+		BreadCrumbs: []*model.BreadCrumb{
+			{
+				Name: mr.Local("RetrievePassword"),
+			},
+		},
 	})
 }
 
@@ -1125,10 +1130,15 @@ func (mr *MainResource) ResetPasswordPage(w http.ResponseWriter, r *http.Request
 	}
 
 	mr.Render(w, r, "reset_password", &model.PageData{
-		Title: "Reset Password",
+		Title: mr.Local("ResetPassword"),
 		Data: &PageData{
 			Email:        email,
 			CodeLifeTime: int(mr.srv.Verifier.CodeLifeTime.Minutes()),
+		},
+		BreadCrumbs: []*model.BreadCrumb{
+			{
+				Name: mr.Local("ResetPassword"),
+			},
 		},
 	})
 }
