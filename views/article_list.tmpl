@@ -8,9 +8,10 @@
     {{- $sortTabMap := dict "list_best" (local "Best") "latest" (local "Latest") "list_hot" (local "Hot") -}}
     {{- $showSummary := false -}}
     {{- $showOperation := false -}}
+    {{- $routePath := .RoutePath -}}
     <div class="tabs">
 	{{- range $sortTabs -}}
-	    <a class="tab{{if eq $data.SortType .}} active{{end}}" title="{{get $sortTabMap .}}" href="/articles{{if ne . "list_best"}}?sort={{.}}{{end}}">{{get $sortTabMap .}}</a>
+	    <a class="tab{{if eq $data.SortType .}} active{{end}}" title="{{get $sortTabMap .}}" href="{{$routePath}}{{if ne . "list_best"}}?sort={{.}}{{end}}">{{get $sortTabMap .}}</a>
 	{{- end -}}
     </div>
 
@@ -31,7 +32,7 @@
 		    <br/>
 		    {{- $author :=  (print "<a class=\"text-lighten-3\" href=\"/users/" $item.AuthorName "\">" $item.AuthorName "</a>") -}}
 		    <small class="text-lighten-3">
-			<a class="text-lighten-2" href="/categories/{{$item.Category.FrontId}}">&bull; {{$item.Category.Name}}</a>&nbsp;|&nbsp;
+			<a class="text-lighten-2" href="/categories/{{$item.Category.FrontId}}">{{$item.Category.Name}}</a>&nbsp;|&nbsp;
 			{{- if or (permit "article" "view_score") (gt $item.VoteScore 0) -}}
 			    {{- local "VoteScore" "Score" $item.VoteScore | upHead 1}} |&nbsp;
 			{{- end -}}

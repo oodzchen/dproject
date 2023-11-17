@@ -2,6 +2,7 @@ package pgstore
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/oodzchen/dproject/model"
@@ -11,8 +12,8 @@ type Category struct {
 	dbPool *pgxpool.Pool
 }
 
-func (p *Category) List(page, pageSize int, state model.CategoryState) ([]*model.Category, error) {
-	sqlStr := `SELECT id, front_id, name, describe, author_id, approved, approval_comment, created_at FROM categories`
+func (p *Category) List(state model.CategoryState) ([]*model.Category, error) {
+	sqlStr := `SELECT id, front_id, name, COALESCE(describe, ''), author_id, approved, COALESCE(approval_comment, ''), created_at FROM categories`
 	switch state {
 	case model.CategoryStateApproved:
 		sqlStr += " WHERE approved = true "
@@ -85,8 +86,19 @@ func (p *Category) Update(frontId, name, describe string) (int, error) {
 }
 
 func (p *Category) Item(frontId string) (*model.Category, error) {
+	fmt.Println("category front id:", frontId)
+
 	var item model.Category
-	err := p.dbPool.QueryRow(context.Background(), "SELECT id, front_id, name, describe, author_id, approved, approval_comment, created_at FROM categories front_id = $1",
+	sqlStr := `SELECT id,
+front_id,
+name,
+COALESCE(describe, ''),
+author_id,
+approved,
+COALESCE(approval_comment, ''),
+created_at FROM categories WHERE front_id = $1`
+	fmt.Println("category item sql:", sqlStr)
+	err := p.dbPool.QueryRow(context.Background(), sqlStr,
 		frontId,
 	).Scan(
 		&item.Id,
@@ -102,6 +114,10 @@ func (p *Category) Item(frontId string) (*model.Category, error) {
 		return nil, err
 	}
 	return &item, nil
+}
+
+func (p *Category) Approval(frontId string, pass bool, comment string) error {
+	return nil
 }
 
 func (p *Category) Delete(frontId string) error {

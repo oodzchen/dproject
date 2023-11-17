@@ -146,6 +146,20 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	sort := r.Form.Get("sort")
 	categoryFrontId := chi.URLParam(r, "categoryFrontId")
 
+	var category *model.Category
+	var err error
+	if categoryFrontId != "" {
+		category, err = ar.store.Category.Item(categoryFrontId)
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				ar.Error("", err, w, r, http.StatusNotFound)
+				return
+			}
+			ar.ServerErrorp("", err, w, r)
+			return
+		}
+	}
+
 	var sortType model.ArticleSortType
 	if model.ValidArticleSort(sort) {
 		sortType = model.ArticleSortType(sort)
@@ -280,6 +294,15 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
+	if categoryFrontId != "" && category != nil {
+		pageData.BreadCrumbs = []*model.BreadCrumb{
+			{
+				Path: fmt.Sprintf("/categories/%s", category.FrontId),
+				Name: category.Name,
+			},
+		}
+	}
+
 	ar.Render(w, r, "article_list", pageData)
 }
 
@@ -344,6 +367,12 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 	var pageTitle string
 	var data *model.Article
 
+	categoryList, err := ar.store.Category.List(model.CategoryStateAll)
+	if err != nil {
+		ar.ServerErrorp("", err, w, r)
+		return
+	}
+
 	var moduleTitle = ar.Local("AddContent")
 	if id == "" {
 		pageTitle = ar.i18nCustom.LocalTpl("AddNew")
@@ -391,6 +420,7 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 		MaxTitleLen   int
 		MaxContentLen int
 		Article       *model.Article
+		Categories    []*model.Category
 	}
 
 	ar.Render(w, r, "create", &model.PageData{
@@ -399,6 +429,7 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 			MaxTitleLen:   model.MAX_ARTICLE_TITLE_LEN,
 			MaxContentLen: model.MAX_ARTICLE_CONTENT_LEN,
 			Article:       data,
+			Categories:    categoryList,
 		},
 		BreadCrumbs: []*model.BreadCrumb{
 			{
@@ -534,7 +565,13 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rId, err := strconv.Atoi(r.Form.Get("id"))
+	// rId, err := strconv.Atoi(r.Form.Get("id"))
+	id, err := strconv.Atoi(chi.URLParam(r, "articleId"))
+	if err != nil {
+		ar.Error("", err, w, r, http.StatusBadRequest)
+		return
+	}
+
 	replyDepth, err := strconv.Atoi(r.Form.Get("reply_depth"))
 	// fmt.Printf("replyDepth: %d\n", replyDepth)
 	if err != nil {
@@ -547,12 +584,13 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 
 	article := &model.Article{
 		Content:    r.Form.Get("content"),
-		Id:         rId,
+		Id:         id,
 		ReplyDepth: replyDepth,
 	}
 	if !isReply {
 		article.Title = r.Form.Get("title")
 		article.Link = r.Form.Get("url")
+		article.CategoryFrontId = r.Form.Get("category_front_id")
 	}
 
 	article.TrimSpace()
@@ -564,12 +602,18 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updateFields := []string{"Content"}
-	if !isReply {
-		updateFields = append(updateFields, "Title", "Link")
-	}
+	// updateFields := []string{"Content"}
+	// if !isReply {
+	// 	updateFields = append(updateFields, "Title", "Link", "CategoryFrontId")
+	// }
 
-	id, err := ar.store.Article.Update(article, updateFields)
+	// id, err := ar.store.Article.Update(article, updateFields)
+
+	if isReply {
+		_, err = ar.store.Article.UpdateReply(id, article.Content)
+	} else {
+		_, err = ar.store.Article.UpdateRootArticle(id, article.Title, article.Content, article.Link, article.CategoryFrontId)
+	}
 
 	if err != nil {
 		ar.Error("", err, w, r, http.StatusInternalServerError)

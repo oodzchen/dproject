@@ -15,6 +15,7 @@ type Store struct {
 	Permission PermissionStore
 	Activity   ActivityStore
 	Message    MessageStore
+	Category   CategoryStore
 }
 
 type ArticleStore interface {
@@ -23,7 +24,9 @@ type ArticleStore interface {
 	ListUserState(ids []int, userId int) ([]*model.Article, error)
 	ListLatestCount(start, end time.Time) (int, error)
 	Create(title, url, content string, authorId, replyTo int, categoryFrontId string) (int, error)
-	Update(a *model.Article, fields []string) (int, error)
+	// Update(a *model.Article, fields []string) (int, error)
+	UpdateRootArticle(id int, title, content, link, categoryFrontId string) (int, error)
+	UpdateReply(id int, content string) (int, error)
 	Item(id, loginedUserId int) (*model.Article, error)
 	Delete(id int) (int, error)
 	ItemTree(page, pageSize, ariticleId int, sortType model.ArticleSortType) ([]*model.Article, error)
@@ -75,7 +78,7 @@ type PermissionStore interface {
 }
 
 type CategoryStore interface {
-	List(page, pageSize int, state model.CategoryState) ([]*model.Category, error)
+	List(state model.CategoryState) ([]*model.Category, error)
 	Create(frontId, name, describe string, authorId int) (int, error)
 	Update(frontId, name, describe string) (int, error)
 	Item(frontId string) (*model.Category, error)

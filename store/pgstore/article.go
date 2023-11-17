@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"reflect"
 	"strings"
 	"sync"
 	"time"
@@ -22,6 +21,8 @@ type Article struct {
 }
 
 func (a *Article) List(page, pageSize int, sortType model.ArticleSortType, categoryFrontId string) ([]*model.Article, int, error) {
+	// fmt.Println("category front id:", categoryFrontId)
+
 	var orderSqlStrHead, orderSqlStrTail string
 	switch sortType {
 	case model.ListSortBest:
@@ -35,6 +36,20 @@ func (a *Article) List(page, pageSize int, sortType model.ArticleSortType, categ
 	default:
 		orderSqlStrHead = ` ORDER BY created_at DESC `
 		orderSqlStrTail = ` ORDER BY tp.created_at DESC `
+	}
+
+	var args []any
+	if page < 1 {
+		page = DefaultPage
+	}
+
+	if pageSize < 0 {
+		args = []any{0, nil}
+	} else {
+		if pageSize < 1 {
+			pageSize = DefaultPageSize
+		}
+		args = []any{pageSize * (page - 1), pageSize}
 	}
 
 	sqlStr := `
@@ -58,31 +73,18 @@ c.id AS category_id,
 c.front_id AS category_front_id,
 c.name AS category_name
 FROM posts tp
-JOIN postIds pi ON tp.id = pi.id`
+JOIN postIds pi ON tp.id = pi.id `
 
 	if strings.TrimSpace(categoryFrontId) != "" {
-		sqlStr += `JOIN categories c1 ON c1.id = p.category_id AND c1.front_id = $3`
+		args = append(args, categoryFrontId)
+		sqlStr += ` JOIN categories c1 ON c1.id = tp.category_id AND c1.front_id = $3 `
 	}
 
-	sqlStr += `LEFT JOIN posts p2 ON tp.root_article_id = p2.id
+	sqlStr += ` LEFT JOIN posts p2 ON tp.root_article_id = p2.id
 LEFT JOIN posts p3 ON tp.id = p3.root_article_id AND p3.deleted = false
 LEFT JOIN users u ON u.id = tp.author_id
 LEFT JOIN categories c ON c.id = tp.category_id
 GROUP BY tp.id, u.username, p2.title, pi.total, c.id` + orderSqlStrTail
-
-	var args []any
-	if page < 1 {
-		page = DefaultPage
-	}
-
-	if pageSize < 0 {
-		args = []any{0, nil, categoryFrontId}
-	} else {
-		if pageSize < 1 {
-			pageSize = DefaultPageSize
-		}
-		args = []any{pageSize * (page - 1), pageSize, categoryFrontId}
-	}
 
 	// fmt.Println("page", page)
 	// fmt.Println("pageSize", pageSize)
@@ -317,38 +319,17 @@ func validArticleUpdateField(key string) bool {
 	return false
 }
 
-func (a *Article) Update(item *model.Article, fieldNames []string) (int, error) {
-	for _, field := range fieldNames {
-		if !validArticleUpdateField(field) {
-			return 0, errors.New(fmt.Sprintf("'%s' is not allowed to update", field))
-		}
-	}
+func (a *Article) UpdateRootArticle(id int, title, content, link, categoryFrontId string) (int, error) {
+	sqlStr := `UPDATE posts SET
+title = $2,
+content = $3,
+url = $4,
+category_id = (
+  SELECT id FROM categories WHERE front_id = $5
+),
+updated_at = NOW() WHERE id = $1`
 
-	var updateStr []string
-	var updateVals []any
-	itemVal := reflect.ValueOf(*item)
-
-	dbFieldNameMap := map[string]string{
-		"Title":   "title",
-		"Content": "content",
-		"Weight":  "weight",
-		"Link":    "url",
-	}
-	for idx, field := range fieldNames {
-		updateStr = append(updateStr, fmt.Sprintf("%s = $%d", dbFieldNameMap[field], idx+1))
-		updateVals = append(updateVals, itemVal.FieldByName(field))
-	}
-
-	updateStr = append(updateStr, "updated_at = NOW()")
-
-	updateVals = append(updateVals, item.Id)
-	sqlStr := "UPDATE posts SET " + strings.Join(updateStr, ", ") + fmt.Sprintf(" WHERE id = $%d RETURNING(id)", len(updateVals))
-
-	// fmt.Println("update sql string: ", sqlStr)
-	// fmt.Println("update vals: ", updateVals)
-
-	var id int
-	err := a.dbPool.QueryRow(context.Background(), sqlStr, updateVals...).Scan(&id)
+	_, err := a.dbPool.Exec(context.Background(), sqlStr, id, title, content, link, categoryFrontId)
 	if err != nil {
 		return 0, err
 	}
@@ -360,6 +341,68 @@ func (a *Article) Update(item *model.Article, fieldNames []string) (int, error) 
 
 	return id, nil
 }
+
+func (a *Article) UpdateReply(id int, content string) (int, error) {
+	sqlStr := `UPDATE posts SET content = $2, updated_at = NOW() WHERE id = $1`
+
+	_, err := a.dbPool.Exec(context.Background(), sqlStr, id, content)
+	if err != nil {
+		return 0, err
+	}
+
+	err = a.updateWeights(id)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+// func (a *Article) Update(item *model.Article, fieldNames []string) (int, error) {
+// 	for _, field := range fieldNames {
+// 		if !validArticleUpdateField(field) {
+// 			return 0, errors.New(fmt.Sprintf("'%s' is not allowed to update", field))
+// 		}
+// 	}
+
+// 	var updateStr []string
+// 	var updateVals []any
+// 	itemVal := reflect.ValueOf(*item)
+
+// 	dbFieldNameMap := map[string]string{
+// 		"Title":           "title",
+// 		"Content":         "content",
+// 		"Weight":          "weight",
+// 		"Link":            "url",
+// 		"CategoryFrontId": "category_id",
+// 	}
+
+// 	for idx, field := range fieldNames {
+// 		updateStr = append(updateStr, fmt.Sprintf("%s = $%d", dbFieldNameMap[field], idx+1))
+// 		updateVals = append(updateVals, itemVal.FieldByName(field))
+// 	}
+
+// 	updateStr = append(updateStr, "updated_at = NOW()")
+
+// 	updateVals = append(updateVals, item.Id)
+// 	sqlStr := "UPDATE posts SET " + strings.Join(updateStr, ", ") + fmt.Sprintf(" WHERE id = $%d RETURNING(id)", len(updateVals))
+
+// 	// fmt.Println("update sql string: ", sqlStr)
+// 	// fmt.Println("update vals: ", updateVals)
+
+// 	var id int
+// 	err := a.dbPool.QueryRow(context.Background(), sqlStr, updateVals...).Scan(&id)
+// 	if err != nil {
+// 		return 0, err
+// 	}
+
+// 	err = a.updateWeights(id)
+// 	if err != nil {
+// 		return 0, err
+// 	}
+
+// 	return id, nil
+// }
 
 func (a *Article) Item(id, userId int) (*model.Article, error) {
 	sqlStr := `

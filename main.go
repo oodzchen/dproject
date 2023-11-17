@@ -118,7 +118,7 @@ func main() {
 		Article: pg.Article,
 		Rdb:     redisDB,
 	}
-	cacheableArticle.SetAfterUpdateWeights(cacheableArticle.RefreshListCache)
+	// cacheableArticle.SetAfterUpdateWeights(cacheableArticle.RefreshListCache)
 
 	dataStore := &store.Store{
 		Activity:   pg.Activity,
@@ -127,6 +127,7 @@ func main() {
 		Permission: pg.Permission,
 		Role:       pg.Role,
 		User:       pg.User,
+		Category:   pg.Category,
 	}
 
 	permissionSrv := &service.Permission{

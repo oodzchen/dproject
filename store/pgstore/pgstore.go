@@ -12,6 +12,7 @@ type PGStore struct {
 	Permission *Permission
 	Role       *Role
 	User       *User
+	Category   *Category
 }
 
 type DBConfig struct {
@@ -77,6 +78,7 @@ func (pg *PGStore) InitModules() error {
 	pg.Permission = &Permission{pgDB.Pool}
 	pg.Role = &Role{pgDB.Pool}
 	pg.User = &User{pgDB.Pool}
+	pg.Category = &Category{pgDB.Pool}
 
 	return nil
 }

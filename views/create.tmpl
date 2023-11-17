@@ -32,6 +32,14 @@
 		<small class="text-lighten-2">{{local "ArticleTitleTip" "Num" .Data.MaxTitleLen}}</small>
 	    </div>
 	    <div class="form__row">
+		<label class="form__label" for="category">{{local "Category"}} <small class="text-lighten-2" style="font-weight: normal">({{local "FormRequired"}})</small></label>
+		<select id="category" name="category_front_id" autocomplete="off">
+		    {{- range .Data.Categories -}}
+			<option {{if eq .FrontId $article.CategoryFrontId}}selected{{end}} value="{{.FrontId}}">{{.Name}}</option>
+		    {{- end -}}
+		</select>
+	    </div>
+	    <div class="form__row">
 		<label class="form__label" for="url">{{local "URL"}} <small class="text-lighten-2" style="font-weight: normal">({{local "FormOptional"}})</small></label>
 		<input type="url" id="url" name="url" value="{{$article.Link}}">
 		<small class="text-lighten-2">{{local "ArticleURLTip"}}</small>

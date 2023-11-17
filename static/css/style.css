@@ -255,6 +255,12 @@ a.text-lighten-3{
     display: table-row;
     line-height: 1.5;
 }
+
+.data-list .data-list__row:last-child .data-list__label,
+.data-list .data-list__row:last-child .data-list__content{
+    padding-bottom: 0;
+}
+    
 .data-list .data-list__label,
 .data-list .data-list__content{
     display: table-cell;

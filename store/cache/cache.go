@@ -3,11 +3,8 @@ package cache
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"math"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -34,32 +31,34 @@ const (
 )
 
 func (ac *ArticleCache) List(page, pageSize int, sortType model.ArticleSortType, categoryFrontId string) ([]*model.Article, int, error) {
-	params := map[string]string{
-		"sortType": string(sortType),
-		"page":     strconv.Itoa(page),
-		"pageSize": strconv.Itoa(pageSize),
-	}
-	cachedList,
-		total, err := ac.getList(ListTypeHome, params)
-	if err != nil {
-		if errors.Is(err, redis.Nil) {
-			list, total, err := ac.Article.List(page, pageSize, sortType, categoryFrontId)
-			if err != nil {
-				return nil, 0, err
-			}
-			go func() {
-				err := ac.setList(ListTypeHome, params, list, total)
-				if err != nil {
-					fmt.Println("redis cache article list error:", err)
-				}
-			}()
+	// params := map[string]string{
+	// 	"sortType":        string(sortType),
+	// 	"page":            strconv.Itoa(page),
+	// 	"pageSize":        strconv.Itoa(pageSize),
+	// 	"categoryFrontId": categoryFrontId,
+	// }
+	// cachedList,
+	// 	total, err := ac.getList(ListTypeHome, params)
+	// if err != nil {
+	// 	if errors.Is(err, redis.Nil) {
+	// 		list, total, err := ac.Article.List(page, pageSize, sortType, categoryFrontId)
+	// 		if err != nil {
+	// 			return nil, 0, err
+	// 		}
+	// 		go func() {
+	// 			err := ac.setList(ListTypeHome, params, list, total)
+	// 			if err != nil {
+	// 				fmt.Println("redis cache article list error:", err)
+	// 			}
+	// 		}()
 
-			return list, total, nil
-		}
-		return nil, 0, err
-	}
+	// 		return list, total, nil
+	// 	}
+	// 	return nil, 0, err
+	// }
 
-	return cachedList, total, nil
+	// return cachedList, total, nil
+	return ac.Article.List(page, pageSize, sortType, categoryFrontId)
 }
 
 // func (ac *ArticleCache) ItemTree(id int, sortType model.ArticleSortType) ([]*model.Article, error) {
@@ -154,45 +153,46 @@ func (ac *ArticleCache) getList(listType ListType, params map[string]string) ([]
 
 const maxCachedPageNum = 1
 
-func (ac *ArticleCache) RefreshListCache() error {
-	total, err := ac.Article.Count()
-	if err != nil {
-		return err
-	}
-	// fmt.Println("total on cache:", total)
+// func (ac *ArticleCache) RefreshListCache() error {
+// 	total, err := ac.Article.Count()
+// 	if err != nil {
+// 		return err
+// 	}
+// 	// fmt.Println("total on cache:", total)
 
-	totalPage := int(math.Ceil(float64(total) / float64(pgstore.DefaultPageSize)))
-	maxPage := maxCachedPageNum
-	if totalPage < maxCachedPageNum {
-		maxPage = totalPage
-	}
+// 	totalPage := int(math.Ceil(float64(total) / float64(pgstore.DefaultPageSize)))
+// 	maxPage := maxCachedPageNum
+// 	if totalPage < maxCachedPageNum {
+// 		maxPage = totalPage
+// 	}
 
-	sortTypes := []model.ArticleSortType{model.ListSortBest, model.ListSortLatest, model.ListSortHot}
-	for _, sortType := range sortTypes {
-		// fmt.Println("cache list sort type:", string(sortType))
-		for i := 1; i <= maxPage; i++ {
-			// fmt.Println("cache list page:", i)
-			list, total, err := ac.Article.List(i, pgstore.DefaultPageSize, sortType, "")
-			// fmt.Println("total from db:", total)
-			if err != nil {
-				return err
-			}
+// 	sortTypes := []model.ArticleSortType{model.ListSortBest, model.ListSortLatest, model.ListSortHot}
+// 	for _, sortType := range sortTypes {
+// 		// fmt.Println("cache list sort type:", string(sortType))
+// 		for i := 1; i <= maxPage; i++ {
+// 			// fmt.Println("cache list page:", i)
+// 			list, total, err := ac.Article.List(i, pgstore.DefaultPageSize, sortType, "")
+// 			// fmt.Println("total from db:", total)
+// 			if err != nil {
+// 				return err
+// 			}
 
-			params := map[string]string{
-				"sortType": string(sortType),
-				"page":     strconv.Itoa(i),
-				"pageSize": strconv.Itoa(pgstore.DefaultPageSize),
-			}
+// 			params := map[string]string{
+// 				"sortType":        string(sortType),
+// 				"page":            strconv.Itoa(i),
+// 				"pageSize":        strconv.Itoa(pgstore.DefaultPageSize),
+// 				"categoryFrontId": "",
+// 			}
 
-			err = ac.setList(ListTypeHome, params, list, total)
-			if err != nil {
-				return err
-			}
-		}
-	}
+// 			err = ac.setList(ListTypeHome, params, list, total)
+// 			if err != nil {
+// 				return err
+// 			}
+// 		}
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 // func (ac *ArticleCache) RefreshArticleTreeCache(id int) error {
 // 	sortTypes := []model.ArticleSortType{model.ReplySortBest, model.ListSortLatest}
