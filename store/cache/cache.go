@@ -33,7 +33,7 @@ const (
 	ListTypeTree          = "tree"
 )
 
-func (ac *ArticleCache) List(page, pageSize int, sortType model.ArticleSortType) ([]*model.Article, int, error) {
+func (ac *ArticleCache) List(page, pageSize int, sortType model.ArticleSortType, categoryFrontId string) ([]*model.Article, int, error) {
 	params := map[string]string{
 		"sortType": string(sortType),
 		"page":     strconv.Itoa(page),
@@ -43,7 +43,7 @@ func (ac *ArticleCache) List(page, pageSize int, sortType model.ArticleSortType)
 		total, err := ac.getList(ListTypeHome, params)
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			list, total, err := ac.Article.List(page, pageSize, sortType)
+			list, total, err := ac.Article.List(page, pageSize, sortType, categoryFrontId)
 			if err != nil {
 				return nil, 0, err
 			}
@@ -172,7 +172,7 @@ func (ac *ArticleCache) RefreshListCache() error {
 		// fmt.Println("cache list sort type:", string(sortType))
 		for i := 1; i <= maxPage; i++ {
 			// fmt.Println("cache list page:", i)
-			list, total, err := ac.Article.List(i, pgstore.DefaultPageSize, sortType)
+			list, total, err := ac.Article.List(i, pgstore.DefaultPageSize, sortType, "")
 			// fmt.Println("total from db:", total)
 			if err != nil {
 				return err

@@ -62,21 +62,23 @@
 
 {{define "user_basic_info" -}}
     <h1>{{.Name}}</h1>
-    <div class="data-list">
-	<div class="data-list__row">
-            <div class="data-list__label">{{local "JoinAt"}}:</div>
-            <div class="data-list__content">
-		<time title="{{.RegisteredAt}}">{{timeFormat .RegisteredAt "YYYY/MM/DD"}}</time>
-	    </div>
-	</div>
-	{{if .Introduction -}}
+    <div class="tip-block">
+	<div class="data-list">
 	    <div class="data-list__row">
-		<div class="data-list__label">{{local "Introduction"}}:</div>
-		<div class="data-list__content" style="white-space:break-spaces;">
-		    {{- .Introduction -}}
+		<div class="data-list__label">{{local "JoinAt"}}:</div>
+		<div class="data-list__content">
+		    <time title="{{.RegisteredAt}}">{{timeFormat .RegisteredAt "YYYY/MM/DD"}}</time>
 		</div>
 	    </div>
-	{{- end -}}
+	    {{if .Introduction -}}
+		<div class="data-list__row">
+		    <div class="data-list__label">{{local "Introduction"}}:</div>
+		    <div class="data-list__content" style="white-space:break-spaces;">
+			{{- .Introduction -}}
+		    </div>
+		</div>
+	    {{- end -}}
+	</div>
     </div>
 {{end -}}
 

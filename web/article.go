@@ -144,6 +144,7 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 
 	paramPage := r.Form.Get("page")
 	sort := r.Form.Get("sort")
+	categoryFrontId := chi.URLParam(r, "categoryFrontId")
 
 	var sortType model.ArticleSortType
 	if model.ValidArticleSort(sort) {
@@ -188,7 +189,7 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		defer wg.Done()
 		// list, err := ar.getArticleList(page, pageSize, currUserId, sortType)
-		list, _, err := ar.store.Article.List(page, pageSize, sortType)
+		list, _, err := ar.store.Article.List(page, pageSize, sortType, categoryFrontId)
 		if err != nil {
 			ch <- err
 			return
@@ -765,17 +766,36 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		ReactMap     map[string]*model.ArticleReact
 	}
 
-	ar.Render(w, r, "article", &model.PageData{Title: rootArticle.DisplayTitle, Data: &itemPageData{
-		rootArticle,
-		// delPage,
-		utils.GetReplyDepthSize(),
-		pageType,
-		reactList,
-		reactMap,
-	}})
+	ar.Render(w, r, "article", &model.PageData{
+		Title: rootArticle.DisplayTitle,
+		Data: &itemPageData{
+			rootArticle,
+			// delPage,
+			utils.GetReplyDepthSize(),
+			pageType,
+			reactList,
+			reactMap,
+		},
+		BreadCrumbs: []*model.BreadCrumb{
+			{
+				Path: fmt.Sprintf("/categories/%s", rootArticle.Category.FrontId),
+				Name: rootArticle.Category.Name,
+			},
+		},
+	})
 }
 
-func (ar *ArticleResource) getArticleTreeList(articleId, currUserId, page, pageSize int, sortType model.ArticleSortType, pageType ArticlePageType, wg *sync.WaitGroup, ch chan<- any, startTime time.Time) {
+func (ar *ArticleResource) getArticleTreeList(
+	articleId,
+	currUserId,
+	page,
+	pageSize int,
+	sortType model.ArticleSortType,
+	pageType ArticlePageType,
+	wg *sync.WaitGroup,
+	ch chan<- any,
+	startTime time.Time,
+) {
 	// fmt.Println("get article tree list root id:", articleId)
 	// fmt.Println("get article tree list pageType:", string(pageType))
 	defer wg.Done()

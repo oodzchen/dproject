@@ -102,12 +102,13 @@ VALUES
 
 INSERT INTO categories (front_id, name, author_id, describe, approved)
 VALUES
-('computer-science', '计算机技术', 1, '所有与计算机相关的技术讨论，包括不限于编程、操作系统、数据库、机器学习等', true),
+('computer-science', '计算机技术', 1, '所有与计算机相关的技术讨论，包括不限于编程、操作系统、数据库、机器学习', true),
 ('internet', '网上冲浪', 1, '互联网冲浪时发现的值得分享和讨论的文章、博客、推文等', true),
 ('hacker-news', '黑客新闻', 1, '仅用于分享HackerNews上的热门讨论', true),
 ('qna', '问与答', 1, '任何你想问的', true),
+('show', '作品展示', 1, '用于展示你参与的项目', true),
 ('general', '常规', 1, '暂时找不到分类的内容', true),
-('dizkaz', '笛卡', 1, '本站点系统功能建议和Bug反馈等', true);
+('dizkaz', '笛卡', 1, '本站点系统功能建议和Bug反馈', true);
 
 -- -- 文章样例
 -- INSERT INTO posts (title, content, author_id)

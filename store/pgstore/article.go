@@ -21,7 +21,7 @@ type Article struct {
 	dbPool *pgxpool.Pool
 }
 
-func (a *Article) List(page, pageSize int, sortType model.ArticleSortType) ([]*model.Article, int, error) {
+func (a *Article) List(page, pageSize int, sortType model.ArticleSortType, categoryFrontId string) ([]*model.Article, int, error) {
 	var orderSqlStrHead, orderSqlStrTail string
 	switch sortType {
 	case model.ListSortBest:
@@ -58,8 +58,13 @@ c.id AS category_id,
 c.front_id AS category_front_id,
 c.name AS category_name
 FROM posts tp
-JOIN postIds pi ON tp.id = pi.id
-LEFT JOIN posts p2 ON tp.root_article_id = p2.id
+JOIN postIds pi ON tp.id = pi.id`
+
+	if strings.TrimSpace(categoryFrontId) != "" {
+		sqlStr += `JOIN categories c1 ON c1.id = p.category_id AND c1.front_id = $3`
+	}
+
+	sqlStr += `LEFT JOIN posts p2 ON tp.root_article_id = p2.id
 LEFT JOIN posts p3 ON tp.id = p3.root_article_id AND p3.deleted = false
 LEFT JOIN users u ON u.id = tp.author_id
 LEFT JOIN categories c ON c.id = tp.category_id
@@ -71,12 +76,12 @@ GROUP BY tp.id, u.username, p2.title, pi.total, c.id` + orderSqlStrTail
 	}
 
 	if pageSize < 0 {
-		args = []any{0, nil}
+		args = []any{0, nil, categoryFrontId}
 	} else {
 		if pageSize < 1 {
 			pageSize = DefaultPageSize
 		}
-		args = []any{pageSize * (page - 1), pageSize}
+		args = []any{pageSize * (page - 1), pageSize, categoryFrontId}
 	}
 
 	// fmt.Println("page", page)

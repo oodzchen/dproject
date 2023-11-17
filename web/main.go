@@ -105,6 +105,11 @@ func (mr *MainResource) Routes() http.Handler {
 
 	rt.With(mdw.AuthCheck(mr.sessStore)).Get("/messages", mr.MessageList)
 
+	rt.Route("/categories", func(r chi.Router) {
+		// r.Get("/", mr.CategoryList)
+		r.Get("/{categoryFrontId}", mr.CategoryArticleList)
+	})
+
 	if config.Config.Debug {
 		rt.With(mdw.UserLogger(mr.uLogger, model.AcTypeDev, model.AcActionLogin, model.AcModelEmpty, mdw.ULogEmpty)).Post("/login_debug", mr.LoginDebug)
 	}
@@ -1324,4 +1329,8 @@ func (mr *MainResource) LoginAuthCallbackGithub(w http.ResponseWriter, r *http.R
 		mr.Session("one", w, r).Flash(mr.Local("AcountExistsTip"))
 		http.Redirect(w, r, "/login", http.StatusFound)
 	}
+}
+
+func (mr *MainResource) CategoryArticleList(w http.ResponseWriter, r *http.Request) {
+	mr.articleRs.List(w, r)
 }

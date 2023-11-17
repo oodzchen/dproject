@@ -19,7 +19,7 @@ type Store struct {
 
 type ArticleStore interface {
 	// pageSize < 0 to list all undeleted data
-	List(page, pageSize int, sortType model.ArticleSortType) ([]*model.Article, int, error)
+	List(page, pageSize int, sortType model.ArticleSortType, categoryFrontId string) ([]*model.Article, int, error)
 	ListUserState(ids []int, userId int) ([]*model.Article, error)
 	ListLatestCount(start, end time.Time) (int, error)
 	Create(title, url, content string, authorId, replyTo int, categoryFrontId string) (int, error)
