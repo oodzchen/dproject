@@ -534,6 +534,23 @@ a.text-lighten-3{
     color:var(--text-lighten);
 }
 
+.tip-block--gray{
+    padding: 10px 6px;
+    margin: 10px 0;
+    background:var(--text-bg);
+    color:var(--text-lighten);
+}
+
+.page-intro .page-intro__head{
+    display: flex;
+    justify-content: space-between;
+}
+
+.page-intro .page-intro__head h1{
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
 @media (max-width: 750px){
     :root{
 	--reply-indent-size: 1rem;

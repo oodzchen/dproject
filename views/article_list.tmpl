@@ -9,6 +9,22 @@
     {{- $showSummary := false -}}
     {{- $showOperation := false -}}
     {{- $routePath := .RoutePath -}}
+    {{- $category := .Data.Category -}}
+
+    {{- if $category -}}
+	<div class="tip-block--gray page-intro">
+	    <div class="page-intro__head">
+		<h1>{{$category.Name}}</h1>
+		<a href="">&plus;添加</a>
+	    </div>
+	    <p>{{$category.Describe}}</p>
+	    <div>
+		<a href="">订阅</a>
+		&nbsp;<a href="">忽略</a>
+	    </div>
+	</div>
+    {{- end -}}
+    
     <div class="tabs">
 	{{- range $sortTabs -}}
 	    <a class="tab{{if eq $data.SortType .}} active{{end}}" title="{{get $sortTabMap .}}" href="{{$routePath}}{{if ne . "list_best"}}?sort={{.}}{{end}}">{{get $sortTabMap .}}</a>
@@ -40,7 +56,7 @@
 			{{- if eq $item.TotalReplyCount 0 -}}
 			    | <a class="text-lighten-3" href="/articles/{{$item.Id}}">{{local "Discuss"}}</a>&nbsp;
 			{{- else -}}
-			    | <a class="text-lighten-3" href="/articles/{{$item.Id}}">{{local "ReplyNum" "Count" $item.TotalReplyCount}}</a>&nbsp;
+			    | <a class="text-lighten-3" href="/articles/{{$item.Id}}#replies">{{local "ReplyNum" "Count" $item.TotalReplyCount}}</a>&nbsp;
 			{{- end -}}
 			{{- if $debug -}}
 			    | {{local "Weight"}} {{$item.ListWeight}}

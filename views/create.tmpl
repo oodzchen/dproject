@@ -38,6 +38,13 @@
 			<option {{if eq .FrontId $article.CategoryFrontId}}selected{{end}} value="{{.FrontId}}">{{.Name}}</option>
 		    {{- end -}}
 		</select>
+		<div class="tip-block--gray">
+		    <ul class="data-list" style="padding-left:0;margin:0;">
+			{{- range .Data.Categories -}}
+			    <li class="data-list__row"><b class="data-list__label">{{.Name}}:</b> <span class="data-list__content">{{.Describe}}</span></li>
+			{{- end -}}
+		    </ul>
+		</div>
 	    </div>
 	    <div class="form__row">
 		<label class="form__label" for="url">{{local "URL"}} <small class="text-lighten-2" style="font-weight: normal">({{local "FormOptional"}})</small></label>

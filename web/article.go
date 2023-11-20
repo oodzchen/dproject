@@ -281,6 +281,7 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		PageSize     int
 		TotalPage    int
 		SortType     model.ArticleSortType
+		Category     *model.Category
 	}
 
 	pageData := &model.PageData{
@@ -291,10 +292,12 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 			pageSize,
 			CeilInt(total, pageSize),
 			sortType,
+			category,
 		},
 	}
 
 	if categoryFrontId != "" && category != nil {
+		pageData.Title = category.Name
 		pageData.BreadCrumbs = []*model.BreadCrumb{
 			{
 				// Path: fmt.Sprintf("/categories/%s", category.FrontId),
