@@ -3,30 +3,34 @@
 
     {{- $data := .Data -}}
     {{- $csrfField := .CSRFField -}}
-
-    <style>
-     .message-list{
-	 padding-left: 1rem;
-     }
-     .message-list li{
-	 margin-bottom: 0.5rem;
-     }
-    </style>
     
     <ul class="post-list">
 	{{- range $data.List -}}
-	    {{- $title := print "<a href='/articles/" .SourceArticle.Id "'>" .SourceArticle.DisplayTitle "</a>" -}}
 	    <li>
-		{{- local "NewReply" "ArticleTitle" $title}}{{timeAgo .CreatedAt}}
-		{{- if and .SourceArticle.CurrUserState .SourceArticle.CurrUserState.Subscribed -}}
-		    &nbsp;&nbsp;<form class="btn-form" action="/articles/{{.SourceArticle.Id}}/subscribe" method="POST" >
+		{{- $title := "" -}}
+		{{- if eq .Type "reply" -}}
+		    {{- $title = print "<a href='/articles/" .SourceArticle.Id "'>" .SourceArticle.DisplayTitle "</a>" -}}
+		    {{- local "NewReply" "ArticleTitle" $title}}{{timeAgo .CreatedAt}}
+		{{- else if eq .Type "category" -}}
+		    {{- $title = print "<a href='/categories/" .SourceCategory.FrontId "'>" .SourceCategory.Name "</a>" -}}
+		    {{- $authorName := print "<a href='/users/" .ContentArticle.AuthorName "'>" .ContentArticle.AuthorName "</a>" -}}
+		    {{- $articleTitle := print "<a href='/articles/" .ContentArticle.Id "'>" .ContentArticle.Title "</a>" -}}
+		    {{- local "NewArticleInCategory" "AuthorName" $authorName "ArticleTitle" $articleTitle "CategoryName" $title}}{{timeAgo .CreatedAt}}
+		{{- end -}}
+		
+		{{- if eq .Type "reply" -}}
+		    {{- if and .SourceArticle.CurrUserState .SourceArticle.CurrUserState.Subscribed -}}
+			&nbsp;&nbsp;<form class="btn-form" action="/articles/{{.SourceArticle.Id}}/subscribe" method="POST" >
 			{{- $csrfField -}}
 			<input name="root" type="hidden" value="{{.SourceArticle.ReplyRootArticleId}}"/>
 			{{$btnSubText := local "BtnUnsubscribe"}}
 			<button class="text-lighten-3" title="{{$btnSubText}}" type="submit">{{$btnSubText}}</button>
-		    </form>
+			</form>
+		    {{- end -}}
 		{{- end -}}
-		<div class="post-list__info">{{.Content}}</div>
+		{{- if eq .Type "reply" -}}
+		    <div class="post-list__info">{{.ContentArticle.Content}}</div>
+		{{- end -}}
 	    </li>
 	{{- end -}}
 	{{- placehold $data.List (print "<i class='text-lighten-2'>" (local "NoData") "</i>") -}}

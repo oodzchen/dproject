@@ -652,4 +652,10 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "ResetPassword",
 		Other: "Reset Password",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "NewArticleInCategory",
+		Other: "{{.AuthorName}} publised new article {{.ArticleTitle}} under {{.CategoryName}}",
+	})
+
 }

@@ -15,12 +15,19 @@
 	<div class="tip-block--gray page-intro">
 	    <div class="page-intro__head">
 		<h1>{{$category.Name}}</h1>
-		<a href="">&plus;添加</a>
+		<a href="/articles/new?category={{$category.FrontId}}">&plus;{{local "AddNew"}}</a>
 	    </div>
 	    <p>{{$category.Describe}}</p>
 	    <div>
-		<a href="">订阅</a>
-		&nbsp;<a href="">忽略</a>
+		<form class="btn-form" action="/categories/{{$category.FrontId}}/subscribe" method="POST" >
+		    {{- .CSRFField -}}
+		    {{- $btnSubText := local "BtnSubscribe" -}}
+		    {{- if and $category.UserState $category.UserState.Subscribed -}}
+			{{$btnSubText = local "BtnUnsubscribe"}}
+		    {{- end -}}
+		    <button title="{{$btnSubText}}" type="submit">{{$btnSubText}}</button>
+		</form>
+		&nbsp;<a href="">{{local "BtnIgnore"}}</a>
 	    </div>
 	</div>
     {{- end -}}

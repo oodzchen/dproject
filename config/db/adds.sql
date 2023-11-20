@@ -42,14 +42,18 @@ CREATE TABLE post_subs (
 
 CREATE INDEX idx_post_subs_post_id ON post_subs (post_id);
 
+CREATE TYPE message_type AS ENUM ('reply', 'category', 'system');
+
 CREATE TABLE messages (
     id SERIAL PRIMARY KEY,
     sender_id INTEGER REFERENCES users(id) NOT NULL,
     reciever_id INTEGER REFERENCES users(id) NOT NULL,
-    source_id INTEGER REFERENCES posts(id) NOT NULL,
+    source_article_id INTEGER REFERENCES posts(id),
+    source_category_id INTEGER REFERENCES posts(id),
     content_id INTEGER REFERENCES posts(id) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    is_read BOOLEAN NOT NULL DEFAULT false
+    is_read BOOLEAN NOT NULL DEFAULT false,
+    type message_type NOT NULL
 );
 
 CREATE TABLE roles (

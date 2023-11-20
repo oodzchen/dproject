@@ -87,4 +87,9 @@ func (ic *I18nCustom) AddBtnConfigs() {
 		ID:    "BtnNextStep",
 		Other: "Next step",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnIgnore",
+		Other: "Ignore",
+	})
 }

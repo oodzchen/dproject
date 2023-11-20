@@ -43,6 +43,15 @@ func (a *Article) Create(title, url, content string, authorId, replyTo int, cate
 		return 0, err
 	}
 
+	go func() {
+		err = a.Store.Category.Notify(categoryFrontId, authorId, id)
+		if err != nil {
+			// ar.ServerErrorp("", err, w, r)
+			fmt.Println("notify to category subscribers error: ", err)
+			return
+		}
+	}()
+
 	return id, nil
 }
 
@@ -85,7 +94,7 @@ func (a *Article) Reply(target int, content string, authorId int) (int, error) {
 		err = a.Store.Article.Notify(authorId, target, id)
 		if err != nil {
 			// ar.ServerErrorp("", err, w, r)
-			fmt.Println("notify to subscribers error: ", err)
+			fmt.Println("notify to article subscribers error: ", err)
 			return
 		}
 	}()

@@ -81,9 +81,11 @@ type CategoryStore interface {
 	List(state model.CategoryState) ([]*model.Category, error)
 	Create(frontId, name, describe string, authorId int) (int, error)
 	Update(frontId, name, describe string) (int, error)
-	Item(frontId string) (*model.Category, error)
+	Item(frontId string, loginedUserId int) (*model.Category, error)
 	Approval(frontId string, pass bool, comment string) error
 	Delete(frontId string) error
+	Subscribe(frontId string, loginedUserId int) error
+	Notify(frontId string, senderUserId, contentArticleId int) error
 }
 
 type RoleStore interface {
@@ -110,7 +112,7 @@ type ActivityStore interface {
 
 type MessageStore interface {
 	List(userId int, status string, page, pageSize int) ([]*model.Message, int, error)
-	Create(senderUserId, reciverUserId, sourceArticleId, contentArticleId int) (int, error)
+	// Create(senderUserId, reciverUserId, sourceArticleId, contentArticleId int) (int, error)
 	Read(messageId int) error
 	ReadMany(messageIds []any) error
 	UnreadCount(loginedUserId int) (int, error)

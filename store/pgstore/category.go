@@ -85,21 +85,35 @@ func (p *Category) Update(frontId, name, describe string) (int, error) {
 	return id, nil
 }
 
-func (p *Category) Item(frontId string) (*model.Category, error) {
+func (p *Category) Item(frontId string, userId int) (*model.Category, error) {
 	fmt.Println("category front id:", frontId)
+	fmt.Println("user id:", userId)
 
 	var item model.Category
-	sqlStr := `SELECT id,
-front_id,
-name,
-COALESCE(describe, ''),
-author_id,
-approved,
-COALESCE(approval_comment, ''),
-created_at FROM categories WHERE front_id = $1`
-	fmt.Println("category item sql:", sqlStr)
+	var userState model.CategoryUserState
+
+	sqlStr := `SELECT
+c.id,
+c.front_id,
+c.name,
+COALESCE(c.describe, ''),
+c.author_id,
+c.approved,
+COALESCE(c.approval_comment, ''),
+c.created_at,
+(
+  SELECT EXISTS (
+    SELECT 1 FROM category_subs cs WHERE cs.category_id = c.id AND cs.user_id = $2
+  )
+) AS subscribed
+FROM categories c
+WHERE c.front_id = $1`
+
+	// fmt.Println("category item sql:", sqlStr)
+
 	err := p.dbPool.QueryRow(context.Background(), sqlStr,
 		frontId,
+		userId,
 	).Scan(
 		&item.Id,
 		&item.FrontId,
@@ -109,10 +123,14 @@ created_at FROM categories WHERE front_id = $1`
 		&item.Approved,
 		&item.ApprovalComment,
 		&item.CreatedAt,
+
+		&userState.Subscribed,
 	)
 	if err != nil {
 		return nil, err
 	}
+	item.UserState = &userState
+
 	return &item, nil
 }
 
@@ -127,5 +145,69 @@ func (p *Category) Delete(frontId string) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (c *Category) Subscribe(frontId string, loginedUserId int) error {
+	err, subscribed := c.subscribeCheck(frontId, loginedUserId)
+	if err != nil {
+		return err
+	}
+
+	sqlStr := `INSERT INTO category_subs (category_id, user_id) VALUES
+(
+  (
+    SELECT c.id FROM categories c WHERE c.front_id = $1
+  ), $2
+)`
+
+	if subscribed {
+		sqlStr = `DELETE FROM category_subs
+WHERE category_id = (
+  SELECT c.id FROM categories c WHERE c.front_id = $1
+) AND user_id = $2`
+	}
+
+	fmt.Println("subscribe category sql:", sqlStr)
+
+	_, err = c.dbPool.Exec(context.Background(), sqlStr, frontId, loginedUserId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Category) subscribeCheck(frontId string, userId int) (error, bool) {
+	var count int
+	err := c.dbPool.QueryRow(
+		context.Background(),
+		`SELECT COUNT(*)
+FROM category_subs
+LEFT JOIN categories c ON c.front_id = $1
+WHERE category_id = c.id AND user_id = $2`,
+		frontId,
+		userId,
+	).Scan(&count)
+	if err != nil {
+		return err, false
+	}
+
+	return nil, count > 0
+}
+
+func (c *Category) Notify(sourceCateogryFrontId string, senderUserId, contentArticleId int) error {
+	sqlStr := `
+INSERT INTO messages (sender_id, reciever_id, source_category_id, content_id, type)
+SELECT $1, cs.user_id, c.id, $3, 'category' FROM category_subs cs
+LEFT JOIN categories c ON c.front_id = $2
+WHERE cs.category_id = c.id AND cs.user_id != $1
+`
+	_, err := c.dbPool.Exec(context.Background(), sqlStr, senderUserId, sourceCateogryFrontId, contentArticleId)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

@@ -146,10 +146,12 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	sort := r.Form.Get("sort")
 	categoryFrontId := chi.URLParam(r, "categoryFrontId")
 
+	currUserId := ar.GetLoginedUserId(w, r)
+
 	var category *model.Category
 	var err error
 	if categoryFrontId != "" {
-		category, err = ar.store.Category.Item(categoryFrontId)
+		category, err = ar.store.Category.Item(categoryFrontId, currUserId)
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
 				ar.Error("", err, w, r, http.StatusNotFound)
@@ -177,8 +179,6 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		pageSize = 50
 	}
-
-	currUserId := ar.GetLoginedUserId(w, r)
 
 	startTime := time.Now()
 
@@ -420,19 +420,21 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 	ar.SavePrevPage(w, r)
 
 	type PageData struct {
-		MaxTitleLen   int
-		MaxContentLen int
-		Article       *model.Article
-		Categories    []*model.Category
+		MaxTitleLen         int
+		MaxContentLen       int
+		Article             *model.Article
+		Categories          []*model.Category
+		CurrCategoryFrontId string
 	}
 
 	ar.Render(w, r, "create", &model.PageData{
 		Title: pageTitle,
 		Data: &PageData{
-			MaxTitleLen:   model.MAX_ARTICLE_TITLE_LEN,
-			MaxContentLen: model.MAX_ARTICLE_CONTENT_LEN,
-			Article:       data,
-			Categories:    categoryList,
+			MaxTitleLen:         model.MAX_ARTICLE_TITLE_LEN,
+			MaxContentLen:       model.MAX_ARTICLE_CONTENT_LEN,
+			Article:             data,
+			Categories:          categoryList,
+			CurrCategoryFrontId: r.URL.Query().Get("category"),
 		},
 		BreadCrumbs: []*model.BreadCrumb{
 			{

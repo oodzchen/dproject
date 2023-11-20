@@ -108,6 +108,7 @@ func (mr *MainResource) Routes() http.Handler {
 	rt.Route("/categories", func(r chi.Router) {
 		// r.Get("/", mr.CategoryList)
 		r.Get("/{categoryFrontId}", mr.CategoryArticleList)
+		r.Post("/{categoryFrontId}/subscribe", mr.CategorySubscribe)
 	})
 
 	if config.Config.Debug {
@@ -1343,4 +1344,25 @@ func (mr *MainResource) LoginAuthCallbackGithub(w http.ResponseWriter, r *http.R
 
 func (mr *MainResource) CategoryArticleList(w http.ResponseWriter, r *http.Request) {
 	mr.articleRs.List(w, r)
+}
+
+func (mr *MainResource) CategorySubscribe(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+
+	categoryFrontId := chi.URLParam(r, "categoryFrontId")
+
+	userId := mr.GetLoginedUserId(w, r)
+	if userId != 0 {
+		err := mr.store.Category.Subscribe(categoryFrontId, userId)
+		if err != nil {
+			mr.ServerErrorp("", err, w, r)
+			return
+		}
+	} else {
+		mr.ToLogin(w, r)
+		return
+	}
+
+	referer := r.Referer()
+	http.Redirect(w, r, referer, http.StatusFound)
 }

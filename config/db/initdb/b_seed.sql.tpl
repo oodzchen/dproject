@@ -46,6 +46,22 @@ deleted BOOLEAN NOT NULL DEFAULT false,
 UNIQUE(front_id)
 );
 
+CREATE TABLE category_subs (
+id SERIAL PRIMARY KEY,
+user_id INTEGER REFERENCES users(id) NOT NULL,
+category_id INTEGER REFERENCES categories(id) NOT NULL,
+created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+UNIQUE(user_id, category_id)
+);
+
+CREATE TABLE category_ignores (
+id SERIAL PRIMARY KEY,
+user_id INTEGER REFERENCES users(id) NOT NULL,
+category_id INTEGER REFERENCES categories(id) NOT NULL,
+created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+UNIQUE(user_id, category_id)
+);
+
 -- 创建文章数据表格
 CREATE TABLE posts (
 id SERIAL PRIMARY KEY,

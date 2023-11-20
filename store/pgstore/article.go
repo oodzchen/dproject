@@ -956,27 +956,37 @@ func (a *Article) Subscribe(id, userId int) error {
 		return err
 	}
 
-	if !subscribed {
-		_, err = a.dbPool.Exec(
-			context.Background(),
-			`INSERT INTO post_subs (post_id, user_id) VALUES ($1, $2)`,
-			id,
-			userId,
-		)
+	sqlStr := `INSERT INTO post_subs (post_id, user_id) VALUES ($1, $2)`
+	if subscribed {
+		sqlStr = `DELETE FROM post_subs WHERE post_id = $1 AND user_id = $2`
+	}
 
-		if err != nil {
-			return err
-		}
-	} else {
-		_, err = a.dbPool.Exec(
-			context.Background(),
-			`DELETE FROM post_subs WHERE post_id = $1 AND user_id = $2`,
-			id,
-			userId,
-		)
-		if err != nil {
-			return err
-		}
+	_, err = a.dbPool.Exec(
+		context.Background(),
+		sqlStr,
+		id,
+		userId,
+	)
+
+	// if !subscribed {
+	// 	_, err = a.dbPool.Exec(
+	// 		context.Background(),
+	// 		`INSERT INTO post_subs (post_id, user_id) VALUES ($1, $2)`,
+	// 		id,
+	// 		userId,
+	// 	)
+
+	// } else {
+	// 	_, err = a.dbPool.Exec(
+	// 		context.Background(),
+	// 		`DELETE FROM post_subs WHERE post_id = $1 AND user_id = $2`,
+	// 		id,
+	// 		userId,
+	// 	)
+	// }
+
+	if err != nil {
+		return err
 	}
 
 	err = a.updateWeights(id)
@@ -1034,8 +1044,8 @@ WITH RECURSIVE parentPosts AS (
   SELECT p1.id, p1.reply_to FROM posts p1
   JOIN parentPosts pp ON pp.reply_to = p1.id AND pp.reply_to != 0
 )
-INSERT INTO messages (sender_id, reciever_id, source_id, content_id)
-SELECT $1, ps.user_id, pp.id, $3 FROM parentPosts pp
+INSERT INTO messages (sender_id, reciever_id, source_article_id, content_id, type)
+SELECT $1, ps.user_id, pp.id, $3, 'reply' FROM parentPosts pp
 INNER JOIN post_subs ps ON ps.post_id = pp.id AND ps.user_id != $1;
 `
 	_, err := a.dbPool.Exec(context.Background(), sqlStr, senderUserId, sourceArticleId, contentArticleId)

@@ -15,6 +15,10 @@ const (
 	CategoryStateUnapproved               = "unapproved"
 )
 
+type CategoryUserState struct {
+	Subscribed bool
+}
+
 type Category struct {
 	Id              int
 	FrontId         string
@@ -24,6 +28,7 @@ type Category struct {
 	CreatedAt       time.Time
 	Approved        bool
 	ApprovalComment string
+	UserState       *CategoryUserState
 }
 
 func categoryValidErr(str string) error {

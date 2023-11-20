@@ -238,6 +238,10 @@ other = "編輯"
 hash = "sha1-b6ba0db1f814179114ec82fbf188b2eb5be2596e"
 other = "收起"
 
+[BtnIgnore]
+hash = "sha1-98f55db57c8ed898dbaabddea8af88630b3b7caf"
+other = "忽略"
+
 [BtnMore]
 hash = "sha1-4bab2d8fe13fa6ab57f80098b414f0f734c5dd25"
 other = "更多"
@@ -477,6 +481,10 @@ other = "未讀"
 [Modified]
 hash = "sha1-19a532c8bc61c311f583455c80ffe37067bbc9bb"
 other = "編輯"
+
+[NewArticleInCategory]
+hash = "sha1-cd8ea5f3618fec365ae0b71532ec03b64c0b6e95"
+other = "{{.AuthorName}}在{{.CategoryName}}下發佈了新文章{{.ArticleTitle}}"
 
 [NewPassword]
 hash = "sha1-d850ee188c7c55b64bc3624534de5c5051a57dc6"
