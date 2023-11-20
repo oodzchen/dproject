@@ -408,8 +408,9 @@ func (a *Article) Item(id, userId int) (*model.Article, error) {
 	sqlStr := `
 SELECT p.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title as root_article_title,
 pv.type AS user_vote_type,
-COUNT(pv1.id) AS vote_up,
-COUNT(pv2.id) AS vote_down,
+COUNT(DISTINCT p3.id) AS children_count,
+COUNT(DISTINCT pv1.id) AS vote_up_count,
+COUNT(DISTINCT pv2.id) AS vote_down_count,
 (
 SELECT
   CASE
@@ -432,6 +433,7 @@ c.name AS category_name
 FROM posts p
 LEFT JOIN users u ON p.author_id = u.id
 LEFT JOIN posts p2 ON p.root_article_id = p2.id
+LEFT JOIN posts p3 ON p.id = p3.reply_to
 LEFT JOIN post_votes pv ON pv.post_id = p.id AND pv.user_id = $2
 LEFT JOIN post_votes pv1 ON pv1.post_id = p.id AND pv1.type = 'up'
 LEFT JOIN post_votes pv2 ON pv2.post_id = p.id AND pv2.type = 'down'
@@ -460,6 +462,7 @@ GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at,
 		&item.ReplyRootArticleId,
 		&item.NullReplyRootArticleTitle,
 		&item.CurrUserState.NullVoteType,
+		&item.ChildrenCount,
 		&item.VoteUp,
 		&item.VoteDown,
 		&item.CurrUserState.Saved,
