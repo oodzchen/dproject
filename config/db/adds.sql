@@ -47,7 +47,7 @@ CREATE TABLE messages (
     sender_id INTEGER REFERENCES users(id) NOT NULL,
     reciever_id INTEGER REFERENCES users(id) NOT NULL,
     source_id INTEGER REFERENCES posts(id) NOT NULL,
-    content TEXT,
+    content_id INTEGER REFERENCES posts(id) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     is_read BOOLEAN NOT NULL DEFAULT false
 );

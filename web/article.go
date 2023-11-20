@@ -504,37 +504,6 @@ func (ar *ArticleResource) handleSubmit(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	if isReply {
-		count, err := ar.store.Article.CheckSubscribe(id, authorId)
-		if err != nil {
-			fmt.Printf("check subscribe error: %v\n", err)
-		}
-
-		// fmt.Println("check subscribe count: ", count)
-		if count == 0 {
-			err = ar.store.Article.Subscribe(id, authorId)
-		}
-	} else {
-		err = ar.store.Article.Subscribe(id, authorId)
-
-	}
-
-	if err != nil {
-		ar.ServerErrorp("", err, w, r)
-		return
-	}
-
-	if isReply {
-		go func() {
-			err = ar.store.Article.Notify(authorId, replyTo, fmt.Sprintf("new reply id: %d", id))
-			if err != nil {
-				// ar.ServerErrorp("", err, w, r)
-				fmt.Println("notify to subscribers error: ", err)
-				return
-			}
-		}()
-	}
-
 	ssOne := ar.Session("one", w, r)
 
 	ctx := context.WithValue(r.Context(), "article_id", id)

@@ -14,7 +14,7 @@ type Message struct {
 }
 
 func (m *Message) List(userId int, status string, page, pageSize int) ([]*model.Message, int, error) {
-	sqlStr := `SELECT m.id, m.sender_id, u.username AS sender_name, m.reciever_id, u1.username AS reciever_name, m.content, m.created_at, m.is_read,
+	sqlStr := `SELECT m.id, m.sender_id, u.username AS sender_name, m.reciever_id, u1.username AS reciever_name, p3.content AS content, m.created_at, m.is_read,
 p.id, p.title, COALESCE(p.url, ''), u2.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, COALESCE(p2.title, ''),
 (
 SELECT
@@ -30,7 +30,8 @@ LEFT JOIN users u ON u.id = m.sender_id
 LEFT JOIN users u1 ON u1.id = m.reciever_id
 LEFT JOIN posts p ON p.id = m.source_id
 LEFT JOIN users u2 ON u2.id = p.author_id
-LEFT JOIN posts p2 ON p.root_article_id = p2.id`
+LEFT JOIN posts p2 ON p.root_article_id = p2.id
+LEFT JOIN posts p3 ON p3.id = m.content_id`
 
 	var args []any
 	var conditions []string
@@ -122,19 +123,19 @@ LEFT JOIN posts p2 ON p.root_article_id = p2.id`
 	return list, total, nil
 }
 
-func (m *Message) Create(senderUserId, reciverUserId, sourceArticleId int, content string) (int, error) {
+func (m *Message) Create(senderUserId, reciverUserId, sourceArticleId, contentArticleId int) (int, error) {
 	var id int
 	err := m.dbPool.QueryRow(
 		context.Background(),
 		`INSERT INTO messages
-(sender_id, reciver_id, source_id, content)
+(sender_id, reciver_id, source_id, content_id)
 VALUES
 ($1, $2, $3, $4)
 RETURNING (id)`,
 		senderUserId,
 		reciverUserId,
 		sourceArticleId,
-		content,
+		contentArticleId,
 	).Scan(&id)
 
 	if err != nil {

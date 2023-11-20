@@ -13,7 +13,7 @@
      }
     </style>
     
-    <ul class="message-list">
+    <ul class="post-list">
 	{{- range $data.List -}}
 	    {{- $title := print "<a href='/articles/" .SourceArticle.Id "'>" .SourceArticle.DisplayTitle "</a>" -}}
 	    <li>
@@ -26,6 +26,7 @@
 			<button class="text-lighten-3" title="{{$btnSubText}}" type="submit">{{$btnSubText}}</button>
 		    </form>
 		{{- end -}}
+		<div class="post-list__info">{{.Content}}</div>
 	    </li>
 	{{- end -}}
 	{{- placehold $data.List (print "<i class='text-lighten-2'>" (local "NoData") "</i>") -}}

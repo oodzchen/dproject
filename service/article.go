@@ -1,6 +1,8 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/store"
@@ -36,6 +38,11 @@ func (a *Article) Create(title, url, content string, authorId, replyTo int, cate
 		return 0, err
 	}
 
+	err = a.Store.Article.Subscribe(id, authorId)
+	if err != nil {
+		return 0, err
+	}
+
 	return id, nil
 }
 
@@ -51,10 +58,37 @@ func (a *Article) Reply(target int, content string, authorId int) (int, error) {
 
 	err := article.Valid(true)
 	if err != nil {
-		// ar.Error(err.Error(), err, w, r, http.StatusBadRequest)
-		// return
 		return 0, err
 	}
 
-	return a.Create("", "", content, authorId, target, "")
+	id, err := a.Create("", "", content, authorId, target, "")
+	if err != nil {
+		return 0, err
+	}
+
+	count, err := a.Store.Article.CheckSubscribe(id, authorId)
+	if err != nil {
+		fmt.Printf("check subscribe error: %v\n", err)
+		return 0, err
+	}
+
+	// fmt.Println("check subscribe count: ", count)
+	if count == 0 {
+		err = a.Store.Article.Subscribe(id, authorId)
+	}
+
+	if err != nil {
+		return 0, err
+	}
+
+	go func() {
+		err = a.Store.Article.Notify(authorId, target, id)
+		if err != nil {
+			// ar.ServerErrorp("", err, w, r)
+			fmt.Println("notify to subscribers error: ", err)
+			return
+		}
+	}()
+
+	return id, nil
 }

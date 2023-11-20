@@ -998,7 +998,7 @@ func (a *Article) CheckSubscribe(id, userId int) (int, error) {
   SELECT p1.id, p1.reply_to FROM posts p1
   JOIN ancestors an ON p1.id = an.reply_to
  )
- SELECT id FROM ancestors an
+ SELECT an.id FROM ancestors an
  INNER JOIN post_subs ps ON ps.post_id = an.id AND ps.user_id = $2
 `
 	// fmt.Println("article id: ", id)
@@ -1026,7 +1026,7 @@ func (a *Article) CheckSubscribe(id, userId int) (int, error) {
 	return len(ancestorSubscribes), nil
 }
 
-func (a *Article) Notify(senderUserId, sourceArticleId int, content string) error {
+func (a *Article) Notify(senderUserId, sourceArticleId, contentArticleId int) error {
 	sqlStr := `
 WITH RECURSIVE parentPosts AS (
   SELECT id, reply_to FROM posts WHERE id = $2
@@ -1034,11 +1034,11 @@ WITH RECURSIVE parentPosts AS (
   SELECT p1.id, p1.reply_to FROM posts p1
   JOIN parentPosts pp ON pp.reply_to = p1.id AND pp.reply_to != 0
 )
-INSERT INTO messages (sender_id, reciever_id, source_id, content)
+INSERT INTO messages (sender_id, reciever_id, source_id, content_id)
 SELECT $1, ps.user_id, pp.id, $3 FROM parentPosts pp
 INNER JOIN post_subs ps ON ps.post_id = pp.id AND ps.user_id != $1;
 `
-	_, err := a.dbPool.Exec(context.Background(), sqlStr, senderUserId, sourceArticleId, content)
+	_, err := a.dbPool.Exec(context.Background(), sqlStr, senderUserId, sourceArticleId, contentArticleId)
 
 	if err != nil {
 		return err

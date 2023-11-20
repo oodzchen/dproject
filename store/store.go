@@ -39,7 +39,7 @@ type ArticleStore interface {
 	React(id, loginedUserId, reactId int) error
 	Subscribe(id, loginedUserId int) error
 	CheckSubscribe(id, loginedUserId int) (int, error)
-	Notify(senderUserId, sourceArticleId int, content string) error
+	Notify(senderUserId, sourceArticleId, contentArticleId int) error
 	GetReactList() ([]*model.ArticleReact, error)
 	ReactItem(int) (*model.ArticleReact, error)
 	Tag(id int, tagFrontId string) error
@@ -110,7 +110,7 @@ type ActivityStore interface {
 
 type MessageStore interface {
 	List(userId int, status string, page, pageSize int) ([]*model.Message, int, error)
-	Create(senderUserId, reciverUserId, sourceArticleId int, content string) (int, error)
+	Create(senderUserId, reciverUserId, sourceArticleId, contentArticleId int) (int, error)
 	Read(messageId int) error
 	ReadMany(messageIds []any) error
 	UnreadCount(loginedUserId int) (int, error)

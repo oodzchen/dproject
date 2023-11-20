@@ -83,22 +83,6 @@
 {{end -}}
 
 {{define "post_list" -}}
-    <style>
-     .post-list{
-	 padding-left: 1rem;
-     }
-
-     .post-list li{
-	 margin-bottom: 0.5rem;
-     }
-
-     .post-list .post-list__info{
-	 padding: 4px 10px;
-	 background: var(--text-bg);
-	 font-size: 0.8rem;
-	 white-space: break-spaces;
-     }
-    </style>
     <ul class="post-list">
 	{{- $csrfField := .csrfField -}}
 	{{- $tab := .tab -}}
