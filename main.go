@@ -18,7 +18,6 @@ import (
 	"github.com/oodzchen/dproject/model"
 	"github.com/oodzchen/dproject/service"
 	"github.com/oodzchen/dproject/store"
-	"github.com/oodzchen/dproject/store/cache"
 	"github.com/oodzchen/dproject/store/pgstore"
 	"github.com/oodzchen/dproject/utils"
 	"github.com/redis/go-redis/v9"
@@ -114,21 +113,13 @@ func main() {
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }
-	cacheableArticle := &cache.ArticleCache{
-		Article: pg.Article,
-		Rdb:     redisDB,
-	}
+	// cacheableArticle := &cache.ArticleCache{
+	// 	Article: pg.Article,
+	// 	Rdb:     redisDB,
+	// }
 	// cacheableArticle.SetAfterUpdateWeights(cacheableArticle.RefreshListCache)
 
-	dataStore := &store.Store{
-		Activity:   pg.Activity,
-		Article:    cacheableArticle,
-		Message:    pg.Message,
-		Permission: pg.Permission,
-		Role:       pg.Role,
-		User:       pg.User,
-		Category:   pg.Category,
-	}
+	dataStore := store.New(pg.Article, pg.User, pg.Role, pg.Permission, pg.Activity, pg.Message, pg.Category)
 
 	permissionSrv := &service.Permission{
 		Store:          dataStore,

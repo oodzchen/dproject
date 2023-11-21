@@ -53,14 +53,7 @@ func TestArticleVote(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	store := &Store{
-		Activity:   pg.Activity,
-		Article:    pg.Article,
-		Message:    pg.Message,
-		Permission: pg.Permission,
-		Role:       pg.Role,
-		User:       pg.User,
-	}
+	store := New(pg.Article, pg.User, pg.Role, pg.Permission, pg.Activity, pg.Message, pg.Category)
 
 	uId, err := registerNewUser(store, appCfg)
 	mt.LogFailed(err)

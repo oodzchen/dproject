@@ -20,7 +20,7 @@ import (
 )
 
 type Renderer interface {
-	ServerError(w http.ResponseWriter, r *http.Request)
+	ServerErrorp(msg string, err error, w http.ResponseWriter, r *http.Request)
 	Forbidden(w http.ResponseWriter, r *http.Request)
 }
 
@@ -42,8 +42,16 @@ func FetchUserData(store *store.Store, sessStore *sessions.CookieStore, permissi
 			if v, ok := userId.(int); ok {
 				user, err := store.User.Item(v)
 				if err != nil {
+					sess.Options.MaxAge = -1
+					err = sess.Save(r, w)
+					if err != nil {
+						fmt.Println("clear session error:", err)
+					}
+
+					fmt.Println("get user data error:", err)
 					if v, ok := renderer.(Renderer); ok {
-						v.ServerError(w, r)
+						// v.ServerError(w, r)
+						v.ServerErrorp("", err, w, r)
 					} else {
 						http.Redirect(w, r, "/500", http.StatusFound)
 					}

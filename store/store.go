@@ -4,11 +4,9 @@ import (
 	"time"
 
 	"github.com/oodzchen/dproject/model"
-	"github.com/redis/go-redis/v9"
 )
 
 type Store struct {
-	Rdb        *redis.Client
 	Article    ArticleStore
 	User       UserStore
 	Role       RoleStore
@@ -16,6 +14,26 @@ type Store struct {
 	Activity   ActivityStore
 	Message    MessageStore
 	Category   CategoryStore
+}
+
+func New(
+	article ArticleStore,
+	user UserStore,
+	role RoleStore,
+	permission PermissionStore,
+	activity ActivityStore,
+	message MessageStore,
+	category CategoryStore,
+) *Store {
+	return &Store{
+		article,
+		user,
+		role,
+		permission,
+		activity,
+		message,
+		category,
+	}
 }
 
 type ArticleStore interface {
@@ -117,65 +135,4 @@ type MessageStore interface {
 	ReadMany(messageIds []any) error
 	UnreadCount(loginedUserId int) (int, error)
 	ReadAll(userId int) error
-}
-
-// func New(dbStore DBStore, rdb *redis.Client) (*Store, error) {
-// 	article, err := dbStore.NewArticleStore()
-// 	user, err := dbStore.NewUserStore()
-// 	permission, err := dbStore.NewPermissionStore()
-// 	role, err := dbStore.NewRoleStore()
-// 	activity, err := dbStore.NewActivity()
-// 	message, err := dbStore.NewMessage()
-
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	articleStore := article.(ArticleStore)
-// 	userStore := user.(UserStore)
-// 	permissionStore := permission.(PermissionStore)
-// 	roleStore := role.(RoleStore)
-// 	activityStore := activity.(ActivityStore)
-// 	messageStore := message.(MessageStore)
-
-// 	cache := &Cache{rdb}
-
-// 	return &Store{
-// 		rdb:        rdb,
-// 		cache:      cache,
-// 		Article:    proxyArticleStore(articleStore, cache),
-// 		User:       userStore,
-// 		Role:       roleStore,
-// 		Permission: permissionStore,
-// 		Activity:   activityStore,
-// 		Message:    messageStore,
-// 	}, nil
-// }
-
-func proxyArticleStore(store ArticleStore) ArticleStore {
-	// originalList := store.List
-	// store.List = func(page, pageSize, userId int, sortType model.ArticleSortType) ([]*model.Article, int, error) {
-	// 	// var list []*model.Article
-	// 	// err := rdb.ZRangeByScore(context.Background(), "store_article_list", &redis.ZRangeBy{
-	// 	// 	Offset: int64(pageSize) * int64(page - 1),
-	// 	// 	Count: int64(pageSize),
-	// 	// }).ScanSlice(&list)
-	// 	// if err != nil {
-	// 	// 	return nil, 0, err
-	// 	// }
-
-	// 	list, total, err := originalList(page, pageSize, userId, sortType)
-	// 	if err != nil {
-	// 		return nil, 0, err
-	// 	}
-
-	// 	err = cache.SetList(page, pageSize, userId, sortType, list)
-	// 	if err != nil {
-	// 		return nil, 0, err
-	// 	}
-
-	// 	return list, total, nil
-	// }
-
-	return store
 }

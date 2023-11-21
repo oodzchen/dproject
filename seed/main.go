@@ -104,14 +104,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	dataStore := &store.Store{
-		Activity:   pg.Activity,
-		Article:    pg.Article,
-		Message:    pg.Message,
-		Permission: pg.Permission,
-		Role:       pg.Role,
-		User:       pg.User,
-	}
+	dataStore := store.New(pg.Article, pg.User, pg.Role, pg.Permission, pg.Activity, pg.Message, pg.Category)
 
 	policy := bluemonday.UGCPolicy()
 	userSrv := &service.User{Store: dataStore, SantizePolicy: policy}
