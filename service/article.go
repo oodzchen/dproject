@@ -44,6 +44,8 @@ func (a *Article) Create(title, url, content string, authorId, replyTo int, cate
 	}
 
 	go func() {
+		// fmt.Println("store:", a.Store, a.Store.Category)
+		// fmt.Println("args:", categoryFrontId, authorId, id)
 		err = a.Store.Category.Notify(categoryFrontId, authorId, id)
 		if err != nil {
 			// ar.ServerErrorp("", err, w, r)
@@ -70,7 +72,7 @@ func (a *Article) Reply(target int, content string, authorId int) (int, error) {
 		return 0, err
 	}
 
-	id, err := a.Create("", "", content, authorId, target, "")
+	id, err := a.Store.Article.Create("", "", content, authorId, target, "")
 	if err != nil {
 		return 0, err
 	}
