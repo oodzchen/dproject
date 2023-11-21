@@ -21,20 +21,22 @@ type Article struct {
 }
 
 func (a *Article) List(page, pageSize int, sortType model.ArticleSortType, categoryFrontId string) ([]*model.Article, int, error) {
+	// fmt.Println("page, pageSize: ", page, pageSize)
 	// fmt.Println("category front id:", categoryFrontId)
+	// fmt.Println("sortType:", string(sortType))
 
 	var orderSqlStrHead, orderSqlStrTail string
 	switch sortType {
 	case model.ListSortBest:
-		orderSqlStrHead = ` ORDER BY list_weight DESC `
+		orderSqlStrHead = ` ORDER BY p.list_weight DESC `
 		orderSqlStrTail = ` ORDER BY tp.list_weight DESC `
 	case model.ListSortHot:
-		orderSqlStrHead = ` ORDER BY participate_count DESC `
+		orderSqlStrHead = ` ORDER BY p.participate_count DESC `
 		orderSqlStrTail = ` ORDER BY tp.participate_count DESC `
 	case model.ListSortLatest:
 		fallthrough
 	default:
-		orderSqlStrHead = ` ORDER BY created_at DESC `
+		orderSqlStrHead = ` ORDER BY p.created_at DESC `
 		orderSqlStrTail = ` ORDER BY tp.created_at DESC `
 	}
 
@@ -54,8 +56,15 @@ func (a *Article) List(page, pageSize int, sortType model.ArticleSortType, categ
 
 	sqlStr := `
 WITH postIds AS (
-    SELECT id, COUNT(id) OVER() AS total FROM posts
-    WHERE deleted = false AND reply_to = 0` + orderSqlStrHead + `
+    SELECT p.id, COUNT(p.id) OVER() AS total FROM posts p`
+	if strings.TrimSpace(categoryFrontId) != "" {
+		args = append(args, categoryFrontId)
+		sqlStr += ` LEFT JOIN categories c ON c.front_id = $3 WHERE p.deleted = false AND p.reply_to = 0 AND p.category_id = c.id `
+	} else {
+		sqlStr += ` WHERE p.deleted = false AND p.reply_to = 0 `
+	}
+
+	sqlStr += orderSqlStrHead + `
     OFFSET $1
     LIMIT $2
 )
@@ -73,14 +82,8 @@ c.id AS category_id,
 c.front_id AS category_front_id,
 c.name AS category_name
 FROM posts tp
-JOIN postIds pi ON tp.id = pi.id `
-
-	if strings.TrimSpace(categoryFrontId) != "" {
-		args = append(args, categoryFrontId)
-		sqlStr += ` JOIN categories c1 ON c1.id = tp.category_id AND c1.front_id = $3 `
-	}
-
-	sqlStr += ` LEFT JOIN posts p2 ON tp.root_article_id = p2.id
+JOIN postIds pi ON tp.id = pi.id
+LEFT JOIN posts p2 ON tp.root_article_id = p2.id
 LEFT JOIN posts p3 ON tp.id = p3.root_article_id AND p3.deleted = false
 LEFT JOIN users u ON u.id = tp.author_id
 LEFT JOIN categories c ON c.id = tp.category_id
@@ -178,9 +181,18 @@ WHERE p.id = ANY($2)
 	return list, nil
 }
 
-func (a *Article) Count() (int, error) {
+func (a *Article) Count(frontId string) (int, error) {
 	var count int
-	err := a.dbPool.QueryRow(context.Background(), `SELECT COUNT(*) FROM posts WHERE reply_to = 0 AND deleted = false;`).Scan(&count)
+	var args []any
+	sqlStr := `SELECT COUNT(*) FROM posts WHERE reply_to = 0 AND deleted = false`
+	if frontId != "" {
+		args = append(args, frontId)
+		sqlStr = `SELECT COUNT(p.*) FROM posts p
+LEFT JOIN categories c ON c.front_id = $1
+WHERE p.reply_to = 0 AND p.deleted = false AND p.category_id = c.id`
+	}
+
+	err := a.dbPool.QueryRow(context.Background(), sqlStr, args...).Scan(&count)
 	if err != nil {
 		return 0, err
 	}

@@ -49,7 +49,7 @@ type ArticleStore interface {
 	Delete(id int) (int, error)
 	ItemTree(page, pageSize, ariticleId int, sortType model.ArticleSortType) ([]*model.Article, error)
 	ItemTreeUserState(ids []int, userId int) ([]*model.Article, error)
-	Count() (int, error)
+	Count(categoryFrontId string) (int, error)
 	CountTotalReply(id int) (int, error)
 	VoteCheck(id, userId int) (error, string)
 	Vote(id, loginedUserId int, voteType string) error

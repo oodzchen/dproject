@@ -95,7 +95,7 @@
 	{{end -}}
     </ol>
 
-    {{- $pagiData := dict "currPage" .Data.CurrPage "totalPage" .Data.TotalPage "pathPrefix" "/articles" "query" .RouteQuery  -}}
+    {{- $pagiData := dict "currPage" .Data.CurrPage "totalPage" .Data.TotalPage "pathPrefix" .RoutePath "query" .RouteQuery  -}}
     {{- template "pagination" $pagiData -}}
 
     {{template "foot" . -}}

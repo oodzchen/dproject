@@ -13,7 +13,7 @@ import (
 	"github.com/oodzchen/dproject/service"
 )
 
-func seedArticles(userSrv *service.User, articleSrv *service.Article, startTime time.Time) {
+func seedArticles(userSrv *service.User, articleSrv *service.Article, startTime time.Time, categoryFrontId string) {
 	fmt.Printf("Creating article number: %d\n", articleNum)
 	fmt.Printf("User(goroutine) number: %d\n", userNum)
 
@@ -76,7 +76,12 @@ func seedArticles(userSrv *service.User, articleSrv *service.Article, startTime 
 
 	for i := 0; i < articleNum; i++ {
 		// fmt.Println("article queue: ", i)
-		articleQueue <- mocktool.GenArticle()
+		a := mocktool.GenArticle()
+		// fmt.Println("gen article category:", a.CategoryFrontId)
+		if categoryFrontId != "" {
+			a.CategoryFrontId = categoryFrontId
+		}
+		articleQueue <- a
 	}
 	close(articleQueue)
 
@@ -142,8 +147,8 @@ func srvCreateArticle(srv *service.Article, wg *sync.WaitGroup, ctx context.Cont
 	defer wg.Done()
 
 	for a := range ach {
-		fmt.Printf("user %v create article \"%s\"\n", authorId, a.Title)
-		id, err := srv.Create(a.Title, a.URL, a.Content, authorId, 0, "general")
+		fmt.Printf("user %v create article [%s] \"%s\"\n", authorId, a.CategoryFrontId, a.Title)
+		id, err := srv.Create(a.Title, a.URL, a.Content, authorId, 0, a.CategoryFrontId)
 		results <- &articleRes{id, err}
 	}
 }

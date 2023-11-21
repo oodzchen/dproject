@@ -18,6 +18,7 @@ import (
 const timeoutDuration int = 300
 
 var articleNum int
+var categoryType string
 var userNum int
 var envFile string
 var showHead bool
@@ -36,6 +37,7 @@ func init() {
 	const defaultEnvFile string = ".env.testing"
 
 	flag.IntVar(&articleNum, "an", defaultArticleNum, "Create article with specific number")
+	flag.StringVar(&categoryType, "c", "general", "Article category: general, internet, computer-sciense, hacker-news, qna, show, dizkaz")
 	flag.IntVar(&userNum, "un", defaultUserNum, "User(goroutine) number")
 	flag.StringVar(&envFile, "e", defaultEnvFile, "ENV file path, default to .env.testing")
 	flag.BoolVar(&showHead, "h", false, "Show browser head")
@@ -123,9 +125,9 @@ func main() {
 			}
 			replyArticle(userSrv, articleSrv)
 		default:
-			seedArticles(userSrv, articleSrv, startTime)
+			seedArticles(userSrv, articleSrv, startTime, categoryType)
 		}
 	} else {
-		seedArticles(userSrv, articleSrv, startTime)
+		seedArticles(userSrv, articleSrv, startTime, categoryType)
 	}
 }

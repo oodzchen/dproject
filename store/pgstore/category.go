@@ -168,7 +168,7 @@ WHERE category_id = (
 ) AND user_id = $2`
 	}
 
-	fmt.Println("subscribe category sql:", sqlStr)
+	// fmt.Println("subscribe category sql:", sqlStr)
 
 	_, err = c.dbPool.Exec(context.Background(), sqlStr, frontId, loginedUserId)
 	if err != nil {

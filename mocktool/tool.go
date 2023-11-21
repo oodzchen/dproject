@@ -15,9 +15,10 @@ type TestUser struct {
 }
 
 type TestArticle struct {
-	Title   string
-	Content string
-	URL     string
+	Title           string
+	Content         string
+	URL             string
+	CategoryFrontId string
 }
 
 func GenUser() *TestUser {
@@ -58,6 +59,8 @@ func GenURL() string {
 // 	}
 // }
 
+var ArticleCategories = []string{"general", "internet", "computer-sciense", "hacker-news", "qna", "show", "dizkaz"}
+
 func GenArticle() *TestArticle {
 	title := gofakeit.Sentence(3 + rand.Intn(9))
 	content := gofakeit.Paragraph(1+rand.Intn(3), 1+rand.Intn(3), 30, "\n\n")
@@ -69,10 +72,14 @@ func GenArticle() *TestArticle {
 		content = content[:20000]
 	}
 
+	frontId := ArticleCategories[rand.Intn(len(ArticleCategories))]
+
 	article := &TestArticle{
-		Title:   title,
-		Content: content,
+		Title:           title,
+		Content:         content,
+		CategoryFrontId: frontId,
 	}
+
 	rand := rand.Intn(100)
 	if rand%2 == 0 {
 		article.URL = GenURL()

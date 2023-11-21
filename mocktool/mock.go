@@ -78,6 +78,7 @@ func (mc *Mock) CreateArticle(a *TestArticle) chp.Tasks {
 		mc.WaitFooterReady(),
 		chp.SetValue(`#title`, a.Title),
 		chp.SetValue(`#content`, a.Content),
+		chp.SetValue(`#category`, a.CategoryFrontId),
 		chp.Click(`body>form>button[type="submit"]`),
 		mc.WaitFooterReady(),
 		chp.TextContent(`body>article>h1`, &result),
