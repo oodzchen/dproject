@@ -74,7 +74,7 @@
 		<div class="data-list__row">
 		    <div class="data-list__label">{{local "Introduction"}}:</div>
 		    <div class="data-list__content" style="white-space:break-spaces;">
-			{{- .Introduction -}}
+			{{- replaceLink .Introduction -}}
 		    </div>
 		</div>
 	    {{- end -}}

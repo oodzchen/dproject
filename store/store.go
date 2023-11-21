@@ -116,6 +116,7 @@ type MessageStore interface {
 	Read(messageId int) error
 	ReadMany(messageIds []any) error
 	UnreadCount(loginedUserId int) (int, error)
+	ReadAll(userId int) error
 }
 
 // func New(dbStore DBStore, rdb *redis.Client) (*Store, error) {

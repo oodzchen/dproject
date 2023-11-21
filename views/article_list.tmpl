@@ -15,7 +15,7 @@
 	<div class="tip-block--gray page-intro">
 	    <div class="page-intro__head">
 		<h1>{{$category.Name}}</h1>
-		<a href="/articles/new?category={{$category.FrontId}}">&plus;{{local "AddNew"}}</a>
+		<a class="text-lighten" href="/articles/new?category={{$category.FrontId}}">&plus;{{local "AddNew"}}</a>
 	    </div>
 	    <p>{{$category.Describe}}</p>
 	    <div>
@@ -25,9 +25,8 @@
 		    {{- if and $category.UserState $category.UserState.Subscribed -}}
 			{{$btnSubText = local "BtnUnsubscribe"}}
 		    {{- end -}}
-		    <button title="{{$btnSubText}}" type="submit">{{$btnSubText}}</button>
+		    <button class="text-lighten" title="{{$btnSubText}}" type="submit">{{$btnSubText}}</button>
 		</form>
-		&nbsp;<a href="">{{local "BtnIgnore"}}</a>
 	    </div>
 	</div>
     {{- end -}}

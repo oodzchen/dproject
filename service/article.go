@@ -72,7 +72,7 @@ func (a *Article) Reply(target int, content string, authorId int) (int, error) {
 		return 0, err
 	}
 
-	id, err := a.Store.Article.Create("", "", content, authorId, target, "")
+	id, err := a.Store.Article.Create("", "", article.Content, authorId, target, "")
 	if err != nil {
 		return 0, err
 	}

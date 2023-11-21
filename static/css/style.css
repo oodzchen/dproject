@@ -272,6 +272,7 @@ a.text-lighten-3{
     /* text-align: right; */
     padding-right: 6px;
     box-sizing: border-box;
+    white-space: nowrap;
 }
 .data-list .data-list__content{
     text-align: left;
@@ -530,15 +531,21 @@ a.text-lighten-3{
 .tip-block{
     padding: 10px 6px;
     margin: 10px 0;
-    background:var(--page-tip-bg);
-    color:var(--text-lighten);
+    background: var(--page-tip-bg);
+    color: var(--text-lighten);
 }
 
 .tip-block--gray{
     padding: 10px 6px;
     margin: 10px 0;
-    background:var(--text-bg);
-    color:var(--text-lighten);
+    background: var(--text-bg);
+    color: var(--text-lighten);
+}
+
+.tip-block a,
+.tip-block--gray a{
+    color: var(--text-lighten);
+    text-decoration: underline;
 }
 
 .page-intro .page-intro__head{

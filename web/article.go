@@ -300,7 +300,7 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		pageData.Title = category.Name
 		pageData.BreadCrumbs = []*model.BreadCrumb{
 			{
-				// Path: fmt.Sprintf("/categories/%s", category.FrontId),
+				Path: fmt.Sprintf("/categories/%s", category.FrontId),
 				Name: category.Name,
 			},
 		}

@@ -128,6 +128,7 @@ func (mr *MainResource) RegisterPage(w http.ResponseWriter, r *http.Request) {
 		Data:  "",
 		BreadCrumbs: []*model.BreadCrumb{
 			{
+				Path: "/register",
 				Name: mr.Local("Register"),
 			},
 		},
@@ -432,7 +433,7 @@ func (mr *MainResource) LoginPage(w http.ResponseWriter, r *http.Request) {
 		Data:  "",
 		BreadCrumbs: []*model.BreadCrumb{
 			{
-				// Path: "/login",
+				Path: "/login",
 				Name: mr.Local("Login"),
 			},
 		},
@@ -762,9 +763,11 @@ func (mr *MainResource) SaveAccountSettings(w http.ResponseWriter, r *http.Reque
 			Introduction: introduction,
 		}
 		user.Sanitize(mr.sanitizePolicy)
+		fmt.Println("introduction:", user.Introduction)
 		_, err := mr.store.User.Update(user, []string{"Introduction"})
 		if err != nil {
 			mr.Error("", err, w, r, http.StatusInternalServerError)
+			return
 		}
 
 		oneSess := mr.Session("one", w, r)
@@ -825,7 +828,8 @@ func (mr *MainResource) MessageList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(messageIds) > 0 {
-		err = mr.store.Message.ReadMany(messageIds)
+		// err = mr.store.Message.ReadMany(messageIds)
+		err = mr.store.Message.ReadAll(userId)
 		if err != nil {
 			mr.Error("", err, w, r, http.StatusInternalServerError)
 			return

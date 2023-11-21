@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html"
 	"net/url"
 	"reflect"
 	"regexp"
@@ -136,12 +137,36 @@ const maxDisplayURLLength = 100
 var urlRegex = regexp.MustCompile(`https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)`)
 
 func replaceLink(str string) string {
-	return urlRegex.ReplaceAllStringFunc(str, func(s string) string {
-		shortenUrl := s
-		if len(s) > maxDisplayURLLength {
-			shortenUrl = string([]rune(s)[:maxDisplayURLLength]) + "..."
-		}
+	rawStr := html.UnescapeString(str)
+	idxArr := urlRegex.FindAllStringIndex(rawStr, -1)
 
-		return fmt.Sprintf("<a title=\"%s\" href=\"%s\">%s</a>", s, s, shortenUrl)
-	})
+	// fmt.Println("idx arr:", idxArr)
+
+	if len(idxArr) > 0 {
+		var result string
+
+		for idx, matched := range idxArr {
+			if idx == 0 {
+				result += html.EscapeString(rawStr[0:matched[0]])
+			}
+
+			urlStr := rawStr[matched[0]:matched[1]]
+			shortenUrl := urlStr
+			if len(urlStr) > maxDisplayURLLength {
+				shortenUrl = string([]rune(urlStr)[:maxDisplayURLLength]) + "..."
+			}
+
+			result += fmt.Sprintf("<a title=\"%s\" href=\"%s\">%s</a>", urlStr, urlStr, shortenUrl)
+
+			if idx < len(idxArr)-1 {
+				nextMatch := idxArr[idx+1]
+				result += html.EscapeString(rawStr[matched[1]:nextMatch[0]])
+			} else {
+				result += html.EscapeString(rawStr[matched[1]:])
+			}
+		}
+		return result
+	} else {
+		return str
+	}
 }

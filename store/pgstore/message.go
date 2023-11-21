@@ -235,6 +235,19 @@ func (m *Message) ReadMany(messageIds []any) error {
 	return nil
 }
 
+func (m *Message) ReadAll(userId int) error {
+	sqlStr := `UPDATE messages SET is_read = true WHERE reciever_id = $1`
+
+	// fmt.Println("Read many messages sql: ", sqlStr)
+
+	_, err := m.dbPool.Exec(context.Background(), sqlStr, userId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (m *Message) UnreadCount(userId int) (int, error) {
 	var total int
 	err := m.dbPool.QueryRow(context.Background(), `SELECT COUNT(*) FROM messages WHERE reciever_id = $1 AND is_read = false`, userId).Scan(&total)
