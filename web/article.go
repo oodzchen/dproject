@@ -601,22 +601,6 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	diffs := ar.dmp.DiffMain(oldArticle.Content, article.Content, false)
-	delta := ar.dmp.DiffToDelta(diffs)
-
-	// fmt.Println("diffs:", diffs)
-	fmt.Println("delta:", delta)
-
-	// reDiffs, err := dmp.DiffFromDelta(oldArticle.Content, delta)
-	// if err != nil {
-	// 	fmt.Println("get diff rom delta failed:", err)
-	// }
-
-	// prettyText := dmp.DiffPrettyText(reDiffs)
-	// fmt.Println("pretty text:", prettyText)
-	// htmlText := dmp.DiffPrettyHtml(reDiffs)
-	// fmt.Println("pretty html:", htmlText)
-
 	if (oldArticle.AuthorId != currUserId && !ar.srv.Permission.Permit("article", "edit_others")) || !ar.srv.Permission.Permit("article", "edit_mine") {
 		ar.Forbidden(w, r)
 		return
@@ -632,6 +616,36 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 		ar.Error("", err, w, r, http.StatusInternalServerError)
 		return
 	}
+
+	go func() {
+		article, err = ar.store.Article.Item(article.Id, 0)
+		if err != nil {
+			fmt.Println("get latest article data when add history error:", err)
+			return
+		}
+
+		contentDiffs := ar.dmp.DiffMain(oldArticle.Content, article.Content, false)
+		contentDelta := ar.dmp.DiffToDelta(contentDiffs)
+
+		if isReply {
+			_, err = ar.store.Article.AddHistory(article.Id, currUserId, article.UpdatedAt, oldArticle.UpdatedAt, "", "", contentDelta, "")
+		} else {
+			titleDiffs := ar.dmp.DiffMain(oldArticle.Title, article.Title, false)
+			titleDelta := ar.dmp.DiffToDelta(titleDiffs)
+
+			urlDiffs := ar.dmp.DiffMain(oldArticle.Link, article.Link, false)
+			urlDelta := ar.dmp.DiffToDelta(urlDiffs)
+
+			categoryFrontDiffs := ar.dmp.DiffMain(oldArticle.CategoryFrontId, article.CategoryFrontId, false)
+			categoryFrontDelta := ar.dmp.DiffToDelta(categoryFrontDiffs)
+
+			_, err = ar.store.Article.AddHistory(article.Id, currUserId, article.UpdatedAt, oldArticle.UpdatedAt, titleDelta, urlDelta, contentDelta, categoryFrontDelta)
+		}
+
+		if err != nil {
+			fmt.Println("add article history error:", err)
+		}
+	}()
 
 	ssOne := ar.Session("one", w, r)
 

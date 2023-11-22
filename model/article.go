@@ -13,6 +13,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/microcosm-cc/bluemonday"
+	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
 const (
@@ -208,6 +209,93 @@ type ArticleReact struct {
 	FrontId   string
 	Describe  string
 	CreatedAt time.Time
+}
+
+type ArticleLog struct {
+	Id                      int
+	PrimaryArticleId        int
+	PrimaryArticle          *Article
+	CreatedAt               time.Time
+	OperatorId              int
+	Operator                *User
+	CurrVersion             time.Time
+	PrevVersion             time.Time
+	CurrArticle             *Article
+	VersionNum              int
+	TitleDelta              string
+	URLDelta                string
+	ContentDelta            string
+	CategoryFrontIdDelta    string
+	TitleDiffHTML           string
+	URLDiffHTML             string
+	ContentDiffHTML         string
+	CategoryFrontIdDiffHTML string
+}
+
+type ArticleLogList struct {
+	List []*ArticleLog
+}
+
+func (all *ArticleLogList) Len() int {
+	return len(all.List)
+}
+
+func (all *ArticleLogList) Less(i, j int) bool {
+	return all.List[i].VersionNum < all.List[j].VersionNum
+}
+
+func (all *ArticleLogList) Swap(i, j int) {
+	all.List[i], all.List[j] = all.List[j], all.List[i]
+}
+
+func GenerateDiffs(dmp *diffmatchpatch.DiffMatchPatch, list []*ArticleLog) ([]*ArticleLog, error) {
+	if len(list) == 0 {
+		return nil, errors.New("list is empty")
+	}
+
+	alList := &ArticleLogList{
+		List: list,
+	}
+
+	sort.Sort(alList)
+
+	prevArticle := alList.List[0].PrimaryArticle
+	var tempArticle *Article
+	for _, log := range alList.List {
+		tempArticle = new(Article)
+
+		titleDiffs, err := dmp.DiffFromDelta(prevArticle.Title, log.TitleDelta)
+		if err != nil {
+			return nil, err
+		}
+		log.TitleDiffHTML = dmp.DiffPrettyHtml(titleDiffs)
+		tempArticle.Title = dmp.DiffText2(titleDiffs)
+
+		urlDiffs, err := dmp.DiffFromDelta(prevArticle.Link, log.URLDelta)
+		if err != nil {
+			return nil, err
+		}
+		log.URLDiffHTML = dmp.DiffPrettyHtml(urlDiffs)
+		tempArticle.Link = dmp.DiffText2(urlDiffs)
+
+		contentDiffs, err := dmp.DiffFromDelta(prevArticle.Content, log.ContentDelta)
+		if err != nil {
+			return nil, err
+		}
+		log.ContentDiffHTML = dmp.DiffPrettyHtml(contentDiffs)
+		tempArticle.Content = dmp.DiffText2(contentDiffs)
+
+		categoryFrontDiffs, err := dmp.DiffFromDelta(prevArticle.CategoryFrontId, log.CategoryFrontIdDelta)
+		if err != nil {
+			return nil, err
+		}
+		log.CategoryFrontIdDiffHTML = dmp.DiffPrettyHtml(categoryFrontDiffs)
+		tempArticle.CategoryFrontId = dmp.DiffText2(categoryFrontDiffs)
+
+		prevArticle = tempArticle
+	}
+
+	return alList.List, nil
 }
 
 func (a *Article) FormatNullValues() {

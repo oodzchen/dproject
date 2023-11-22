@@ -1161,3 +1161,102 @@ func (a *Article) SetAfterUpdateWeights(fn func() error) {
 func (a *Article) Tag(id int, tagFrontId string) error {
 	return nil
 }
+
+func (a *Article) AddHistory(
+	articleId, operatorId int,
+	curr, prev time.Time,
+	titleDelta, urlDelta, contentDelta, categoryFrontDelta string,
+) (int, error) {
+	sqlStr := `INSERT INTO post_history (post_id, operator_id, curr, prev, version_num, title_delta, url_delta, content_delta, category_front_delta)
+VALUES ($1, $2, $3, $4, (
+   SELECT COALESCE(MAX(version_num), 1) FROM post_history WHERE post_id = $1
+) ,$5, $6, $7, $8)`
+	var id int
+	err := a.dbPool.QueryRow(
+		context.Background(),
+		sqlStr,
+		articleId,
+		operatorId,
+		curr,
+		prev,
+		titleDelta,
+		urlDelta,
+		contentDelta,
+		categoryFrontDelta,
+	).Scan(&id)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+func (a *Article) ListHistory(articleId int) ([]*model.ArticleLog, error) {
+	sqlStr := `SELECT
+ph.id,
+ph.post_id,
+ph.created_at,
+ph.operator_id,
+ph.curr,
+ph.prev,
+ph.version_num,
+ph.title_delta,
+ph.url_delta,
+ph.content_delta,
+ph.category_front_delta,
+
+p.title AS article_title,
+p.url AS article_url,
+p.content AS article_content,
+c.front_id AS article_category_front_id,
+
+u.username AS username
+
+FROM post_history ph
+LEFT JOIN posts p ON p.id = ph.post_id
+LEFT JOIN users u ON u.id = ph.operator_id
+LEFT JOIN categories c ON c.id = p.category_id`
+
+	rows, err := a.dbPool.Query(context.Background(), sqlStr, articleId)
+	if err != nil {
+		return nil, err
+	}
+
+	var list []*model.ArticleLog
+	for rows.Next() {
+		var log model.ArticleLog
+		var article model.Article
+		var user model.User
+		err := rows.Scan(
+			&log.Id,
+			&log.PrimaryArticleId,
+			&log.CreatedAt,
+			&log.OperatorId,
+			&log.CurrVersion,
+			&log.PrevVersion,
+			&log.VersionNum,
+			&log.TitleDelta,
+			&log.URLDelta,
+			&log.ContentDelta,
+			&log.CategoryFrontIdDelta,
+
+			&article.Title,
+			&article.Link,
+			&article.Content,
+			&article.CategoryFrontId,
+
+			&user.Name,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+		log.PrimaryArticle = &article
+		log.Operator = &user
+
+		list = append(list, &log)
+	}
+
+	return list, nil
+}

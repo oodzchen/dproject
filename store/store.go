@@ -61,6 +61,8 @@ type ArticleStore interface {
 	GetReactList() ([]*model.ArticleReact, error)
 	ReactItem(int) (*model.ArticleReact, error)
 	Tag(id int, tagFrontId string) error
+	AddHistory(articleId, operatorId int, curr, prev time.Time, titleDelta, urlDelta, contentDelta, categoryFrontDelta string) (int, error)
+	ListHistory(articleId int) ([]*model.ArticleLog, error)
 }
 
 type UserStore interface {
