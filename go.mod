@@ -21,6 +21,7 @@ require (
 	github.com/nicksnyder/go-i18n/v2 v2.2.1
 	github.com/pkg/errors v0.9.1
 	github.com/redis/go-redis/v9 v9.2.1
+	github.com/sergi/go-diff v1.3.1
 	github.com/xeonx/timeago v1.0.0-rc5
 	golang.org/x/crypto v0.11.0
 	golang.org/x/text v0.11.0

@@ -601,6 +601,22 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	diffs := ar.dmp.DiffMain(oldArticle.Content, article.Content, false)
+	delta := ar.dmp.DiffToDelta(diffs)
+
+	// fmt.Println("diffs:", diffs)
+	fmt.Println("delta:", delta)
+
+	// reDiffs, err := dmp.DiffFromDelta(oldArticle.Content, delta)
+	// if err != nil {
+	// 	fmt.Println("get diff rom delta failed:", err)
+	// }
+
+	// prettyText := dmp.DiffPrettyText(reDiffs)
+	// fmt.Println("pretty text:", prettyText)
+	// htmlText := dmp.DiffPrettyHtml(reDiffs)
+	// fmt.Println("pretty html:", htmlText)
+
 	if (oldArticle.AuthorId != currUserId && !ar.srv.Permission.Permit("article", "edit_others")) || !ar.srv.Permission.Permit("article", "edit_mine") {
 		ar.Forbidden(w, r)
 		return

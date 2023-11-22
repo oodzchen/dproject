@@ -25,6 +25,7 @@ import (
 	"github.com/oodzchen/dproject/utils"
 	"github.com/oodzchen/dproject/web"
 	"github.com/redis/go-redis/v9"
+	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
 type ServiceConfig struct {
@@ -114,6 +115,9 @@ func Service(c *ServiceConfig) http.Handler {
 		Mail:            c.mail,
 		SettingsManager: settingsManager,
 	}
+
+	dmp := diffmatchpatch.New()
+
 	renderer := web.NewRenderer(
 		baseTmpl,
 		sessStore,
@@ -123,6 +127,7 @@ func Service(c *ServiceConfig) http.Handler {
 		c.i18nCustom,
 		srv,
 		c.rdb,
+		dmp,
 	)
 
 	r.Use(mdw.FetchUserData(c.store, sessStore, c.permisisonSrv, renderer))

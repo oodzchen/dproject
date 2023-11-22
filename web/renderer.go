@@ -22,6 +22,7 @@ import (
 	"github.com/oodzchen/dproject/utils"
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
+	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
 type Renderer struct {
@@ -34,9 +35,20 @@ type Renderer struct {
 	i18nCustom     *i18nc.I18nCustom
 	srv            *service.Service
 	rdb            *redis.Client
+	dmp            *diffmatchpatch.DiffMatchPatch
 }
 
-func NewRenderer(tmpl *template.Template, sessStore *sessions.CookieStore, router *chi.Mux, store *store.Store, sp *bluemonday.Policy, ic *i18nc.I18nCustom, srv *service.Service, rdb *redis.Client) *Renderer {
+func NewRenderer(
+	tmpl *template.Template,
+	sessStore *sessions.CookieStore,
+	router *chi.Mux,
+	store *store.Store,
+	sp *bluemonday.Policy,
+	ic *i18nc.I18nCustom,
+	srv *service.Service,
+	rdb *redis.Client,
+	dmp *diffmatchpatch.DiffMatchPatch,
+) *Renderer {
 	return &Renderer{
 		tmpl,
 		sessStore,
@@ -47,6 +59,7 @@ func NewRenderer(tmpl *template.Template, sessStore *sessions.CookieStore, route
 		ic,
 		srv,
 		rdb,
+		dmp,
 	}
 }
 

@@ -126,6 +126,20 @@ CREATE TABLE post_tags (
 
 CREATE INDEX idx_post_tags_post_id ON post_tags (post_id);
 
+CREATE TABLE post_history (
+    id SERIAL PRIMARY KEY,
+    post_id INTEGER REFERENCES posts(id) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    operator_id INTEGER REFERENCES users(id) NOT NULL,
+    curr TIMESTAMP NOT NULL,
+    prev TIMESTAMP NOT NULL,
+    version_num INTEGER NOT NULL,
+    title_delta TEXT,
+    url_delta TEXT,
+    content_delta TEXT,
+    category_front_delta TEXT
+);
+
 -- CREATE TABLE verification_codes (
 --     id SERIAL PRIMARY KEY,
 --     email VARCHAR(255) NOT NULL,
