@@ -757,14 +757,15 @@ func (mr *MainResource) SettingsUIPage(w http.ResponseWriter, r *http.Request) {
 func (mr *MainResource) SaveAccountSettings(w http.ResponseWriter, r *http.Request) {
 	introduction := r.FormValue("introduction")
 
-	if userId, ok := mr.Session("one", w, r).GetValue("user_id").(int); ok {
+	loginedUserData := mr.GetLoginedUserData(r)
+
+	if loginedUserData != nil {
 		user := &model.User{
-			Id:           userId,
 			Introduction: introduction,
 		}
 		user.Sanitize(mr.sanitizePolicy)
-		fmt.Println("introduction:", user.Introduction)
-		_, err := mr.store.User.Update(user, []string{"Introduction"})
+		// fmt.Println("introduction:", user.Introduction)
+		err := mr.store.User.UpdateIntroduction(loginedUserData.Name, user.Introduction)
 		if err != nil {
 			mr.Error("", err, w, r, http.StatusInternalServerError)
 			return
@@ -776,7 +777,7 @@ func (mr *MainResource) SaveAccountSettings(w http.ResponseWriter, r *http.Reque
 
 		http.Redirect(w, r, "/settings/account", http.StatusFound)
 	} else {
-		http.Redirect(w, r, "/login", http.StatusFound)
+		mr.ToLogin(w, r)
 	}
 }
 

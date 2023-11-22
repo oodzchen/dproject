@@ -1,0 +1,20 @@
+{{ define "user_profile_form" }}
+    {{template "head" . -}}
+
+    {{template "user_basic_info" .Data.UserData -}}
+    
+    {{- $userData := .Data.UserData -}}
+
+    <div class="card">
+	<form class="form" action="/users/{{$userData.Name}}/edit" method="POST">
+	    {{.CSRFField}}
+	    <div class="form__row">
+		<label class="form__label" for="introduction">{{local "Introduction"}}</label>
+		<textarea  id="introduction" style="width:100%;box-sizing:border-box;" name="introduction" rows="10">{{$userData.Introduction}}</textarea>
+	    </div>
+	    <button type="submit">{{local "BtnSubmit"}}</button>
+	</form>
+    </div>
+
+    {{template "foot" . -}}
+{{end}}

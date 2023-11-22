@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"reflect"
 	"regexp"
 	"strings"
 
@@ -197,39 +196,48 @@ func validUserUpdateField(key string) bool {
 	return false
 }
 
-func (u *User) Update(item *model.User, fieldNames []string) (int, error) {
-	for _, field := range fieldNames {
-		if !validUserUpdateField(field) {
-			return 0, errors.New(fmt.Sprintf("'%s' is not allowed to update", field))
-		}
-	}
+// func (u *User) Update(item *model.User, fieldNames []string) (int, error) {
+// 	for _, field := range fieldNames {
+// 		if !validUserUpdateField(field) {
+// 			return 0, errors.New(fmt.Sprintf("'%s' is not allowed to update", field))
+// 		}
+// 	}
 
-	var updateStr []string
-	var updateVals []any
-	itemVal := reflect.ValueOf(*item)
+// 	var updateStr []string
+// 	var updateVals []any
+// 	itemVal := reflect.ValueOf(*item)
 
-	dbFieldNameMap := map[string]string{
-		"Introduction": "introduction",
-		"Banned":       "banned",
-	}
-	for idx, field := range fieldNames {
-		updateStr = append(updateStr, fmt.Sprintf("%s = $%d", dbFieldNameMap[field], idx+1))
-		updateVals = append(updateVals, itemVal.FieldByName(field))
-	}
+// 	dbFieldNameMap := map[string]string{
+// 		"Introduction": "introduction",
+// 		"Banned":       "banned",
+// 	}
+// 	for idx, field := range fieldNames {
+// 		updateStr = append(updateStr, fmt.Sprintf("%s = $%d", dbFieldNameMap[field], idx+1))
+// 		updateVals = append(updateVals, itemVal.FieldByName(field))
+// 	}
 
-	sqlStr := "UPDATE users SET " + strings.Join(updateStr, ", ") + fmt.Sprintf(" WHERE id = $%d RETURNING(id)", len(updateStr)+1)
-	updateVals = append(updateVals, item.Id)
+// 	sqlStr := "UPDATE users SET " + strings.Join(updateStr, ", ") + fmt.Sprintf(" WHERE id = $%d RETURNING(id)", len(updateStr)+1)
+// 	updateVals = append(updateVals, item.Id)
 
-	// fmt.Println("update sql string: ", sqlStr)
-	// fmt.Println("update vals: ", updateVals)
+// 	// fmt.Println("update sql string: ", sqlStr)
+// 	// fmt.Println("update vals: ", updateVals)
 
-	var id int
-	err := u.dbPool.QueryRow(context.Background(), sqlStr, updateVals...).Scan(&id)
+// 	var id int
+// 	err := u.dbPool.QueryRow(context.Background(), sqlStr, updateVals...).Scan(&id)
+// 	if err != nil {
+// 		return 0, err
+// 	}
+
+// 	return id, nil
+// }
+
+func (u *User) UpdateIntroduction(username, introduction string) error {
+	_, err := u.dbPool.Exec(context.Background(), `UPDATE users SET introduction = $1 WHERE username = $2`, introduction, username)
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	return id, nil
+	return nil
 }
 
 func (u *User) UpdatePassword(email, password string) (int, error) {

@@ -82,6 +82,13 @@ func (rd *Renderer) GetLoginedUserId(w http.ResponseWriter, r *http.Request) int
 	return 0
 }
 
+func (rd *Renderer) GetLoginedUserData(r *http.Request) *model.User {
+	if userData, ok := r.Context().Value("user_data").(*model.User); ok {
+		return userData
+	}
+	return nil
+}
+
 func (rd *Renderer) Error(msg string, err error, w http.ResponseWriter, r *http.Request, code int) {
 	fmt.Printf("render err: %+v\n", err)
 	fmt.Println("msg: ", msg)
@@ -136,9 +143,7 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 		}
 	}
 
-	if userData, ok := r.Context().Value("user_data").(*model.User); ok {
-		data.LoginedUser = userData
-	}
+	data.LoginedUser = rd.GetLoginedUserData(r)
 
 	// fmt.Printf("renderer ui settings: %v\n", data.UISettings)
 

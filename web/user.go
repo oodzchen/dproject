@@ -31,6 +31,7 @@ type userProfile struct {
 	PermissionNames []string
 	Activities      []*model.Activity
 	Query           *queryData
+	PageType        string
 }
 
 func NewUserResource(renderer *Renderer) *UserResource {
@@ -46,14 +47,25 @@ func (ur *UserResource) Routes() http.Handler {
 	rt.Route("/{username}", func(r chi.Router) {
 		r.Get("/", ur.ItemPage)
 
-		r.With(mdw.AuthCheck(ur.sessStore), mdw.PermitCheck(ur.srv.Permission, []string{
-			"user.update_role",
-		}, ur)).Group(func(r chi.Router) {
+		r.With(mdw.AuthCheck(ur.sessStore), mdw.PermitCheck(
+			ur.srv.Permission,
+			[]string{"user.update_role"},
+			ur,
+		)).Group(func(r chi.Router) {
 			// r.Get("/ban", ur.BanPage)
 			r.Get("/set_role", ur.SetRolePage)
 			r.With(mdw.UserLogger(
 				ur.uLogger, model.AcTypeManage, model.AcActionSetRole, model.AcModelUser, mdw.ULogLoginedUserId),
 			).Post("/set_role", ur.SetRole)
+		})
+
+		r.With(mdw.AuthCheck(ur.sessStore), mdw.PermitCheck(
+			ur.srv.Permission,
+			[]string{"user.update_intro_others"},
+			ur,
+		)).Group(func(r chi.Router) {
+			r.Get("/edit", ur.EditUserProfilePage)
+			r.Post("/edit", ur.UpdateUserProfile)
 		})
 	})
 
@@ -159,6 +171,10 @@ func (ur *UserResource) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
+	ur.handleItemPage(w, r, "view")
+}
+
+func (ur *UserResource) handleItemPage(w http.ResponseWriter, r *http.Request, pageType string) {
 	pageStr := r.URL.Query().Get("page")
 	pageSizeStr := r.URL.Query().Get("page_size")
 	page, _ := strconv.Atoi(pageStr)
@@ -243,6 +259,7 @@ func (ur *UserResource) ItemPage(w http.ResponseWriter, r *http.Request) {
 			CurrTab:         service.UserListType(tab),
 			PermissionNames: permissionNames,
 			Activities:      activityList,
+			PageType:        pageType,
 			Query: &queryData{
 				Total:     total,
 				Page:      page,
@@ -434,4 +451,64 @@ func (ur *UserResource) SetRolePage(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 	})
+}
+
+func (ur *UserResource) EditUserProfilePage(w http.ResponseWriter, r *http.Request) {
+	username := chi.URLParam(r, "username")
+	if username == "" {
+		ur.Error("", errors.New("username is empty"), w, r, http.StatusBadRequest)
+		return
+	}
+
+	user, err := ur.store.User.ItemWithUsername(username)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			ur.Error("", nil, w, r, http.StatusNotFound)
+		} else {
+			ur.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	type pageData struct {
+		UserData *model.User
+	}
+
+	ur.Render(w, r, "user_profile_form", &model.PageData{
+		Title: "Update role of " + user.Name,
+		Data: &pageData{
+			UserData: user,
+		},
+		BreadCrumbs: []*model.BreadCrumb{
+			{
+				Path: fmt.Sprintf("/users/%s", user.Name),
+				Name: user.Name,
+			},
+		},
+	})
+}
+
+func (ur *UserResource) UpdateUserProfile(w http.ResponseWriter, r *http.Request) {
+	username := chi.URLParam(r, "username")
+	introduction := r.FormValue("introduction")
+
+	// fmt.Println("introduction:", introduction)
+
+	user := &model.User{
+		Introduction: introduction,
+	}
+
+	user.Sanitize(ur.sanitizePolicy)
+
+	err := ur.store.User.UpdateIntroduction(username, user.Introduction)
+	if err != nil {
+		ur.Error("", err, w, r, http.StatusInternalServerError)
+		return
+	}
+
+	oneSess := ur.Session("one", w, r)
+	oneSess.Raw.AddFlash(ur.i18nCustom.MustLocalize("AccountSaveSuccess", "", ""))
+	oneSess.Raw.Save(r, w)
+
+	http.Redirect(w, r, fmt.Sprintf("/users/%s", username), http.StatusFound)
 }

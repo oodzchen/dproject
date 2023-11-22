@@ -6,6 +6,7 @@
 	<fieldset>
 	    <legend>{{local "UserManage"}}</legend>
 	    {{if permit "user" "update_role"}}<a href="/users/{{.Data.UserInfo.Name}}/set_role">{{local "UpdateRole"}}</a>&nbsp;&nbsp;{{end}}
+	    {{if permit "user" "update_intro_others"}}<a href="/users/{{.Data.UserInfo.Name}}/edit">{{local "BtnEdit"}}{{local "Introduction"}}</a>&nbsp;&nbsp;{{end}}
 	    <hr/>
 	    <div>
 		<small>
