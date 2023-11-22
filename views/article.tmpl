@@ -141,7 +141,7 @@
 		    {{- end -}}
 		    {{- if .currUser -}}
 			{{- $isSelf := eq .currUser.Id .article.AuthorId -}}
-			{{- if and $isSelf (permit "article" "edit_mine") -}}
+			{{- if or (and $isSelf (permit "article" "edit_mine")) (permit "article" "edit_others") -}}
 			    &nbsp;|&nbsp;<a class="btn-edit text-lighten-3" href="/articles/{{.article.Id}}/edit">{{local "BtnEdit" | lower}}</a>
 			{{- end -}}
 			{{- if or (and $isSelf (permit "article" "delete_mine")) (permit "article" "delete_others") -}}

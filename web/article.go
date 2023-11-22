@@ -61,7 +61,7 @@ func (ar *ArticleResource) Routes() http.Handler {
 
 		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.srv.Permission, []string{
 			"article.edit_mine",
-			// "article.edit_others",
+			"article.edit_others",
 		}, ar)).Group(func(r chi.Router) {
 			r.Get("/edit", ar.FormPage)
 			r.With(mdw.UserLogger(
@@ -391,7 +391,7 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 
 		currUserId, err := GetLoginUserId(ar.sessStore, w, r)
 		if err != nil {
-			ar.Error("Please login", err, w, r, http.StatusUnauthorized)
+			ar.Error("", err, w, r, http.StatusUnauthorized)
 			return
 		}
 
@@ -401,10 +401,16 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if article.AuthorId != currUserId {
-			http.Redirect(w, r, fmt.Sprintf("/articles/%d", rId), http.StatusFound)
+		if (article.AuthorId != currUserId && !ar.srv.Permission.Permit("article", "edit_others")) || !ar.srv.Permission.Permit("article", "edit_mine") {
+			// http.Redirect(w, r, fmt.Sprintf("/articles/%d", articleId), http.StatusFound)
+			ar.Forbidden(w, r)
 			return
 		}
+
+		// if article.AuthorId != currUserId {
+		// 	http.Redirect(w, r, fmt.Sprintf("/articles/%d", rId), http.StatusFound)
+		// 	return
+		// }
 
 		if article.ReplyTo != 0 {
 			article.GenSummary(100)
@@ -582,6 +588,23 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 	// }
 
 	// id, err := ar.store.Article.Update(article, updateFields)
+
+	currUserId := ar.GetLoginedUserId(w, r)
+	if currUserId == 0 {
+		ar.Error("", err, w, r, http.StatusUnauthorized)
+		return
+	}
+
+	oldArticle, err := ar.store.Article.Item(id, 0)
+	if err != nil {
+		ar.ServerErrorp("", err, w, r)
+		return
+	}
+
+	if (oldArticle.AuthorId != currUserId && !ar.srv.Permission.Permit("article", "edit_others")) || !ar.srv.Permission.Permit("article", "edit_mine") {
+		ar.Forbidden(w, r)
+		return
+	}
 
 	if isReply {
 		_, err = ar.store.Article.UpdateReply(id, article.Content)
