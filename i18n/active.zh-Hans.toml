@@ -238,10 +238,6 @@ other = "编辑"
 hash = "sha1-b6ba0db1f814179114ec82fbf188b2eb5be2596e"
 other = "收起"
 
-[BtnIgnore]
-hash = "sha1-98f55db57c8ed898dbaabddea8af88630b3b7caf"
-other = "忽略"
-
 [BtnMore]
 hash = "sha1-4bab2d8fe13fa6ab57f80098b414f0f734c5dd25"
 other = "更多"
@@ -330,9 +326,17 @@ other = "讨论"
 hash = "sha1-fef514a08c2e58d62819024945219c7cbcc3d52f"
 other = "减一票"
 
+[EditBy]
+hash = "sha1-c9bbb1711cc1f258ca1f650b26f054f641a22935"
+other = "{{.Name}} 编辑"
+
 [EditContent]
 hash = "sha1-0eea86f9aabaef1ecfe059c6e2c4a2de39feae69"
 other = "编辑内容"
+
+[EditHistoryTitle]
+hash = "sha1-668a12997536df5fea775fa5b548eff32ada6c9a"
+other = "{{.Title}} 的编辑历史"
 
 [EditItem]
 hash = "sha1-26d22a0aa032d15cd11fcddc54a8b92af7611462"
@@ -749,6 +753,10 @@ other = "重置密码的验证码"
 [VerificationResetPassMailTpl]
 hash = "sha1-7b726144204ce0b0219cd6cf5f877313fbe5944b"
 other = "<html>\n<body>\n<p>您正在{{.DomainName}}上重置密码，以下是验证码：</p>\n<p><large><b>{{.Code}}</b></large></p>\n<p>有效期为{{.Minutes}}分钟。</p>\n<hr>\n<p style=\"color:#666\">{{.DomainName}}</p>\n</body>\n</html>"
+
+[Version]
+hash = "sha1-2da600bf9404843107a9531694f654e5662959e0"
+other = "版本"
 
 [VoteScore]
 hash = "sha1-8a59b65d21e42409585cf850b64587e2ee783489"

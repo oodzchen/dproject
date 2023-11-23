@@ -3,6 +3,7 @@ package web
 import (
 	"context"
 	"fmt"
+	"html"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -132,6 +133,8 @@ func (ar *ArticleResource) Routes() http.Handler {
 		}, ar), mdw.UserLogger(
 			ar.uLogger, model.AcTypeUser, model.AcActionSubscribeArticle, model.AcModelArticle, mdw.ULogURLArticleId),
 		).Post("/subscribe", ar.Subscribe)
+
+		r.Get("/history", ar.HistoryPage)
 	})
 
 	return rt
@@ -617,7 +620,7 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go ar.addHistoryLog(article, oldArticle, currUserId, isReply)
+	go ar.addHistoryLog(article.Id, oldArticle, currUserId, isReply)
 
 	ssOne := ar.Session("one", w, r)
 
@@ -630,29 +633,48 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (ar *ArticleResource) addHistoryLog(article, oldArticle *model.Article, currUserId int, isReply bool) {
-	article, err := ar.store.Article.Item(article.Id, 0)
+func (ar *ArticleResource) addHistoryLog(articleId int, oldArticle *model.Article, currUserId int, isReply bool) {
+	article, err := ar.store.Article.Item(articleId, 0)
 	if err != nil {
 		fmt.Println("get latest article data when add history error:", err)
 		return
 	}
 
-	contentDiffs := ar.dmp.DiffMain(oldArticle.Content, article.Content, false)
-	contentDelta := ar.dmp.DiffToDelta(contentDiffs)
+	oldArticle.Content = html.UnescapeString(oldArticle.Content)
+	article.Content = html.UnescapeString(article.Content)
+
+	// fmt.Printf("old article title, url, content, category_front_id: %s, %s, %s, %s\n", oldArticle.Title, oldArticle.Link, oldArticle.Content, oldArticle.CategoryFrontId)
+	// fmt.Printf("new article title, url, content, category_front_id: %s, %s, %s, %s\n", article.Title, article.Link, article.Content, article.CategoryFrontId)
+
+	var contentDelta, titleDelta, urlDelta, categoryFrontDelta string
+	if article.Content != oldArticle.Content {
+		contentDiffs := ar.dmp.DiffMain(article.Content, oldArticle.Content, false)
+		contentDelta = ar.dmp.DiffToDelta(contentDiffs)
+	}
 
 	if isReply {
-		_, err = ar.store.Article.AddHistory(article.Id, currUserId, article.UpdatedAt, oldArticle.UpdatedAt, "", "", contentDelta, "")
+		if contentDelta != "" {
+			_, err = ar.store.Article.AddHistory(article.Id, currUserId, article.UpdatedAt, oldArticle.UpdatedAt, "", "", contentDelta, "")
+		}
 	} else {
-		titleDiffs := ar.dmp.DiffMain(oldArticle.Title, article.Title, false)
-		titleDelta := ar.dmp.DiffToDelta(titleDiffs)
+		if article.Title != oldArticle.Title {
+			titleDiffs := ar.dmp.DiffMain(article.Title, oldArticle.Title, false)
+			titleDelta = ar.dmp.DiffToDelta(titleDiffs)
+		}
 
-		urlDiffs := ar.dmp.DiffMain(oldArticle.Link, article.Link, false)
-		urlDelta := ar.dmp.DiffToDelta(urlDiffs)
+		if article.Link != oldArticle.Link {
+			urlDiffs := ar.dmp.DiffMain(article.Link, oldArticle.Link, false)
+			urlDelta = ar.dmp.DiffToDelta(urlDiffs)
+		}
 
-		categoryFrontDiffs := ar.dmp.DiffMain(oldArticle.CategoryFrontId, article.CategoryFrontId, false)
-		categoryFrontDelta := ar.dmp.DiffToDelta(categoryFrontDiffs)
+		if article.CategoryFrontId != oldArticle.CategoryFrontId {
+			categoryFrontDiffs := ar.dmp.DiffMain(article.CategoryFrontId, oldArticle.CategoryFrontId, false)
+			categoryFrontDelta = ar.dmp.DiffToDelta(categoryFrontDiffs)
+		}
 
-		_, err = ar.store.Article.AddHistory(article.Id, currUserId, article.UpdatedAt, oldArticle.UpdatedAt, titleDelta, urlDelta, contentDelta, categoryFrontDelta)
+		if contentDelta != "" || titleDelta != "" || urlDelta != "" || categoryFrontDelta != "" {
+			_, err = ar.store.Article.AddHistory(article.Id, currUserId, article.UpdatedAt, oldArticle.UpdatedAt, titleDelta, urlDelta, contentDelta, categoryFrontDelta)
+		}
 	}
 
 	if err != nil {
@@ -1236,4 +1258,112 @@ func (ar *ArticleResource) Subscribe(w http.ResponseWriter, r *http.Request) {
 	} else {
 		http.Redirect(w, r, referer, http.StatusFound)
 	}
+}
+
+func (ar *ArticleResource) HistoryPage(w http.ResponseWriter, r *http.Request) {
+	articleId, err := strconv.Atoi(chi.URLParam(r, "articleId"))
+	if err != nil {
+		ar.Error("", err, w, r, http.StatusBadRequest)
+		return
+	}
+
+	currUserId := ar.GetLoginedUserId(w, r)
+	var wg sync.WaitGroup
+	var res = make(chan any, 3)
+
+	wg.Add(3)
+	go func() {
+		defer wg.Done()
+		list, err := ar.store.Article.ListHistory(articleId)
+		// fmt.Println("log list:", list)
+		if err != nil {
+			res <- err
+			return
+		}
+
+		res <- list
+	}()
+
+	go func() {
+		defer wg.Done()
+		item, err := ar.store.Article.Item(articleId, currUserId)
+		if err != nil {
+			res <- err
+			return
+		}
+
+		res <- item
+	}()
+
+	go func() {
+		defer wg.Done()
+		list, err := ar.store.Category.List(model.CategoryStateAll)
+		if err != nil {
+			res <- err
+			return
+		}
+
+		res <- list
+	}()
+
+	go func() {
+		wg.Wait()
+		close(res)
+	}()
+
+	var logList []*model.ArticleLog
+	var article *model.Article
+	var categoryMap = make(map[string]string)
+
+	for v := range res {
+		switch val := v.(type) {
+		case error:
+			if err != nil {
+				ar.ServerErrorp("", val, w, r)
+				return
+
+			}
+
+		case []*model.ArticleLog:
+			logList = val
+		case *model.Article:
+			article = val
+		case []*model.Category:
+			for _, category := range val {
+				categoryMap[category.FrontId] = category.Name
+			}
+		}
+	}
+
+	// for _, item := range logList {
+	// 	item.PrimaryArticle.Content = html.UnescapeString(item.PrimaryArticle.Content)
+	// }
+
+	article.Content = html.UnescapeString(article.Content)
+
+	logList, err = model.GenArticleDiffsFromDelta(ar.dmp, article, logList)
+	if err != nil {
+		ar.ServerErrorp("", err, w, r)
+		return
+	}
+
+	article.Content = html.EscapeString(article.Content)
+	article.FormatNullValues()
+	article.UpdateDisplayTitle()
+
+	type pageData struct {
+		Article     *model.Article
+		List        []*model.ArticleLog
+		CategoryMap map[string]string
+	}
+
+	ar.Render(w, r, "article_history", &model.PageData{
+		Title: ar.Local("EditHistoryTitle", "Title", article.DisplayTitle),
+		Data: &pageData{
+			Article:     article,
+			List:        logList,
+			CategoryMap: categoryMap,
+		},
+	})
+
 }

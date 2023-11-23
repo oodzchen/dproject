@@ -19,7 +19,7 @@ func FormatTime(t time.Time, format string) string {
 	}
 	hour := t.Hour()
 
-	formatArr = reverse(formatArr)
+	formatArr = Reverse(formatArr)
 
 	prev := ""
 	repeatCount := 0
@@ -51,12 +51,12 @@ func FormatTime(t time.Time, format string) string {
 		}
 	}
 
-	nativeFormat = reverse(nativeFormat)
+	nativeFormat = Reverse(nativeFormat)
 	// log.Printf("nativeFormat: %s\n", strings.Join(nativeFormat, ""))
 	return t.Format(strings.Join(nativeFormat, ""))
 }
 
-func reverse[V any](arr []V) []V {
+func Reverse[V any](arr []V) []V {
 	for i, j := 0, len(arr)-1; i < j; i, j = i+1, j-1 {
 		arr[i], arr[j] = arr[j], arr[i]
 	}

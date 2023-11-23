@@ -658,4 +658,18 @@ func (ic *I18nCustom) AddConfigs() {
 		Other: "{{.AuthorName}} publised new article {{.ArticleTitle}} under {{.CategoryName}}",
 	})
 
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Version",
+		Other: "Version",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "EditHistoryTitle",
+		Other: "Edit history of {{.Title}}",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "EditBy",
+		Other: "Edit by {{.Name}} ",
+	})
 }

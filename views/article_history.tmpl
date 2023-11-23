@@ -1,0 +1,104 @@
+{{define "article_history" -}}
+    {{template "head" . -}}
+
+    {{- $article := .Data.Article -}}
+    {{- $logList := .Data.List -}}
+    {{- $categoryMap := .Data.CategoryMap -}}
+    {{- $title := print "<a href=\"/articles/" $article.Id "\">" $article.DisplayTitle "</a>" -}}
+    <h1>{{local "EditHistoryTitle" "Title" $title}}</h1>
+
+    <style>
+     .log-list{
+	 padding-left: 1rem;
+     }
+
+     .log-list li{
+	 margin-bottom: 1.6rem;
+     }
+
+     .log-list .log-list__head{
+	 display: flex;
+	 flex-wrap: wrap;
+	 justify-content: space-between;
+     }
+
+     .log-list li h2{
+	 margin-top: 0;
+	 margin-bottom: 0.5rem
+     }
+
+     .log-list .log-list__describe{
+	 margin-bottom: 0.5rem;
+	 color: var(--text-lighten);
+     }
+
+     .log-list .log-list__con__row{
+	 display: flex;
+	 flex-wrap: wrap;
+	 margin-bottom: 0.8rem;
+     }
+
+     .log-list .log-list__con__label{
+	 flex: 5rem 0 0;
+	 font-weight: bold;
+     }
+
+     .log-list .log-list__con__diff{
+	 flex: 1 1 calc(100% - 5rem);
+	 padding: 0.8rem 1rem;
+	 background: var(--text-bg);
+	 box-sizing: border-box;
+     }
+    </style>
+
+    <ul class="log-list">
+	{{- range $logList -}}
+	    <li>
+		<div class="log-list__head">
+		    <h2>{{local "Version"}} {{.VersionNum}}</h2>
+		    {{- $authorName := print "<a href=\"/users/" .Operator.Name "\">" .Operator.Name "</a>" -}}
+		    <div class="log-list__describe">{{local "EditBy" "Name" $authorName}}<time title={{.CurrEditTime}}>{{timeAgo .CurrEditTime}}</time></div>
+		</div>
+		<div class="log-list__con">
+		    {{- if ne .TitleDelta "" -}}
+			<div class="log-list__con__row">
+			    <div class="log-list__con__label">{{local "Title"}}:</div>
+			    <div class="log-list__con__diff">
+				{{.TitleDiffHTML}}
+			    </div>
+			</div>
+		    {{- end -}}
+		    {{- if ne .URLDelta "" -}}
+			<div class="log-list__con__row">
+			    <div class="log-list__con__label">{{local "URL"}}:</div>
+			    <div class="log-list__con__diff">
+				{{.URLDiffHTML}}
+			    </div>
+			</div>
+		    {{- end -}}
+		    {{- if ne .ContentDelta "" -}}
+			<div class="log-list__con__row">
+			    <div class="log-list__con__label">{{local "Content"}}:</div>
+			    <div class="log-list__con__diff">
+				{{.ContentDiffHTML}}
+			    </div>
+			</div>
+		    {{- end -}}
+		    {{- if ne .CategoryFrontIdDelta "" -}}
+			<div class="log-list__con__row">
+			    <div class="log-list__con__label">{{local "Category"}}:</div>
+			    <div class="log-list__con__diff">
+				{{/*.CategoryFrontIdDiffHTML*/}}
+				<del style="background:#ffe6e6;"><a href="/categories/{{.PrevArticle.CategoryFrontId}}">{{index $categoryMap .PrevArticle.CategoryFrontId}}</a></del>
+				<ins style="background:#e6ffe6;"><a href="/categories/{{.CurrArticle.CategoryFrontId}}">{{index $categoryMap .CurrArticle.CategoryFrontId}}</a></ins>
+			    </div>
+			</div>
+		    {{- end -}}
+		</div>
+	    </li>
+	{{- end -}}
+    </ul>
+    {{- placehold $logList (print "<i class='text-lighten-2'>" (local "NoData") "</i>") -}}
+
+    {{template "foot" . -}}
+{{end -}}

@@ -1206,17 +1206,12 @@ ph.url_delta,
 ph.content_delta,
 ph.category_front_delta,
 
-p.title AS article_title,
-p.url AS article_url,
-p.content AS article_content,
-c.front_id AS article_category_front_id,
-
 u.username AS username
 
 FROM post_history ph
-LEFT JOIN posts p ON p.id = ph.post_id
 LEFT JOIN users u ON u.id = ph.operator_id
-LEFT JOIN categories c ON c.id = p.category_id`
+WHERE ph.post_id = $1
+ORDER BY ph.version_num DESC`
 
 	rows, err := a.dbPool.Query(context.Background(), sqlStr, articleId)
 	if err != nil {
@@ -1226,25 +1221,19 @@ LEFT JOIN categories c ON c.id = p.category_id`
 	var list []*model.ArticleLog
 	for rows.Next() {
 		var log model.ArticleLog
-		var article model.Article
 		var user model.User
 		err := rows.Scan(
 			&log.Id,
 			&log.PrimaryArticleId,
 			&log.CreatedAt,
 			&log.OperatorId,
-			&log.CurrVersion,
-			&log.PrevVersion,
+			&log.CurrEditTime,
+			&log.PrevEditTime,
 			&log.VersionNum,
 			&log.TitleDelta,
 			&log.URLDelta,
 			&log.ContentDelta,
 			&log.CategoryFrontIdDelta,
-
-			&article.Title,
-			&article.Link,
-			&article.Content,
-			&article.CategoryFrontId,
 
 			&user.Name,
 		)
@@ -1252,7 +1241,6 @@ LEFT JOIN categories c ON c.id = p.category_id`
 		if err != nil {
 			return nil, err
 		}
-		log.PrimaryArticle = &article
 		log.Operator = &user
 
 		list = append(list, &log)

@@ -108,7 +108,10 @@
 		{{- local "PublishInfo" "Username" $author -}}
 		<time title="{{.article.CreatedAt}}">{{timeAgo .article.CreatedAt}}</time>
 		{{- if ne .article.CreatedAt .article.UpdatedAt -}}
-		    &nbsp;|&nbsp;{{local "Modified"}}<time title="{{.article.UpdatedAt}}">{{timeAgo .article.UpdatedAt}}</time>
+		    &nbsp;|&nbsp;
+		    <a class="text-lighten-3" href="/articles/{{.article.Id}}/history">
+			{{local "Modified"}}<time title="{{.article.UpdatedAt}}">{{timeAgo .article.UpdatedAt}}</time>
+		    </a>
 		{{- end -}}
 		{{- if $isRoot -}}&nbsp;|&nbsp;<span>{{- local "ReplyNum" "Count" .article.TotalReplyCount -}}</span>{{- end -}}
 		{{- if not .article.Deleted -}}

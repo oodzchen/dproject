@@ -214,12 +214,12 @@ type ArticleReact struct {
 type ArticleLog struct {
 	Id                      int
 	PrimaryArticleId        int
-	PrimaryArticle          *Article
 	CreatedAt               time.Time
 	OperatorId              int
 	Operator                *User
-	CurrVersion             time.Time
-	PrevVersion             time.Time
+	CurrEditTime            time.Time
+	PrevEditTime            time.Time
+	PrevArticle             *Article
 	CurrArticle             *Article
 	VersionNum              int
 	TitleDelta              string
@@ -241,16 +241,16 @@ func (all *ArticleLogList) Len() int {
 }
 
 func (all *ArticleLogList) Less(i, j int) bool {
-	return all.List[i].VersionNum < all.List[j].VersionNum
+	return all.List[i].VersionNum > all.List[j].VersionNum
 }
 
 func (all *ArticleLogList) Swap(i, j int) {
 	all.List[i], all.List[j] = all.List[j], all.List[i]
 }
 
-func GenerateDiffs(dmp *diffmatchpatch.DiffMatchPatch, list []*ArticleLog) ([]*ArticleLog, error) {
+func GenArticleDiffsFromDelta(dmp *diffmatchpatch.DiffMatchPatch, headArticle *Article, list []*ArticleLog) ([]*ArticleLog, error) {
 	if len(list) == 0 {
-		return nil, errors.New("list is empty")
+		return list, nil
 	}
 
 	alList := &ArticleLogList{
@@ -259,43 +259,77 @@ func GenerateDiffs(dmp *diffmatchpatch.DiffMatchPatch, list []*ArticleLog) ([]*A
 
 	sort.Sort(alList)
 
-	prevArticle := alList.List[0].PrimaryArticle
+	// for _, item := range alList.List {
+	// 	fmt.Println("version num:", item.VersionNum)
+	// }
+
+	currArticle := headArticle
 	var tempArticle *Article
 	for _, log := range alList.List {
+		// fmt.Printf("log %#v\n", log)
+		// fmt.Println("recover version num:", log.VersionNum)
+
 		tempArticle = new(Article)
 
-		titleDiffs, err := dmp.DiffFromDelta(prevArticle.Title, log.TitleDelta)
-		if err != nil {
-			return nil, err
+		if log.TitleDelta != "" {
+			titleDiffs, err := dmp.DiffFromDelta(currArticle.Title, log.TitleDelta)
+			if err != nil {
+				return nil, err
+			}
+			tempArticle.Title = dmp.DiffText2(titleDiffs)
+			log.TitleDiffHTML = dmp.DiffPrettyHtml(reverseDiffs(dmp, titleDiffs))
+			// fmt.Println("title diff text:", dmp.DiffPrettyText(titleDiffs))
+		} else {
+			tempArticle.Title = currArticle.Title
 		}
-		log.TitleDiffHTML = dmp.DiffPrettyHtml(titleDiffs)
-		tempArticle.Title = dmp.DiffText2(titleDiffs)
 
-		urlDiffs, err := dmp.DiffFromDelta(prevArticle.Link, log.URLDelta)
-		if err != nil {
-			return nil, err
+		if log.URLDelta != "" {
+			urlDiffs, err := dmp.DiffFromDelta(currArticle.Link, log.URLDelta)
+			if err != nil {
+				return nil, err
+			}
+			tempArticle.Link = dmp.DiffText2(urlDiffs)
+			log.URLDiffHTML = dmp.DiffPrettyHtml(reverseDiffs(dmp, urlDiffs))
+			// fmt.Println("link diff text:", dmp.DiffPrettyText(urlDiffs))
+		} else {
+			tempArticle.Link = currArticle.Link
 		}
-		log.URLDiffHTML = dmp.DiffPrettyHtml(urlDiffs)
-		tempArticle.Link = dmp.DiffText2(urlDiffs)
 
-		contentDiffs, err := dmp.DiffFromDelta(prevArticle.Content, log.ContentDelta)
-		if err != nil {
-			return nil, err
+		if log.ContentDelta != "" {
+			contentDiffs, err := dmp.DiffFromDelta(currArticle.Content, log.ContentDelta)
+			if err != nil {
+				return nil, err
+			}
+			tempArticle.Content = dmp.DiffText2(contentDiffs)
+			log.ContentDiffHTML = dmp.DiffPrettyHtml(reverseDiffs(dmp, contentDiffs))
+			// fmt.Println("content diff text:", dmp.DiffPrettyText(contentDiffs))
+		} else {
+			tempArticle.Content = currArticle.Content
 		}
-		log.ContentDiffHTML = dmp.DiffPrettyHtml(contentDiffs)
-		tempArticle.Content = dmp.DiffText2(contentDiffs)
 
-		categoryFrontDiffs, err := dmp.DiffFromDelta(prevArticle.CategoryFrontId, log.CategoryFrontIdDelta)
-		if err != nil {
-			return nil, err
+		if log.CategoryFrontIdDelta != "" {
+			categoryFrontDiffs, err := dmp.DiffFromDelta(currArticle.CategoryFrontId, log.CategoryFrontIdDelta)
+			if err != nil {
+				return nil, err
+			}
+			tempArticle.CategoryFrontId = dmp.DiffText2(categoryFrontDiffs)
+			log.CategoryFrontIdDiffHTML = dmp.DiffPrettyHtml(reverseDiffs(dmp, categoryFrontDiffs))
+			// fmt.Println("category front id diff text:", dmp.DiffPrettyText(categoryFrontDiffs))
+		} else {
+			tempArticle.CategoryFrontId = currArticle.CategoryFrontId
 		}
-		log.CategoryFrontIdDiffHTML = dmp.DiffPrettyHtml(categoryFrontDiffs)
-		tempArticle.CategoryFrontId = dmp.DiffText2(categoryFrontDiffs)
 
-		prevArticle = tempArticle
+		log.CurrArticle = currArticle
+		log.PrevArticle = tempArticle
+
+		currArticle = tempArticle
 	}
 
 	return alList.List, nil
+}
+
+func reverseDiffs(dmp *diffmatchpatch.DiffMatchPatch, diffs []diffmatchpatch.Diff) []diffmatchpatch.Diff {
+	return dmp.DiffMain(dmp.DiffText2(diffs), dmp.DiffText1(diffs), false)
 }
 
 func (a *Article) FormatNullValues() {

@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"sort"
 	"testing"
 
 	"github.com/brianvoe/gofakeit/v6"
+	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
 type articleData struct {
@@ -252,4 +254,96 @@ func TestDeleteElement(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGenArticleDiffsFromDelta(t *testing.T) {
+	dmp := diffmatchpatch.New()
+	article0 := Article{
+		Title:           "This is title",
+		Link:            "https://www.example.com/abc",
+		CategoryFrontId: "general",
+		Content:         "This is content",
+	}
+
+	var logList []*ArticleLog
+
+	article1 := article0
+	article1.Title += " 111"
+	article1TitleDelta := dmp.DiffToDelta(dmp.DiffMain(article1.Title, article0.Title, false))
+	logList = append(logList, &ArticleLog{VersionNum: 1, PrevArticle: &article0, CurrArticle: &article1, TitleDelta: article1TitleDelta})
+
+	article2 := article1
+	article2.Link = "https://www.example.com/"
+	article2LinkDelta := dmp.DiffToDelta(dmp.DiffMain(article2.Link, article1.Link, false))
+	logList = append(logList, &ArticleLog{VersionNum: 2, PrevArticle: &article1, CurrArticle: &article2, URLDelta: article2LinkDelta})
+
+	article3 := article2
+	article3.CategoryFrontId = "internet"
+	article3CategoryFrontDelta := dmp.DiffToDelta(dmp.DiffMain(article3.CategoryFrontId, article2.CategoryFrontId, false))
+	logList = append(logList, &ArticleLog{VersionNum: 3, PrevArticle: &article2, CurrArticle: &article3, CategoryFrontIdDelta: article3CategoryFrontDelta})
+
+	article4 := article3
+	article4.Content += " 222"
+	article4ContentDelta := dmp.DiffToDelta(dmp.DiffMain(article4.Content, article3.Content, false))
+	logList = append(logList, &ArticleLog{VersionNum: 4, PrevArticle: &article3, CurrArticle: &article4, ContentDelta: article4ContentDelta})
+
+	alList := &ArticleLogList{List: logList}
+	sort.Sort(alList)
+	logList = alList.List
+
+	for _, item := range logList {
+		// fmt.Println("version num:", item.VersionNum)
+		// currArticle := item.CurrArticle
+		// fmt.Println("delta title, url, category, content:", item.TitleDelta, item.URLDelta, item.CategoryFrontIdDelta, item.ContentDelta)
+		// fmt.Println("title, url, category, content:", currArticle.Title, currArticle.Link, currArticle.CategoryFrontId, currArticle.Content)
+		if item.ContentDelta != "" {
+			contentDiffs, err := dmp.DiffFromDelta(item.CurrArticle.Content, item.ContentDelta)
+			if err != nil {
+				t.Fatal(err)
+			}
+			fmt.Println("content diff text:", dmp.DiffPrettyText(contentDiffs))
+		}
+	}
+
+	logList1, err := GenArticleDiffsFromDelta(dmp, &article4, logList)
+	if err != nil {
+		t.Errorf("generate article diffs from delta error: %v", err)
+		return
+	}
+
+	comparedFields := []string{"Title", "Link", "Content", "CategoryFrontId"}
+
+	for idx, log1 := range logList1 {
+		a1 := logList[idx].CurrArticle
+		a2 := log1.CurrArticle
+
+		for _, field := range comparedFields {
+			val1, err := GetFieldValue(a1, field)
+			if err != nil {
+				t.Fatal(err)
+			}
+			val2, err := GetFieldValue(a2, field)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if val1 != val2 {
+				t.Errorf("recover %s value failed, want %s, but got %s", field, val1, val2)
+			}
+		}
+	}
+}
+
+func GetFieldValue(s interface{}, fieldName string) (interface{}, error) {
+	val := reflect.ValueOf(s)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+
+	fieldVal := val.FieldByName(fieldName)
+	if !fieldVal.IsValid() {
+		return nil, fmt.Errorf("No such field: %s in obj", fieldName)
+	}
+
+	return fieldVal.Interface(), nil
 }
