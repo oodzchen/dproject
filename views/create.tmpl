@@ -24,6 +24,14 @@
 	    <input name="reply_depth" type="hidden" value="{{$article.ReplyDepth}}"/>
 	{{end -}}
 
+	{{- if $article.Id -}}
+	    <div class="text-lighten-2" style="margin-bottom: 20px">
+		{{- $author := print  "<a class=\"text-lighten-3\" href=\"/users/" $article.AuthorName "\">" $article.AuthorName "</a>" -}}
+		{{- local "PublishInfo" "Username" $author -}}
+		<time title="{{$article.CreatedAt}}">{{timeAgo $article.CreatedAt}}</time>
+	    </div>
+	{{- end -}}
+
 	{{if and $article.Id (gt $article.ReplyDepth 0) -}}
 	    <h1>{{local "Re"}}{{if gt $article.ReplyDepth 1}} &times; {{$article.ReplyDepth}}{{end}}: <a href="/articles/{{$article.ReplyRootArticleId}}">{{$article.ReplyRootArticleTitle}}</a></h1>
 	{{else -}}

@@ -1169,8 +1169,8 @@ func (a *Article) AddHistory(
 ) (int, error) {
 	sqlStr := `INSERT INTO post_history (post_id, operator_id, curr, prev, version_num, title_delta, url_delta, content_delta, category_front_delta)
 VALUES ($1, $2, $3, $4, (
-   SELECT COALESCE(MAX(version_num), 1) FROM post_history WHERE post_id = $1
-) ,$5, $6, $7, $8)`
+   SELECT COALESCE(MAX(version_num)+1, 1) FROM post_history WHERE post_id = $1
+) ,$5, $6, $7, $8) RETURNING (id)`
 	var id int
 	err := a.dbPool.QueryRow(
 		context.Background(),

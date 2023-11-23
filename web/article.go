@@ -617,35 +617,7 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go func() {
-		article, err = ar.store.Article.Item(article.Id, 0)
-		if err != nil {
-			fmt.Println("get latest article data when add history error:", err)
-			return
-		}
-
-		contentDiffs := ar.dmp.DiffMain(oldArticle.Content, article.Content, false)
-		contentDelta := ar.dmp.DiffToDelta(contentDiffs)
-
-		if isReply {
-			_, err = ar.store.Article.AddHistory(article.Id, currUserId, article.UpdatedAt, oldArticle.UpdatedAt, "", "", contentDelta, "")
-		} else {
-			titleDiffs := ar.dmp.DiffMain(oldArticle.Title, article.Title, false)
-			titleDelta := ar.dmp.DiffToDelta(titleDiffs)
-
-			urlDiffs := ar.dmp.DiffMain(oldArticle.Link, article.Link, false)
-			urlDelta := ar.dmp.DiffToDelta(urlDiffs)
-
-			categoryFrontDiffs := ar.dmp.DiffMain(oldArticle.CategoryFrontId, article.CategoryFrontId, false)
-			categoryFrontDelta := ar.dmp.DiffToDelta(categoryFrontDiffs)
-
-			_, err = ar.store.Article.AddHistory(article.Id, currUserId, article.UpdatedAt, oldArticle.UpdatedAt, titleDelta, urlDelta, contentDelta, categoryFrontDelta)
-		}
-
-		if err != nil {
-			fmt.Println("add article history error:", err)
-		}
-	}()
+	go ar.addHistoryLog(article, oldArticle, currUserId, isReply)
 
 	ssOne := ar.Session("one", w, r)
 
@@ -655,6 +627,37 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 		ar.ToPrevPage(w, r)
 	} else {
 		http.Redirect(w, r, fmt.Sprintf("/articles/%d", id), http.StatusFound)
+	}
+}
+
+func (ar *ArticleResource) addHistoryLog(article, oldArticle *model.Article, currUserId int, isReply bool) {
+	article, err := ar.store.Article.Item(article.Id, 0)
+	if err != nil {
+		fmt.Println("get latest article data when add history error:", err)
+		return
+	}
+
+	contentDiffs := ar.dmp.DiffMain(oldArticle.Content, article.Content, false)
+	contentDelta := ar.dmp.DiffToDelta(contentDiffs)
+
+	if isReply {
+		_, err = ar.store.Article.AddHistory(article.Id, currUserId, article.UpdatedAt, oldArticle.UpdatedAt, "", "", contentDelta, "")
+	} else {
+		titleDiffs := ar.dmp.DiffMain(oldArticle.Title, article.Title, false)
+		titleDelta := ar.dmp.DiffToDelta(titleDiffs)
+
+		urlDiffs := ar.dmp.DiffMain(oldArticle.Link, article.Link, false)
+		urlDelta := ar.dmp.DiffToDelta(urlDiffs)
+
+		categoryFrontDiffs := ar.dmp.DiffMain(oldArticle.CategoryFrontId, article.CategoryFrontId, false)
+		categoryFrontDelta := ar.dmp.DiffToDelta(categoryFrontDiffs)
+
+		_, err = ar.store.Article.AddHistory(article.Id, currUserId, article.UpdatedAt, oldArticle.UpdatedAt, titleDelta, urlDelta, contentDelta, categoryFrontDelta)
+	}
+
+	if err != nil {
+		fmt.Println("add article history error:", err)
+		return
 	}
 }
 
