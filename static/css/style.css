@@ -27,6 +27,9 @@
     --link-active: #CE3535;
 
     --border-color: #CCC;
+
+    --diff-ins-bg: #e6ffe6;
+    --diff-del-bg: #ffe6e6;
 }
 :root[data-theme="dark"] {
     color-scheme: dark;
@@ -50,6 +53,9 @@
     --link-active: #EE7C7C;
 
     --border-color: #666;
+
+    --diff-ins-bg: #3d463d;
+    --diff-del-bg: #4a3b3b;
 }
 h1{
     margin-bottom: 0.6rem;
