@@ -25,6 +25,7 @@ var TmplFuncs = template.FuncMap{
 	"pageStr":      pageStr,
 	"calcDuration": calcDuration,
 	"replaceLink":  replaceLink,
+	"getDomain":    getDomain,
 }
 
 func joinStrArr(arr []string, sep string) string {
@@ -169,4 +170,10 @@ func replaceLink(str string) string {
 	} else {
 		return str
 	}
+}
+
+var urlDomainRegex = regexp.MustCompile(`[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}`)
+
+func getDomain(url string) string {
+	return urlDomainRegex.FindString(url)
 }
