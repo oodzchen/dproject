@@ -19,6 +19,7 @@ on:
 jobs:
   call-workflow-testing:
     uses: oodzchen/dproject/.github/workflows/testing.yml@main
+    secrets: inherit
   push_to_registry:
     name: Push Docker image to Docker Hub
     needs: [call-workflow-testing]
