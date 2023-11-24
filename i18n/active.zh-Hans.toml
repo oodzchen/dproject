@@ -594,6 +594,18 @@ other = "创建新帐号"
 hash = "sha1-c1ff3ef2fb92114876e8d158f7f39f18650fb76e"
 other = "还未注册？你可以 "
 
+[RepliesLayout]
+hash = "sha1-4ad029325695bae4d5c6118a42f0952f5529d83c"
+other = "回复区布局"
+
+[RepliesLayoutTile]
+hash = "sha1-2dd2c660983753cf7cd7ed0bfc6dd2c1219c9bc2"
+other = "平铺"
+
+[RepliesLayoutTree]
+hash = "sha1-99f5ff6378a0b48f815677894306b090ee036726"
+other = "树形递归"
+
 [Reply]
 hash = "sha1-c8a103c73005ccd029f388a9b7336a994cad85ba"
 other = "回复"
@@ -677,6 +689,10 @@ other = "系统默认"
 [ThemeSystemTip]
 hash = "sha1-279ff465b21df4aa114acd5656a2ed4fe4a7cd5b"
 other = "该功能需要启用JavaScript"
+
+[TimeOrder]
+hash = "sha1-fa054a183304da9104580cf5dc51a65694953d27"
+other = "时间顺序"
 
 [Title]
 hash = "sha1-768e0c1c69573fb588f61f1308a015c11468e05f"

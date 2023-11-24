@@ -594,6 +594,18 @@ other = "新しいアカウントを作成する"
 hash = "sha1-c1ff3ef2fb92114876e8d158f7f39f18650fb76e"
 other = "まだ登録していませんか？これを行うことができます "
 
+[RepliesLayout]
+hash = "sha1-4ad029325695bae4d5c6118a42f0952f5529d83c"
+other = "応答エリアのレイアウト"
+
+[RepliesLayoutTile]
+hash = "sha1-2dd2c660983753cf7cd7ed0bfc6dd2c1219c9bc2"
+other = "タイルレイアウト"
+
+[RepliesLayoutTree]
+hash = "sha1-99f5ff6378a0b48f815677894306b090ee036726"
+other = "木構造の再帰"
+
 [Reply]
 hash = "sha1-c8a103c73005ccd029f388a9b7336a994cad85ba"
 other = "返信"
@@ -677,6 +689,10 @@ other = "システムデフォルト"
 [ThemeSystemTip]
 hash = "sha1-279ff465b21df4aa114acd5656a2ed4fe4a7cd5b"
 other = "この機能はJavaScriptを有効にする必要があります"
+
+[TimeOrder]
+hash = "sha1-fa054a183304da9104580cf5dc51a65694953d27"
+other = "年代順"
 
 [Title]
 hash = "sha1-768e0c1c69573fb588f61f1308a015c11468e05f"

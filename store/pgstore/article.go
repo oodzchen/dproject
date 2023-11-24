@@ -33,6 +33,9 @@ func (a *Article) List(page, pageSize int, sortType model.ArticleSortType, categ
 	case model.ListSortHot:
 		orderSqlStrHead = ` ORDER BY p.participate_count DESC `
 		orderSqlStrTail = ` ORDER BY tp.participate_count DESC `
+	case model.ListSortOldest:
+		orderSqlStrHead = ` ORDER BY p.created_at`
+		orderSqlStrTail = ` ORDER BY tp.created_at`
 	case model.ListSortLatest:
 		fallthrough
 	default:
@@ -504,6 +507,9 @@ func (a *Article) ItemTree(page, pageSize, id int, sortType model.ArticleSortTyp
 	case model.ReplySortBest:
 		// orderSqlStrHead = ` ORDER BY reply_weight DESC `
 		orderSqlStrTail = ` ORDER BY p.reply_weight DESC `
+	case model.ListSortOldest:
+		// orderSqlStrHead = ` ORDER BY reply_weight DESC `
+		orderSqlStrTail = ` ORDER BY p.created_at `
 	case model.ListSortLatest:
 		fallthrough
 	default:

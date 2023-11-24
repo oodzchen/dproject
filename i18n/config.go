@@ -679,4 +679,24 @@ func (ic *I18nCustom) AddConfigs() {
 		Other: "About",
 	})
 
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "TimeOrder",
+		Other: "Chronological",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "RepliesLayout",
+		Other: "Replies Layout",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "RepliesLayoutTree",
+		Other: "Tree",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "RepliesLayoutTile",
+		Other: "Tile",
+	})
+
 }

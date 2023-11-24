@@ -616,6 +616,7 @@ func (mr *MainResource) SaveUISettings(w http.ResponseWriter, r *http.Request) {
 	lang := r.PostForm.Get("lang")
 	theme := r.PostForm.Get("theme")
 	contentLayout := r.PostForm.Get("content_layout")
+	repliesLayout := r.PostForm.Get("replies_layout")
 	fontSizeStr := r.PostForm.Get("font_size")
 	fontSizeCustomStr := r.PostForm.Get("font_size_custom")
 	showEmoji := r.PostForm.Get("show_emoji")
@@ -634,6 +635,10 @@ func (mr *MainResource) SaveUISettings(w http.ResponseWriter, r *http.Request) {
 
 	if regexp.MustCompile(`^full|centered$`).Match([]byte(contentLayout)) {
 		uiSettings.ContentLayout = contentLayout
+	}
+
+	if regexp.MustCompile(`^tree|tile$`).Match([]byte(repliesLayout)) {
+		uiSettings.RepliesLayout = repliesLayout
 	}
 
 	var fontSize int

@@ -827,7 +827,15 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		item.FormatDeleted()
 	}
 
-	rootArticle, _ = genArticleTree(rootArticle, articleTreeList, page, sortType)
+	if uiSettings, ok := r.Context().Value("ui_settings").(*model.UISettings); ok {
+		fmt.Println("replies layout:", string(uiSettings.RepliesLayout))
+		if uiSettings.RepliesLayout == model.RepliesLayoutTile {
+			rootArticle, _ = genArticleTree(rootArticle, articleTreeList, page, sortType)
+		} else {
+			rootArticle, _ = genArticleTree(rootArticle, articleTreeList, page, sortType)
+		}
+	}
+
 	// if err != nil {
 	// 	fmt.Printf("generate article tree error: %v\n", err)
 	// }

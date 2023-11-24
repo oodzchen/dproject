@@ -199,8 +199,8 @@
 		<div id="replies" class="reply-tab">
 		    <div class="reply-tab__title">{{local "ReplyNum" "Count" .article.TotalReplyCount}}</div>
 		    {{- $article := .article -}}
-		    {{- $sortTabs := list "best" "latest" -}}
-		    {{- $sortTabMap := dict "best" (local "Best") "latest" (local "Latest") -}}
+		    {{- $sortTabs := list "best" "latest" "oldest" -}}
+		    {{- $sortTabMap := dict "best" (local "Best") "latest" (local "Latest") "oldest" (local "TimeOrder") -}}
 		    <div class="tabs">
 			{{- range $sortTabs -}}
 			    <a class="tab{{if eq $article.Replies.SortType .}} active{{end}}" href="/articles/{{$article.Id}}{{if ne . "best"}}?sort={{.}}#replies{{end}}">{{get $sortTabMap .}}</a>

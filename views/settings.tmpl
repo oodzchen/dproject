@@ -35,6 +35,8 @@
 	    {{- $themes := list "light" "dark" "system"}}
 	    {{- $contentLayoutDict := dict "full" (local "PageLayoutFull") "centered" (local "PageLayoutCentered")}}
 	    {{- $contentLayouts := list "centered" "full"}}
+	    {{- $repliesLayoutDict := dict "tree" (local "RepliesLayoutTree") "tile" (local "RepliesLayoutTile")}}
+	    {{- $repliesLayouts := list "tree" "tile"}}
 	    {{- $settings := .UISettings}}
 
 	    {{- $fontSizes := list "12" "14" "16" "18" "29" "x"}}
@@ -63,6 +65,12 @@
 			<span><label><input name="content_layout" required autocomplete="off" id="{{.}}" {{if and $settings (eq $settings.ContentLayout .)}}checked{{end}} type="radio" value="{{.}}"/> {{get $contentLayoutDict .}}</label></span>&nbsp;&nbsp;
 		    {{- end -}}
 		</div>
+	    </div>
+	    <div class="form__row">
+		<label class="form__label">{{local "RepliesLayout"}}:</label>
+		{{range $repliesLayouts -}}
+		    <span><label><input name="replies_layout" required autocomplete="off" id="{{.}}" {{if and $settings (eq $settings.RepliesLayout .)}}checked{{end}} type="radio" value="{{.}}"/> {{get $repliesLayoutDict .}}</label></span>&nbsp;&nbsp;
+		{{- end -}}
 	    </div>
 	    <div class="form__row">
 		<label class="form__label" for="font-size-options">{{local "FontSize"}}:</label>

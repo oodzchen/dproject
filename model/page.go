@@ -16,10 +16,16 @@ const (
 	PageContentLayoutCentered        = "centered"
 )
 
+const (
+	RepliesLayoutTree string = "tree"
+	RepliesLayoutTile        = "tile"
+)
+
 var DefaultUiSettings = &UISettings{
 	Lang:           LangEn,
 	Theme:          PageThemeSystem,
 	ContentLayout:  PageContentLayoutCentered,
+	RepliesLayout:  RepliesLayoutTree,
 	FontSize:       12,
 	FontSizeCustom: false,
 	ShowEmoji:      true,
@@ -29,6 +35,7 @@ type UISettings struct {
 	Lang           Lang   `json:"lang"`
 	Theme          string `json:"theme"`
 	ContentLayout  string `json:"content_layout"`
+	RepliesLayout  string `json:"replies_layout"`
 	FontSize       int    `json:"font_size"`
 	FontSizeCustom bool   `json:"font_size_custom"`
 	ShowEmoji      bool   `json:"show_emoji"`

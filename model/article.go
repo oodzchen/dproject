@@ -56,6 +56,7 @@ type ArticleSortType string
 
 const (
 	ReplySortBest  ArticleSortType = "best"
+	ListSortOldest                 = "oldest"
 	ListSortLatest                 = "latest"
 	ListSortBest                   = "list_best"
 	ListSortHot                    = "list_hot"
@@ -63,6 +64,7 @@ const (
 
 var articleSortMap = map[ArticleSortType]bool{
 	ReplySortBest:  true,
+	ListSortOldest: true,
 	ListSortLatest: true,
 	ListSortBest:   true,
 	ListSortHot:    true,
@@ -133,8 +135,9 @@ func (al *ArticleList) Len() int {
 func (al *ArticleList) Less(i, j int) bool {
 	switch al.SortType {
 	case ListSortLatest:
-		compare := al.List[i].CreatedAt.Compare(al.List[j].CreatedAt)
-		return compare > 0
+		return al.List[i].CreatedAt.Compare(al.List[j].CreatedAt) > 0
+	case ListSortOldest:
+		return al.List[i].CreatedAt.Compare(al.List[j].CreatedAt) <= 0
 	case ListSortBest:
 		return al.List[i].ListWeight > al.List[j].ListWeight
 	case ListSortHot:
