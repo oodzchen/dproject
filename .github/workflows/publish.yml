@@ -12,16 +12,16 @@
 name: Publish Docker image
 
 on:
-  workflow_run:
-    workflows: ["Testing"]
-    branches: [main]
-    types: 
-      - completed
+  push:
+    tags:
+      - v*
 
 jobs:
+  call-workflow-testing:
+    uses: oodzchen/dproject/.github/workflows/testing.yml@main
   push_to_registry:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     name: Push Docker image to Docker Hub
+    needs: [call-workflow-testing]
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
