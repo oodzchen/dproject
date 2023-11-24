@@ -13,7 +13,10 @@ type Category struct {
 }
 
 func (p *Category) List(state model.CategoryState) ([]*model.Category, error) {
-	sqlStr := `SELECT id, front_id, name, COALESCE(describe, ''), author_id, approved, COALESCE(approval_comment, ''), created_at FROM categories`
+	sqlStr := `SELECT c.id, c.front_id, c.name, COALESCE(c.describe, ''), c.author_id, c.approved, COALESCE(c.approval_comment, ''), c.created_at, COUNT(DISTINCT p.id) AS total_post_count
+FROM categories c
+LEFT JOIN posts p ON p.category_id = c.id AND p.deleted = false AND p.reply_to = 0
+GROUP BY c.id`
 	switch state {
 	case model.CategoryStateApproved:
 		sqlStr += " WHERE approved = true "
@@ -46,6 +49,7 @@ func (p *Category) List(state model.CategoryState) ([]*model.Category, error) {
 			&item.Approved,
 			&item.ApprovalComment,
 			&item.CreatedAt,
+			&item.TotalArticleCount,
 		)
 
 		if err != nil {

@@ -645,7 +645,8 @@ func (ic *I18nCustom) AddConfigs() {
 
 	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "Category",
-		Other: "Category",
+		One:   "Category",
+		Other: "Categories",
 	})
 
 	ic.AddLocalizeConfig(&i18n.Message{
@@ -672,4 +673,10 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "EditBy",
 		Other: "Edit by {{.Name}} ",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "About",
+		Other: "About",
+	})
+
 }

@@ -1,3 +1,7 @@
+[About]
+hash = "sha1-6b21fb791ac05170893860c248401cd24a59b732"
+other = "關於"
+
 [AcAction_add_role]
 hash = "sha1-d8d5d55c4c9d25c9ac455cfdf8e691f899c49e01"
 other = "添加角色"
@@ -295,7 +299,7 @@ hash = "sha1-9f021898ec33f40be86f32bb614b7676044e2590"
 other = "取消投票"
 
 [Category]
-hash = "sha1-a3c686e711e4720f99b4562bb3dbaae7ab658cf2"
+hash = "sha1-6ccb60071be8f00760a3824d9f7d0fad57de789f"
 other = "分類"
 
 [ConfirmDelete]

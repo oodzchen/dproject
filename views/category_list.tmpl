@@ -1,0 +1,21 @@
+{{define "category-list" -}}
+    {{template "head" . -}}
+
+    <style>
+     .category-list{
+	 padding-left: 1rem;
+     }
+    </style>
+    
+    <ul class="category-list">
+	{{- range .Data.CategoryList -}}
+	    <li>
+		<div><b><a href="/categories/{{.FrontId}}">{{.Name}}</a></b> <span class="text-lighten">({{.TotalArticleCount}})</span></div>
+		<p>{{.Describe}}</p>
+	    </li>
+	{{- end -}}
+    </ul>
+    
+
+    {{template "foot" . -}}
+{{end -}}

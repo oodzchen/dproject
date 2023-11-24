@@ -583,6 +583,16 @@ a.text-lighten-3{
     white-space: break-spaces;
 }
 
+.footer{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.footer .footer__links a{
+    color: var(--text-color);
+}
+
 @media (max-width: 750px){
     :root{
 	--reply-indent-size: 1rem;

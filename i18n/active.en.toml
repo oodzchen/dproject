@@ -1,3 +1,4 @@
+About = "About"
 AcAction_add_role = "Add role"
 AcAction_create_article = "Create article"
 AcAction_delete_article = "Delete article"
@@ -70,7 +71,6 @@ BtnSubscribe = "Subscribe"
 BtnUnsave = "Unsave"
 BtnUnsubscribe = "Unsubscribe"
 CancelVote = "Cancel the vote"
-Category = "Category"
 ConfirmDelete = "Confirm to delete"
 ConfirmNewPassword = "Confirm new password"
 Content = "Content"
@@ -189,6 +189,10 @@ other = "Activities"
 [Article]
 one = "Article"
 other = "Articles"
+
+[Category]
+one = "Category"
+other = "Categories"
 
 [Participate]
 one = "{{.ParticipateNum}} participate"

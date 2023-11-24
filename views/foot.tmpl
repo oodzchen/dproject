@@ -1,9 +1,13 @@
 {{define "foot" -}}
     <hr style="margin-top: 100px;"/>
-    <footer>
-	&copy; {{now | date "2006" }} {{.BrandDomainName}}
-	&nbsp;&nbsp; 响应时间：{{calcDuration .RespStart}}
-	&nbsp;&nbsp; HTML渲染时间：{{calcDuration .RenderStart}}
+    <footer class="footer">
+	<div>&copy; {{now | date "2006" }} {{.BrandDomainName}}
+	    &nbsp;&nbsp; 响应时间：{{calcDuration .RespStart}}
+	    &nbsp;&nbsp; HTML渲染时间：{{calcDuration .RenderStart}}</div>
+	<div class="footer__links">
+	    <a href="/about">{{local "About"}}</a>
+	    &nbsp;&nbsp;<a href="/categories">{{local "Category" "Count" 2}}</a>
+	</div>
     </footer>
     <script src="/static/js/app.js"></script>
 </body>

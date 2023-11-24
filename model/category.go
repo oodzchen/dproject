@@ -20,15 +20,16 @@ type CategoryUserState struct {
 }
 
 type Category struct {
-	Id              int
-	FrontId         string
-	Name            string
-	Describe        string
-	AuthorId        string
-	CreatedAt       time.Time
-	Approved        bool
-	ApprovalComment string
-	UserState       *CategoryUserState
+	Id                int
+	FrontId           string
+	Name              string
+	Describe          string
+	AuthorId          string
+	CreatedAt         time.Time
+	Approved          bool
+	ApprovalComment   string
+	UserState         *CategoryUserState
+	TotalArticleCount int
 }
 
 func categoryValidErr(str string) error {

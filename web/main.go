@@ -106,10 +106,12 @@ func (mr *MainResource) Routes() http.Handler {
 	rt.With(mdw.AuthCheck(mr.sessStore)).Get("/messages", mr.MessageList)
 
 	rt.Route("/categories", func(r chi.Router) {
-		// r.Get("/", mr.CategoryList)
+		r.Get("/", mr.CategoryList)
 		r.Get("/{categoryFrontId}", mr.CategoryArticleList)
 		r.Post("/{categoryFrontId}/subscribe", mr.CategorySubscribe)
 	})
+
+	rt.Get("/about", mr.About)
 
 	if config.Config.Debug {
 		rt.With(mdw.UserLogger(mr.uLogger, model.AcTypeDev, model.AcActionLogin, model.AcModelEmpty, mdw.ULogEmpty)).Post("/login_debug", mr.LoginDebug)
@@ -1370,4 +1372,39 @@ func (mr *MainResource) CategorySubscribe(w http.ResponseWriter, r *http.Request
 
 	referer := r.Referer()
 	http.Redirect(w, r, referer, http.StatusFound)
+}
+
+func (mr *MainResource) About(w http.ResponseWriter, r *http.Request) {
+	mr.Render(w, r, "about", &model.PageData{
+		Title: mr.Local("About"),
+		BreadCrumbs: []*model.BreadCrumb{
+			{
+				Name: mr.Local("About"),
+			},
+		},
+	})
+}
+
+func (mr *MainResource) CategoryList(w http.ResponseWriter, r *http.Request) {
+	categoryList, err := mr.store.Category.List(model.CategoryStateAll)
+	if err != nil {
+		mr.ServerErrorp("", err, w, r)
+		return
+	}
+
+	type pageData struct {
+		CategoryList []*model.Category
+	}
+
+	mr.Render(w, r, "category-list", &model.PageData{
+		Title: mr.Local("Category", "Count", 2),
+		Data: &pageData{
+			CategoryList: categoryList,
+		},
+		BreadCrumbs: []*model.BreadCrumb{
+			{
+				Name: mr.Local("Category", "Count", 2),
+			},
+		},
+	})
 }
