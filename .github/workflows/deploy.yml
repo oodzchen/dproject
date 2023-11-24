@@ -9,7 +9,7 @@
 # To get a newer version, you will need to update the SHA.
 # You can also reference a tag or branch, but the action may change without warning.
 
-name: Publish Docker image
+name: Deploy
 
 on:
   push:
@@ -51,3 +51,18 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+  restart_app:
+    name: Restart app
+    needs: [push_to_registry]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Executing remote ssh commands
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.DEV_APP_HOST }}
+          username: ${{ secrets.DEV_HOST_USERNAME }}
+          key: ${{ secrets.DEV_HOST_KEY }}
+          port: ${{ secrets.DEV_HOST_SSH_PORT }}
+          script: |
+            $HOME/go/src/github.com/oodzchen/dproject/scripts/restart_app.sh
+            docker ps
