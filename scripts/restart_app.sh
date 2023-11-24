@@ -13,9 +13,9 @@ echo "Pulling latest code from Git..."
 git pull
 
 echo "Pulling latest Docker images..."
-docker-compose --env-file $ENV_FILE -f $DOCKER_COMPOSE_PATH pull
+docker compose --env-file $ENV_FILE -f $DOCKER_COMPOSE_PATH pull
 
 echo "Restarting Docker Compose services..."
-docker-compose --env-file $ENV_FILE -f $DOCKER_COMPOSE_PATH up -d $APP_SERVICE_NAME
+docker compose --env-file $ENV_FILE -f $DOCKER_COMPOSE_PATH up -d $APP_SERVICE_NAME
 
 echo "Deployment completed successfully."
