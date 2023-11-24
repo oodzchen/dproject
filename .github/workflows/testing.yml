@@ -6,8 +6,8 @@ name: Testing
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    tags-ignore:
+      - v*
   workflow_call:
 
 jobs:
