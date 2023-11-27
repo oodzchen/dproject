@@ -18,6 +18,14 @@
      article > section a:hover{
 	 color: var(--text);
      }
+     .article__reply-ref{
+	 /* cursor: pointer; */
+	 margin: 4px 1rem;
+	 padding: 6px;
+     }
+     .article__reply-ref a{
+	 color: var(--text-lighten-2) !important;
+     }
      .replies{
 	 margin-top: 0;
 	 list-style:none;
@@ -72,7 +80,7 @@
 
     {{template "article_content" $data -}}
 
-    {{- if and $data.article.Replies (gt $data.article.Replies.TotalPage 1) -}}
+    {{- if and (eq $data.pageType "detail") (and $data.article.Replies (gt $data.article.Replies.TotalPage 1)) -}}
 	{{- $prefix := printf "/articles/%d" $data.article.Id -}}
 	{{- $pagiData := dict "currPage" $data.article.Replies.CurrPage "totalPage" $data.article.Replies.TotalPage "pathPrefix" .RoutePath "query" .RouteQuery -}}
 	{{- template "pagination" $pagiData -}}
@@ -118,7 +126,7 @@
 		    &nbsp;|&nbsp;<a class="text-lighten-3" href="/articles/{{.article.Id}}">{{local "Link" | lower}}</a> |&nbsp;
 		    <a class="text-lighten-3" href="#ar_{{.article.Id}}">{{local "Anchor" | lower}}</a> |&nbsp;
 		    {{- if gt .pageDepth 1 -}}
-			<a title="{{local "BtnParent"}}" class="btn-parent text-lighten-3" href="#ar_{{.article.ReplyTo}}">{{local "BtnParent" | lower}}</a> |&nbsp;
+			<a title="{{local "BtnParent"}}" class="btn-parent text-lighten-3" href="#ar_{{.article.ReplyToId}}">{{local "BtnParent" | lower}}</a> |&nbsp;
 		    {{- end -}}
 		    {{- if permit "article" "save" -}}
 			<form class="btn-form" action="/articles/{{.article.Id}}/save" method="POST" >
@@ -159,6 +167,12 @@
 		{{- end -}}
 	    </small>
 	</div>
+	{{- if .article.ReplyToArticle -}}
+	    {{- $parent := .article.ReplyToArticle -}}
+	    <div class="article__reply-ref tip-block--gray">
+		<small>&gt; <a class="text-lighten-2" href="/articles/{{$parent.Id}}">{{$parent.AuthorName}}: {{$parent.Summary}}{{if ne $parent.Content $parent.Summary}} ...{{end}}</a></small>
+	    </div>
+	{{- end -}}
 	{{if .article.Deleted -}}
 	    <i class="text-lighten-2">&lt;{{local "Deleted"}}&gt;</i>
 	{{- else -}}
@@ -248,7 +262,7 @@
 
 	    {{$replyPage := eq .pageType "reply"}}
 	    {{- if and (not $replyPage) (eq .pageDepth 1) (not .isRootArticle) -}}
-		<a title="{{local "BtnParent"}}" href="/articles/{{.article.ReplyTo}}">{{local "BtnParent"}}</a>&nbsp;&nbsp;
+		<a title="{{local "BtnParent"}}" href="/articles/{{.article.ReplyToId}}">{{local "BtnParent"}}</a>&nbsp;&nbsp;
 	    {{- end -}}
 	</small>
 

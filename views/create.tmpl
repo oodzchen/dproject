@@ -12,7 +12,7 @@
     </style>
     {{- $article := .Data.Article -}}
     {{- $currCategoryFrontId := .Data.CurrCategoryFrontId -}}
-    {{- $isReply := ne $article.ReplyTo 0 -}}
+    {{- $isReply := ne $article.ReplyToId 0 -}}
 
     <div class="tip-block">
 	{{local "SubmitContentTip"}}

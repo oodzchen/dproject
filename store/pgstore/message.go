@@ -139,7 +139,7 @@ LEFT JOIN categories c ON c.id = m.source_category_id`
 			&sourceArticle.CreatedAt,
 			&sourceArticle.UpdatedAt,
 			&sourceArticle.Deleted,
-			&sourceArticle.ReplyTo,
+			&sourceArticle.ReplyToId,
 			&sourceArticle.ReplyDepth,
 			&sourceArticle.ReplyRootArticleTitle,
 			&userState.Subscribed,
@@ -153,7 +153,7 @@ LEFT JOIN categories c ON c.id = m.source_category_id`
 			&contentArticle.CreatedAt,
 			&contentArticle.UpdatedAt,
 			&contentArticle.Deleted,
-			&contentArticle.ReplyTo,
+			&contentArticle.ReplyToId,
 			&contentArticle.ReplyDepth,
 			&contentArticle.ReplyRootArticleTitle,
 

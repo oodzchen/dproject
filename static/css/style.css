@@ -551,7 +551,6 @@ a.text-lighten-3{
 .tip-block a,
 .tip-block--gray a{
     color: var(--text-lighten);
-    text-decoration: underline;
 }
 
 .page-intro .page-intro__head{

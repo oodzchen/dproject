@@ -13,13 +13,13 @@ type Article struct {
 	SantizePolicy *bluemonday.Policy
 }
 
-func (a *Article) Create(title, url, content string, authorId, replyTo int, categoryFrontId string) (int, error) {
+func (a *Article) Create(title, url, content string, authorId, replyToId int, categoryFrontId string) (int, error) {
 	article := &model.Article{
 		Title:           title,
 		AuthorId:        authorId,
 		Link:            url,
 		Content:         content,
-		ReplyTo:         replyTo,
+		ReplyToId:       replyToId,
 		CategoryFrontId: categoryFrontId,
 	}
 
@@ -33,7 +33,7 @@ func (a *Article) Create(title, url, content string, authorId, replyTo int, cate
 		return 0, err
 	}
 
-	id, err := a.Store.Article.Create(article.Title, article.Link, article.Content, article.AuthorId, article.ReplyTo, article.CategoryFrontId)
+	id, err := a.Store.Article.Create(article.Title, article.Link, article.Content, article.AuthorId, article.ReplyToId, article.CategoryFrontId)
 	if err != nil {
 		return 0, err
 	}
@@ -59,9 +59,9 @@ func (a *Article) Create(title, url, content string, authorId, replyTo int, cate
 
 func (a *Article) Reply(target int, content string, authorId int) (int, error) {
 	article := &model.Article{
-		AuthorId: authorId,
-		Content:  content,
-		ReplyTo:  target,
+		AuthorId:  authorId,
+		Content:   content,
+		ReplyToId: target,
 	}
 
 	article.TrimSpace()

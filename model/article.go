@@ -181,7 +181,8 @@ type Article struct {
 	UpdatedAt                 time.Time
 	CreatedAtStr              string
 	UpdatedAtStr              string
-	ReplyTo                   int
+	ReplyToId                 int
+	ReplyToArticle            *Article
 	Deleted                   bool
 	Replies                   *ArticleList
 	ReplyDepth                int
@@ -354,16 +355,18 @@ func (a *Article) FormatNullValues() {
 }
 
 func (a *Article) FormatReactCounts() {
-	if len(a.Reacts) > 0 && a.ReactCounts == nil {
-		a.ReactCounts = make(map[string]int)
-	}
+	countsMap := make(map[string]int)
 
 	for _, react := range a.Reacts {
-		if count, ok := a.ReactCounts[react.FrontId]; ok {
-			a.ReactCounts[react.FrontId] = count + 1
+		if count, ok := countsMap[react.FrontId]; ok {
+			countsMap[react.FrontId] = count + 1
 		} else {
-			a.ReactCounts[react.FrontId] = 1
+			countsMap[react.FrontId] = 1
 		}
+	}
+
+	if len(countsMap) > 0 {
+		a.ReactCounts = countsMap
 	}
 }
 
@@ -424,7 +427,7 @@ func (a *Article) TrimSpace() {
 var reArticleURLStr = `^(https?|ftp)://[^\s/$.?#].[^\s]*$`
 
 func (a *Article) Valid(isUpdate bool) error {
-	isReply := a.ReplyDepth > 0 || a.ReplyTo != 0
+	isReply := a.ReplyDepth > 0 || a.ReplyToId != 0
 	authorId := a.AuthorId
 	title := strings.TrimSpace(a.Title)
 	content := strings.TrimSpace(a.Content)

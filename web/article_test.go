@@ -11,7 +11,7 @@ import (
 func TestGenArticleTree(t *testing.T) {
 	root := &model.Article{
 		Id:            1,
-		ReplyTo:       0,
+		ReplyToId:     0,
 		ChildrenCount: 1,
 	}
 	tests := []struct {
@@ -27,51 +27,51 @@ func TestGenArticleTree(t *testing.T) {
 				root,
 				{
 					Id:            3,
-					ReplyTo:       2,
+					ReplyToId:     2,
 					ChildrenCount: 0,
 				},
 				{
 					Id:            2,
-					ReplyTo:       1,
+					ReplyToId:     1,
 					ChildrenCount: 2,
 				},
 				{
 					Id:            5,
-					ReplyTo:       4,
+					ReplyToId:     4,
 					ChildrenCount: 0,
 				},
 				{
 					Id:            4,
-					ReplyTo:       2,
+					ReplyToId:     2,
 					ChildrenCount: 1,
 				},
 			},
 			&model.Article{
 				Id:            1,
-				ReplyTo:       0,
+				ReplyToId:     0,
 				ChildrenCount: 1,
 				Replies: model.NewArticleList(
 					[]*model.Article{
 						{
 							Id:            2,
-							ReplyTo:       1,
+							ReplyToId:     1,
 							ChildrenCount: 2,
 							Replies: model.NewArticleList(
 								[]*model.Article{
 									{
 										Id:            3,
-										ReplyTo:       2,
+										ReplyToId:     2,
 										ChildrenCount: 0,
 									},
 									{
 										Id:            4,
-										ReplyTo:       2,
+										ReplyToId:     2,
 										ChildrenCount: 1,
 										Replies: model.NewArticleList(
 											[]*model.Article{
 												{
-													Id:      5,
-													ReplyTo: 4,
+													Id:        5,
+													ReplyToId: 4,
 												},
 											},
 											model.ReplySortBest,
@@ -98,30 +98,30 @@ func TestGenArticleTree(t *testing.T) {
 		{
 			"article with no reply",
 			&model.Article{
-				Id:      1,
-				ReplyTo: 0,
+				Id:        1,
+				ReplyToId: 0,
 			},
 			[]*model.Article{
 				{
-					Id:      3,
-					ReplyTo: 2,
+					Id:        3,
+					ReplyToId: 2,
 				},
 				{
-					Id:      2,
-					ReplyTo: 0,
+					Id:        2,
+					ReplyToId: 0,
 				},
 				{
-					Id:      5,
-					ReplyTo: 4,
+					Id:        5,
+					ReplyToId: 4,
 				},
 				{
-					Id:      4,
-					ReplyTo: 2,
+					Id:        4,
+					ReplyToId: 2,
 				},
 			},
 			&model.Article{
-				Id:      1,
-				ReplyTo: 0,
+				Id:        1,
+				ReplyToId: 0,
 			},
 		},
 	}

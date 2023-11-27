@@ -234,7 +234,7 @@ SELECT COUNT(*) FROM replyTree`
 	return count, nil
 }
 
-func (a *Article) Create(title, url, content string, authorId, replyTo int, categoryFrontId string) (int, error) {
+func (a *Article) Create(title, url, content string, authorId, replyToId int, categoryFrontId string) (int, error) {
 	var id int
 	sqlStr := `
 INSERT INTO posts (title, author_id, content, reply_to, url, root_article_id, depth, category_id)
@@ -267,7 +267,7 @@ RETURNING (id);`
 		title,
 		authorId,
 		content,
-		replyTo,
+		replyToId,
 		url,
 		categoryFrontId,
 	).Scan(&id)
@@ -293,12 +293,12 @@ RETURNING (id);`
 		}
 	}()
 
-	if replyTo == 0 {
+	if replyToId == 0 {
 		wg.Done()
 	} else {
 		go func() {
 			defer wg.Done()
-			err = a.updateWeights(replyTo)
+			err = a.updateWeights(replyToId)
 			if err != nil {
 				ch <- err
 			}
@@ -422,10 +422,11 @@ func (a *Article) UpdateReply(id int, content string) (int, error) {
 func (a *Article) Item(id, userId int) (*model.Article, error) {
 	sqlStr := `
 SELECT p.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title as root_article_title,
-pv.type AS user_vote_type,
 COUNT(DISTINCT p3.id) AS children_count,
 COUNT(DISTINCT pv1.id) AS vote_up_count,
 COUNT(DISTINCT pv2.id) AS vote_down_count,
+
+pv.type AS user_vote_type,
 (
 SELECT
   CASE
@@ -442,6 +443,14 @@ SELECT
   END
  FROM post_subs WHERE post_id = p.id AND user_id = $2
 ) AS subscribed,
+COALESCE(r2.front_id, '') AS curr_react_front_id,
+
+COALESCE(r.id, 0) AS react_id,
+COALESCE(r.emoji, '') AS react_emoji,
+COALESCE(r.front_id, '') AS react_front_id,
+COALESCE(r.describe, '') AS react_describe,
+COALESCE(r.created_at, NOW()) AS react_created_at,
+
 c.id AS category_id,
 c.front_id AS category_front_id,
 c.name AS category_name
@@ -452,12 +461,17 @@ LEFT JOIN posts p3 ON p.id = p3.reply_to
 LEFT JOIN post_votes pv ON pv.post_id = p.id AND pv.user_id = $2
 LEFT JOIN post_votes pv1 ON pv1.post_id = p.id AND pv1.type = 'up'
 LEFT JOIN post_votes pv2 ON pv2.post_id = p.id AND pv2.type = 'down'
+LEFT JOIN post_reacts pr ON pr.post_id = p.id
+LEFT JOIN reacts r ON r.id = pr.react_id
+LEFT JOIN post_reacts pr2 ON pr2.post_id = p.id AND pr2.user_id = $2
+LEFT JOIN reacts r2 ON r2.id = pr2.react_id
 LEFT JOIN categories c ON c.id = p.category_id
 WHERE p.id = $1
-GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title, pv.type, c.id;`
+GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title, pv.type, r.id, pr.id, c.id, r2.id, pr2.id;`
 
 	var userState model.CurrUserState
 	var category model.Category
+	var react model.ArticleReact
 	item := model.Article{
 		CurrUserState: &userState,
 		Category:      &category,
@@ -472,16 +486,25 @@ GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at,
 		&item.CreatedAt,
 		&item.UpdatedAt,
 		&item.Deleted,
-		&item.ReplyTo,
+		&item.ReplyToId,
 		&item.ReplyDepth,
 		&item.ReplyRootArticleId,
 		&item.NullReplyRootArticleTitle,
-		&item.CurrUserState.NullVoteType,
+
 		&item.ChildrenCount,
 		&item.VoteUp,
 		&item.VoteDown,
-		&item.CurrUserState.Saved,
-		&item.CurrUserState.Subscribed,
+
+		&userState.NullVoteType,
+		&userState.Saved,
+		&userState.Subscribed,
+		&userState.ReactFrontId,
+
+		&react.Id,
+		&react.Emoji,
+		&react.FrontId,
+		&react.Describe,
+		&react.CreatedAt,
 
 		&category.Id,
 		&category.FrontId,
@@ -492,16 +515,26 @@ GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at,
 		return nil, err
 	}
 
+	if react.Id > 0 {
+		// fmt.Println("react: ", react)
+		if item.Reacts == nil {
+			item.Reacts = []*model.ArticleReact{&react}
+		} else {
+			item.Reacts = append(item.Reacts, &react)
+		}
+	}
+
 	item.CategoryFrontId = category.FrontId
 
 	item.FormatNullValues()
-	item.FormatTimeStr()
+	item.FormatReactCounts()
 	item.CalcScore()
-	item.CalcWeight()
+	item.CheckShowScore(userId)
+
 	return &item, nil
 }
 
-func (a *Article) ItemTree(page, pageSize, id int, sortType model.ArticleSortType) ([]*model.Article, error) {
+func (a *Article) ReplyTree(page, pageSize, id int, sortType model.ArticleSortType) ([]*model.Article, error) {
 	var orderSqlStrTail string
 	switch sortType {
 	case model.ReplySortBest:
@@ -519,9 +552,9 @@ func (a *Article) ItemTree(page, pageSize, id int, sortType model.ArticleSortTyp
 
 	sqlStr := `
 WITH RECURSIVE articleTree AS (
-     SELECT id, reply_to, created_at, reply_weight, 0 AS cur_depth
+     SELECT id, reply_to, created_at, reply_weight, 1 AS cur_depth
      FROM posts
-     WHERE id = $1
+     WHERE reply_to = $1
      UNION ALL
      SELECT p.id, p.reply_to, p.created_at, p.reply_weight, ar.cur_depth + 1
      FROM posts p
@@ -554,7 +587,7 @@ LEFT JOIN post_votes pv2 ON pv2.post_id = p.id AND pv2.type = 'down'
 LEFT JOIN post_reacts pr ON pr.post_id = p.id
 LEFT JOIN reacts r ON r.id = pr.react_id
 LEFT JOIN categories c ON c.id = p.category_id
-WHERE ar.id = $1 OR (ar.cur_depth = 1 AND ar.rn BETWEEN $3 AND $4) OR (ar.cur_depth > 1 AND ar.rn BETWEEN 0 AND $5)
+WHERE (ar.cur_depth = 1 AND ar.rn BETWEEN $3 AND $4) OR (ar.cur_depth > 1 AND ar.rn BETWEEN 0 AND $5)
 GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title, r.id, pr.id, c.id
 ` + orderSqlStrTail
 
@@ -593,7 +626,7 @@ GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.crea
 			&item.CreatedAt,
 			&item.UpdatedAt,
 			&item.Deleted,
-			&item.ReplyTo,
+			&item.ReplyToId,
 			&item.ReplyDepth,
 			&item.ReplyRootArticleId,
 			&item.Weight,
@@ -602,6 +635,7 @@ GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.crea
 
 			&item.VoteUp,
 			&item.VoteDown,
+
 			&react.Id,
 			&react.Emoji,
 			&react.FrontId,
@@ -642,6 +676,187 @@ GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.crea
 
 			item.Category = &category
 			item.CategoryFrontId = category.FrontId
+		}
+	}
+
+	return list, nil
+}
+
+func (a *Article) ReplyList(page, pageSize, id int, sortType model.ArticleSortType) ([]*model.Article, error) {
+	var orderSqlStrTail string
+	switch sortType {
+	case model.ReplySortBest:
+		// orderSqlStrHead = ` ORDER BY reply_weight DESC `
+		orderSqlStrTail = ` ORDER BY p.reply_weight DESC `
+	case model.ListSortOldest:
+		// orderSqlStrHead = ` ORDER BY reply_weight DESC `
+		orderSqlStrTail = ` ORDER BY p.created_at `
+	case model.ListSortLatest:
+		fallthrough
+	default:
+		// orderSqlStrHead = ` ORDER BY created_at DESC `
+		orderSqlStrTail = ` ORDER BY p.created_at DESC `
+	}
+
+	sqlStr := `
+WITH RECURSIVE articleTree AS (
+     SELECT id, reply_to, created_at, reply_weight
+     FROM posts
+     WHERE reply_to = $1
+     UNION ALL
+     SELECT p.id, p.reply_to, p.created_at, p.reply_weight
+     FROM posts p
+     JOIN articleTree ar
+     ON p.reply_to = ar.id
+), pagedList AS (
+    SELECT * FROM articleTree p ` + orderSqlStrTail + `
+    OFFSET $2
+    LIMIT $3
+)
+SELECT ar.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title AS root_article_title,
+COUNT(DISTINCT p3.id) AS children_count,
+COUNT(DISTINCT pv1.id) AS vote_up_count,
+COUNT(DISTINCT pv2.id) AS vote_down_count,
+COALESCE(r.id, 0) AS react_id,
+COALESCE(r.emoji, '') AS react_emoji,
+COALESCE(r.front_id, '') AS react_front_id,
+COALESCE(r.describe, '') AS react_describe,
+COALESCE(r.created_at, NOW()) AS react_created_at,
+c.id AS category_id,
+c.front_id AS category_front_id,
+c.name AS category_name,
+
+COALESCE(p4.id, 0),
+COALESCE(p4.title, ''),
+COALESCE(p4.url,''),
+COALESCE(u2.username, '') AS author_name2,
+COALESCE(p4.author_id, 0),
+COALESCE(p4.content, ''),
+COALESCE(p4.created_at, NOW()),
+COALESCE(p4.updated_at, NOW()),
+COALESCE(p4.deleted, false),
+COALESCE(p4.reply_to, 0),
+COALESCE(p4.depth, 0),
+COALESCE(p4.root_article_id, 0),
+COALESCE(p4.reply_weight, 0)
+
+FROM posts p
+JOIN pagedList ar ON p.id = ar.id
+LEFT JOIN users u ON p.author_id = u.id
+LEFT JOIN posts p2 ON p.root_article_id = p2.id
+LEFT JOIN posts p3 ON p.id = p3.reply_to
+LEFT JOIN posts p4 ON p.reply_to = p4.id AND p4.reply_to != 0 AND p4.id != $1
+LEFT JOIN users u2 ON p4.author_id = u2.id
+LEFT JOIN post_votes pv1 ON pv1.post_id = p.id AND pv1.type = 'up'
+LEFT JOIN post_votes pv2 ON pv2.post_id = p.id AND pv2.type = 'down'
+LEFT JOIN post_reacts pr ON pr.post_id = p.id
+LEFT JOIN reacts r ON r.id = pr.react_id
+LEFT JOIN categories c ON c.id = p.category_id
+GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title, r.id, pr.id, c.id, p4.id, u2.username` + orderSqlStrTail
+
+	if page < 1 {
+		page = DefaultPage
+	}
+
+	if pageSize < 1 {
+		pageSize = DefaultPageSize
+	}
+
+	// fmt.Println("item tree sql:", sqlStr)
+
+	// rows, err := a.dbPool.Query(context.Background(), sqlStr, id, utils.GetReplyDepthSize(), userId, pageSize*(page-1), pageSize)
+	rows, err := a.dbPool.Query(context.Background(), sqlStr, id, pageSize*(page-1), pageSize)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var list []*model.Article
+	listMap := make(map[int]*model.Article)
+	for rows.Next() {
+		var react model.ArticleReact
+		var item model.Article
+		var category model.Category
+		var parent model.Article
+
+		err = rows.Scan(
+			&item.Id,
+			&item.Title,
+			&item.Link,
+			&item.AuthorName,
+			&item.AuthorId,
+			&item.Content,
+			&item.CreatedAt,
+			&item.UpdatedAt,
+			&item.Deleted,
+			&item.ReplyToId,
+			&item.ReplyDepth,
+			&item.ReplyRootArticleId,
+			&item.Weight,
+			&item.NullReplyRootArticleTitle,
+			&item.ChildrenCount,
+
+			&item.VoteUp,
+			&item.VoteDown,
+			&react.Id,
+			&react.Emoji,
+			&react.FrontId,
+			&react.Describe,
+			&react.CreatedAt,
+
+			&category.Id,
+			&category.FrontId,
+			&category.Name,
+
+			&parent.Id,
+			&parent.Title,
+			&parent.Link,
+			&parent.AuthorName,
+			&parent.AuthorId,
+			&parent.Content,
+			&parent.CreatedAt,
+			&parent.UpdatedAt,
+			&parent.Deleted,
+			&parent.ReplyToId,
+			&parent.ReplyDepth,
+			&parent.ReplyRootArticleId,
+			&parent.Weight,
+		)
+
+		// fmt.Println("item.id: ", item.Id)
+		// fmt.Println("userState: ", userState)
+		// fmt.Println("react: ", react)
+
+		if err != nil {
+			return nil, err
+		}
+
+		var article *model.Article
+		if item.Id > 0 {
+			if v, ok := listMap[item.Id]; ok {
+				article = v
+			} else {
+				article = &item
+				list = append(list, article)
+				listMap[article.Id] = article
+			}
+
+			if react.Id > 0 {
+				// fmt.Println("react: ", react)
+				if article.Reacts == nil {
+					article.Reacts = []*model.ArticleReact{&react}
+				} else {
+					article.Reacts = append(article.Reacts, &react)
+				}
+			}
+
+			item.Category = &category
+			item.CategoryFrontId = category.FrontId
+
+			if parent.Id > 0 {
+				item.ReplyToArticle = &parent
+			}
 		}
 	}
 
