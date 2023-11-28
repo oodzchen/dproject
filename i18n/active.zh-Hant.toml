@@ -458,6 +458,14 @@ other = "鏈接"
 hash = "sha1-fa8f3c7716db7922f9494a6ecfd118ba3e3cdd75"
 other = "{{.Name}}列表"
 
+[Lock]
+hash = "sha1-891ebccd5baa32daed16fb5a0825ca7a4464931f"
+other = "鎖定"
+
+[Locked]
+hash = "sha1-a798882f1c31099bb9500e2da62c0874d8dbed78"
+other = "已鎖定"
+
 [Login]
 hash = "sha1-4e5a2893bdcc7d239c1db72e4c4ffbe4bea73174"
 other = "登錄"
@@ -561,6 +569,18 @@ other = "密碼最少{{.LeastLen}}個字符，必須同時包含、字母和特�
 [Permission]
 hash = "sha1-d06d55570938d12f87db3bf2b48caa9de22d9c67"
 other = "權限"
+
+[Pin]
+hash = "sha1-9c918414710c579b80732bc369eb7087f0d8c8d1"
+other = "置頂"
+
+[PinExpireAt]
+hash = "sha1-ae183e56cc1c82db296187b10652489c54983a3b"
+other = "置頂過期於{{.Time}}"
+
+[PinExpireTime]
+hash = "sha1-c44e8c72150aca772eb3b0266831277de40dc724"
+other = "置頂過期時間"
 
 [PublishInfo]
 hash = "sha1-31e59c380622bbad26b8f01bc14b9ebac08dbe95"

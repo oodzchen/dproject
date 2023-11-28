@@ -201,6 +201,7 @@ a.text-lighten-3{
     color: var(--text-lighten-2);
 }
 .article-list .vote-form{
+    width: 14px;
     margin-right: 10px;
 }
 .skip-button{

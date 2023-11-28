@@ -11,74 +11,76 @@ CREATE TYPE auth_type AS ENUM ('self', 'google', 'github', 'microsoft');
 
 -- 用户
 CREATE TABLE users (
-id SERIAL PRIMARY KEY,
-email VARCHAR(255) NOT NULL,
-password VARCHAR(255),
-username VARCHAR(255) NOT NULL,
-introduction TEXT,
-created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-super_admin BOOLEAN NOT NULL DEFAULT false,
-deleted BOOLEAN NOT NULL DEFAULT false,
-banned BOOLEAN NOT NULL DEFAULT false,
-auth_from auth_type NOT NULL DEFAULT 'self',
-UNIQUE(email),
-UNIQUE(username)
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) NOT NULL,
+    password VARCHAR(255),
+    username VARCHAR(255) NOT NULL,
+    introduction TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    super_admin BOOLEAN NOT NULL DEFAULT false,
+    deleted BOOLEAN NOT NULL DEFAULT false,
+    banned BOOLEAN NOT NULL DEFAULT false,
+    auth_from auth_type NOT NULL DEFAULT 'self',
+    UNIQUE(email),
+    UNIQUE(username)
 );
 
 ALTER TABLE users ADD CONSTRAINT user_password_check CHECK(
-(auth_from = 'self' AND password IS NOT NULL) OR
-(auth_from <> 'self')
+    (auth_from = 'self' AND password IS NOT NULL) OR
+    (auth_from <> 'self')
 );
 
 CREATE UNIQUE INDEX idx_unique_username
 ON users (LOWER(username));
 
 CREATE TABLE categories (
-id SERIAL PRIMARY KEY,
-front_id VARCHAR(255) NOT NULL,
-name VARCHAR(255) NOT NULL,
-describe TEXT,
-created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-author_id INTEGER REFERENCES users(id) NOT NULL,
-approved BOOLEAN NOT NULL DEFAULT false,
-approval_comment TEXT,
-deleted BOOLEAN NOT NULL DEFAULT false,
-UNIQUE(front_id)
+    id SERIAL PRIMARY KEY,
+    front_id VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    describe TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    author_id INTEGER REFERENCES users(id) NOT NULL,
+    approved BOOLEAN NOT NULL DEFAULT false,
+    approval_comment TEXT,
+    deleted BOOLEAN NOT NULL DEFAULT false,
+    UNIQUE(front_id)
 );
 
 CREATE TABLE category_subs (
-id SERIAL PRIMARY KEY,
-user_id INTEGER REFERENCES users(id) NOT NULL,
-category_id INTEGER REFERENCES categories(id) NOT NULL,
-created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-UNIQUE(user_id, category_id)
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) NOT NULL,
+    category_id INTEGER REFERENCES categories(id) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    UNIQUE(user_id, category_id)
 );
 
 CREATE TABLE category_ignores (
-id SERIAL PRIMARY KEY,
-user_id INTEGER REFERENCES users(id) NOT NULL,
-category_id INTEGER REFERENCES categories(id) NOT NULL,
-created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-UNIQUE(user_id, category_id)
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) NOT NULL,
+    category_id INTEGER REFERENCES categories(id) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    UNIQUE(user_id, category_id)
 );
 
 -- 创建文章数据表格
 CREATE TABLE posts (
-id SERIAL PRIMARY KEY,
-title VARCHAR(255),
-url VARCHAR(255),
-author_id INTEGER REFERENCES users(id) NOT NULL,
-content TEXT,
-created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-reply_to INTEGER DEFAULT 0,
-deleted BOOLEAN NOT NULL DEFAULT false,
-depth INTEGER DEFAULT 0 NOT NULL,
-root_article_id INTEGER DEFAULT 0 NOT NULL,
-list_weight DOUBLE PRECISION DEFAULT 0 NOT NULL,
-participate_count INTEGER DEFAULT 0 NOT NULL,
-reply_weight DOUBLE PRECISION DEFAULT 0 NOT NULL,
-category_id INTEGER REFERENCES categories(id) NOT NULL
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255),
+    url VARCHAR(255),
+    author_id INTEGER REFERENCES users(id) NOT NULL,
+    content TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    reply_to INTEGER DEFAULT 0,
+    deleted BOOLEAN NOT NULL DEFAULT false,
+    depth INTEGER DEFAULT 0 NOT NULL,
+    root_article_id INTEGER DEFAULT 0 NOT NULL,
+    list_weight DOUBLE PRECISION DEFAULT 0 NOT NULL,
+    participate_count INTEGER DEFAULT 0 NOT NULL,
+    reply_weight DOUBLE PRECISION DEFAULT 0 NOT NULL,
+    category_id INTEGER REFERENCES categories(id) NOT NULL,
+    locked BOOLEAN NOT NULL DEFAULT false,
+    pinned_expire_at TIMESTAMP
 );
 
 CREATE INDEX idx_posts_reply_to ON posts (reply_to);
@@ -87,20 +89,20 @@ CREATE INDEX idx_posts_root_article_id ON posts (root_article_id);
 CREATE TYPE vote_type AS ENUM ('up', 'down');
 
 CREATE TABLE post_votes (
-id SERIAL PRIMARY KEY,
-user_id INTEGER REFERENCES users(id) NOT NULL,
-post_id INTEGER REFERENCES posts(id) NOT NULL,
-created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-type vote_type,
-UNIQUE(user_id, post_id)
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) NOT NULL,
+    post_id INTEGER REFERENCES posts(id) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    type vote_type,
+    UNIQUE(user_id, post_id)
 );
 
 CREATE INDEX idx_posts_votes_post_id ON post_votes (post_id);
 
 -- reply_to 为空时候标题不能为空，replay_to 不为空时标题可以为空
 ALTER TABLE posts ADD CONSTRAINT posts_reply_to_title_check CHECK (
-(reply_to IS NULL AND title IS NOT NULL) OR
-(reply_to IS NOT NULL)
+    (reply_to IS NULL AND title IS NOT NULL) OR
+    (reply_to IS NOT NULL)
 );
 
 

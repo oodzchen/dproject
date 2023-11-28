@@ -54,6 +54,8 @@ data:
       - article.edit_others
       - article.delete_others
       - article.view_score
+      - article.pin
+      - article.lock
       - reply.edit_others
       - reply.delete_others
       - user.manage
@@ -85,6 +87,8 @@ data:
       - article.edit_others
       - article.delete_others
       - article.view_score
+      - article.pin
+      - article.lock
       - reply.edit_others
       - reply.delete_others
       - user.manage

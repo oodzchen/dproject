@@ -205,6 +205,10 @@ type Article struct {
 	TmpParent                 *Article // Only for temporary use, to avoid circular reference errors
 	CategoryFrontId           string
 	Category                  *Category
+	Locked                    bool
+	Pinned                    bool
+	NullPinnedExpireAt        pgtype.Timestamp
+	PinnedExpireAt            time.Time
 }
 
 type ArticleReact struct {
@@ -349,10 +353,20 @@ func (a *Article) FormatNullValues() {
 		a.ReplyRootArticleTitle = a.NullReplyRootArticleTitle.String
 	}
 
-	if a.CurrUserState != nil {
-		a.CurrUserState.FormatNullValues()
+	if a.PinnedExpireAt.IsZero() && a.NullPinnedExpireAt.Valid {
+		a.PinnedExpireAt = a.NullPinnedExpireAt.Time
+		// err := a.NullPinnedExpireAt.Scan(&a.PinnedExpireAt)
+		// if err != nil {
+		// 	fmt.Println("Format pinned expired time null value error:", err)
+		// }
 	}
 }
+
+// func (a *Article) FormatUserStateNullValues() {
+// 	if a.CurrUserState != nil {
+// 		a.CurrUserState.FormatNullValues()
+// 	}
+// }
 
 func (a *Article) FormatReactCounts() {
 	countsMap := make(map[string]int)
@@ -498,6 +512,16 @@ func (a *Article) CheckShowScore(loginedUserId int) {
 	} else {
 		a.ShowScore = false
 	}
+}
+
+func (a *Article) UpdatePinnedState() {
+	// fmt.Println("pinned compare:", a.PinnedExpireAt.Compare(time.Now()))
+	if a.PinnedExpireAt.IsZero() {
+		a.Pinned = false
+	} else {
+		a.Pinned = a.PinnedExpireAt.Compare(time.Now()) > -1
+	}
+
 }
 
 // First commit  Mon Feb 13 00:11:53 2023 +0800

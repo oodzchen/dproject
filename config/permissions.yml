@@ -55,6 +55,14 @@ data:
       name: Subscribe
       adapt_id: article.subscribe
       enabled: false
+    pin:
+      name: Pin
+      adapt_id: article.pin
+      enabled: false
+    lock:
+      name: Lock
+      adapt_id: article.lock
+      enabled: false
 
   user:
     manage:

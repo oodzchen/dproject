@@ -38,25 +38,25 @@ func New(
 
 type ArticleStore interface {
 	// pageSize < 0 to list all undeleted data
-	List(page, pageSize int, sortType model.ArticleSortType, categoryFrontId string) ([]*model.Article, int, error)
+	List(page, pageSize int, sortType model.ArticleSortType, categoryFrontId string, pinned bool) ([]*model.Article, int, error)
 	ListUserState(ids []int, userId int) ([]*model.Article, error)
 	ListLatestCount(start, end time.Time) (int, error)
-	Create(title, url, content string, authorId, replyToId int, categoryFrontId string) (int, error)
+	Create(title, url, content string, authorId, replyToId int, categoryFrontId string, pinnedExpireAt time.Time, locked bool) (int, error)
 	// Update(a *model.Article, fields []string) (int, error)
-	UpdateRootArticle(id int, title, content, link, categoryFrontId string) (int, error)
-	UpdateReply(id int, content string) (int, error)
+	UpdateRootArticle(id int, title, content, link, categoryFrontId string, pinnedExpireAt time.Time, locked bool) (int, error)
+	UpdateReply(id int, content string, pinnedExpireAt time.Time, locked bool) (int, error)
 	Item(id, loginedUserId int) (*model.Article, error)
 	Delete(id int) (int, error)
-	ReplyTree(page, pageSize, ariticleId int, sortType model.ArticleSortType) ([]*model.Article, error)
-	ReplyList(page, pageSize, ariticleId int, sortType model.ArticleSortType) ([]*model.Article, error)
+	ReplyTree(page, pageSize, ariticleId int, sortType model.ArticleSortType, pinned bool) ([]*model.Article, error)
+	ReplyList(page, pageSize, ariticleId int, sortType model.ArticleSortType, pinned bool) ([]*model.Article, error)
 	ItemTreeUserState(ids []int, userId int) ([]*model.Article, error)
 	Count(categoryFrontId string) (int, error)
 	CountTotalReply(id int) (int, error)
 	VoteCheck(id, userId int) (error, string)
-	Vote(id, loginedUserId int, voteType string) error
-	Save(id, loginedUserId int) error
-	React(id, loginedUserId, reactId int) error
-	Subscribe(id, loginedUserId int) error
+	ToggleVote(id, loginedUserId int, voteType string) error
+	ToggleSave(id, loginedUserId int) error
+	ToggleReact(id, loginedUserId, reactId int) error
+	ToggleSubscribe(id, loginedUserId int) error
 	CheckSubscribe(id, loginedUserId int) (int, error)
 	Notify(senderUserId, sourceArticleId, contentArticleId int) error
 	GetReactList() ([]*model.ArticleReact, error)
@@ -64,6 +64,10 @@ type ArticleStore interface {
 	Tag(id int, tagFrontId string) error
 	AddHistory(articleId, operatorId int, curr, prev time.Time, titleDelta, urlDelta, contentDelta, categoryFrontDelta string) (int, error)
 	ListHistory(articleId int) ([]*model.ArticleLog, error)
+	Lock(articleId int) error
+	CheckLocked(id int) (bool, error)
+	Pin(articleId int, expireAt time.Time) error
+	Unpin(articleId int) error
 }
 
 type UserStore interface {

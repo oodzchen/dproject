@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/oodzchen/dproject/config"
 	"github.com/oodzchen/dproject/mocktool"
@@ -68,5 +69,5 @@ func register(srv *service.User, u *mocktool.TestUser) (int, error) {
 }
 
 func createReply(srv *service.Article, a *mocktool.TestArticle, authorId, target int) (int, error) {
-	return srv.Reply(target, a.Content, authorId)
+	return srv.Reply(target, a.Content, authorId, time.Now(), false)
 }

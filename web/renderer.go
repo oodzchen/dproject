@@ -83,8 +83,8 @@ func (rd *Renderer) ServerError(w http.ResponseWriter, r *http.Request) {
 	rd.Error("", nil, w, r, http.StatusInternalServerError)
 }
 
-func (rd *Renderer) Forbidden(w http.ResponseWriter, r *http.Request) {
-	rd.Error("", nil, w, r, http.StatusForbidden)
+func (rd *Renderer) Forbidden(err error, w http.ResponseWriter, r *http.Request) {
+	rd.Error("", err, w, r, http.StatusForbidden)
 }
 
 func (rd *Renderer) GetLoginedUserId(w http.ResponseWriter, r *http.Request) int {

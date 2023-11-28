@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -23,6 +24,11 @@ import (
 type ArticleResource struct {
 	*Renderer
 	articleSrv *service.Article
+}
+
+type aList struct {
+	Pinned bool
+	List   []*model.Article
 }
 
 func NewArticleResource(renderer *Renderer) *ArticleResource {
@@ -186,11 +192,12 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 
 	var wg sync.WaitGroup
-	var ch = make(chan any, 2)
+	var ch = make(chan any, 3)
 	var total int
 	var list []*model.Article
+	var pinnedList []*model.Article
 
-	wg.Add(2)
+	wg.Add(3)
 
 	go func() {
 		defer wg.Done()
@@ -203,38 +210,13 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("get article count duration: %dms\n", time.Since(startTime).Milliseconds())
 	}()
 
-	go func() {
-		defer wg.Done()
-		// list, err := ar.getArticleList(page, pageSize, currUserId, sortType)
-		list, _, err := ar.store.Article.List(page, pageSize, sortType, categoryFrontId)
-		if err != nil {
-			ch <- err
-			return
-		}
-		fmt.Printf("get article list duration: %dms\n", time.Since(startTime).Milliseconds())
+	go ar.getArticleList(&wg, page, pageSize, sortType, categoryFrontId, currUserId, startTime, ch, false)
 
-		var ids []int
-		listMap := make(map[int]*model.Article)
-		for _, item := range list {
-			ids = append(ids, item.Id)
-			listMap[item.Id] = item
-		}
-
-		userStateList, err := ar.store.Article.ListUserState(ids, currUserId)
-		if err != nil {
-			ch <- err
-			return
-		}
-		fmt.Printf("get user state article list duration: %dms\n", time.Since(startTime).Milliseconds())
-
-		for _, stateItem := range userStateList {
-			if item, ok := listMap[stateItem.Id]; ok {
-				item.CurrUserState = stateItem.CurrUserState
-			}
-		}
-
-		ch <- list
-	}()
+	if page == 1 {
+		go ar.getArticleList(&wg, page, pageSize, sortType, categoryFrontId, currUserId, startTime, ch, true)
+	} else {
+		wg.Done()
+	}
 
 	go func() {
 		wg.Wait()
@@ -254,20 +236,23 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 			}
 		case int:
 			total = v
-		case []*model.Article:
-			list = v
+		case *aList:
+			if v.Pinned {
+				pinnedList = v.List
+			} else {
+				list = v.List
+			}
 		}
 	}
 
 	fmt.Printf("get article list total duration: %dms\n", time.Since(startTime).Milliseconds())
 
+	fmt.Println("pinnedList:", pinnedList)
+	if page == 1 {
+		list = append(pinnedList, list...)
+	}
+
 	for _, item := range list {
-		// fmt.Println("item.VoteScore: ", item.VoteScore)
-		// item.FormatTimeStr()
-		item.CalcScore()
-		item.FormatNullValues()
-		item.UpdateDisplayTitle()
-		item.GenSummary(200)
 		item.CheckShowScore(currUserId)
 	}
 
@@ -310,6 +295,52 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ar.Render(w, r, "article_list", pageData)
+}
+
+func (ar *ArticleResource) getArticleList(
+	wg *sync.WaitGroup,
+	page,
+	pageSize int,
+	sortType model.ArticleSortType,
+	categoryFrontId string,
+	currUserId int,
+	startTime time.Time,
+	ch chan<- any,
+	pinned bool,
+) {
+	defer wg.Done()
+	// list, err := ar.getArticleList(page, pageSize, currUserId, sortType)
+	list, _, err := ar.store.Article.List(page, pageSize, sortType, categoryFrontId, pinned)
+	if err != nil {
+		ch <- err
+		return
+	}
+	fmt.Printf("get article list duration: %dms\n", time.Since(startTime).Milliseconds())
+
+	var ids []int
+	listMap := make(map[int]*model.Article)
+	for _, item := range list {
+		ids = append(ids, item.Id)
+		listMap[item.Id] = item
+	}
+
+	userStateList, err := ar.store.Article.ListUserState(ids, currUserId)
+	if err != nil {
+		ch <- err
+		return
+	}
+	fmt.Printf("get user state article list duration: %dms\n", time.Since(startTime).Milliseconds())
+
+	for _, stateItem := range userStateList {
+		if item, ok := listMap[stateItem.Id]; ok {
+			item.CurrUserState = stateItem.CurrUserState
+		}
+	}
+
+	ch <- &aList{
+		Pinned: pinned,
+		List:   list,
+	}
 }
 
 // func (ar *ArticleResource) getArticleList(page, pageSize, userId int, sortType model.ArticleSortType) ([]*model.Article, error) {
@@ -406,7 +437,7 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 
 		if (article.AuthorId != currUserId && !ar.srv.Permission.Permit("article", "edit_others")) || !ar.srv.Permission.Permit("article", "edit_mine") {
 			// http.Redirect(w, r, fmt.Sprintf("/articles/%d", articleId), http.StatusFound)
-			ar.Forbidden(w, r)
+			ar.Forbidden(nil, w, r)
 			return
 		}
 
@@ -466,6 +497,36 @@ func (ar *ArticleResource) handleSubmit(w http.ResponseWriter, r *http.Request, 
 	categoryFrontId := r.Form.Get("category_front_id")
 	paramReplyTo := chi.URLParam(r, "articleId")
 
+	pinned := r.Form.Get("pinned")
+	lockedStr := r.Form.Get("locked")
+	// fmt.Println("pinned: ", pinned)
+
+	var pinnedExpireAt time.Time
+	var locked bool
+
+	if pinned == "1" {
+		pinnedExpireAtStr := r.Form.Get("pinned_expire_at")
+		fmt.Println("pinned expires at:", pinnedExpireAtStr)
+		if pinnedExpireAtStr != "" {
+			// time.Parse("", value string)
+			pinnedExpireAtStr = strings.Join(strings.Split(pinnedExpireAtStr, "T"), " ") + ":00"
+
+			fmt.Println("pinned expires at2:", pinnedExpireAtStr)
+			pinnedExpireAt, err = time.Parse(time.DateTime, pinnedExpireAtStr)
+			if err != nil {
+				ar.Error(ar.Local("FormatError", "FieldNames", ar.Local("PinExpireTime")), err, w, r, http.StatusBadRequest)
+				return
+			}
+		} else {
+			ar.Error(ar.Local("Required", "FieldNames", ar.Local("PinExpireTime")), errors.New("pinned expires time is required"), w, r, http.StatusBadRequest)
+			return
+		}
+	}
+
+	if lockedStr == "1" {
+		locked = true
+	}
+
 	var replyToId int
 	if isReply {
 		if paramReplyTo == "" {
@@ -479,6 +540,14 @@ func (ar *ArticleResource) handleSubmit(w http.ResponseWriter, r *http.Request, 
 			}
 			replyToId = num
 			isReply = replyToId > 0
+		}
+
+		if isReply {
+			err = ar.checkLocked(replyToId)
+			if err != nil {
+				ar.Forbidden(err, w, r)
+				return
+			}
 		}
 	}
 
@@ -501,9 +570,9 @@ func (ar *ArticleResource) handleSubmit(w http.ResponseWriter, r *http.Request, 
 	// id, err := ar.store.Article.Create(article.Title, article.Content, authorId, replyToId)
 	var id int
 	if isReply {
-		id, err = ar.articleSrv.Reply(replyToId, content, authorId)
+		id, err = ar.articleSrv.Reply(replyToId, content, authorId, pinnedExpireAt, locked)
 	} else {
-		id, err = ar.articleSrv.Create(title, url, content, authorId, 0, categoryFrontId)
+		id, err = ar.articleSrv.Create(title, url, content, authorId, 0, categoryFrontId, pinnedExpireAt, locked)
 	}
 	// id, err := ar.articleSrv.Create(title, content, authorId, replyToId)
 	if err != nil {
@@ -555,11 +624,47 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = ar.checkLocked(id)
+	if err != nil {
+		ar.Forbidden(err, w, r)
+		return
+	}
+
 	replyDepth, err := strconv.Atoi(r.Form.Get("reply_depth"))
 	// fmt.Printf("replyDepth: %d\n", replyDepth)
 	if err != nil {
 		ar.Error("", err, w, r, http.StatusBadRequest)
 		return
+	}
+
+	pinned := r.Form.Get("pinned")
+	lockedStr := r.Form.Get("locked")
+	// fmt.Println("pinned: ", pinned)
+
+	var pinnedExpireAt time.Time
+	var locked bool
+
+	if pinned == "1" {
+		pinnedExpireAtStr := r.Form.Get("pinned_expire_at")
+		fmt.Println("pinned expires at:", pinnedExpireAtStr)
+		if pinnedExpireAtStr != "" {
+			// time.Parse("", value string)
+			pinnedExpireAtStr = strings.Join(strings.Split(pinnedExpireAtStr, "T"), " ") + ":00"
+
+			fmt.Println("pinned expires at2:", pinnedExpireAtStr)
+			pinnedExpireAt, err = time.Parse(time.DateTime, pinnedExpireAtStr)
+			if err != nil {
+				ar.Error(ar.Local("FormatError", "FieldNames", ar.Local("PinExpireTime")), err, w, r, http.StatusBadRequest)
+				return
+			}
+		} else {
+			ar.Error(ar.Local("Required", "FieldNames", ar.Local("PinExpireTime")), errors.New("pinned expires time is required"), w, r, http.StatusBadRequest)
+			return
+		}
+	}
+
+	if lockedStr == "1" {
+		locked = true
 	}
 
 	isReply := replyDepth > 0
@@ -605,15 +710,26 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if (oldArticle.AuthorId != currUserId && !ar.srv.Permission.Permit("article", "edit_others")) || !ar.srv.Permission.Permit("article", "edit_mine") {
-		ar.Forbidden(w, r)
+		ar.Forbidden(nil, w, r)
 		return
 	}
 
 	if isReply {
-		_, err = ar.store.Article.UpdateReply(id, article.Content)
+		_, err = ar.store.Article.UpdateReply(id, article.Content, pinnedExpireAt, locked)
 	} else {
-		_, err = ar.store.Article.UpdateRootArticle(id, article.Title, article.Content, article.Link, article.CategoryFrontId)
+		_, err = ar.store.Article.UpdateRootArticle(id, article.Title, article.Content, article.Link, article.CategoryFrontId, pinnedExpireAt, locked)
 	}
+
+	if err != nil {
+		ar.Error("", err, w, r, http.StatusInternalServerError)
+		return
+	}
+
+	// if !pinnedExpireAt.IsZero() {
+	// 	err = ar.store.Article.Pin(id, pinnedExpireAt)
+	// } else {
+	// 	err = ar.store.Article.Unpin(id)
+	// }
 
 	if err != nil {
 		ar.Error("", err, w, r, http.StatusInternalServerError)
@@ -732,6 +848,9 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 
 	var rootArticle *model.Article
 	var articleList []*model.Article
+	var pinnedList []*model.Article
+	var reactList []*model.ArticleReact
+	var reactMap map[string]*model.ArticleReact
 	var totalReplyCount int
 
 	repliesLayout := model.RepliesLayoutTree
@@ -743,9 +862,9 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	startTime := time.Now()
 
 	var wg sync.WaitGroup
-	ch := make(chan any, 3)
+	ch := make(chan any, 5)
 
-	wg.Add(3)
+	wg.Add(5)
 
 	go func() {
 		defer wg.Done()
@@ -769,7 +888,25 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		ch <- totalReplyCount
 	}()
 
-	go ar.getReplyList(articleId, currUserId, page, DefaultPageSize, sortType, pageType, &wg, ch, startTime, repliesLayout)
+	go ar.getReplyList(articleId, currUserId, page, DefaultPageSize, sortType, pageType, &wg, ch, startTime, repliesLayout, false)
+
+	if page == 1 {
+		go ar.getReplyList(articleId, currUserId, page, DefaultPageSize, sortType, pageType, &wg, ch, startTime, repliesLayout, true)
+	} else {
+		wg.Done()
+	}
+
+	go func() {
+		defer wg.Done()
+		rList, err := ar.store.Article.GetReactList()
+		if err != nil {
+			ch <- err
+			return
+		}
+
+		ch <- rList
+
+	}()
 
 	go func() {
 		wg.Wait()
@@ -793,8 +930,14 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 			rootArticle = v
 		case int:
 			totalReplyCount = v
-		case []*model.Article:
-			articleList = v
+		case *aList:
+			if v.Pinned {
+				pinnedList = v.List
+			} else {
+				articleList = v.List
+			}
+		case []*model.ArticleReact:
+			reactList = v
 		}
 	}
 
@@ -802,8 +945,8 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	fmt.Printf("get article item duration: %dms\n", time.Since(startTime).Milliseconds())
 
 	// fmt.Println("root article after channel:", rootArticle)
-	fmt.Println("article list length:", len(articleList))
-	fmt.Println("article count:", totalReplyCount)
+	// fmt.Println("article list length:", len(articleList))
+	// fmt.Println("article count:", totalReplyCount)
 	if rootArticle == nil || rootArticle.Id == 0 {
 		// ar.Error("the article is gone", err, w, r, http.StatusNotFound)
 		ar.NotFound(w, r)
@@ -821,9 +964,6 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	start1 := time.Now()
 
 	for _, item := range articleList {
-		item.FormatNullValues()
-		item.FormatReactCounts()
-		item.CalcScore()
 		item.CheckShowScore(currUserId)
 
 		if item.ReplyToArticle != nil {
@@ -835,6 +975,11 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		// }
 	}
 	fmt.Printf("format article item duration: %dms\n", time.Since(start1).Milliseconds())
+
+	reactMap = make(map[string]*model.ArticleReact)
+	for _, item := range reactList {
+		reactMap[item.FrontId] = item
+	}
 
 	rootArticle.TotalReplyCount = totalReplyCount
 
@@ -862,6 +1007,14 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		rootArticle, _ = genArticleTree(rootArticle, articleList, page, sortType)
 	}
 
+	// fmt.Println("reply pinnedList:", pinnedList)
+	// fmt.Println("reply list:", rootArticle.Replies.List)
+	if rootArticle.Replies != nil {
+		rootArticle.Replies.List = append(pinnedList, rootArticle.Replies.List...)
+	} else {
+		rootArticle.Replies = model.NewArticleList(pinnedList, sortType, page, DefaultPageSize, totalReplyCount)
+	}
+
 	// if err != nil {
 	// 	fmt.Printf("generate article tree error: %v\n", err)
 	// }
@@ -874,18 +1027,6 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	// if rootArticle.Deleted {
 	// 	w.WriteHeader(http.StatusGone)
 	// }
-
-	reactList, err := ar.store.Article.GetReactList()
-	if err != nil {
-		ar.ServerErrorp("", err, w, r)
-		return
-	}
-
-	reactMap := make(map[string]*model.ArticleReact)
-
-	for _, item := range reactList {
-		reactMap[item.FrontId] = item
-	}
 
 	type itemPageData struct {
 		Article *model.Article
@@ -926,6 +1067,7 @@ func (ar *ArticleResource) getReplyList(
 	ch chan<- any,
 	startTime time.Time,
 	repliesLayout string,
+	pinned bool,
 ) {
 	// fmt.Println("get article tree list root id:", articleId)
 	// fmt.Println("get article tree list pageType:", string(pageType))
@@ -933,9 +1075,9 @@ func (ar *ArticleResource) getReplyList(
 	var list []*model.Article
 	var err error
 	if repliesLayout == model.RepliesLayoutTree {
-		list, err = ar.store.Article.ReplyTree(page, pageSize, articleId, sortType)
+		list, err = ar.store.Article.ReplyTree(page, pageSize, articleId, sortType, pinned)
 	} else {
-		list, err = ar.store.Article.ReplyList(page, pageSize, articleId, sortType)
+		list, err = ar.store.Article.ReplyList(page, pageSize, articleId, sortType, pinned)
 	}
 
 	if err != nil {
@@ -966,7 +1108,10 @@ func (ar *ArticleResource) getReplyList(
 	}
 
 	fmt.Printf("tree list total duration: %dms\n", time.Since(startTime).Milliseconds())
-	ch <- list
+	ch <- &aList{
+		Pinned: pinned,
+		List:   list,
+	}
 }
 
 const DefaultReplyPageSize = 50
@@ -1109,6 +1254,12 @@ func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = ar.checkLocked(rId)
+	if err != nil {
+		ar.Forbidden(err, w, r)
+		return
+	}
+
 	// confirmText := r.Form.Get("confirm_del")
 	// if confirmText != "yes" {
 	// 	if confirmText == "no" {
@@ -1176,11 +1327,17 @@ func (ar *ArticleResource) Vote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = ar.checkLocked(articleId)
+	if err != nil {
+		ar.Forbidden(err, w, r)
+		return
+	}
+
 	rootId := r.Form.Get("root")
 
 	userId := ar.GetLoginedUserId(w, r)
 	if userId != 0 {
-		err = ar.store.Article.Vote(articleId, userId, voteType)
+		err = ar.store.Article.ToggleVote(articleId, userId, voteType)
 		if err != nil {
 			ar.ServerErrorp("", err, w, r)
 			return
@@ -1209,10 +1366,16 @@ func (ar *ArticleResource) Save(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = ar.checkLocked(articleId)
+	if err != nil {
+		ar.Forbidden(err, w, r)
+		return
+	}
+
 	rootId := r.Form.Get("root")
 	userId := ar.GetLoginedUserId(w, r)
 	if userId != 0 {
-		err = ar.store.Article.Save(articleId, userId)
+		err = ar.store.Article.ToggleSave(articleId, userId)
 		if err != nil {
 			ar.ServerErrorp("", err, w, r)
 			return
@@ -1238,6 +1401,12 @@ func (ar *ArticleResource) React(w http.ResponseWriter, r *http.Request) {
 	articleId, err := strconv.Atoi(articleIdS)
 	if err != nil {
 		ar.Error("", errors.New("get article id failed"), w, r, http.StatusBadRequest)
+		return
+	}
+
+	err = ar.checkLocked(articleId)
+	if err != nil {
+		ar.Forbidden(err, w, r)
 		return
 	}
 
@@ -1267,7 +1436,7 @@ func (ar *ArticleResource) React(w http.ResponseWriter, r *http.Request) {
 
 	userId := ar.GetLoginedUserId(w, r)
 	if userId != 0 {
-		err = ar.store.Article.React(articleId, userId, reactId)
+		err = ar.store.Article.ToggleReact(articleId, userId, reactId)
 		if err != nil {
 			ar.ServerErrorp("", err, w, r)
 			return
@@ -1298,10 +1467,16 @@ func (ar *ArticleResource) Subscribe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = ar.checkLocked(articleId)
+	if err != nil {
+		ar.Forbidden(err, w, r)
+		return
+	}
+
 	rootId := r.Form.Get("root")
 	userId := ar.GetLoginedUserId(w, r)
 	if userId != 0 {
-		err = ar.store.Article.Subscribe(articleId, userId)
+		err = ar.store.Article.ToggleSubscribe(articleId, userId)
 		if err != nil {
 			ar.ServerErrorp("", err, w, r)
 			return
@@ -1426,4 +1601,20 @@ func (ar *ArticleResource) HistoryPage(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 
+}
+
+func (ar *ArticleResource) checkLocked(articleId int) error {
+	locked, err := ar.store.Article.CheckLocked(articleId)
+	if err != nil {
+		return err
+	}
+
+	// fmt.Println("locked:", locked)
+	// fmt.Println("lock permission:", ar.srv.Permission.Permit("article", "lock"))
+
+	if !ar.srv.Permission.Permit("article", "lock") && locked {
+		return errors.New("article is locked, you have no permission to update it")
+	}
+
+	return nil
 }

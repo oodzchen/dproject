@@ -21,7 +21,7 @@ import (
 
 type Renderer interface {
 	ServerErrorp(msg string, err error, w http.ResponseWriter, r *http.Request)
-	Forbidden(w http.ResponseWriter, r *http.Request)
+	Forbidden(err error, w http.ResponseWriter, r *http.Request)
 }
 
 func logSessError(sessName string, err error) {
@@ -95,7 +95,7 @@ func AuthCheck(sessStore *sessions.CookieStore) func(http.Handler) http.Handler 
 
 func toForbiddenPage(renderer any, w http.ResponseWriter, r *http.Request) {
 	if v, ok := renderer.(Renderer); ok {
-		v.Forbidden(w, r)
+		v.Forbidden(nil, w, r)
 	} else {
 		http.Redirect(w, r, "/403", http.StatusFound)
 	}

@@ -45,16 +45,22 @@
 	{{range $idx, $item := .Data.Articles -}}
 	    <li>
 		<form class="vote-form{{if and $currUser (eq $item.CurrUserState.VoteType "up")}} voted{{end}}" action="/articles/{{$item.Id}}/vote" method="POST">
-		    {{$csrfField}}
-		    <input name="type" type="hidden" value="up"/>
-		    <button {{if not (permit "article" "vote_up")}}disabled{{end}} class="btn-vote--up" type="submit" title="{{if eq $item.CurrUserState.VoteType "up"}}{{local "CancelVote"}}{{else}}{{local "Upvote"}}{{end}}"><svg width="14" viewBox="0 1 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1 21h22L12 2"/></svg></button>
+		    {{- if not $item.Locked -}}
+			{{$csrfField}}
+			<input name="type" type="hidden" value="up"/>
+			<button {{if not (permit "article" "vote_up")}}disabled{{end}} class="btn-vote--up" type="submit" title="{{if eq $item.CurrUserState.VoteType "up"}}{{local "CancelVote"}}{{else}}{{local "Upvote"}}{{end}}"><svg width="14" viewBox="0 1 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1 21h22L12 2"/></svg></button>
+		    {{- end -}}
 		</form>
 		<div>
 		    <a class="article-list__title" {{if eq $idx 0}}id="article-list-head"{{end}} href="/articles/{{$item.Id}}">{{$item.DisplayTitle}}</a> {{if $item.Link}}<span class="text-lighten-3">(<a class="text-lighten-3" title="{{$item.Link}}" href="{{$item.Link}}">{{local "Source"}} {{getDomain $item.Link}}...</a> )</span>{{end}}
 		    <br/>
 		    {{- $author :=  (print "<a class=\"text-lighten-3\" href=\"/users/" $item.AuthorName "\">" $item.AuthorName "</a>") -}}
 		    <small class="text-lighten-3">
-			<a class="text-lighten-2" href="/categories/{{$item.Category.FrontId}}">{{$item.Category.Name}}</a>&nbsp;|&nbsp;
+			{{- if $item.Pinned -}}
+			    &#128204;&nbsp;
+			{{- end -}}
+			<a class="text-lighten-2" href="/categories/{{$item.Category.FrontId}}">{{$item.Category.Name}}</a>
+			&nbsp;|&nbsp;
 			{{- if or (permit "article" "view_score") (gt $item.VoteScore 0) -}}
 			    {{- local "VoteScore" "Score" $item.VoteScore | upHead 1}} |&nbsp;
 			{{- end -}}

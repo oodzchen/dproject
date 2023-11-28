@@ -30,36 +30,36 @@ const (
 	ListTypeTree          = "tree"
 )
 
-func (ac *ArticleCache) List(page, pageSize int, sortType model.ArticleSortType, categoryFrontId string) ([]*model.Article, int, error) {
-	// params := map[string]string{
-	// 	"sortType":        string(sortType),
-	// 	"page":            strconv.Itoa(page),
-	// 	"pageSize":        strconv.Itoa(pageSize),
-	// 	"categoryFrontId": categoryFrontId,
-	// }
-	// cachedList,
-	// 	total, err := ac.getList(ListTypeHome, params)
-	// if err != nil {
-	// 	if errors.Is(err, redis.Nil) {
-	// 		list, total, err := ac.Article.List(page, pageSize, sortType, categoryFrontId)
-	// 		if err != nil {
-	// 			return nil, 0, err
-	// 		}
-	// 		go func() {
-	// 			err := ac.setList(ListTypeHome, params, list, total)
-	// 			if err != nil {
-	// 				fmt.Println("redis cache article list error:", err)
-	// 			}
-	// 		}()
+// func (ac *ArticleCache) List(page, pageSize int, sortType model.ArticleSortType, categoryFrontId string) ([]*model.Article, int, error) {
+// params := map[string]string{
+// 	"sortType":        string(sortType),
+// 	"page":            strconv.Itoa(page),
+// 	"pageSize":        strconv.Itoa(pageSize),
+// 	"categoryFrontId": categoryFrontId,
+// }
+// cachedList,
+// 	total, err := ac.getList(ListTypeHome, params)
+// if err != nil {
+// 	if errors.Is(err, redis.Nil) {
+// 		list, total, err := ac.Article.List(page, pageSize, sortType, categoryFrontId)
+// 		if err != nil {
+// 			return nil, 0, err
+// 		}
+// 		go func() {
+// 			err := ac.setList(ListTypeHome, params, list, total)
+// 			if err != nil {
+// 				fmt.Println("redis cache article list error:", err)
+// 			}
+// 		}()
 
-	// 		return list, total, nil
-	// 	}
-	// 	return nil, 0, err
-	// }
+// 		return list, total, nil
+// 	}
+// 	return nil, 0, err
+// }
 
-	// return cachedList, total, nil
-	return ac.Article.List(page, pageSize, sortType, categoryFrontId)
-}
+// return cachedList, total, nil
+// 	return ac.Article.List(page, pageSize, sortType, categoryFrontId)
+// }
 
 // func (ac *ArticleCache) ItemTree(id int, sortType model.ArticleSortType) ([]*model.Article, error) {
 // 	params := map[string]string{

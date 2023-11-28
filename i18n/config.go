@@ -699,4 +699,29 @@ func (ic *I18nCustom) AddConfigs() {
 		Other: "Tile",
 	})
 
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Pin",
+		Other: "Pin",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "PinExpireAt",
+		Other: "Pin expires at {{.Time}}",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "PinExpireTime",
+		Other: "Pin expires time",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Lock",
+		Other: "Lock",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Locked",
+		Other: "Locked",
+	})
+
 }

@@ -77,6 +77,25 @@
 	     <label><input name="notify" type="checkbox" checked autocomplete="off" value="email"/>邮件通知 <small class="text-lighten-2">(回复将会发送到你的注册邮箱)</small></label>
 	     </div>
 	     </div> -->
+	{{- if permit "article" "pin" -}}
+	    <div class="form__row">
+		<label class="form__label" for="pinned">{{local "Pin"}} <small class="text-lighten-2" style="font-weight: normal">({{local "FormOptional"}})</small></label>
+		<label><input name="pinned" type="checkbox" autocomplete="off" {{if $article.Pinned}}checked{{end}} value="1"/> {{local "Pin"}}</label>
+		<br/>
+		<br/>
+		{{- $timeInput := print "<input name=\"pinned_expire_at\" autocomplete=\"off\" type=\"datetime-local\" value=\"\"/>" -}}
+		{{- if $article.Pinned -}}
+		    {{- $timeInput = print "<input name=\"pinned_expire_at\" autocomplete=\"off\" type=\"datetime-local\" value=\"" (timeFormat $article.PinnedExpireAt "YYYY-MM-DDThh:mm") "\"/>" -}}
+		{{- end -}}
+		{{local "PinExpireAt" "Time" $timeInput}}
+	    </div>
+	{{- end -}}
+	{{- if permit "article" "lock" -}}
+	    <div class="form__row">
+		<label class="form__label" for="locked">{{local "Lock"}} <small class="text-lighten-2" style="font-weight: normal">({{local "FormOptional"}})</small></label>
+		<label><input name="locked" type="checkbox" autocomplete="off" {{if $article.Locked}}checked{{end}} value="1"/> {{local "Lock"}}</label>
+	    </div>
+	{{- end -}}
 	<br/>
 	<button type="submit">{{local "BtnSubmit"}}</button>
     </form>

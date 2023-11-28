@@ -3,6 +3,7 @@ package store
 import (
 	"log"
 	"testing"
+	"time"
 
 	"github.com/oodzchen/dproject/config"
 	mt "github.com/oodzchen/dproject/mocktool"
@@ -31,7 +32,7 @@ func registerNewUser(store *Store, appCfg *config.AppConfig) (int, error) {
 
 func createNewArticle(store *Store, userId int) (int, error) {
 	article := mt.GenArticle()
-	return store.Article.Create(article.Title, "", article.Content, userId, 0, "general")
+	return store.Article.Create(article.Title, "", article.Content, userId, 0, "general", time.Now(), false)
 }
 
 func TestArticleVote(t *testing.T) {
@@ -69,21 +70,21 @@ func TestArticleVote(t *testing.T) {
 	// fmt.Println("uBId: ", uBId)
 
 	t.Run("Vote up", func(t *testing.T) {
-		err = store.Article.Vote(aId, uBId, "up")
+		err = store.Article.ToggleVote(aId, uBId, "up")
 		if err != nil {
 			t.Errorf("should vote up success but got %v", err)
 		}
 	})
 
 	t.Run("Change vote to down", func(t *testing.T) {
-		err = store.Article.Vote(aId, uBId, "down")
+		err = store.Article.ToggleVote(aId, uBId, "down")
 		if err != nil {
 			t.Errorf("should vote down success but got %v", err)
 		}
 	})
 
 	t.Run("Revoke vote", func(t *testing.T) {
-		err = store.Article.Vote(aId, uBId, "down")
+		err = store.Article.ToggleVote(aId, uBId, "down")
 		if err != nil {
 			t.Errorf("should revoke vote success but got %v", err)
 		}
@@ -134,7 +135,7 @@ func TestArticleCheckVote(t *testing.T) {
 	})
 
 	t.Run("Check voted article", func(t *testing.T) {
-		err = store.Article.Vote(aId, uId, "down")
+		err = store.Article.ToggleVote(aId, uId, "down")
 		if err != nil {
 			t.Errorf("vote down article failed: %v", err)
 		}

@@ -106,6 +106,9 @@
 
 	<div class="text-lighten-3" style="margin-bottom:0px;">
 	    <small>
+		{{- if .article.Pinned -}}
+		    &#128204;&nbsp;
+		{{- end -}}
 		{{- if or (permit "article" "view_score") (and .article.ShowScore (gt .article.VoteScore 0)) -}}
 		    {{local "VoteScore" "Score" .article.VoteScore | upHead 1}} |&nbsp;
 		{{- end -}}
@@ -128,19 +131,21 @@
 		    {{- if gt .pageDepth 1 -}}
 			<a title="{{local "BtnParent"}}" class="btn-parent text-lighten-3" href="#ar_{{.article.ReplyToId}}">{{local "BtnParent" | lower}}</a> |&nbsp;
 		    {{- end -}}
-		    {{- if permit "article" "save" -}}
-			<form class="btn-form" action="/articles/{{.article.Id}}/save" method="POST" >
-			    {{- .CSRFField -}}
-			    <input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
-			    {{- $btnSaveText := local "BtnSave" -}}
-			    {{- if and .article.CurrUserState .article.CurrUserState.Saved -}}
-				{{$btnSaveText = local "BtnUnsave"}}
-			    {{- end -}}
-			    <button class="text-lighten-3" title="{{$btnSaveText}}" type="submit">{{$btnSaveText | lower}}</button>
-			</form>
-		    {{- end -}}
-		    {{- if permit "article" "subscribe" -}}
-			&nbsp;|&nbsp;<form class="btn-form" action="/articles/{{.article.Id}}/subscribe" method="POST" >
+
+		    {{- if or (not .article.Locked) (permit "article" "lock") -}}
+			{{- if permit "article" "save" -}}
+			    <form class="btn-form" action="/articles/{{.article.Id}}/save" method="POST" >
+				{{- .CSRFField -}}
+				<input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
+				{{- $btnSaveText := local "BtnSave" -}}
+				{{- if and .article.CurrUserState .article.CurrUserState.Saved -}}
+				    {{$btnSaveText = local "BtnUnsave"}}
+				{{- end -}}
+				<button class="text-lighten-3" title="{{$btnSaveText}}" type="submit">{{$btnSaveText | lower}}</button>
+			    </form>
+			{{- end -}}
+			{{- if permit "article" "subscribe" -}}
+			    &nbsp;|&nbsp;<form class="btn-form" action="/articles/{{.article.Id}}/subscribe" method="POST" >
 			    {{- .CSRFField -}}
 			    <input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
 			    {{- $btnSubText := local "BtnSubscribe" -}}
@@ -148,15 +153,16 @@
 				{{$btnSubText = local "BtnUnsubscribe"}}
 			    {{- end -}}
 			    <button class="text-lighten-3" title="{{$btnSubText}}" type="submit">{{$btnSubText | lower}}</button>
-			</form>
-		    {{- end -}}
-		    {{- if .currUser -}}
-			{{- $isSelf := eq .currUser.Id .article.AuthorId -}}
-			{{- if or (and $isSelf (permit "article" "edit_mine")) (permit "article" "edit_others") -}}
-			    &nbsp;|&nbsp;<a class="btn-edit text-lighten-3" href="/articles/{{.article.Id}}/edit">{{local "BtnEdit" | lower}}</a>
+			    </form>
 			{{- end -}}
-			{{- if or (and $isSelf (permit "article" "delete_mine")) (permit "article" "delete_others") -}}
-			    &nbsp;|&nbsp;<a class="btn-del text-lighten-3" href="/articles/{{.article.Id}}/delete">{{local "BtnDelete" | lower}}</a>
+			{{- if .currUser -}}
+			    {{- $isSelf := eq .currUser.Id .article.AuthorId -}}
+			    {{- if or (and $isSelf (permit "article" "edit_mine")) (permit "article" "edit_others") -}}
+				&nbsp;|&nbsp;<a class="btn-edit text-lighten-3" href="/articles/{{.article.Id}}/edit">{{local "BtnEdit" | lower}}</a>
+			    {{- end -}}
+			    {{- if or (and $isSelf (permit "article" "delete_mine")) (permit "article" "delete_others") -}}
+				&nbsp;|&nbsp;<a class="btn-del text-lighten-3" href="/articles/{{.article.Id}}/delete">{{local "BtnDelete" | lower}}</a>
+			    {{- end -}}
 			{{- end -}}
 		    {{- end -}}
 		{{- end -}}
@@ -239,7 +245,7 @@
 {{define "article_operation_bar" -}}
     <div class="article-operation">
 	<small>
-	    {{- if not .article.Deleted -}}
+	    {{- if and (not .article.Deleted) (not .article.Locked) -}}
 		    <form class="vote-form{{if eq .article.CurrUserState.VoteType "up"}} voted{{end}}" action="/articles/{{.article.Id}}/vote" method="POST">
 		    {{.CSRFField}}
 		    <input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
@@ -258,6 +264,10 @@
 		    {{- if permit "article" "reply" -}}
 			<a title="{{local "BtnReply"}}" href="/articles/{{.article.Id}}/reply">{{local "BtnReply"}}</a>&nbsp;&nbsp;
 		    {{- end -}}
+	    {{- end -}}
+
+	    {{- if .article.Locked -}}
+		<i class="text-lighten-2">&lt;{{local "Locked"}}&gt;</i>
 	    {{- end -}}
 
 	    {{$replyPage := eq .pageType "reply"}}

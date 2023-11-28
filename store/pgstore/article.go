@@ -20,7 +20,7 @@ type Article struct {
 	dbPool *pgxpool.Pool
 }
 
-func (a *Article) List(page, pageSize int, sortType model.ArticleSortType, categoryFrontId string) ([]*model.Article, int, error) {
+func (a *Article) List(page, pageSize int, sortType model.ArticleSortType, categoryFrontId string, pinned bool) ([]*model.Article, int, error) {
 	// fmt.Println("page, pageSize: ", page, pageSize)
 	// fmt.Println("category front id:", categoryFrontId)
 	// fmt.Println("sortType:", string(sortType))
@@ -67,11 +67,18 @@ WITH postIds AS (
 		sqlStr += ` WHERE p.deleted = false AND p.reply_to = 0 `
 	}
 
+	if pinned {
+		sqlStr += ` AND p.pinned_expire_at is not null AND p.pinned_expire_at > NOW() `
+	} else {
+		sqlStr += ` AND p.pinned_expire_at is null OR p.pinned_expire_at <= NOW()`
+	}
+
 	sqlStr += orderSqlStrHead + `
     OFFSET $1
     LIMIT $2
 )
-SELECT tp.id, tp.title, COALESCE(tp.url, ''), u.username as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, tp.depth, tp.list_weight, tp.reply_weight, tp.participate_count, p2.title as root_article_title, COUNT(p3.id) AS total_reply_count,
+SELECT tp.id, tp.title, COALESCE(tp.url, ''), u.username as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, tp.depth, tp.list_weight, tp.reply_weight, tp.participate_count, p2.title as root_article_title, COUNT(p3.id) AS total_reply_count, tp.locked, tp.pinned_expire_at,
+
 (
 SELECT COUNT(post_id) FROM post_votes
 WHERE post_id = tp.id AND type = 'up'
@@ -109,11 +116,11 @@ GROUP BY tp.id, u.username, p2.title, pi.total, c.id` + orderSqlStrTail
 	var total int
 	var list []*model.Article
 	for rows.Next() {
-		var currUserState model.CurrUserState
+		// var currUserState model.CurrUserState
 		var category model.Category
 		item := model.Article{
-			CurrUserState: &currUserState,
-			Category:      &category,
+			// CurrUserState: &currUserState,
+			Category: &category,
 		}
 
 		// var item model.Article
@@ -132,6 +139,8 @@ GROUP BY tp.id, u.username, p2.title, pi.total, c.id` + orderSqlStrTail
 			&item.ParticipateCount,
 			&item.NullReplyRootArticleTitle,
 			&item.TotalReplyCount,
+			&item.Locked,
+			&item.NullPinnedExpireAt,
 			&item.VoteUp,
 			&item.VoteDown,
 			&total,
@@ -149,6 +158,14 @@ GROUP BY tp.id, u.username, p2.title, pi.total, c.id` + orderSqlStrTail
 		item.CategoryFrontId = category.FrontId
 
 		list = append(list, &item)
+	}
+
+	for _, item := range list {
+		item.CalcScore()
+		item.FormatNullValues()
+		item.UpdateDisplayTitle()
+		item.GenSummary(200)
+		item.UpdatePinnedState()
 	}
 
 	return list, total, nil
@@ -177,6 +194,9 @@ WHERE p.id = ANY($2)
 		if err != nil {
 			return nil, err
 		}
+
+		userState.FormatNullValues()
+
 		article.CurrUserState = &userState
 		list = append(list, &article)
 	}
@@ -234,10 +254,19 @@ SELECT COUNT(*) FROM replyTree`
 	return count, nil
 }
 
-func (a *Article) Create(title, url, content string, authorId, replyToId int, categoryFrontId string) (int, error) {
+func (a *Article) Create(title, url, content string, authorId, replyToId int, categoryFrontId string, pinnedExpireAt time.Time, locked bool) (int, error) {
 	var id int
+	args := []any{
+		title,
+		authorId,
+		content,
+		replyToId,
+		url,
+		categoryFrontId,
+	}
+
 	sqlStr := `
-INSERT INTO posts (title, author_id, content, reply_to, url, root_article_id, depth, category_id)
+INSERT INTO posts (title, author_id, content, reply_to, url, root_article_id, depth, category_id, pinned_expire_at, locked)
 VALUES (
     $1,
     $2,
@@ -260,22 +289,31 @@ VALUES (
         CASE WHEN $4 = 0 THEN (SELECT id FROM categories WHERE front_id = $6)
              ELSE (SELECT p.category_id FROM posts p WHERE $4 = p.id)
         END
-    )
+    ) `
+	if !pinnedExpireAt.IsZero() {
+		args = append(args, pinnedExpireAt)
+		sqlStr += fmt.Sprintf(", $%d ", len(args))
+	} else {
+		sqlStr += ", null "
+	}
+
+	args = append(args, locked)
+	sqlStr += fmt.Sprintf(", $%d ", len(args))
+
+	sqlStr += `
 )
 RETURNING (id);`
+
+	// fmt.Println("create article sql:", sqlStr)
+	// fmt.Println("create article args:", args)
 	err := a.dbPool.QueryRow(context.Background(), sqlStr,
-		title,
-		authorId,
-		content,
-		replyToId,
-		url,
-		categoryFrontId,
+		args...,
 	).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
 
-	err = a.Vote(id, authorId, "up")
+	err = a.ToggleVote(id, authorId, "up")
 	if err != nil {
 		return 0, err
 	}
@@ -334,7 +372,7 @@ func validArticleUpdateField(key string) bool {
 	return false
 }
 
-func (a *Article) UpdateRootArticle(id int, title, content, link, categoryFrontId string) (int, error) {
+func (a *Article) UpdateRootArticle(id int, title, content, link, categoryFrontId string, pinnedExpireAt time.Time, locked bool) (int, error) {
 	sqlStr := `UPDATE posts SET
 title = $2,
 content = $3,
@@ -342,9 +380,22 @@ url = $4,
 category_id = (
   SELECT id FROM categories WHERE front_id = $5
 ),
-updated_at = NOW() WHERE id = $1`
+updated_at = NOW(),
+pinned_expire_at = $6,
+locked = $7
+WHERE id = $1`
 
-	_, err := a.dbPool.Exec(context.Background(), sqlStr, id, title, content, link, categoryFrontId)
+	args := []any{id, title, content, link, categoryFrontId}
+
+	if pinnedExpireAt.IsZero() {
+		args = append(args, nil)
+	} else {
+		args = append(args, pinnedExpireAt)
+	}
+
+	args = append(args, locked)
+
+	_, err := a.dbPool.Exec(context.Background(), sqlStr, args...)
 	if err != nil {
 		return 0, err
 	}
@@ -357,10 +408,20 @@ updated_at = NOW() WHERE id = $1`
 	return id, nil
 }
 
-func (a *Article) UpdateReply(id int, content string) (int, error) {
-	sqlStr := `UPDATE posts SET content = $2, updated_at = NOW() WHERE id = $1`
+func (a *Article) UpdateReply(id int, content string, pinnedExpireAt time.Time, locked bool) (int, error) {
+	sqlStr := `UPDATE posts SET content = $2, updated_at = NOW(), pinned_expire_at = $3, locked = $4 WHERE id = $1`
 
-	_, err := a.dbPool.Exec(context.Background(), sqlStr, id, content)
+	args := []any{id, content}
+
+	if pinnedExpireAt.IsZero() {
+		args = append(args, nil)
+	} else {
+		args = append(args, pinnedExpireAt)
+	}
+
+	args = append(args, locked)
+
+	_, err := a.dbPool.Exec(context.Background(), sqlStr, args...)
 	if err != nil {
 		return 0, err
 	}
@@ -421,7 +482,8 @@ func (a *Article) UpdateReply(id int, content string) (int, error) {
 
 func (a *Article) Item(id, userId int) (*model.Article, error) {
 	sqlStr := `
-SELECT p.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title as root_article_title,
+SELECT p.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title as root_article_title, p.locked, p.pinned_expire_at,
+
 COUNT(DISTINCT p3.id) AS children_count,
 COUNT(DISTINCT pv1.id) AS vote_up_count,
 COUNT(DISTINCT pv2.id) AS vote_down_count,
@@ -490,6 +552,8 @@ GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at,
 		&item.ReplyDepth,
 		&item.ReplyRootArticleId,
 		&item.NullReplyRootArticleTitle,
+		&item.Locked,
+		&item.NullPinnedExpireAt,
 
 		&item.ChildrenCount,
 		&item.VoteUp,
@@ -524,17 +588,20 @@ GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at,
 		}
 	}
 
+	item.CurrUserState.FormatNullValues()
+
 	item.CategoryFrontId = category.FrontId
 
 	item.FormatNullValues()
 	item.FormatReactCounts()
 	item.CalcScore()
 	item.CheckShowScore(userId)
+	item.UpdatePinnedState()
 
 	return &item, nil
 }
 
-func (a *Article) ReplyTree(page, pageSize, id int, sortType model.ArticleSortType) ([]*model.Article, error) {
+func (a *Article) ReplyTree(page, pageSize, id int, sortType model.ArticleSortType, pinned bool) ([]*model.Article, error) {
 	var orderSqlStrTail string
 	switch sortType {
 	case model.ReplySortBest:
@@ -554,18 +621,34 @@ func (a *Article) ReplyTree(page, pageSize, id int, sortType model.ArticleSortTy
 WITH RECURSIVE articleTree AS (
      SELECT id, reply_to, created_at, reply_weight, 1 AS cur_depth
      FROM posts
-     WHERE reply_to = $1
+     WHERE reply_to = $1 `
+
+	if pinned {
+		sqlStr += ` AND pinned_expire_at is not null AND pinned_expire_at > NOW() `
+	} else {
+		sqlStr += ` AND pinned_expire_at is null OR pinned_expire_at <= NOW()`
+	}
+
+	sqlStr += `
      UNION ALL
      SELECT p.id, p.reply_to, p.created_at, p.reply_weight, ar.cur_depth + 1
      FROM posts p
      JOIN articleTree ar
      ON p.reply_to = ar.id
-     WHERE ar.cur_depth < $2
+     WHERE ar.cur_depth < $2 `
+
+	if pinned {
+		sqlStr += ` AND p.pinned_expire_at is not null AND p.pinned_expire_at > NOW() `
+	} else {
+		sqlStr += ` AND p.pinned_expire_at is null OR p.pinned_expire_at <= NOW()`
+	}
+
+	sqlStr += `
 ), groupedList AS (
     SELECT p.*, ROW_NUMBER() OVER (PARTITION BY p.reply_to ` + orderSqlStrTail + `) AS rn
     FROM articleTree p
 )
-SELECT ar.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title AS root_article_title,
+SELECT ar.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title AS root_article_title, p.locked, p.pinned_expire_at,
 COUNT(DISTINCT p3.id) AS children_count,
 COUNT(DISTINCT pv1.id) AS vote_up_count,
 COUNT(DISTINCT pv2.id) AS vote_down_count,
@@ -631,6 +714,8 @@ GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.crea
 			&item.ReplyRootArticleId,
 			&item.Weight,
 			&item.NullReplyRootArticleTitle,
+			&item.Locked,
+			&item.NullPinnedExpireAt,
 			&item.ChildrenCount,
 
 			&item.VoteUp,
@@ -679,10 +764,17 @@ GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.crea
 		}
 	}
 
+	for _, item := range list {
+		item.FormatNullValues()
+		item.FormatReactCounts()
+		item.CalcScore()
+		item.UpdatePinnedState()
+	}
+
 	return list, nil
 }
 
-func (a *Article) ReplyList(page, pageSize, id int, sortType model.ArticleSortType) ([]*model.Article, error) {
+func (a *Article) ReplyList(page, pageSize, id int, sortType model.ArticleSortType, pinned bool) ([]*model.Article, error) {
 	var orderSqlStrTail string
 	switch sortType {
 	case model.ReplySortBest:
@@ -702,18 +794,34 @@ func (a *Article) ReplyList(page, pageSize, id int, sortType model.ArticleSortTy
 WITH RECURSIVE articleTree AS (
      SELECT id, reply_to, created_at, reply_weight
      FROM posts
-     WHERE reply_to = $1
+     WHERE reply_to = $1 `
+
+	if pinned {
+		sqlStr += ` AND pinned_expire_at is not null AND pinned_expire_at > NOW() `
+	} else {
+		sqlStr += ` AND pinned_expire_at is null OR pinned_expire_at <= NOW()`
+	}
+
+	sqlStr += `
      UNION ALL
      SELECT p.id, p.reply_to, p.created_at, p.reply_weight
      FROM posts p
      JOIN articleTree ar
-     ON p.reply_to = ar.id
+     ON p.reply_to = ar.id `
+
+	if pinned {
+		sqlStr += ` WHERE p.pinned_expire_at is not null AND p.pinned_expire_at > NOW() `
+	} else {
+		sqlStr += ` WHERE p.pinned_expire_at is null OR p.pinned_expire_at <= NOW()`
+	}
+
+	sqlStr += `
 ), pagedList AS (
     SELECT * FROM articleTree p ` + orderSqlStrTail + `
     OFFSET $2
     LIMIT $3
 )
-SELECT ar.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title AS root_article_title,
+SELECT ar.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title AS root_article_title, p.locked, p.pinned_expire_at,
 COUNT(DISTINCT p3.id) AS children_count,
 COUNT(DISTINCT pv1.id) AS vote_up_count,
 COUNT(DISTINCT pv2.id) AS vote_down_count,
@@ -795,6 +903,8 @@ GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.crea
 			&item.ReplyRootArticleId,
 			&item.Weight,
 			&item.NullReplyRootArticleTitle,
+			&item.Locked,
+			&item.NullPinnedExpireAt,
 			&item.ChildrenCount,
 
 			&item.VoteUp,
@@ -860,6 +970,13 @@ GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.crea
 		}
 	}
 
+	for _, item := range list {
+		item.FormatNullValues()
+		item.FormatReactCounts()
+		item.CalcScore()
+		item.UpdatePinnedState()
+	}
+
 	return list, nil
 }
 
@@ -913,6 +1030,8 @@ WHERE p.id = ANY($2)
 		if err != nil {
 			return nil, err
 		}
+
+		userState.FormatNullValues()
 		// fmt.Println("react front id:", userState.ReactFrontId)
 		article.CurrUserState = &userState
 		list = append(list, &article)
@@ -959,7 +1078,7 @@ func (a *Article) Delete(id int) (rootArticleId int, err error) {
 	return
 }
 
-func (a *Article) Vote(id, userId int, voteType string) error {
+func (a *Article) ToggleVote(id, userId int, voteType string) error {
 	err, vt := a.VoteCheck(id, userId)
 	// fmt.Println("check error: ", err)
 	// fmt.Println("check vote type: ", vt)
@@ -1035,7 +1154,7 @@ func (a *Article) VoteCheck(id, userId int) (error, string) {
 	return nil, vt
 }
 
-func (a *Article) Save(id, userId int) error {
+func (a *Article) ToggleSave(id, userId int) error {
 	err, saved := a.saveCheck(id, userId)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return err
@@ -1087,7 +1206,7 @@ func (a *Article) saveCheck(id, userId int) (error, bool) {
 	return nil, count > 0
 }
 
-func (a *Article) React(id, userId, reactId int) error {
+func (a *Article) ToggleReact(id, userId, reactId int) error {
 	err, rt := a.ReactCheck(id, userId)
 	// fmt.Println("check error: ", err)
 	// fmt.Println("check vote type: ", rt)
@@ -1183,7 +1302,7 @@ func (a *Article) ReactItem(reactId int) (*model.ArticleReact, error) {
 	return &react, nil
 }
 
-func (a *Article) Subscribe(id, userId int) error {
+func (a *Article) ToggleSubscribe(id, userId int) error {
 	err, subscribed := a.subscribeCheck(id, userId)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return err
@@ -1468,4 +1587,53 @@ ORDER BY ph.version_num DESC`
 	}
 
 	return list, nil
+}
+
+func (a *Article) Lock(id int) error {
+	locked, err := a.CheckLocked(id)
+	if err != nil {
+		return err
+	}
+
+	newLockState := true
+	if locked {
+		newLockState = false
+	}
+
+	_, err = a.dbPool.Exec(context.Background(), `UPDATE posts SET locked = $2 WHERE id = $1`, id, newLockState)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *Article) CheckLocked(id int) (bool, error) {
+	var locked bool
+	err := a.dbPool.QueryRow(context.Background(), `SELECT locked FROM posts WHERE id = $1`, id).Scan(&locked)
+	if err != nil {
+		return false, err
+	}
+	return locked, nil
+}
+
+func (a *Article) Pin(id int, expireAt time.Time) error {
+	_, err := a.dbPool.Exec(context.Background(), `UPDATE posts SET pinned_expire_at = $2 WHERE id = $1`, id, expireAt)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *Article) Unpin(id int) error {
+	_, err := a.dbPool.Exec(context.Background(), `UPDATE posts SET pinned_expire_at = null WHERE id = $1`, id)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

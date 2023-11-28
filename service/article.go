@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/oodzchen/dproject/model"
@@ -13,7 +14,7 @@ type Article struct {
 	SantizePolicy *bluemonday.Policy
 }
 
-func (a *Article) Create(title, url, content string, authorId, replyToId int, categoryFrontId string) (int, error) {
+func (a *Article) Create(title, url, content string, authorId, replyToId int, categoryFrontId string, pinnedExpireAt time.Time, locked bool) (int, error) {
 	article := &model.Article{
 		Title:           title,
 		AuthorId:        authorId,
@@ -33,12 +34,12 @@ func (a *Article) Create(title, url, content string, authorId, replyToId int, ca
 		return 0, err
 	}
 
-	id, err := a.Store.Article.Create(article.Title, article.Link, article.Content, article.AuthorId, article.ReplyToId, article.CategoryFrontId)
+	id, err := a.Store.Article.Create(article.Title, article.Link, article.Content, article.AuthorId, article.ReplyToId, article.CategoryFrontId, pinnedExpireAt, locked)
 	if err != nil {
 		return 0, err
 	}
 
-	err = a.Store.Article.Subscribe(id, authorId)
+	err = a.Store.Article.ToggleSubscribe(id, authorId)
 	if err != nil {
 		return 0, err
 	}
@@ -57,7 +58,7 @@ func (a *Article) Create(title, url, content string, authorId, replyToId int, ca
 	return id, nil
 }
 
-func (a *Article) Reply(target int, content string, authorId int) (int, error) {
+func (a *Article) Reply(target int, content string, authorId int, pinnedExpireAt time.Time, locked bool) (int, error) {
 	article := &model.Article{
 		AuthorId:  authorId,
 		Content:   content,
@@ -72,7 +73,7 @@ func (a *Article) Reply(target int, content string, authorId int) (int, error) {
 		return 0, err
 	}
 
-	id, err := a.Store.Article.Create("", "", article.Content, authorId, target, "")
+	id, err := a.Store.Article.Create("", "", article.Content, authorId, target, "", pinnedExpireAt, locked)
 	if err != nil {
 		return 0, err
 	}
@@ -85,7 +86,7 @@ func (a *Article) Reply(target int, content string, authorId int) (int, error) {
 
 	// fmt.Println("check subscribe count: ", count)
 	if count == 0 {
-		err = a.Store.Article.Subscribe(id, authorId)
+		err = a.Store.Article.ToggleSubscribe(id, authorId)
 	}
 
 	if err != nil {

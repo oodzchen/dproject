@@ -148,7 +148,7 @@ func srvCreateArticle(srv *service.Article, wg *sync.WaitGroup, ctx context.Cont
 
 	for a := range ach {
 		fmt.Printf("user %v create article [%s] \"%s\"\n", authorId, a.CategoryFrontId, a.Title)
-		id, err := srv.Create(a.Title, a.URL, a.Content, authorId, 0, a.CategoryFrontId)
+		id, err := srv.Create(a.Title, a.URL, a.Content, authorId, 0, a.CategoryFrontId, time.Now(), false)
 		results <- &articleRes{id, err}
 	}
 }
