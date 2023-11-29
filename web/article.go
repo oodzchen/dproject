@@ -247,7 +247,7 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("get article list total duration: %dms\n", time.Since(startTime).Milliseconds())
 
-	fmt.Println("pinnedList:", pinnedList)
+	// fmt.Println("pinnedList:", pinnedList)
 	if page == 1 {
 		list = append(pinnedList, list...)
 	}

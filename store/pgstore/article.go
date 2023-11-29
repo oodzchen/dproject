@@ -70,7 +70,7 @@ WITH postIds AS (
 	if pinned {
 		sqlStr += ` AND p.pinned_expire_at is not null AND p.pinned_expire_at > NOW() `
 	} else {
-		sqlStr += ` AND p.pinned_expire_at is null OR p.pinned_expire_at <= NOW()`
+		sqlStr += ` AND (p.pinned_expire_at is null OR p.pinned_expire_at <= NOW())`
 	}
 
 	sqlStr += orderSqlStrHead + `
