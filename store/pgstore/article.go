@@ -319,7 +319,7 @@ VALUES (
         END
     ) `
 	if !pinnedExpireAt.IsZero() {
-		args = append(args, pinnedExpireAt)
+		args = append(args, pinnedExpireAt.UTC())
 		sqlStr += fmt.Sprintf(", $%d ", len(args))
 	} else {
 		sqlStr += ", null "
@@ -652,9 +652,9 @@ WITH RECURSIVE articleTree AS (
      WHERE reply_to = $1 `
 
 	if pinned {
-		sqlStr += ` AND pinned_expire_at is not null AND pinned_expire_at > NOW() `
+		sqlStr += ` AND (pinned_expire_at is not null AND pinned_expire_at > NOW()) `
 	} else {
-		sqlStr += ` AND pinned_expire_at is null OR pinned_expire_at <= NOW()`
+		sqlStr += ` AND (pinned_expire_at is null OR pinned_expire_at <= NOW())`
 	}
 
 	sqlStr += `
@@ -666,9 +666,9 @@ WITH RECURSIVE articleTree AS (
      WHERE ar.cur_depth < $2 `
 
 	if pinned {
-		sqlStr += ` AND p.pinned_expire_at is not null AND p.pinned_expire_at > NOW() `
+		sqlStr += ` AND (p.pinned_expire_at is not null AND p.pinned_expire_at > NOW()) `
 	} else {
-		sqlStr += ` AND p.pinned_expire_at is null OR p.pinned_expire_at <= NOW()`
+		sqlStr += ` AND (p.pinned_expire_at is null OR p.pinned_expire_at <= NOW())`
 	}
 
 	sqlStr += `
@@ -825,9 +825,9 @@ WITH RECURSIVE articleTree AS (
      WHERE reply_to = $1 `
 
 	if pinned {
-		sqlStr += ` AND pinned_expire_at is not null AND pinned_expire_at > NOW() `
+		sqlStr += ` AND (pinned_expire_at is not null AND pinned_expire_at > NOW()) `
 	} else {
-		sqlStr += ` AND pinned_expire_at is null OR pinned_expire_at <= NOW()`
+		sqlStr += ` AND (pinned_expire_at is null OR pinned_expire_at <= NOW())`
 	}
 
 	sqlStr += `
@@ -838,9 +838,9 @@ WITH RECURSIVE articleTree AS (
      ON p.reply_to = ar.id `
 
 	if pinned {
-		sqlStr += ` WHERE p.pinned_expire_at is not null AND p.pinned_expire_at > NOW() `
+		sqlStr += ` WHERE (p.pinned_expire_at is not null AND p.pinned_expire_at > NOW()) `
 	} else {
-		sqlStr += ` WHERE p.pinned_expire_at is null OR p.pinned_expire_at <= NOW()`
+		sqlStr += ` WHERE (p.pinned_expire_at is null OR p.pinned_expire_at <= NOW())`
 	}
 
 	sqlStr += `

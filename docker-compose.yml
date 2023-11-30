@@ -56,6 +56,7 @@ services:
       - DB_NAME=$DB_NAME
       - DB_USER=$DB_USER
       - ADMIN_PASSWORD=$ADMIN_PASSWORD
+      - PGTZ=UTC
     healthcheck:
       test: [ "CMD", "pg_isready" ]
       interval: 10s

@@ -20,8 +20,8 @@
      }
      .article__reply-ref{
 	 /* cursor: pointer; */
-	 margin: 4px 1rem;
-	 padding: 6px;
+	 margin: 4px 0.5rem;
+	 padding: 4px 6px;
      }
      .article__reply-ref a{
 	 color: var(--text-lighten-2) !important;
@@ -382,7 +382,6 @@
 	    {{- if $deepMore -}}
 		<li style="padding-top:6px"><small><a href="/articles/{{.Id}}">{{local "BtnMore"}}</a></small></li>
 	    {{- end -}}
-	    <!-- <div>index: {{$index}}, last index: {{add (len $replies.List) -1}}</div> -->
 	    {{- if and $pageMore (eq $index (add (len $replies.List) -1)) -}}
 		<li style="padding-top:6px"><small><a href="/articles/{{.ReplyTo}}?page=2">{{local "BtnNextPage"}}</a></small></li>
 	    {{- end -}}

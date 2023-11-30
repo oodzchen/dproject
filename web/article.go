@@ -517,7 +517,7 @@ func (ar *ArticleResource) handleSubmit(w http.ResponseWriter, r *http.Request, 
 			// time.Parse("", value string)
 			pinnedExpireAtStr = strings.Join(strings.Split(pinnedExpireAtStr, "T"), " ") + ":00"
 
-			fmt.Println("pinned expires at2:", pinnedExpireAtStr)
+			// fmt.Println("pinned expires at2:", pinnedExpireAtStr)
 			pinnedExpireAt, err = time.Parse(time.DateTime, pinnedExpireAtStr)
 			if err != nil {
 				ar.Error(ar.Local("FormatError", "FieldNames", ar.Local("PinExpireTime")), err, w, r, http.StatusBadRequest)

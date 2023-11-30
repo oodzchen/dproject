@@ -516,6 +516,8 @@ func (a *Article) CheckShowScore(loginedUserId int) {
 }
 
 func (a *Article) UpdatePinnedState() {
+	// fmt.Println("pinned expire time:", a.PinnedExpireAt)
+	// fmt.Println("      current time:", time.Now())
 	// fmt.Println("pinned compare:", a.PinnedExpireAt.Compare(time.Now()))
 	if a.PinnedExpireAt.IsZero() {
 		a.Pinned = false
