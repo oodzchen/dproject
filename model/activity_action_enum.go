@@ -69,6 +69,9 @@ const (
 	// AcActionResetPassword is a AcAction of type reset_password.
 	// Reset password
 	AcActionResetPassword AcAction = "reset_password"
+	// AcActionToggleHideHistory is a AcAction of type toggle_hide_history.
+	// Toggle hide history
+	AcActionToggleHideHistory AcAction = "toggle_hide_history"
 )
 
 var ErrInvalidAcAction = fmt.Errorf("not a valid AcAction, try [%s]", strings.Join(_AcActionNames, ", "))
@@ -92,6 +95,7 @@ var _AcActionNames = []string{
 	string(AcActionSubscribeArticle),
 	string(AcActionRetrievePassword),
 	string(AcActionResetPassword),
+	string(AcActionToggleHideHistory),
 }
 
 // AcActionNames returns a list of possible string values of AcAction.
@@ -122,6 +126,7 @@ func AcActionValues() []AcAction {
 		AcActionSubscribeArticle,
 		AcActionRetrievePassword,
 		AcActionResetPassword,
+		AcActionToggleHideHistory,
 	}
 }
 
@@ -138,24 +143,25 @@ func (x AcAction) IsValid() bool {
 }
 
 var _AcActionValue = map[string]AcAction{
-	"register":          AcActionRegister,
-	"register_verify":   AcActionRegisterVerify,
-	"login":             AcActionLogin,
-	"logout":            AcActionLogout,
-	"update_intro":      AcActionUpdateIntro,
-	"create_article":    AcActionCreateArticle,
-	"reply_article":     AcActionReplyArticle,
-	"edit_article":      AcActionEditArticle,
-	"delete_article":    AcActionDeleteArticle,
-	"save_article":      AcActionSaveArticle,
-	"vote_article":      AcActionVoteArticle,
-	"react_article":     AcActionReactArticle,
-	"set_role":          AcActionSetRole,
-	"add_role":          AcActionAddRole,
-	"edit_role":         AcActionEditRole,
-	"subscribe_article": AcActionSubscribeArticle,
-	"retrieve_password": AcActionRetrievePassword,
-	"reset_password":    AcActionResetPassword,
+	"register":            AcActionRegister,
+	"register_verify":     AcActionRegisterVerify,
+	"login":               AcActionLogin,
+	"logout":              AcActionLogout,
+	"update_intro":        AcActionUpdateIntro,
+	"create_article":      AcActionCreateArticle,
+	"reply_article":       AcActionReplyArticle,
+	"edit_article":        AcActionEditArticle,
+	"delete_article":      AcActionDeleteArticle,
+	"save_article":        AcActionSaveArticle,
+	"vote_article":        AcActionVoteArticle,
+	"react_article":       AcActionReactArticle,
+	"set_role":            AcActionSetRole,
+	"add_role":            AcActionAddRole,
+	"edit_role":           AcActionEditRole,
+	"subscribe_article":   AcActionSubscribeArticle,
+	"retrieve_password":   AcActionRetrievePassword,
+	"reset_password":      AcActionResetPassword,
+	"toggle_hide_history": AcActionToggleHideHistory,
 }
 
 // ParseAcAction attempts to convert a string to a AcAction.
@@ -171,24 +177,25 @@ func (x AcAction) I18nID() string {
 }
 
 var _AcActionTextMap = map[AcAction]string{
-	AcActionRegister:         "Register",
-	AcActionRegisterVerify:   "Registration verification",
-	AcActionLogin:            "Login",
-	AcActionLogout:           "Logout",
-	AcActionUpdateIntro:      "Update introduction",
-	AcActionCreateArticle:    "Create article",
-	AcActionReplyArticle:     "Reply to article",
-	AcActionEditArticle:      "Edit article",
-	AcActionDeleteArticle:    "Delete article",
-	AcActionSaveArticle:      "Save article",
-	AcActionVoteArticle:      "Vote article",
-	AcActionReactArticle:     "React to article",
-	AcActionSetRole:          "Set role",
-	AcActionAddRole:          "Add role",
-	AcActionEditRole:         "Edit role",
-	AcActionSubscribeArticle: "Subscribe article",
-	AcActionRetrievePassword: "Retrieve password",
-	AcActionResetPassword:    "Reset password",
+	AcActionRegister:          "Register",
+	AcActionRegisterVerify:    "Registration verification",
+	AcActionLogin:             "Login",
+	AcActionLogout:            "Logout",
+	AcActionUpdateIntro:       "Update introduction",
+	AcActionCreateArticle:     "Create article",
+	AcActionReplyArticle:      "Reply to article",
+	AcActionEditArticle:       "Edit article",
+	AcActionDeleteArticle:     "Delete article",
+	AcActionSaveArticle:       "Save article",
+	AcActionVoteArticle:       "Vote article",
+	AcActionReactArticle:      "React to article",
+	AcActionSetRole:           "Set role",
+	AcActionAddRole:           "Add role",
+	AcActionEditRole:          "Edit role",
+	AcActionSubscribeArticle:  "Subscribe article",
+	AcActionRetrievePassword:  "Retrieve password",
+	AcActionResetPassword:     "Reset password",
+	AcActionToggleHideHistory: "Toggle hide history",
 }
 
 func (x AcAction) Text(upCaseHead bool, i18nCustom *i18nc.I18nCustom) string {
@@ -281,5 +288,9 @@ func AcActionAddI18nConfigs(ic *i18nc.I18nCustom) {
 	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "AcAction_reset_password",
 		Other: "Reset password",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_toggle_hide_history",
+		Other: "Toggle hide history",
 	})
 }

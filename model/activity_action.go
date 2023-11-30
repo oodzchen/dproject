@@ -23,6 +23,7 @@ ENUM(
    subscribe_article, // Subscribe article
    retrieve_password, // Retrieve password
    reset_password, // Reset password
+   toggle_hide_history, // Toggle hide history
 )
 */
 type AcAction string

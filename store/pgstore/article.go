@@ -1506,11 +1506,12 @@ func (a *Article) AddHistory(
 	articleId, operatorId int,
 	curr, prev time.Time,
 	titleDelta, urlDelta, contentDelta, categoryFrontDelta string,
+	isHidden bool,
 ) (int, error) {
-	sqlStr := `INSERT INTO post_history (post_id, operator_id, curr, prev, version_num, title_delta, url_delta, content_delta, category_front_delta)
+	sqlStr := `INSERT INTO post_history (post_id, operator_id, curr, prev, version_num, title_delta, url_delta, content_delta, category_front_delta, is_hidden)
 VALUES ($1, $2, $3, $4, (
    SELECT COALESCE(MAX(version_num)+1, 1) FROM post_history WHERE post_id = $1
-) ,$5, $6, $7, $8) RETURNING (id)`
+) ,$5, $6, $7, $8, $9) RETURNING (id)`
 	var id int
 	err := a.dbPool.QueryRow(
 		context.Background(),
@@ -1523,6 +1524,7 @@ VALUES ($1, $2, $3, $4, (
 		urlDelta,
 		contentDelta,
 		categoryFrontDelta,
+		isHidden,
 	).Scan(&id)
 
 	if err != nil {
@@ -1545,6 +1547,7 @@ ph.title_delta,
 ph.url_delta,
 ph.content_delta,
 ph.category_front_delta,
+ph.is_hidden,
 
 u.username AS username
 
@@ -1574,6 +1577,7 @@ ORDER BY ph.version_num DESC`
 			&log.URLDelta,
 			&log.ContentDelta,
 			&log.CategoryFrontIdDelta,
+			&log.IsHidden,
 
 			&user.Name,
 		)
@@ -1630,6 +1634,16 @@ func (a *Article) Pin(id int, expireAt time.Time) error {
 
 func (a *Article) Unpin(id int) error {
 	_, err := a.dbPool.Exec(context.Background(), `UPDATE posts SET pinned_expire_at = null WHERE id = $1`, id)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *Article) ToggleHideHistory(historyId int, isHidden bool) error {
+	_, err := a.dbPool.Exec(context.Background(), `UPDATE post_history SET is_hidden = $2 WHERE id = $1`, historyId, isHidden)
 
 	if err != nil {
 		return err

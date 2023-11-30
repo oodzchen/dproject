@@ -5,6 +5,7 @@
     {{- $logList := .Data.List -}}
     {{- $categoryMap := .Data.CategoryMap -}}
     {{- $title := print "<a href=\"/articles/" $article.Id "\">" $article.DisplayTitle "</a>" -}}
+    {{- $csrfField := .CSRFField -}}
     <h1>{{local "EditHistoryTitle" "Title" $title}}</h1>
 
     <style>
@@ -68,39 +69,66 @@
 		    <div class="log-list__describe">{{local "EditBy" "Name" $authorName}}<time title={{.CurrEditTime}}>{{timeAgo .CurrEditTime}}</time></div>
 		</div>
 		<div class="log-list__con">
-		    {{- if ne .TitleDelta "" -}}
-			<div class="log-list__con__row">
-			    <div class="log-list__con__label">{{local "Title"}}:</div>
-			    <div class="log-list__con__diff">
-				{{.TitleDiffHTML}}
-			    </div>
+		    
+		    <div style="display:flex;justify-content:space-between">
+			<div>
+			    {{- if .IsHidden -}}
+				<i class="text-lighten-2">&lt;{{local "EditHistoryHidden"}}&gt;</i>
+			    {{- end -}}
 			</div>
-		    {{- end -}}
-		    {{- if ne .URLDelta "" -}}
-			<div class="log-list__con__row">
-			    <div class="log-list__con__label">{{local "URL"}}:</div>
-			    <div class="log-list__con__diff">
-				{{.URLDiffHTML}}
+
+			{{- if (permit "article" "edit_others") -}}
+			    <form action="/articles/{{$article.Id}}/history/{{.Id}}/toggle_hide" method="POST" >
+				{{- $csrfField -}}
+				{{- $btnToggleHide := local "BtnHide" -}}
+				
+				{{- if .IsHidden -}}
+				    {{$btnToggleHide = local "BtnUnhide"}}
+				    <input name="to_hide" type="hidden" value="0"/>
+				{{- else -}}
+				    <input name="to_hide" type="hidden" value="1"/>
+				{{- end -}}
+				<button class="text-lighten" title="{{$btnToggleHide}}" type="submit">{{$btnToggleHide}}</button>
+			    </form>
+			{{- end -}}	
+		    </div>
+		    <br/>		    
+		    
+		    {{- if or (not .IsHidden) (permit "article" "edit_others") -}}
+			{{- if ne .TitleDelta "" -}}
+			    <div class="log-list__con__row">
+				<div class="log-list__con__label">{{local "Title"}}:</div>
+				<div class="log-list__con__diff">
+				    {{.TitleDiffHTML}}
+				</div>
 			    </div>
-			</div>
-		    {{- end -}}
-		    {{- if ne .ContentDelta "" -}}
-			<div class="log-list__con__row">
-			    <div class="log-list__con__label">{{local "Content"}}:</div>
-			    <div class="log-list__con__diff">
-				{{.ContentDiffHTML}}
+			{{- end -}}
+			{{- if ne .URLDelta "" -}}
+			    <div class="log-list__con__row">
+				<div class="log-list__con__label">{{local "URL"}}:</div>
+				<div class="log-list__con__diff">
+				    {{.URLDiffHTML}}
+				</div>
 			    </div>
-			</div>
-		    {{- end -}}
-		    {{- if ne .CategoryFrontIdDelta "" -}}
-			<div class="log-list__con__row">
-			    <div class="log-list__con__label">{{local "Category"}}:</div>
-			    <div class="log-list__con__diff">
-				{{/*.CategoryFrontIdDiffHTML*/}}
-				<del style="background:#ffe6e6;"><a href="/categories/{{.PrevArticle.CategoryFrontId}}">{{index $categoryMap .PrevArticle.CategoryFrontId}}</a></del>
-				<ins style="background:#e6ffe6;"><a href="/categories/{{.CurrArticle.CategoryFrontId}}">{{index $categoryMap .CurrArticle.CategoryFrontId}}</a></ins>
+			{{- end -}}
+			{{- if ne .ContentDelta "" -}}
+			    <div class="log-list__con__row">
+				<div class="log-list__con__label">{{local "Content"}}:</div>
+				<div class="log-list__con__diff">
+				    {{.ContentDiffHTML}}
+				</div>
 			    </div>
-			</div>
+			{{- end -}}
+			{{- if ne .CategoryFrontIdDelta "" -}}
+			    <div class="log-list__con__row">
+				<div class="log-list__con__label">{{local "Category"}}:</div>
+				<div class="log-list__con__diff">
+				    {{/*.CategoryFrontIdDiffHTML*/}}
+				    <del style="background:#ffe6e6;"><a href="/categories/{{.PrevArticle.CategoryFrontId}}">{{index $categoryMap .PrevArticle.CategoryFrontId}}</a></del>
+				    <ins style="background:#e6ffe6;"><a href="/categories/{{.CurrArticle.CategoryFrontId}}">{{index $categoryMap .CurrArticle.CategoryFrontId}}</a></ins>
+				</div>
+			    </div>
+			{{- end -}}
 		    {{- end -}}
 		</div>
 	    </li>

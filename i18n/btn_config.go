@@ -88,6 +88,16 @@ func (ic *I18nCustom) AddBtnConfigs() {
 		Other: "Next step",
 	})
 
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnHide",
+		Other: "Hide",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnUnhide",
+		Other: "Unhide",
+	})
+
 	// ic.AddLocalizeConfig(&i18n.Message{
 	// 	ID:    "BtnIgnore",
 	// 	Other: "Ignore",

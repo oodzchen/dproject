@@ -238,6 +238,7 @@ type ArticleLog struct {
 	URLDiffHTML             string
 	ContentDiffHTML         string
 	CategoryFrontIdDiffHTML string
+	IsHidden                bool
 }
 
 type ArticleLogList struct {

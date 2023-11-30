@@ -141,6 +141,12 @@ func (ar *ArticleResource) Routes() http.Handler {
 		).Post("/subscribe", ar.Subscribe)
 
 		r.Get("/history", ar.HistoryPage)
+
+		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.srv.Permission, []string{
+			"article.edit_others",
+		}, ar), mdw.UserLogger(
+			ar.uLogger, model.AcTypeManage, model.AcActionToggleHideHistory, model.AcModelArticle, mdw.ULogURLArticleId),
+		).Post("/history/{historyId}/toggle_hide", ar.ToggleHideHistory)
 	})
 
 	return rt
@@ -639,10 +645,12 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 
 	pinned := r.Form.Get("pinned")
 	lockedStr := r.Form.Get("locked")
+	hideChanges := r.Form.Get("hide_changes")
 	// fmt.Println("pinned: ", pinned)
 
 	var pinnedExpireAt time.Time
 	var locked bool
+	var isHideEditHisotry bool
 
 	if pinned == "1" {
 		pinnedExpireAtStr := r.Form.Get("pinned_expire_at")
@@ -665,6 +673,10 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 
 	if lockedStr == "1" {
 		locked = true
+	}
+
+	if hideChanges == "1" {
+		isHideEditHisotry = true
 	}
 
 	isReply := replyDepth > 0
@@ -736,7 +748,7 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go ar.addHistoryLog(article.Id, oldArticle, currUserId, isReply)
+	go ar.addHistoryLog(article.Id, oldArticle, currUserId, isReply, isHideEditHisotry)
 
 	ssOne := ar.Session("one", w, r)
 
@@ -749,7 +761,7 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (ar *ArticleResource) addHistoryLog(articleId int, oldArticle *model.Article, currUserId int, isReply bool) {
+func (ar *ArticleResource) addHistoryLog(articleId int, oldArticle *model.Article, currUserId int, isReply bool, isHidden bool) {
 	article, err := ar.store.Article.Item(articleId, 0)
 	if err != nil {
 		fmt.Println("get latest article data when add history error:", err)
@@ -770,7 +782,7 @@ func (ar *ArticleResource) addHistoryLog(articleId int, oldArticle *model.Articl
 
 	if isReply {
 		if contentDelta != "" {
-			_, err = ar.store.Article.AddHistory(article.Id, currUserId, article.UpdatedAt, oldArticle.UpdatedAt, "", "", contentDelta, "")
+			_, err = ar.store.Article.AddHistory(article.Id, currUserId, article.UpdatedAt, oldArticle.UpdatedAt, "", "", contentDelta, "", isHidden)
 		}
 	} else {
 		if article.Title != oldArticle.Title {
@@ -789,7 +801,7 @@ func (ar *ArticleResource) addHistoryLog(articleId int, oldArticle *model.Articl
 		}
 
 		if contentDelta != "" || titleDelta != "" || urlDelta != "" || categoryFrontDelta != "" {
-			_, err = ar.store.Article.AddHistory(article.Id, currUserId, article.UpdatedAt, oldArticle.UpdatedAt, titleDelta, urlDelta, contentDelta, categoryFrontDelta)
+			_, err = ar.store.Article.AddHistory(article.Id, currUserId, article.UpdatedAt, oldArticle.UpdatedAt, titleDelta, urlDelta, contentDelta, categoryFrontDelta, isHidden)
 		}
 	}
 
@@ -1617,4 +1629,33 @@ func (ar *ArticleResource) checkLocked(articleId int) error {
 	}
 
 	return nil
+}
+
+func (ar *ArticleResource) ToggleHideHistory(w http.ResponseWriter, r *http.Request) {
+	articleId, err := strconv.Atoi(chi.URLParam(r, "articleId"))
+	if err != nil {
+		ar.Error("", err, w, r, http.StatusBadRequest)
+		return
+	}
+
+	historyId, err := strconv.Atoi(chi.URLParam(r, "historyId"))
+	if err != nil {
+		ar.Error("", err, w, r, http.StatusBadRequest)
+		return
+	}
+	toHide := r.Form.Get("to_hide")
+
+	var setHidden bool
+
+	if toHide == "1" {
+		setHidden = true
+	}
+
+	err = ar.store.Article.ToggleHideHistory(historyId, setHidden)
+	if err != nil {
+		ar.Error("", err, w, r, http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/articles/%d/history", articleId), http.StatusFound)
 }

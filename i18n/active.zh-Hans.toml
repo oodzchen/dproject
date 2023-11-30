@@ -66,6 +66,10 @@ other = "设置角色"
 hash = "sha1-b94ca84be9a49e89dea8ccaa85f20b4b73e84adf"
 other = "订阅文章"
 
+[AcAction_toggle_hide_history]
+hash = "sha1-5d4fa535999647127742973d933bb64d63ac05c5"
+other = "显示或隐藏编辑历史"
+
 [AcAction_update_intro]
 hash = "sha1-b763c995ee533940f9722582fd0e7386b294392e"
 other = "更新介绍"
@@ -242,6 +246,10 @@ other = "编辑"
 hash = "sha1-b6ba0db1f814179114ec82fbf188b2eb5be2596e"
 other = "收起"
 
+[BtnHide]
+hash = "sha1-34d8b60fe25332f7b98585e82e753eaf502c3e50"
+other = "隐藏"
+
 [BtnMore]
 hash = "sha1-4bab2d8fe13fa6ab57f80098b414f0f734c5dd25"
 other = "更多"
@@ -285,6 +293,10 @@ other = "提交"
 [BtnSubscribe]
 hash = "sha1-d6981f74767d6c63d6062ad21b3bdfcd0d0d6602"
 other = "订阅"
+
+[BtnUnhide]
+hash = "sha1-37f0297a2ed2f8c33d53336d888f92a37422700d"
+other = "取消隐藏"
 
 [BtnUnsave]
 hash = "sha1-65fd5f084b91ec4872711c6bc55c0be01801032f"
@@ -337,6 +349,14 @@ other = "{{.Name}} 编辑"
 [EditContent]
 hash = "sha1-0eea86f9aabaef1ecfe059c6e2c4a2de39feae69"
 other = "编辑内容"
+
+[EditHistory]
+hash = "sha1-528df636e714d8ea4073ade5e3558ed174110618"
+other = "编辑历史"
+
+[EditHistoryHidden]
+hash = "sha1-2c17e968dd684c90b46894bd84aec789e312f041"
+other = "违规内容已移除"
 
 [EditHistoryTitle]
 hash = "sha1-668a12997536df5fea775fa5b548eff32ada6c9a"
@@ -409,6 +429,10 @@ other = "去主页"
 [GoTo]
 hash = "sha1-b49acb618383a8ff82afe57ddbf49c204da3b22d"
 other = "去"
+
+[HideChanges]
+hash = "sha1-58516b587981ccb2368490c86af92a91a7fc50b6"
+other = "从编辑历史中隐藏更改"
 
 [Hot]
 hash = "sha1-8c948d7947e0c20b3e2bc9c63fea2eaec504e113"

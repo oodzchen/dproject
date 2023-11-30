@@ -724,4 +724,18 @@ func (ic *I18nCustom) AddConfigs() {
 		Other: "Locked",
 	})
 
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "HideChanges",
+		Other: "Hide changes from edit history",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "EditHistory",
+		Other: "Edit history",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "EditHistoryHidden",
+		Other: "The infraction content has been removed",
+	})
 }

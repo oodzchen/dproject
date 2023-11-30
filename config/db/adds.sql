@@ -140,6 +140,8 @@ CREATE TABLE post_history (
     category_front_delta TEXT
 );
 
+ALTER TABLE post_history ADD COLUMN is_hidden BOOLEAN NOT NULL DEFAULT false;
+
 -- CREATE TABLE verification_codes (
 --     id SERIAL PRIMARY KEY,
 --     email VARCHAR(255) NOT NULL,

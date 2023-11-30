@@ -96,6 +96,15 @@
 		<label><input name="locked" type="checkbox" autocomplete="off" {{if $article.Locked}}checked{{end}} value="1"/> {{local "Lock"}}</label>
 	    </div>
 	{{- end -}}
+	
+	{{- if and $article.Id  (permit "article" "edit_others") -}}
+	    <hr/>
+	    <br/>
+	    <div class="form__row">
+		<label class="form__label">{{local "EditHistory"}} <small class="text-lighten-2" style="font-weight: normal">({{local "FormOptional"}})</small></label>
+		<label><input name="hide_changes" type="checkbox" autocomplete="off" {{if $article.Locked}}checked{{end}} value="1"/> {{local "HideChanges"}}</label>
+	    </div>
+	{{- end -}}
 	<br/>
 	<button type="submit">{{local "BtnSubmit"}}</button>
     </form>
