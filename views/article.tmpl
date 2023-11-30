@@ -125,7 +125,7 @@
 		    </a>
 		{{- end -}}
 		{{- if $isRoot -}}&nbsp;|&nbsp;<span>{{- local "ReplyNum" "Count" .article.TotalReplyCount -}}</span>{{- end -}}
-		{{- if not .article.Deleted -}}
+		{{- if or (not .article.Deleted) (permit "article" "delete_others") -}}
 		    &nbsp;|&nbsp;<a class="text-lighten-3" href="/articles/{{.article.Id}}">{{local "Link" | lower}}</a> |&nbsp;
 		    <a class="text-lighten-3" href="#ar_{{.article.Id}}">{{local "Anchor" | lower}}</a> |&nbsp;
 		    {{- if gt .pageDepth 1 -}}
@@ -181,7 +181,9 @@
 	{{- end -}}
 	{{if .article.Deleted -}}
 	    <i class="text-lighten-2">&lt;{{local "Deleted"}}&gt;</i>
-	{{- else -}}
+	{{- end -}}
+	
+	{{if or (not .article.Deleted) (permit "article" "delete_others") -}}
 	    <section class="{{if lt .article.VoteScore 0}}text-lighten-3{{else}}text-lighten{{end}}" style="white-space: break-spaces">{{- replaceLink .article.Content -}}</section>
 	{{- end -}}
 

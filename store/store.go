@@ -38,7 +38,13 @@ func New(
 
 type ArticleStore interface {
 	// pageSize < 0 to list all undeleted data
-	List(page, pageSize int, sortType model.ArticleSortType, categoryFrontId string, pinned bool) ([]*model.Article, int, error)
+	List(page,
+		pageSize int,
+		sortType model.ArticleSortType,
+		categoryFrontId string,
+		pinned, deleted, includeReplies bool,
+		keywords string,
+	) ([]*model.Article, int, error)
 	ListUserState(ids []int, userId int) ([]*model.Article, error)
 	ListLatestCount(start, end time.Time) (int, error)
 	Create(title, url, content string, authorId, replyToId int, categoryFrontId string, pinnedExpireAt time.Time, locked bool) (int, error)
@@ -62,13 +68,24 @@ type ArticleStore interface {
 	GetReactList() ([]*model.ArticleReact, error)
 	ReactItem(int) (*model.ArticleReact, error)
 	Tag(id int, tagFrontId string) error
-	AddHistory(articleId, operatorId int, curr, prev time.Time, titleDelta, urlDelta, contentDelta, categoryFrontDelta string, isHidden bool) (int, error)
+	AddHistory(
+		articleId,
+		operatorId int,
+		curr,
+		prev time.Time,
+		titleDelta,
+		urlDelta,
+		contentDelta,
+		categoryFrontDelta string,
+		isHidden bool,
+	) (int, error)
 	ListHistory(articleId int) ([]*model.ArticleLog, error)
 	ToggleHideHistory(historyId int, isHidden bool) error
 	Lock(articleId int) error
 	CheckLocked(id int) (bool, error)
 	Pin(articleId int, expireAt time.Time) error
 	Unpin(articleId int) error
+	// DeletedList() ([]*model.Article, error)
 }
 
 type UserStore interface {

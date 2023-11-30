@@ -316,7 +316,7 @@ func (ar *ArticleResource) getArticleList(
 ) {
 	defer wg.Done()
 	// list, err := ar.getArticleList(page, pageSize, currUserId, sortType)
-	list, _, err := ar.store.Article.List(page, pageSize, sortType, categoryFrontId, pinned)
+	list, _, err := ar.store.Article.List(page, pageSize, sortType, categoryFrontId, pinned, false, false, "")
 	if err != nil {
 		ch <- err
 		return

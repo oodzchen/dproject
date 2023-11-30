@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -78,6 +79,10 @@ func (mr *ManageResource) Routes() http.Handler {
 		r.With(mdw.PermitCheck(mr.srv.Permission, []string{
 			"activity.access",
 		}, mr)).Get("/activities", mr.ActivityList)
+
+		r.With(mdw.PermitCheck(mr.srv.Permission, []string{
+			"manage.access",
+		}, mr)).Get("/trash", mr.TrashPage)
 	})
 
 	return rt
@@ -666,5 +671,101 @@ func (mr *ManageResource) ActivityList(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 		BreadCrumbs: breadCrumbs,
+	})
+}
+
+func (mr *ManageResource) TrashPage(w http.ResponseWriter, r *http.Request) {
+	page, err := strconv.Atoi(r.URL.Query().Get("page"))
+	if err != nil {
+		// fmt.Printf("page err %v\n", err)
+		page = DefaultPage
+	}
+
+	pageSize, err := strconv.Atoi(r.URL.Query().Get("page_size"))
+	if err != nil {
+		pageSize = DefaultPageSize
+	}
+
+	sort := r.URL.Query().Get("sort")
+	keywords := r.URL.Query().Get("keywords")
+	categoryFrontId := r.URL.Query().Get("category")
+
+	var sortType model.ArticleSortType
+	if model.ValidArticleSort(sort) {
+		sortType = model.ArticleSortType(sort)
+	} else {
+		sortType = model.ListSortLatest
+	}
+
+	deletedList, total, err := mr.store.Article.List(page, pageSize, sortType, categoryFrontId, false, true, true, keywords)
+	if err != nil {
+		mr.ServerErrorp("", err, w, r)
+		return
+	}
+
+	var categoryList []*model.Category
+	var wg sync.WaitGroup
+	categoryMap := make(map[string]*model.Category)
+	ch := make(chan any, 1)
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		list, err := mr.store.Category.List(model.CategoryStateAll)
+		if err != nil {
+			ch <- err
+			return
+		}
+
+		ch <- list
+	}()
+
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+
+	for v := range ch {
+		switch val := v.(type) {
+		case error:
+			mr.ServerErrorp("", val, w, r)
+			return
+		case []*model.Category:
+			categoryList = val
+		}
+	}
+
+	for _, item := range categoryList {
+		categoryMap[item.FrontId] = item
+	}
+
+	type pageData struct {
+		CurrPage, PageSize, Total, TotalPage int
+		SortType, Keywords, CategoryFrontId  string
+		List                                 []*model.Article
+		CategoryList                         []*model.Category
+		CategoryMap                          map[string]*model.Category
+	}
+
+	mr.Render(w, r, "trash", &model.PageData{
+		Title: mr.Local("Trash"),
+		Data: &pageData{
+			CurrPage:        page,
+			PageSize:        pageSize,
+			Total:           total,
+			TotalPage:       CeilInt(total, pageSize),
+			List:            deletedList,
+			SortType:        string(sortType),
+			Keywords:        keywords,
+			CategoryFrontId: categoryFrontId,
+			CategoryList:    categoryList,
+			CategoryMap:     categoryMap,
+		},
+		BreadCrumbs: []*model.BreadCrumb{
+			{
+				Path: "/manage/trash",
+				Name: mr.Local("Trash"),
+			},
+		},
 	})
 }

@@ -20,7 +20,13 @@ type Article struct {
 	dbPool *pgxpool.Pool
 }
 
-func (a *Article) List(page, pageSize int, sortType model.ArticleSortType, categoryFrontId string, pinned bool) ([]*model.Article, int, error) {
+func (a *Article) List(
+	page, pageSize int,
+	sortType model.ArticleSortType,
+	categoryFrontId string,
+	pinned, deleted, includeReplies bool,
+	keywords string,
+) ([]*model.Article, int, error) {
 	// fmt.Println("page, pageSize: ", page, pageSize)
 	// fmt.Println("category front id:", categoryFrontId)
 	// fmt.Println("sortType:", string(sortType))
@@ -44,6 +50,7 @@ func (a *Article) List(page, pageSize int, sortType model.ArticleSortType, categ
 	}
 
 	var args []any
+	var conditions []string
 	if page < 1 {
 		page = DefaultPage
 	}
@@ -62,15 +69,36 @@ WITH postIds AS (
     SELECT p.id, COUNT(p.id) OVER() AS total FROM posts p`
 	if strings.TrimSpace(categoryFrontId) != "" {
 		args = append(args, categoryFrontId)
-		sqlStr += ` LEFT JOIN categories c ON c.front_id = $3 WHERE p.deleted = false AND p.reply_to = 0 AND p.category_id = c.id `
+		conditions = append(conditions, `p.category_id = c.id`)
+		sqlStr += fmt.Sprintf(" LEFT JOIN categories c ON c.front_id = $%d ", len(args))
+	}
+
+	if deleted {
+		conditions = append(conditions, `p.deleted = true`)
 	} else {
-		sqlStr += ` WHERE p.deleted = false AND p.reply_to = 0 `
+		conditions = append(conditions, `p.deleted = false`)
+	}
+
+	if !includeReplies {
+		conditions = append(conditions, `p.reply_to = 0`)
 	}
 
 	if pinned {
-		sqlStr += ` AND p.pinned_expire_at is not null AND p.pinned_expire_at > NOW() `
+		conditions = append(conditions, `(p.pinned_expire_at is not null AND p.pinned_expire_at > NOW())`)
+		// sqlStr += ` AND (p.pinned_expire_at is not null AND p.pinned_expire_at > NOW()) `
 	} else {
-		sqlStr += ` AND (p.pinned_expire_at is null OR p.pinned_expire_at <= NOW())`
+		conditions = append(conditions, `(p.pinned_expire_at is null OR p.pinned_expire_at <= NOW())`)
+		// sqlStr += ` AND (p.pinned_expire_at is null OR p.pinned_expire_at <= NOW())`
+	}
+
+	if strings.TrimSpace(keywords) != "" {
+		sqlStr += ` LEFT JOIN users u ON u.id = p.author_id `
+		args = append(args, fmt.Sprintf("%s%s%s", "%%", keywords, "%%"))
+		conditions = append(conditions, fmt.Sprintf("p.title ILIKE $%d OR u.username ILIKE $%d", len(args), len(args)))
+	}
+
+	if len(conditions) > 0 {
+		sqlStr += ` WHERE ` + strings.Join(conditions, " AND ")
 	}
 
 	sqlStr += orderSqlStrHead + `
@@ -1651,3 +1679,18 @@ func (a *Article) ToggleHideHistory(historyId int, isHidden bool) error {
 
 	return nil
 }
+
+// func (a *Article) DeletedList() ([]*model.Article, error) {
+// 	var list []*model.Article
+
+// 	rows, err := a.dbPool.Query(context.Background(), `SELECT * FROM posts WHERE deleted = true`)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	for rows.Next() {
+
+// 	}
+
+// 	return list, nil
+// }

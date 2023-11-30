@@ -738,4 +738,16 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "EditHistoryHidden",
 		Other: "The infraction content has been removed",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Trash",
+		Other: "Trash",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Keyword",
+		One:   "Keyword",
+		Other: "Keywords",
+	})
+
 }

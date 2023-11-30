@@ -175,6 +175,7 @@ ThemeSystem = "OS Default"
 ThemeSystemTip = "Must enable JavaScript"
 TimeOrder = "Chronological"
 Title = "Title"
+Trash = "Trash"
 Type = "Type"
 UI = "UI"
 UISaveSuccess = "UI settings successfully saved"
@@ -208,6 +209,10 @@ other = "Articles"
 [Category]
 one = "Category"
 other = "Categories"
+
+[Keyword]
+one = "Keyword"
+other = "Keywords"
 
 [Participate]
 one = "{{.ParticipateNum}} participate"

@@ -399,9 +399,9 @@ func (a *Article) UpdateDisplayTitle() {
 }
 
 func (a *Article) FormatDeleted() {
-	if a.Deleted {
-		a.Content = ""
-	}
+	// if a.Deleted {
+	// 	a.Content = ""
+	// }
 }
 
 func (a *Article) GenSummary(strLen int) {

@@ -450,6 +450,10 @@ other = "紹介"
 hash = "sha1-f7668d8d7d5dc44dd28b4a1b2f659d5dde238046"
 other = "加入日"
 
+[Keyword]
+hash = "sha1-f530db58b3e5088dc7412c6d2298ba3f8456bdeb"
+other = "キーワード"
+
 [Lang_en]
 hash = "sha1-649df08a448ee3fa90f3746baaf6b0907df42c91"
 other = "English"
@@ -741,6 +745,10 @@ other = "年代順"
 [Title]
 hash = "sha1-768e0c1c69573fb588f61f1308a015c11468e05f"
 other = "タイトル"
+
+[Trash]
+hash = "sha1-e3bf62bb7f5af7ba291b2df1a11d573bdb55d7e9"
+other = "ごみ箱"
 
 [Type]
 hash = "sha1-3deb7456519697ecf4eefc455516c969a3681bae"
