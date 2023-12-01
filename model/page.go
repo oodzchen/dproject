@@ -26,7 +26,7 @@ var DefaultUiSettings = &UISettings{
 	Theme:          PageThemeSystem,
 	ContentLayout:  PageContentLayoutCentered,
 	RepliesLayout:  RepliesLayoutTree,
-	FontSize:       12,
+	FontSize:       14,
 	FontSizeCustom: false,
 	ShowEmoji:      true,
 }
