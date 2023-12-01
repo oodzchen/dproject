@@ -557,76 +557,87 @@ LEFT JOIN post_reacts pr2 ON pr2.post_id = p.id AND pr2.user_id = $2
 LEFT JOIN reacts r2 ON r2.id = pr2.react_id
 LEFT JOIN categories c ON c.id = p.category_id
 WHERE p.id = $1
-GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title, pv.type, r.id, pr.id, c.id, r2.id, pr2.id;`
+GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title, pv.type, r.id,  c.id, r2.id;`
 
-	var userState model.CurrUserState
-	var category model.Category
-	var react model.ArticleReact
-	item := model.Article{
-		CurrUserState: &userState,
-		Category:      &category,
-	}
-	err := a.dbPool.QueryRow(context.Background(), sqlStr, id, userId).Scan(
-		&item.Id,
-		&item.Title,
-		&item.Link,
-		&item.AuthorName,
-		&item.AuthorId,
-		&item.Content,
-		&item.CreatedAt,
-		&item.UpdatedAt,
-		&item.Deleted,
-		&item.ReplyToId,
-		&item.ReplyDepth,
-		&item.ReplyRootArticleId,
-		&item.NullReplyRootArticleTitle,
-		&item.Locked,
-		&item.NullPinnedExpireAt,
-
-		&item.ChildrenCount,
-		&item.VoteUp,
-		&item.VoteDown,
-
-		&userState.NullVoteType,
-		&userState.Saved,
-		&userState.Subscribed,
-		&userState.ReactFrontId,
-
-		&react.Id,
-		&react.Emoji,
-		&react.FrontId,
-		&react.Describe,
-		&react.CreatedAt,
-
-		&category.Id,
-		&category.FrontId,
-		&category.Name,
-	)
-
+	var article *model.Article
+	rows, err := a.dbPool.Query(context.Background(), sqlStr, id, userId)
 	if err != nil {
 		return nil, err
 	}
 
-	if react.Id > 0 {
-		// fmt.Println("react: ", react)
-		if item.Reacts == nil {
-			item.Reacts = []*model.ArticleReact{&react}
-		} else {
-			item.Reacts = append(item.Reacts, &react)
+	for rows.Next() {
+		var userState model.CurrUserState
+		var category model.Category
+		var react model.ArticleReact
+		item := model.Article{
+			CurrUserState: &userState,
+			Category:      &category,
+		}
+
+		err = rows.Scan(
+			&item.Id,
+			&item.Title,
+			&item.Link,
+			&item.AuthorName,
+			&item.AuthorId,
+			&item.Content,
+			&item.CreatedAt,
+			&item.UpdatedAt,
+			&item.Deleted,
+			&item.ReplyToId,
+			&item.ReplyDepth,
+			&item.ReplyRootArticleId,
+			&item.NullReplyRootArticleTitle,
+			&item.Locked,
+			&item.NullPinnedExpireAt,
+
+			&item.ChildrenCount,
+			&item.VoteUp,
+			&item.VoteDown,
+
+			&userState.NullVoteType,
+			&userState.Saved,
+			&userState.Subscribed,
+			&userState.ReactFrontId,
+
+			&react.Id,
+			&react.Emoji,
+			&react.FrontId,
+			&react.Describe,
+			&react.CreatedAt,
+
+			&category.Id,
+			&category.FrontId,
+			&category.Name,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if article == nil {
+			item.CategoryFrontId = category.FrontId
+			article = &item
+		}
+
+		if react.Id > 0 {
+			fmt.Println("react: ", react)
+			if article.Reacts == nil {
+				article.Reacts = []*model.ArticleReact{&react}
+			} else {
+				article.Reacts = append(article.Reacts, &react)
+			}
 		}
 	}
 
-	item.CurrUserState.FormatNullValues()
+	article.CurrUserState.FormatNullValues()
+	article.FormatNullValues()
+	article.FormatReactCounts()
+	article.CalcScore()
+	article.CheckShowScore(userId)
+	article.UpdatePinnedState()
 
-	item.CategoryFrontId = category.FrontId
-
-	item.FormatNullValues()
-	item.FormatReactCounts()
-	item.CalcScore()
-	item.CheckShowScore(userId)
-	item.UpdatePinnedState()
-
-	return &item, nil
+	return article, nil
 }
 
 func (a *Article) ReplyTree(page, pageSize, id int, sortType model.ArticleSortType, pinned bool) ([]*model.Article, error) {
@@ -680,11 +691,13 @@ SELECT ar.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_
 COUNT(DISTINCT p3.id) AS children_count,
 COUNT(DISTINCT pv1.id) AS vote_up_count,
 COUNT(DISTINCT pv2.id) AS vote_down_count,
+
 COALESCE(r.id, 0) AS react_id,
 COALESCE(r.emoji, '') AS react_emoji,
 COALESCE(r.front_id, '') AS react_front_id,
 COALESCE(r.describe, '') AS react_describe,
 COALESCE(r.created_at, NOW()) AS react_created_at,
+
 c.id AS category_id,
 c.front_id AS category_front_id,
 c.name AS category_name
@@ -699,7 +712,7 @@ LEFT JOIN post_reacts pr ON pr.post_id = p.id
 LEFT JOIN reacts r ON r.id = pr.react_id
 LEFT JOIN categories c ON c.id = p.category_id
 WHERE (ar.cur_depth = 1 AND ar.rn BETWEEN $3 AND $4) OR (ar.cur_depth > 1 AND ar.rn BETWEEN 0 AND $5)
-GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title, r.id, pr.id, c.id
+GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title, r.id,  c.id
 ` + orderSqlStrTail
 
 	if page < 1 {
