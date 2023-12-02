@@ -34,6 +34,10 @@ other = "退出"
 hash = "sha1-29750dea7106fbb6bc61d23e07033e28b11765a9"
 other = "對文章做出反應"
 
+[AcAction_recover]
+hash = "sha1-c0135d87ac17949d9737bfda714d47781db77f25"
+other = "恢復文章"
+
 [AcAction_register]
 hash = "sha1-d672995a14650d0e018026b64f297663d8c71c8d"
 other = "註冊"
@@ -269,6 +273,10 @@ other = "父級"
 [BtnPrevPage]
 hash = "sha1-81f547195bef12a0bb74f5af751fe50e78a0c2f3"
 other = "上一頁"
+
+[BtnRecover]
+hash = "sha1-4addbf16731014acdf0d8a16840ab8a8ab4ea995"
+other = "恢復"
 
 [BtnReply]
 hash = "sha1-6c2bb735a46a8ff307fe2e638d581295b2a49e09"
@@ -697,6 +705,14 @@ other = "已保存"
 [Settings]
 hash = "sha1-c7f73bb54d928922c3838bb789ee9fb8a5b1eb37"
 other = "設置"
+
+[Share]
+hash = "sha1-09ca55ca52d207f2cc1d9339e0226a88e9e96e2f"
+other = "分享"
+
+[ShareTip]
+hash = "sha1-48a5aa06a3e6354b14708a350567c3ea68273b35"
+other = "請複製以上鏈接並分享"
 
 [ShowItem]
 hash = "sha1-d2d5e066a1502d24f7e08a0f9bba2bfbcaf51feb"

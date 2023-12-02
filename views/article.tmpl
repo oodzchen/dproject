@@ -1,6 +1,6 @@
 {{define "article" -}}
     {{- $pageDepth := 0 -}}
-    {{- $data := dict "currUser" .LoginedUser "article" .Data.Article "pageType" .Data.PageType "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .Data.MaxDepth "debug" .Debug "reactOptions" .Data.ReactOptions "reactMap" .Data.ReactMap "showEmoji" .UISettings.ShowEmoji -}}
+    {{- $data := dict "currUser" .LoginedUser "article" .Data.Article "pageType" .Data.PageType "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .Data.MaxDepth "debug" .Debug "reactOptions" .Data.ReactOptions "reactMap" .Data.ReactMap "showEmoji" .UISettings.ShowEmoji "host" .Host -}}
 
     {{template "head" . -}}
 
@@ -93,7 +93,7 @@
     {{$pageDepth := add .pageDepth 1 -}}
     {{$delPage := eq .pageType "del"}}
     {{$replyPage := eq .pageType "reply"}}
-    {{$data := dict "currUser" .currUser "article" .article "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "isRootArticle" $isRoot "debug" .debug "reactOptions" .reactOptions "reactMap" .reactMap "pageType" .pageType "showEmoji" .showEmoji -}}
+    {{$data := dict "currUser" .currUser "article" .article "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "isRootArticle" $isRoot "debug" .debug "reactOptions" .reactOptions "reactMap" .reactMap "pageType" .pageType "showEmoji" .showEmoji "host" .host -}}
     <article {{if $isRoot}}id="ar_{{.article.Id}}"{{end}}>
 	{{if $isRoot -}}
 	    <h1>{{.article.Title}}</h1>
@@ -233,7 +233,7 @@
 	{{- end -}}
 
 	{{- if and .article.Replies (not $replyPage) -}}
-	    {{$replyData := dict "currUser" .currUser "replies" .article.Replies "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "debug" .debug "reactOptions" .reactOptions "reactMap" .reactMap "showEmoji" .showEmoji -}}
+	    {{$replyData := dict "currUser" .currUser "replies" .article.Replies "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "debug" .debug "reactOptions" .reactOptions "reactMap" .reactMap "showEmoji" .showEmoji "host" .host -}}
 	    {{template "article_replies" $replyData -}}
 	{{- end -}}
     {{- end -}}
@@ -266,6 +266,7 @@
 		    {{- if permit "article" "reply" -}}
 			<a title="{{local "BtnReply"}}" href="/articles/{{.article.Id}}/reply">{{local "BtnReply"}}</a>&nbsp;&nbsp;
 		    {{- end -}}
+		    <a class="btn-share" title="{{local "Share"}}" data-title="{{.article.DisplayTitle}}" data-text="{{.article.Summary}}" data-url="{{.host}}/articles/{{.article.Id}}" href="/articles/{{.article.Id}}/share">{{local "Share"}}</a>&nbsp;&nbsp;
 	    {{- end -}}
 
 	    {{- if .article.Locked -}}
@@ -371,9 +372,10 @@
     {{$showEmoji := .showEmoji -}}
     {{$pageMore := and (gt $pageDepth 1) (gt .replies.Total .replies.PageSize) -}}
     {{$replies := .replies -}}
+    {{$host := .host -}}
     <ul class="replies" {{if eq $pageDepth 1}}id="replies-box"{{end}} style="{{if eq $pageDepth 1}}padding-left:0;{{- end}}">
 	{{range $index, $el := .replies.List -}}
-	    {{$subData := dict "currUser" $currUser "article" . "pageDepth" $pageDepth "CSRFField" $CSRFField "maxDepth" $maxDepth "debug" $debug "reactOptions" $reactOptions "reactMap" $reactMap "showEmoji" $showEmoji -}}
+	    {{$subData := dict "currUser" $currUser "article" . "pageDepth" $pageDepth "CSRFField" $CSRFField "maxDepth" $maxDepth "debug" $debug "reactOptions" $reactOptions "reactMap" $reactMap "showEmoji" $showEmoji "host" $host -}}
 	    {{- $replyNumIncludeSelf := add .ChildrenCount 1 -}}
 	    {{$deepMore := and (gt .ChildrenCount 0) (eq $pageDepth $maxDepth) -}}
 	    <li id="ar_{{.Id}}" data-id="{{.Id}}" data-reply-num-self-include-text="{{local "ReplyNum" "Count" $replyNumIncludeSelf}}">

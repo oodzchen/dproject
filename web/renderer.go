@@ -185,6 +185,7 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	data.PermissionEnabledList = rd.srv.Permission.PermissionData.EnabledFrondIdList
 	data.RouteRawQuery = r.URL.RawQuery
 	data.RouteQuery = r.URL.Query()
+	data.Host = config.Config.GetServerURL()
 
 	loginedUseId := rd.GetLoginedUserId(w, r)
 	if loginedUseId > 0 {

@@ -153,6 +153,8 @@ func (ar *ArticleResource) Routes() http.Handler {
 		}, ar), mdw.UserLogger(
 			ar.uLogger, model.AcTypeManage, model.AcActionRecover, model.AcModelArticle, mdw.ULogURLArticleId),
 		).Post("/recover", ar.Recover)
+
+		r.Get("/share", ar.Share)
 	})
 
 	return rt
@@ -1681,4 +1683,36 @@ func (ar *ArticleResource) Recover(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ar.ToRefererUrl(w, r)
+}
+
+func (ar *ArticleResource) Share(w http.ResponseWriter, r *http.Request) {
+	articleId, err := strconv.Atoi(chi.URLParam(r, "articleId"))
+	if err != nil {
+		ar.Error("", err, w, r, http.StatusBadRequest)
+		return
+	}
+
+	article, err := ar.store.Article.Item(articleId, 0)
+	if err != nil {
+		ar.ServerErrorp("", err, w, r)
+		return
+	}
+
+	type pageData struct {
+		Article    *model.Article
+		RefererURL string
+	}
+
+	ar.Render(w, r, "article_share", &model.PageData{
+		Title: ar.Local("Share") + " - " + article.DisplayTitle,
+		Data: &pageData{
+			Article:    article,
+			RefererURL: r.Referer(),
+		},
+		BreadCrumbs: []*model.BreadCrumb{
+			{
+				Name: ar.Local("Share"),
+			},
+		},
+	})
 }

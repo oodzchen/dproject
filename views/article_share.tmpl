@@ -1,0 +1,10 @@
+{{define "article_share" -}}
+    {{template "head" . -}}
+
+    <input class="input-select-text" name="url" type="text" value="{{.Host}}/articles/{{.Data.Article.Id}}" readonly />
+    <br/>
+    <p>{{local "ShareTip"}}</p>
+    <a href="{{.Data.RefererURL}}" class="btn-go-back">{{local "GoBack"}}</a>
+
+    {{template "foot" . -}}
+{{end -}}

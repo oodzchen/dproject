@@ -55,6 +55,34 @@
         }
     })
 
+    addEvents('.btn-share', 'click', async function(ev) {
+        const shareData = {
+            title: '',
+            text: '',
+            url: ''
+        }
+        shareData.title = ev.target.getAttribute('data-title')
+        shareData.text = ev.target.getAttribute('data-text')
+        shareData.url = ev.target.getAttribute('data-url')
+
+        // console.log("share data:", shareData)
+
+        if (navigator.canShare && navigator.canShare(shareData)) {
+            ev.preventDefault()
+            try {
+                await navigator.share(shareData)
+            } catch (e) {
+                console.error(e)
+            }
+        }
+    })
+
+    document.querySelectorAll('.input-select-text').forEach(function(el) {
+        // console.log('el:', el)
+        el.focus()
+        el.setSelectionRange(0, el.value.length)
+    })
+
     /*--------------------- article page ---------------------------------------------------*/
     const WIDTH_MOBILE = 750;
     var isMobile = window.innerWidth <= WIDTH_MOBILE
@@ -104,18 +132,18 @@
             }
         })
 
-	document.querySelectorAll('.btn-reply-ref').forEach(function(item) {
-	    item.onclick = function(ev) {
-		// console.log("ev target:", ev.target)
-		// console.log("ev target data:", ev.target.getAttribute('data-reply-to-id'))
-		const replyToId = ev.target.getAttribute('data-reply-to-id')
-		const floorId = "ar_" + replyToId
-		const floor = document.getElementById(floorId)
-		if(floor){
-		    scrollToElementById(ev, floorId)
-		}
-	    }
-	})
+        document.querySelectorAll('.btn-reply-ref').forEach(function(item) {
+            item.onclick = function(ev) {
+                // console.log("ev target:", ev.target)
+                // console.log("ev target data:", ev.target.getAttribute('data-reply-to-id'))
+                const replyToId = ev.target.getAttribute('data-reply-to-id')
+                const floorId = "ar_" + replyToId
+                const floor = document.getElementById(floorId)
+                if (floor) {
+                    scrollToElementById(ev, floorId)
+                }
+            }
+        })
     }
 
     function removeAllActive(tagName, parentNode) {

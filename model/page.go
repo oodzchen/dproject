@@ -67,4 +67,5 @@ type PageData struct {
 	MessageCount          int
 	RespStart             time.Time
 	RenderStart           time.Time
+	Host                  string
 }

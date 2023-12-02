@@ -170,7 +170,7 @@ ALTER TABLE post_history ADD COLUMN is_hidden BOOLEAN NOT NULL DEFAULT false;
 -- FROM users;
 
 INSERT INTO reacts (emoji, front_id, describe) VALUES
-('❤', 'thanks', 'Thanks'),
+('♥️', 'thanks', 'Thanks'),
 ('😀', 'happy', 'Haha'),
 ('😕', 'confused', 'Confuse'),
 ('👀', 'eyes', 'Watching'),

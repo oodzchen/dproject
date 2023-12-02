@@ -750,4 +750,13 @@ func (ic *I18nCustom) AddConfigs() {
 		Other: "Keywords",
 	})
 
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "ShareTip",
+		Other: "Please copy the above link and share it",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Share",
+		Other: "Share",
+	})
 }

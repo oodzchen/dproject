@@ -810,6 +810,8 @@ GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.crea
 		item.FormatReactCounts()
 		item.CalcScore()
 		item.UpdatePinnedState()
+		item.UpdateDisplayTitle()
+		item.GenSummary(100)
 	}
 
 	return list, nil
@@ -1016,6 +1018,8 @@ GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.crea
 		item.FormatReactCounts()
 		item.CalcScore()
 		item.UpdatePinnedState()
+		item.UpdateDisplayTitle()
+		item.GenSummary(100)
 	}
 
 	return list, nil
