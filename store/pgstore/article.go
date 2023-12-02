@@ -648,6 +648,8 @@ GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at,
 	article.CalcScore()
 	article.CheckShowScore(userId)
 	article.UpdatePinnedState()
+	article.UpdateDisplayTitle()
+	article.GenSummary(100)
 
 	return article, nil
 }
