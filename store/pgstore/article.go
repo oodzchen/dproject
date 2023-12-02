@@ -1707,3 +1707,13 @@ func (a *Article) ToggleHideHistory(historyId int, isHidden bool) error {
 
 // 	return list, nil
 // }
+
+func (a *Article) Recover(id int) error {
+	_, err := a.dbPool.Exec(context.Background(), `UPDATE posts SET deleted = false WHERE id = $1`, id)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

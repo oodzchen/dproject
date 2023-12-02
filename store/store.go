@@ -86,6 +86,7 @@ type ArticleStore interface {
 	Pin(articleId int, expireAt time.Time) error
 	Unpin(articleId int) error
 	// DeletedList() ([]*model.Article, error)
+	Recover(articleId int) error
 }
 
 type UserStore interface {

@@ -102,4 +102,9 @@ func (ic *I18nCustom) AddBtnConfigs() {
 	// 	ID:    "BtnIgnore",
 	// 	Other: "Ignore",
 	// })
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnRecover",
+		Other: "Recover",
+	})
 }

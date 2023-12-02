@@ -24,6 +24,7 @@ ENUM(
    retrieve_password, // Retrieve password
    reset_password, // Reset password
    toggle_hide_history, // Toggle hide history
+   recover, // Recover article
 )
 */
 type AcAction string

@@ -2,6 +2,7 @@
     {{template "head" . -}}
     {{- $data := .Data -}}
     {{- $rawQuery := .RouteRawQuery -}}
+    {{- $csrfField := .CSRFField -}}
     
     <form class="filter-box" action="/manage/trash" method="GET">
 	<div class="filter-box__item">
@@ -45,6 +46,10 @@
 		    <a href="/articles/{{.Id}}">{{.DisplayTitle}}</a>
 		    {{local "PublishInfo" "Username" $author}}
 		    <time title="{{.CreatedAt}}">{{timeAgo .CreatedAt}}</time>
+		    &nbsp;&nbsp;<form class="btn-form" action="/articles/{{.Id}}/recover" method="POST" >
+			{{- $csrfField -}}
+			<button class="text-lighten-3" title="{{local "BtnRecover"}}" type="submit">{{local "BtnRecover"}}</button>
+		    </form>
 		</div>
 		{{- if .Content -}}
 		    <div class="post-list__info">{{.Summary}}{{if ne .Content .Summary}} ...{{end}}</div>

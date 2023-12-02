@@ -72,6 +72,9 @@ const (
 	// AcActionToggleHideHistory is a AcAction of type toggle_hide_history.
 	// Toggle hide history
 	AcActionToggleHideHistory AcAction = "toggle_hide_history"
+	// AcActionRecover is a AcAction of type recover.
+	// Recover article
+	AcActionRecover AcAction = "recover"
 )
 
 var ErrInvalidAcAction = fmt.Errorf("not a valid AcAction, try [%s]", strings.Join(_AcActionNames, ", "))
@@ -96,6 +99,7 @@ var _AcActionNames = []string{
 	string(AcActionRetrievePassword),
 	string(AcActionResetPassword),
 	string(AcActionToggleHideHistory),
+	string(AcActionRecover),
 }
 
 // AcActionNames returns a list of possible string values of AcAction.
@@ -127,6 +131,7 @@ func AcActionValues() []AcAction {
 		AcActionRetrievePassword,
 		AcActionResetPassword,
 		AcActionToggleHideHistory,
+		AcActionRecover,
 	}
 }
 
@@ -162,6 +167,7 @@ var _AcActionValue = map[string]AcAction{
 	"retrieve_password":   AcActionRetrievePassword,
 	"reset_password":      AcActionResetPassword,
 	"toggle_hide_history": AcActionToggleHideHistory,
+	"recover":             AcActionRecover,
 }
 
 // ParseAcAction attempts to convert a string to a AcAction.
@@ -196,6 +202,7 @@ var _AcActionTextMap = map[AcAction]string{
 	AcActionRetrievePassword:  "Retrieve password",
 	AcActionResetPassword:     "Reset password",
 	AcActionToggleHideHistory: "Toggle hide history",
+	AcActionRecover:           "Recover article",
 }
 
 func (x AcAction) Text(upCaseHead bool, i18nCustom *i18nc.I18nCustom) string {
@@ -292,5 +299,9 @@ func AcActionAddI18nConfigs(ic *i18nc.I18nCustom) {
 	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "AcAction_toggle_hide_history",
 		Other: "Toggle hide history",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_recover",
+		Other: "Recover article",
 	})
 }

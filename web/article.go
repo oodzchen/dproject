@@ -147,6 +147,12 @@ func (ar *ArticleResource) Routes() http.Handler {
 		}, ar), mdw.UserLogger(
 			ar.uLogger, model.AcTypeManage, model.AcActionToggleHideHistory, model.AcModelArticle, mdw.ULogURLArticleId),
 		).Post("/history/{historyId}/toggle_hide", ar.ToggleHideHistory)
+
+		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.srv.Permission, []string{
+			"article.delete_others",
+		}, ar), mdw.UserLogger(
+			ar.uLogger, model.AcTypeManage, model.AcActionRecover, model.AcModelArticle, mdw.ULogURLArticleId),
+		).Post("/recover", ar.Recover)
 	})
 
 	return rt
@@ -1658,4 +1664,20 @@ func (ar *ArticleResource) ToggleHideHistory(w http.ResponseWriter, r *http.Requ
 	}
 
 	http.Redirect(w, r, fmt.Sprintf("/articles/%d/history", articleId), http.StatusFound)
+}
+
+func (ar *ArticleResource) Recover(w http.ResponseWriter, r *http.Request) {
+	articleId, err := strconv.Atoi(chi.URLParam(r, "articleId"))
+	if err != nil {
+		ar.Error("", err, w, r, http.StatusBadRequest)
+		return
+	}
+
+	err = ar.store.Article.Recover(articleId)
+	if err != nil {
+		ar.Error("", err, w, r, http.StatusInternalServerError)
+		return
+	}
+
+	ar.ToRefererUrl(w, r)
 }
