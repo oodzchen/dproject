@@ -103,6 +103,19 @@
                 toggleDisplayContent(item.closest('li'), true)
             }
         })
+
+	document.querySelectorAll('.btn-reply-ref').forEach(function(item) {
+	    item.onclick = function(ev) {
+		// console.log("ev target:", ev.target)
+		// console.log("ev target data:", ev.target.getAttribute('data-reply-to-id'))
+		const replyToId = ev.target.getAttribute('data-reply-to-id')
+		const floorId = "ar_" + replyToId
+		const floor = document.getElementById(floorId)
+		if(floor){
+		    scrollToElementById(ev, floorId)
+		}
+	    }
+	})
     }
 
     function removeAllActive(tagName, parentNode) {

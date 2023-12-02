@@ -176,7 +176,7 @@
 	{{- if .article.ReplyToArticle -}}
 	    {{- $parent := .article.ReplyToArticle -}}
 	    <div class="article__reply-ref tip-block--gray">
-		<small>&gt; <a class="text-lighten-2" href="/articles/{{$parent.Id}}">{{$parent.AuthorName}}: {{$parent.Summary}}{{if ne $parent.Content $parent.Summary}} ...{{end}}</a></small>
+		<small>&gt; <a class="text-lighten-2 btn-reply-ref" data-reply-to-id="{{$parent.Id}}" href="/articles/{{$parent.Id}}">{{$parent.AuthorName}}: {{$parent.Summary}}{{if ne $parent.Content $parent.Summary}} ...{{end}}</a></small>
 	    </div>
 	{{- end -}}
 	{{if .article.Deleted -}}

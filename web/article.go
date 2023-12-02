@@ -898,6 +898,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	go func() {
 		defer wg.Done()
 		totalReplyCount, err = ar.store.Article.CountTotalReply(articleId)
+		// fmt.Println("total reply count:", totalReplyCount)
 		if err != nil {
 			ch <- err
 			return

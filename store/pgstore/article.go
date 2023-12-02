@@ -268,12 +268,12 @@ func (a *Article) CountTotalReply(id int) (int, error) {
 	var count int
 	sqlStr := `
 WITH RECURSIVE replyTree AS(
-  SELECT id FROM posts WHERE reply_to = $1 AND deleted = false
+  SELECT id, deleted FROM posts WHERE reply_to = $1
   UNION ALL
-  SELECT p1.id FROM posts p1
-  JOIN replyTree rt ON p1.reply_to = rt.id AND p1.deleted = false
+  SELECT p1.id, p1.deleted FROM posts p1
+  JOIN replyTree rt ON p1.reply_to = rt.id
 )
-SELECT COUNT(*) FROM replyTree`
+SELECT COUNT(*) FROM replyTree WHERE deleted = false`
 
 	err := a.dbPool.QueryRow(context.Background(), sqlStr, id).Scan(&count)
 	if err != nil {
@@ -621,7 +621,7 @@ GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at,
 		}
 
 		if react.Id > 0 {
-			fmt.Println("react: ", react)
+			// fmt.Println("react: ", react)
 			if article.Reacts == nil {
 				article.Reacts = []*model.ArticleReact{&react}
 			} else {
