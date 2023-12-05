@@ -299,7 +299,7 @@
 			{{- range $reactOptions -}}
 			    {{- $reactItem := index $reactMap .FrontId -}}
 			    {{- if gt (index $article.ReactCounts .FrontId) 0 -}}
-				{{- if not $isSelf -}}
+				{{- if and (not $article.Locked) (not $isSelf) -}}
 				    {{- if permit "article" "react" -}}
 					<form class="btn-form btn-react{{if eq $currReactFrontId .FrontId}} btn-react--selected{{end}}" action="/articles/{{$article.Id}}/react" method="POST">
 					    {{$csrfField}}
@@ -316,7 +316,7 @@
 		    </div>
 		{{- end -}}
 		
-		{{- if and $showEmoji (not $isSelf) -}}
+		{{- if and (not .article.Locked) (and $showEmoji (not $isSelf)) -}}
 		    {{- if permit "article" "react" -}}
 			<form class="btn-form btn-react" action="/articles/{{.article.Id}}/react" method="POST">
 			    {{.CSRFField}}

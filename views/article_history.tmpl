@@ -6,6 +6,7 @@
     {{- $categoryMap := .Data.CategoryMap -}}
     {{- $title := print "<a href=\"/articles/" $article.Id "\">" $article.DisplayTitle "</a>" -}}
     {{- $csrfField := .CSRFField -}}
+    {{- $loginedUser := .LoginedUser -}}
     <h1>{{local "EditHistoryTitle" "Title" $title}}</h1>
 
     <style>
@@ -77,7 +78,7 @@
 			    {{- end -}}
 			</div>
 
-			{{- if (permit "article" "edit_others") -}}
+			{{- if and $loginedUser (permit "article" "edit_others") -}}
 			    <form action="/articles/{{$article.Id}}/history/{{.Id}}/toggle_hide" method="POST" >
 				{{- $csrfField -}}
 				{{- $btnToggleHide := local "BtnHide" -}}
