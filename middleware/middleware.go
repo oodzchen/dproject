@@ -204,7 +204,7 @@ func UserLogger(uLogger *service.UserLogger, actType model.AcType, action model.
 				Action:      action,
 				TargetModel: targetModel,
 				DeviceInfo:  r.UserAgent(),
-				IPAddr:      strings.Split(r.RemoteAddr, ":")[0],
+				IPAddr:      getRealIP(r),
 			}
 			// fmt.Println("in middleware test after http")
 			user, _ := getLoginedUserData(r)
@@ -342,12 +342,9 @@ func RequestDuration(next http.Handler) http.Handler {
 func CreateGeoDetect(geoDB *geoip2.Reader) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ip := strings.Split(r.RemoteAddr, ":")[0]
-			// ip := "38.59.236.10"
-			fmt.Println("geo db metadata:", geoDB.Metadata())
-			fmt.Println("ip:", ip)
+			realIP := getRealIP(r)
 
-			record, err := geoDB.Country(net.ParseIP(ip))
+			record, err := geoDB.Country(net.ParseIP(realIP))
 			if err != nil {
 				fmt.Println("parse geo ip error:", err)
 				next.ServeHTTP(w, r)
@@ -361,4 +358,22 @@ func CreateGeoDetect(geoDB *geoip2.Reader) func(http.Handler) http.Handler {
 
 		})
 	}
+}
+
+func getRealIP(r *http.Request) string {
+	realIP := r.Header.Get("X-Real-IP")
+	fmt.Println("x-real-ip:", realIP)
+
+	if realIP == "" {
+		realIP = r.Header.Get("X-Forwarded-For")
+		fmt.Println("x-Forwarded-for:", realIP)
+	}
+
+	if realIP == "" {
+		realIP = strings.Split(r.RemoteAddr, ":")[0]
+		// ip := "38.59.236.10"
+		// fmt.Println("geo db metadata:", geoDB.Metadata())
+		fmt.Println("r.RemoteAddr:", realIP)
+	}
+	return realIP
 }
