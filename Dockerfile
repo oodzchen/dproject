@@ -13,9 +13,10 @@ COPY . .
 RUN mkdir -p ./dist/bin
 RUN CGO_ENABLED=0 GOOS=linux go build -o ./dist/bin ./...
 RUN cp -r ./views ./dist
-RUN mkdir ./dist/config && mkdir ./dist/i18n
+RUN mkdir ./dist/config && mkdir ./dist/i18n && mkdir ./dist/geoip
 RUN cp -r ./config/*.yml ./dist/config
 RUN cp -r ./i18n/*.toml ./dist/i18n
+RUN cp -r ./geoip/*.toml ./dist/geoip
 
 FROM alpine:3.18 AS release-stage
 WORKDIR /app
