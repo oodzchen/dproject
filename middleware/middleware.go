@@ -363,8 +363,12 @@ func CreateGeoDetect(geoDB *geoip2.Reader) func(http.Handler) http.Handler {
 }
 
 func getRealIP(r *http.Request) string {
-	realIP := r.Header.Get("X-Real-IP")
-	// fmt.Println("x-real-ip:", realIP)
+	realIP := r.Header.Get("CF-Connecting-IP")
+
+	if realIP == "" {
+		realIP = r.Header.Get("X-Real-IP")
+		// fmt.Println("x-real-ip:", realIP)
+	}
 
 	if realIP == "" {
 		realIP = r.Header.Get("X-Forwarded-For")
