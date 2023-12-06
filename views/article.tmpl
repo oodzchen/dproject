@@ -97,7 +97,7 @@
     <article {{if $isRoot}}id="ar_{{.article.Id}}"{{end}}>
 	{{if $isRoot -}}
 	    <h1>{{.article.Title}}</h1>
-	    {{if .article.Link}}<span class="text-lighten-3">(<a class="text-lighten-3" title="{{.article.Link}}" href="{{.article.Link}}">{{local "Source"}} {{getDomain .article.Link}}...</a> )</span>{{end}}
+	    {{if .article.Link}}<span class="text-lighten-3">(<a class="text-lighten-2" title="{{.article.Link}}" href="{{.article.Link}}">{{local "Source"}} {{getDomain .article.Link}}...</a> )</span>{{end}}
 	{{else -}}
 	    {{if eq $pageDepth 1 -}}
 		<h1>{{local "Re"}}{{if gt .article.ReplyDepth 1}} &times; {{.article.ReplyDepth}}{{- end -}}: <a href="/articles/{{.article.ReplyRootArticleId}}">{{.article.ReplyRootArticleTitle}}</a></h1>
