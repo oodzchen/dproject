@@ -344,7 +344,8 @@ func CreateGeoDetect(geoDB *geoip2.Reader) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ip := strings.Split(r.RemoteAddr, ":")[0]
 			// ip := "38.59.236.10"
-			// fmt.Println("ip:", ip)
+			fmt.Println("geo db metadata:", geoDB.Metadata())
+			fmt.Println("ip:", ip)
 
 			record, err := geoDB.Country(net.ParseIP(ip))
 			if err != nil {

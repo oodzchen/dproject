@@ -293,7 +293,7 @@
 		<i class="text-lighten-2">&lt;{{local "Locked"}}&gt;</i>
 	    {{- end -}}
 
-	    {{- if .article.BlockedRegionsISOCode -}}
+	    {{- if and (.article.BlockedRegionsISOCode) (permit "article" "edit_others") -}}
 		<i class="text-lighten-2">&lt;{{local "BlockedRegions"}}: {{joinStrArr .article.BlockedRegionsISOCode ", "}}&gt;</i>
 	    {{- end -}}
 
