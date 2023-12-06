@@ -759,4 +759,30 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "Share",
 		Other: "Share",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "MainlandChina",
+		Other: "Mainland China",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "UnitedStates",
+		Other: "United States",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "India",
+		Other: "India",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BlockRegionsTip",
+		Other: "Please select regions to block",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BlockedRegions",
+		Other: "Blocked Regions",
+	})
+
 }

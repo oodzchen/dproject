@@ -105,7 +105,7 @@ WITH postIds AS (
     OFFSET $1
     LIMIT $2
 )
-SELECT tp.id, tp.title, COALESCE(tp.url, ''), u.username as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, tp.depth, tp.list_weight, tp.reply_weight, tp.participate_count, p2.title as root_article_title, COUNT(p3.id) AS total_reply_count, tp.locked, tp.pinned_expire_at,
+SELECT tp.id, tp.title, COALESCE(tp.url, ''), u.username as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, tp.depth, tp.list_weight, tp.reply_weight, tp.participate_count, p2.title as root_article_title, COUNT(p3.id) AS total_reply_count, tp.locked, tp.pinned_expire_at, COALESCE(tp.blocked_regions, ''),
 
 (
 SELECT COUNT(post_id) FROM post_votes
@@ -150,6 +150,7 @@ GROUP BY tp.id, u.username, p2.title, pi.total, c.id` + orderSqlStrTail
 			// CurrUserState: &currUserState,
 			Category: &category,
 		}
+		var blockedRegions string
 
 		// var item model.Article
 		err := rows.Scan(
@@ -169,6 +170,7 @@ GROUP BY tp.id, u.username, p2.title, pi.total, c.id` + orderSqlStrTail
 			&item.TotalReplyCount,
 			&item.Locked,
 			&item.NullPinnedExpireAt,
+			&blockedRegions,
 			&item.VoteUp,
 			&item.VoteDown,
 			&total,
@@ -184,6 +186,10 @@ GROUP BY tp.id, u.username, p2.title, pi.total, c.id` + orderSqlStrTail
 		}
 
 		item.CategoryFrontId = category.FrontId
+
+		if blockedRegions != "" {
+			item.BlockedRegionsISOCode = strings.Split(blockedRegions, ",")
+		}
 
 		list = append(list, &item)
 	}
@@ -510,7 +516,7 @@ func (a *Article) UpdateReply(id int, content string, pinnedExpireAt time.Time, 
 
 func (a *Article) Item(id, userId int) (*model.Article, error) {
 	sqlStr := `
-SELECT p.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title as root_article_title, p.locked, p.pinned_expire_at,
+SELECT p.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title as root_article_title, p.locked, p.pinned_expire_at, COALESCE(p.blocked_regions, ''),
 
 COUNT(DISTINCT p3.id) AS children_count,
 COUNT(DISTINCT pv1.id) AS vote_up_count,
@@ -569,6 +575,7 @@ GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at,
 		var userState model.CurrUserState
 		var category model.Category
 		var react model.ArticleReact
+		var blockedRegions string
 		item := model.Article{
 			CurrUserState: &userState,
 			Category:      &category,
@@ -590,6 +597,7 @@ GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at,
 			&item.NullReplyRootArticleTitle,
 			&item.Locked,
 			&item.NullPinnedExpireAt,
+			&blockedRegions,
 
 			&item.ChildrenCount,
 			&item.VoteUp,
@@ -627,6 +635,10 @@ GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at,
 			} else {
 				article.Reacts = append(article.Reacts, &react)
 			}
+		}
+
+		if blockedRegions != "" {
+			article.BlockedRegionsISOCode = strings.Split(blockedRegions, ",")
 		}
 	}
 
@@ -687,7 +699,7 @@ WITH RECURSIVE articleTree AS (
     SELECT p.*, ROW_NUMBER() OVER (PARTITION BY p.reply_to ` + orderSqlStrTail + `) AS rn
     FROM articleTree p
 )
-SELECT ar.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title AS root_article_title, p.locked, p.pinned_expire_at,
+SELECT ar.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title AS root_article_title, p.locked, p.pinned_expire_at, COALESCE(p.blocked_regions, ''),
 COUNT(DISTINCT p3.id) AS children_count,
 COUNT(DISTINCT pv1.id) AS vote_up_count,
 COUNT(DISTINCT pv2.id) AS vote_down_count,
@@ -739,6 +751,7 @@ GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.crea
 		var react model.ArticleReact
 		var item model.Article
 		var category model.Category
+		var blockedRegions string
 
 		err = rows.Scan(
 			&item.Id,
@@ -757,6 +770,7 @@ GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.crea
 			&item.NullReplyRootArticleTitle,
 			&item.Locked,
 			&item.NullPinnedExpireAt,
+			&blockedRegions,
 			&item.ChildrenCount,
 
 			&item.VoteUp,
@@ -802,6 +816,10 @@ GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.crea
 
 			item.Category = &category
 			item.CategoryFrontId = category.FrontId
+
+			if blockedRegions != "" {
+				article.BlockedRegionsISOCode = strings.Split(blockedRegions, ",")
+			}
 		}
 	}
 
@@ -864,7 +882,7 @@ WITH RECURSIVE articleTree AS (
     OFFSET $2
     LIMIT $3
 )
-SELECT ar.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title AS root_article_title, p.locked, p.pinned_expire_at,
+SELECT ar.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title AS root_article_title, p.locked, p.pinned_expire_at, COALESCE(p.blocked_regions, ''),
 COUNT(DISTINCT p3.id) AS children_count,
 COUNT(DISTINCT pv1.id) AS vote_up_count,
 COUNT(DISTINCT pv2.id) AS vote_down_count,
@@ -930,6 +948,7 @@ GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.crea
 		var item model.Article
 		var category model.Category
 		var parent model.Article
+		var blockedRegions string
 
 		err = rows.Scan(
 			&item.Id,
@@ -948,6 +967,7 @@ GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.crea
 			&item.NullReplyRootArticleTitle,
 			&item.Locked,
 			&item.NullPinnedExpireAt,
+			&blockedRegions,
 			&item.ChildrenCount,
 
 			&item.VoteUp,
@@ -1009,6 +1029,10 @@ GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.crea
 
 			if parent.Id > 0 {
 				item.ReplyToArticle = &parent
+			}
+
+			if blockedRegions != "" {
+				item.BlockedRegionsISOCode = strings.Split(blockedRegions, ",")
 			}
 		}
 	}
@@ -1719,5 +1743,15 @@ func (a *Article) Recover(id int) error {
 		return err
 	}
 
+	return nil
+}
+
+func (a *Article) SetBlockRegions(articleId int, regions []string) error {
+	blockedRegions := strings.Join(regions, ",")
+
+	_, err := a.dbPool.Exec(context.Background(), `UPDATE posts SET blocked_regions = $2 WHERE id = $1`, articleId, blockedRegions)
+	if err != nil {
+		return err
+	}
 	return nil
 }

@@ -25,6 +25,7 @@ ENUM(
    reset_password, // Reset password
    toggle_hide_history, // Toggle hide history
    recover, // Recover article
+   block_regions, // Block regions
 )
 */
 type AcAction string

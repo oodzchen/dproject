@@ -77,6 +77,16 @@ func (ar *ArticleResource) Routes() http.Handler {
 		})
 
 		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.srv.Permission, []string{
+			"article.edit_mine",
+			"article.edit_others",
+		}, ar)).Group(func(r chi.Router) {
+			r.Get("/block_regions", ar.BlockRegionsPage)
+			r.With(mdw.UserLogger(
+				ar.uLogger, model.AcTypeManage, model.AcActionBlockRegions, model.AcModelArticle, mdw.ULogURLArticleId),
+			).Post("/block_regions", ar.BlockRegions)
+		})
+
+		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.srv.Permission, []string{
 			"article.delete_mine",
 			"article.delete_others",
 		}, ar)).Group(func(r chi.Router) {
@@ -161,6 +171,16 @@ func (ar *ArticleResource) Routes() http.Handler {
 }
 
 var oldestStartTime = time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC)
+
+func filterArray[K any](arr []K, filterFunc func(K) bool) []K {
+	var result []K
+	for _, value := range arr {
+		if filterFunc(value) {
+			result = append(result, value)
+		}
+	}
+	return result
+}
 
 func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
@@ -266,9 +286,19 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		list = append(pinnedList, list...)
 	}
 
+	requestRegionCode := r.Context().Value("region_country_iso_code")
 	for _, item := range list {
 		item.CheckShowScore(currUserId)
+
+		if code, ok := requestRegionCode.(string); ok {
+			item.UpdateBlockedState(code)
+		}
 	}
+
+	canEditOthers := ar.srv.Permission.Permit("article", "edit_others")
+	list = filterArray(list, func(item *model.Article) bool {
+		return canEditOthers || !item.Blocked
+	})
 
 	// total, err := ar.store.Article.Count()
 	// if err != nil {
@@ -826,10 +856,18 @@ func (ar *ArticleResource) Item(w http.ResponseWriter, r *http.Request) {
 type ArticlePageType string
 
 const (
-	ArticlePageDel    ArticlePageType = "del"
-	ArticlePageReply                  = "reply"
-	ArticlePageDetail                 = "detail"
+	ArticlePageDel          ArticlePageType = "del"
+	ArticlePageReply                        = "reply"
+	ArticlePageDetail                       = "detail"
+	ArticlePageBlockRegions                 = "block_regions"
 )
+
+// {{- $regions := list "mainland_china" "us" "in" -}}
+// {{- $regionsMap := dict "mainland_china" (local "MainlandChina") "us" (local "UnitedStates") "in" (local "India") -}}
+type Region struct {
+	Name, Value string
+	Checked     bool
+}
 
 func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pageType ArticlePageType) {
 	idParam := chi.URLParam(r, "articleId")
@@ -872,6 +910,34 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	var reactList []*model.ArticleReact
 	var reactMap map[string]*model.ArticleReact
 	var totalReplyCount int
+	var regionList []*Region
+	var regionMap map[string]*Region
+
+	if pageType == ArticlePageBlockRegions {
+		regionList = []*Region{
+			{
+				ar.Local("MainlandChina"),
+				"mainland_china",
+				false,
+			},
+			{
+				ar.Local("UnitedStates"),
+				"us",
+				false,
+			},
+			{
+				ar.Local("India"),
+				"in",
+				false,
+			},
+		}
+
+		regionMap = make(map[string]*Region)
+
+		for _, region := range regionList {
+			regionMap[region.Value] = region
+		}
+	}
 
 	repliesLayout := model.RepliesLayoutTree
 	if uiSettings, ok := r.Context().Value("ui_settings").(*model.UISettings); ok {
@@ -980,6 +1046,19 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	// 	return
 	// }
 
+	requestRegionCode := r.Context().Value("region_country_iso_code")
+	for _, item := range articleList {
+		if code, ok := requestRegionCode.(string); ok {
+			item.UpdateBlockedState(code)
+		}
+	}
+
+	canEditOthers := ar.srv.Permission.Permit("article", "edit_others")
+	// fmt.Println("can edit others:", canEditOthers)
+	articleList = filterArray(articleList, func(item *model.Article) bool {
+		return canEditOthers || !item.Blocked
+	})
+
 	articleList = append(articleList, rootArticle)
 
 	start1 := time.Now()
@@ -995,7 +1074,13 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		// 	rootArticle = item
 		// }
 	}
+
 	fmt.Printf("format article item duration: %dms\n", time.Since(start1).Milliseconds())
+
+	if rootArticle.Blocked && !ar.srv.Permission.Permit("article", "edit_others") {
+		ar.Error("", errors.New(fmt.Sprintf("blocke in the contry:%v\n", requestRegionCode)), w, r, http.StatusUnavailableForLegalReasons)
+		return
+	}
 
 	reactMap = make(map[string]*model.ArticleReact)
 	for _, item := range reactList {
@@ -1045,6 +1130,18 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 
 	rootArticle.UpdateDisplayTitle()
 
+	if pageType == ArticlePageBlockRegions {
+		for _, region := range regionList {
+			for _, blockedRegion := range rootArticle.BlockedRegionsISOCode {
+				if region.Value == "mainland_china" && (blockedRegion == "CN" || blockedRegion == "HK") {
+					region.Checked = true
+				} else if strings.ToUpper(region.Value) == blockedRegion {
+					region.Checked = true
+				}
+			}
+		}
+	}
+
 	// if rootArticle.Deleted {
 	// 	w.WriteHeader(http.StatusGone)
 	// }
@@ -1052,10 +1149,12 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	type itemPageData struct {
 		Article *model.Article
 		// DelPage  bool
-		MaxDepth     int
-		PageType     ArticlePageType
-		ReactOptions []*model.ArticleReact
-		ReactMap     map[string]*model.ArticleReact
+		MaxDepth      int
+		PageType      ArticlePageType
+		ReactOptions  []*model.ArticleReact
+		ReactMap      map[string]*model.ArticleReact
+		RegionOptions []*Region
+		RegionMap     map[string]*Region
 	}
 
 	ar.Render(w, r, "article", &model.PageData{
@@ -1067,6 +1166,8 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 			pageType,
 			reactList,
 			reactMap,
+			regionList,
+			regionMap,
 		},
 		BreadCrumbs: []*model.BreadCrumb{
 			{
@@ -1715,4 +1816,38 @@ func (ar *ArticleResource) Share(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 	})
+}
+
+func (ar *ArticleResource) BlockRegionsPage(w http.ResponseWriter, r *http.Request) {
+	ar.handleItem(w, r, ArticlePageBlockRegions)
+}
+
+func (ar *ArticleResource) BlockRegions(w http.ResponseWriter, r *http.Request) {
+	articleId, err := strconv.Atoi(chi.URLParam(r, "articleId"))
+	if err != nil {
+		ar.Error("", err, w, r, http.StatusBadRequest)
+		return
+	}
+
+	// fmt.Println("article id:", articleId)
+
+	regions := r.PostForm["blocked_regions"]
+	// fmt.Println("blocked regions:", regions)
+	var blockedRegions []string
+	for _, region := range regions {
+		if region == "mainland_china" {
+			blockedRegions = append(blockedRegions, "CN")
+			blockedRegions = append(blockedRegions, "HK")
+		} else {
+			blockedRegions = append(blockedRegions, strings.ToUpper(region))
+		}
+	}
+
+	err = ar.store.Article.SetBlockRegions(articleId, blockedRegions)
+	if err != nil {
+		ar.ServerErrorp("", err, w, r)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/articles/%d", articleId), http.StatusFound)
 }

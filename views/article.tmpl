@@ -1,6 +1,6 @@
 {{define "article" -}}
     {{- $pageDepth := 0 -}}
-    {{- $data := dict "currUser" .LoginedUser "article" .Data.Article "pageType" .Data.PageType "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .Data.MaxDepth "debug" .Debug "reactOptions" .Data.ReactOptions "reactMap" .Data.ReactMap "showEmoji" .UISettings.ShowEmoji "host" .Host -}}
+    {{- $data := dict "currUser" .LoginedUser "article" .Data.Article "pageType" .Data.PageType "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .Data.MaxDepth "debug" .Debug "reactOptions" .Data.ReactOptions "reactMap" .Data.ReactMap "showEmoji" .UISettings.ShowEmoji "host" .Host "regions" .Data.RegionOptions "regionMap" .Data.RegionMap -}}
 
     {{template "head" . -}}
 
@@ -91,8 +91,11 @@
 {{define "article_content" -}}
     {{$isRoot := eq .article.ReplyDepth 0 -}}
     {{$pageDepth := add .pageDepth 1 -}}
-    {{$delPage := eq .pageType "del"}}
-    {{$replyPage := eq .pageType "reply"}}
+    {{$delPage := eq .pageType "del" -}}
+    {{$replyPage := eq .pageType "reply" -}}
+    {{$blockRegionsPage := eq .pageType "block_regions" -}}
+    {{$regions := .regions -}}
+    {{$regionMap := .regionMap -}}
     {{$data := dict "currUser" .currUser "article" .article "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "isRootArticle" $isRoot "debug" .debug "reactOptions" .reactOptions "reactMap" .reactMap "pageType" .pageType "showEmoji" .showEmoji "host" .host -}}
     <article {{if $isRoot}}id="ar_{{.article.Id}}"{{end}}>
 	{{if $isRoot -}}
@@ -160,6 +163,9 @@
 			    {{- if or (and $isSelf (permit "article" "edit_mine")) (permit "article" "edit_others") -}}
 				&nbsp;|&nbsp;<a class="btn-edit text-lighten-3" href="/articles/{{.article.Id}}/edit">{{local "BtnEdit" | lower}}</a>
 			    {{- end -}}
+			    {{- if or (and $isSelf (permit "article" "edit_mine")) (permit "article" "edit_others") -}}
+				&nbsp;|&nbsp;<a class="btn-edit text-lighten-3" href="/articles/{{.article.Id}}/block_regions">{{local "BtnBlockRegions" | lower}}</a>
+			    {{- end -}}
 			    {{- if or (and $isSelf (permit "article" "delete_mine")) (permit "article" "delete_others") -}}
 				&nbsp;|&nbsp;<a class="btn-del text-lighten-3" href="/articles/{{.article.Id}}/delete">{{local "BtnDelete" | lower}}</a>
 			    {{- end -}}
@@ -187,7 +193,7 @@
 	    <section class="{{if lt .article.VoteScore 0}}text-lighten-3{{else}}text-lighten{{end}}" style="white-space: break-spaces">{{- replaceLink .article.Content -}}</section>
 	{{- end -}}
 
-	{{if not $delPage -}}
+	{{if and (not $delPage) (not $blockRegionsPage) -}}
 	    {{template "article_operation_bar" $data -}}
 	{{- end -}}
     </article>
@@ -207,6 +213,20 @@
 		    </div>
 		{{- end -}}
 		<button type="submit">{{local "BtnDelete"}}</button>
+	    </form>
+	{{- end -}}
+    {{- else if and $blockRegionsPage .currUser -}}
+	{{- if or (permit "article" "edit_mine") (permit "article" "edit_others") -}}
+	    <form method="post" class="form card" action="/articles/{{.article.Id}}/block_regions">
+		{{.CSRFField -}}
+		<div class="form__row">
+		    <label class="form__label">{{local "BlockRegionsTip"}}</label>
+		    {{- range $regions -}}
+			<label><input name="blocked_regions" autocomplete="off" type="checkbox" {{if .Checked}}checked{{end}} value="{{.Value}}"/>{{.Name}}</label>&nbsp;&nbsp;
+		    {{- end -}}
+		</div>
+		<br/>
+		<button type="submit">{{local "BtnSubmit"}}</button>
 	    </form>
 	{{- end -}}
     {{- else -}}
@@ -271,6 +291,10 @@
 
 	    {{- if .article.Locked -}}
 		<i class="text-lighten-2">&lt;{{local "Locked"}}&gt;</i>
+	    {{- end -}}
+
+	    {{- if .article.BlockedRegionsISOCode -}}
+		<i class="text-lighten-2">&lt;{{local "BlockedRegions"}}: {{joinStrArr .article.BlockedRegionsISOCode ", "}}&gt;</i>
 	    {{- end -}}
 
 	    {{$replyPage := eq .pageType "reply"}}

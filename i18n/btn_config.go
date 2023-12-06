@@ -107,4 +107,9 @@ func (ic *I18nCustom) AddBtnConfigs() {
 		ID:    "BtnRecover",
 		Other: "Recover",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnBlockRegions",
+		Other: "Block Regions",
+	})
 }

@@ -24,6 +24,7 @@ import (
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
 	"github.com/oodzchen/dproject/web"
+	"github.com/oschwald/geoip2-golang"
 	"github.com/redis/go-redis/v9"
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
@@ -37,6 +38,7 @@ type ServiceConfig struct {
 	i18nCustom     *i18nc.I18nCustom
 	rdb            *redis.Client
 	mail           *service.Mail
+	geoDB          *geoip2.Reader
 }
 
 // func FileServer(r chi.Router, path string, root http.FileSystem) {
@@ -81,6 +83,7 @@ func Service(c *ServiceConfig) http.Handler {
 	r.Use(middleware.Compress(5, "text/html", "text/css", "text/plain", "text/javascript"))
 	r.Use(middleware.GetHead)
 	// r.Use(middleware.RedirectSlashes)
+	r.Use(mdw.CreateGeoDetect(c.geoDB))
 
 	gob.Register(model.Lang(""))
 

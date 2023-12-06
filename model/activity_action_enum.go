@@ -75,6 +75,9 @@ const (
 	// AcActionRecover is a AcAction of type recover.
 	// Recover article
 	AcActionRecover AcAction = "recover"
+	// AcActionBlockRegions is a AcAction of type block_regions.
+	// Block regions
+	AcActionBlockRegions AcAction = "block_regions"
 )
 
 var ErrInvalidAcAction = fmt.Errorf("not a valid AcAction, try [%s]", strings.Join(_AcActionNames, ", "))
@@ -100,6 +103,7 @@ var _AcActionNames = []string{
 	string(AcActionResetPassword),
 	string(AcActionToggleHideHistory),
 	string(AcActionRecover),
+	string(AcActionBlockRegions),
 }
 
 // AcActionNames returns a list of possible string values of AcAction.
@@ -132,6 +136,7 @@ func AcActionValues() []AcAction {
 		AcActionResetPassword,
 		AcActionToggleHideHistory,
 		AcActionRecover,
+		AcActionBlockRegions,
 	}
 }
 
@@ -168,6 +173,7 @@ var _AcActionValue = map[string]AcAction{
 	"reset_password":      AcActionResetPassword,
 	"toggle_hide_history": AcActionToggleHideHistory,
 	"recover":             AcActionRecover,
+	"block_regions":       AcActionBlockRegions,
 }
 
 // ParseAcAction attempts to convert a string to a AcAction.
@@ -203,6 +209,7 @@ var _AcActionTextMap = map[AcAction]string{
 	AcActionResetPassword:     "Reset password",
 	AcActionToggleHideHistory: "Toggle hide history",
 	AcActionRecover:           "Recover article",
+	AcActionBlockRegions:      "Block regions",
 }
 
 func (x AcAction) Text(upCaseHead bool, i18nCustom *i18nc.I18nCustom) string {
@@ -303,5 +310,9 @@ func AcActionAddI18nConfigs(ic *i18nc.I18nCustom) {
 	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "AcAction_recover",
 		Other: "Recover article",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_block_regions",
+		Other: "Block regions",
 	})
 }

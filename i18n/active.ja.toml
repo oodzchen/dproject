@@ -6,6 +6,10 @@ other = "アバウト"
 hash = "sha1-d8d5d55c4c9d25c9ac455cfdf8e691f899c49e01"
 other = "ロールを追加"
 
+[AcAction_block_regions]
+hash = "sha1-ddef78212017d023b6d1b18dca61ecb8db1a50e6"
+other = "ブロックされた地域"
+
 [AcAction_create_article]
 hash = "sha1-219597af7ea604c8463fef4c9f958310a25db4f5"
 other = "記事を作成する"
@@ -230,9 +234,21 @@ other = "著者"
 hash = "sha1-77003d07271f14977f2cf290c9d16c81e05ab6dd"
 other = "最高"
 
+[BlockRegionsTip]
+hash = "sha1-79bf126058ee4b09e3badbb8cf233bcea0feca6a"
+other = "選択してください、屏蔽する地域を"
+
+[BlockedRegions]
+hash = "sha1-04de45913ffb277f40e3d14c876514eecd49eb87"
+other = "既にブロックされた地域"
+
 [BrandName]
 hash = "sha1-89dd3635b4b67d2f0953f56dc2f801b15588dd10"
 other = "DizKaz"
+
+[BtnBlockRegions]
+hash = "sha1-fac26d551cd1b46d04bb9460e6dd805cd357c2b3"
+other = "ブロックされた地域"
 
 [BtnClose]
 hash = "sha1-bbfa773e5a63a5ea58c9b6207e608ca0120e592a"
@@ -450,6 +466,10 @@ other = "人気"
 hash = "sha1-2c1c9f19509f54bec6d6efc5fe83b469fe0392b1"
 other = "{{.FieldNames}}が一致しません"
 
+[India]
+hash = "sha1-967ce367d89dccc133d71049f1197d29561b3726"
+other = "インド"
+
 [Introduction]
 hash = "sha1-2473e96bc614a911821242119918a241a41836d6"
 other = "紹介"
@@ -513,6 +533,10 @@ other = "既存のアカウントをお持ちですか？{{.LoginLink}}をクリ
 [Logout]
 hash = "sha1-e43d612e11f1568f2373e719d4c4b08dcecdc7cc"
 other = "ログアウト"
+
+[MainlandChina]
+hash = "sha1-782d8b177d00b54f4d3aada69d3ac1eaa707eb62"
+other = "中国本土"
 
 [Manage]
 hash = "sha1-bf58d17e561b1b858e35f9202f811297dac2e9db"
@@ -781,6 +805,10 @@ other = "ユーザーインターフェースの設定が保存されました"
 [URL]
 hash = "sha1-0e2d9b0777a485c1276de0803c12a7d76fbc5c39"
 other = "URL"
+
+[UnitedStates]
+hash = "sha1-768685ca582abd0af2fbb57ca37752aa98c9372b"
+other = "アメリカ合衆国"
 
 [UpdateRole]
 hash = "sha1-dd5f9688fb0203138d144596ac296778a6be0086"

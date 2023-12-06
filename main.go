@@ -20,6 +20,7 @@ import (
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/store/pgstore"
 	"github.com/oodzchen/dproject/utils"
+	"github.com/oschwald/geoip2-golang"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -67,6 +68,11 @@ func main() {
 	// fmt.Println("ban user enabled: ", permissionData.Permit("user", "ban"))
 
 	roleData, err := config.ParseRoleData("./config/roles.yml")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	geoDB, err := geoip2.Open("./geoip/Country.mmdb")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -172,6 +178,7 @@ func main() {
 			i18nCustom:     i18nCustom,
 			rdb:            redisDB,
 			mail:           mail,
+			geoDB:          geoDB,
 		})),
 	}
 

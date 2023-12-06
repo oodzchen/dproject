@@ -87,6 +87,7 @@ type ArticleStore interface {
 	Unpin(articleId int) error
 	// DeletedList() ([]*model.Article, error)
 	Recover(articleId int) error
+	SetBlockRegions(articleId int, regions []string) error
 }
 
 type UserStore interface {

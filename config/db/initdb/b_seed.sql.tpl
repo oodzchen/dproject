@@ -80,7 +80,8 @@ CREATE TABLE posts (
     reply_weight DOUBLE PRECISION DEFAULT 0 NOT NULL,
     category_id INTEGER REFERENCES categories(id) NOT NULL,
     locked BOOLEAN NOT NULL DEFAULT false,
-    pinned_expire_at TIMESTAMP
+    pinned_expire_at TIMESTAMP,
+    blocked_regions TEXT
 );
 
 CREATE INDEX idx_posts_reply_to ON posts (reply_to);

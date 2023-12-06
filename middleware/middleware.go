@@ -3,6 +3,7 @@ package mdw
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -16,6 +17,7 @@ import (
 	"github.com/oodzchen/dproject/service"
 	"github.com/oodzchen/dproject/store"
 	"github.com/oodzchen/dproject/utils"
+	"github.com/oschwald/geoip2-golang"
 	"github.com/pkg/errors"
 )
 
@@ -335,4 +337,27 @@ func RequestDuration(next http.Handler) http.Handler {
 		}()
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func CreateGeoDetect(geoDB *geoip2.Reader) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ip := strings.Split(r.RemoteAddr, ":")[0]
+			// ip := "38.59.236.10"
+			// fmt.Println("ip:", ip)
+
+			record, err := geoDB.Country(net.ParseIP(ip))
+			if err != nil {
+				fmt.Println("parse geo ip error:", err)
+				next.ServeHTTP(w, r)
+			} else {
+				fmt.Printf("country ISO code: %#v\n", record.Country.IsoCode)
+
+				ctx := context.WithValue(r.Context(), "region_country_iso_code", record.Country.IsoCode)
+
+				next.ServeHTTP(w, r.WithContext(ctx))
+			}
+
+		})
+	}
 }

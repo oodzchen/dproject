@@ -209,6 +209,8 @@ type Article struct {
 	Pinned                    bool
 	NullPinnedExpireAt        pgtype.Timestamp
 	PinnedExpireAt            time.Time
+	BlockedRegionsISOCode     []string
+	Blocked                   bool
 }
 
 type ArticleReact struct {
@@ -525,6 +527,17 @@ func (a *Article) UpdatePinnedState() {
 		a.Pinned = a.PinnedExpireAt.Compare(time.Now()) > -1
 	}
 
+}
+
+func (a *Article) UpdateBlockedState(requestRegionISOCode string) {
+	for _, blockedRegion := range a.BlockedRegionsISOCode {
+		if requestRegionISOCode == blockedRegion {
+			a.Blocked = true
+			return
+		}
+	}
+
+	a.Blocked = false
 }
 
 // First commit  Mon Feb 13 00:11:53 2023 +0800

@@ -51,6 +51,8 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.0 // indirect
+	github.com/oschwald/geoip2-golang v1.9.0 // indirect
+	github.com/oschwald/maxminddb-golang v1.11.0 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
