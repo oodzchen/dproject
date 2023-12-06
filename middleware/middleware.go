@@ -344,6 +344,8 @@ func CreateGeoDetect(geoDB *geoip2.Reader) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			realIP := getRealIP(r)
 
+			// realIP = "120.238.203.9"
+
 			record, err := geoDB.Country(net.ParseIP(realIP))
 			if err != nil {
 				fmt.Println("parse geo ip error:", err)
@@ -362,18 +364,18 @@ func CreateGeoDetect(geoDB *geoip2.Reader) func(http.Handler) http.Handler {
 
 func getRealIP(r *http.Request) string {
 	realIP := r.Header.Get("X-Real-IP")
-	fmt.Println("x-real-ip:", realIP)
+	// fmt.Println("x-real-ip:", realIP)
 
 	if realIP == "" {
 		realIP = r.Header.Get("X-Forwarded-For")
-		fmt.Println("x-Forwarded-for:", realIP)
+		// fmt.Println("x-Forwarded-for:", realIP)
 	}
 
 	if realIP == "" {
 		realIP = strings.Split(r.RemoteAddr, ":")[0]
 		// ip := "38.59.236.10"
 		// fmt.Println("geo db metadata:", geoDB.Metadata())
-		fmt.Println("r.RemoteAddr:", realIP)
+		// fmt.Println("r.RemoteAddr:", realIP)
 	}
 	return realIP
 }

@@ -1047,8 +1047,10 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	// }
 
 	requestRegionCode := r.Context().Value("region_country_iso_code")
-	for _, item := range articleList {
-		if code, ok := requestRegionCode.(string); ok {
+	if code, ok := requestRegionCode.(string); ok {
+		rootArticle.UpdateBlockedState(code)
+
+		for _, item := range articleList {
 			item.UpdateBlockedState(code)
 		}
 	}
