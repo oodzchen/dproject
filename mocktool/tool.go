@@ -59,7 +59,7 @@ func GenURL() string {
 // 	}
 // }
 
-var ArticleCategories = []string{"general", "internet", "computer-sciense", "hacker-news", "qna", "show", "dizkaz"}
+var ArticleCategories = []string{"general", "hacker-news", "qna", "show", "dizkaz"}
 
 func GenArticle() *TestArticle {
 	title := gofakeit.Sentence(3 + rand.Intn(9))

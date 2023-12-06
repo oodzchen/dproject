@@ -120,8 +120,8 @@ VALUES
 
 INSERT INTO categories (front_id, name, author_id, describe, approved)
 VALUES
-('computer-science', '计算机技术', 1, '所有与计算机相关的技术讨论，包括不限于编程、操作系统、数据库、机器学习等', true),
-('internet', '网上冲浪', 1, '互联网冲浪时发现的值得分享和讨论的文章、博客、推文等', true),
+-- ('computer-science', '计算机技术', 1, '所有与计算机相关的技术讨论，包括不限于编程、操作系统、数据库、机器学习等', true),
+-- ('internet', '网上冲浪', 1, '互联网冲浪时发现的值得分享和讨论的文章、博客、推文等', true),
 ('hacker-news', '黑客新闻', 1, '黑客新闻', true),
 ('qna', '问与答', 1, '任何你想问的', true),
 ('show', '作品展示', 1, '展示你参与的项目', true),
