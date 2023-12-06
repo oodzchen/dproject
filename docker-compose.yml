@@ -96,7 +96,7 @@ services:
       - SSL_KEY=/etc/letsencrypt/live/${SECOND_LEVEL_DOMAIN_NAME}/privkey.pem
     volumes:
       - /var/www/goaccess:/var/www/goaccess:rw
-      - /usr/share/geoip/GeoLite2-City_20191224/GeoLite2-City.mmdb:/data/GeoLite2-City_20191224/GeoLite2-City.mmdb
+      - /usr/share/geoip/GeoLite2-City.mmdb:/data/GeoLite2-City.mmdb
       - /etc/letsencrypt:/etc/letsencrypt
       - ./goaccess.conf:/etc/goaccess/goaccess.conf
       - ./nginx/logs:/data/logs
