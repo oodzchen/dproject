@@ -163,7 +163,7 @@
 			    {{- if or (and $isSelf (permit "article" "edit_mine")) (permit "article" "edit_others") -}}
 				&nbsp;|&nbsp;<a class="btn-edit text-lighten-3" href="/articles/{{.article.Id}}/edit">{{local "BtnEdit" | lower}}</a>
 			    {{- end -}}
-			    {{- if or (and $isSelf (permit "article" "edit_mine")) (permit "article" "edit_others") -}}
+			    {{- if (permit "article" "edit_others") -}}
 				&nbsp;|&nbsp;<a class="btn-edit text-lighten-3" href="/articles/{{.article.Id}}/block_regions">{{local "BtnBlockRegions" | lower}}</a>
 			    {{- end -}}
 			    {{- if or (and $isSelf (permit "article" "delete_mine")) (permit "article" "delete_others") -}}
@@ -225,7 +225,6 @@
 			<label><input name="blocked_regions" autocomplete="off" type="checkbox" {{if .Checked}}checked{{end}} value="{{.Value}}"/>{{.Name}}</label>&nbsp;&nbsp;
 		    {{- end -}}
 		</div>
-		<br/>
 		<button type="submit">{{local "BtnSubmit"}}</button>
 	    </form>
 	{{- end -}}
