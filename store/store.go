@@ -81,13 +81,14 @@ type ArticleStore interface {
 	) (int, error)
 	ListHistory(articleId int) ([]*model.ArticleLog, error)
 	ToggleHideHistory(historyId int, isHidden bool) error
-	Lock(articleId int) error
+	ToggleLock(articleId int) error
 	CheckLocked(id int) (bool, error)
 	Pin(articleId int, expireAt time.Time) error
 	Unpin(articleId int) error
 	// DeletedList() ([]*model.Article, error)
 	Recover(articleId int) error
 	SetBlockRegions(articleId int, regions []string) error
+	ToggleFadeOut(articleId int) error
 }
 
 type UserStore interface {

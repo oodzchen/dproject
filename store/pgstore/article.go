@@ -105,7 +105,7 @@ WITH postIds AS (
     OFFSET $1
     LIMIT $2
 )
-SELECT tp.id, tp.title, COALESCE(tp.url, ''), u.username as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, tp.depth, tp.list_weight, tp.reply_weight, tp.participate_count, p2.title as root_article_title, COUNT(p3.id) AS total_reply_count, tp.locked, tp.pinned_expire_at, COALESCE(tp.blocked_regions, ''),
+SELECT tp.id, tp.title, COALESCE(tp.url, ''), u.username as author_name, tp.author_id, tp.content, tp.created_at, tp.updated_at, tp.depth, tp.list_weight, tp.reply_weight, tp.participate_count, p2.title as root_article_title, COUNT(p3.id) AS total_reply_count, tp.locked, tp.pinned_expire_at, COALESCE(tp.blocked_regions, ''), tp.fade_out,
 
 (
 SELECT COUNT(post_id) FROM post_votes
@@ -171,6 +171,7 @@ GROUP BY tp.id, u.username, p2.title, pi.total, c.id` + orderSqlStrTail
 			&item.Locked,
 			&item.NullPinnedExpireAt,
 			&blockedRegions,
+			&item.FadeOut,
 			&item.VoteUp,
 			&item.VoteDown,
 			&total,
@@ -516,7 +517,7 @@ func (a *Article) UpdateReply(id int, content string, pinnedExpireAt time.Time, 
 
 func (a *Article) Item(id, userId int) (*model.Article, error) {
 	sqlStr := `
-SELECT p.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title as root_article_title, p.locked, p.pinned_expire_at, COALESCE(p.blocked_regions, ''),
+SELECT p.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title as root_article_title, p.locked, p.pinned_expire_at, COALESCE(p.blocked_regions, ''), p.fade_out,
 
 COUNT(DISTINCT p3.id) AS children_count,
 COUNT(DISTINCT pv1.id) AS vote_up_count,
@@ -598,6 +599,7 @@ GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at,
 			&item.Locked,
 			&item.NullPinnedExpireAt,
 			&blockedRegions,
+			&item.FadeOut,
 
 			&item.ChildrenCount,
 			&item.VoteUp,
@@ -701,7 +703,7 @@ WITH RECURSIVE articleTree AS (
     SELECT p.*, ROW_NUMBER() OVER (PARTITION BY p.reply_to ` + orderSqlStrTail + `) AS rn
     FROM articleTree p
 )
-SELECT ar.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title AS root_article_title, p.locked, p.pinned_expire_at, COALESCE(p.blocked_regions, ''),
+SELECT ar.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title AS root_article_title, p.locked, p.pinned_expire_at, COALESCE(p.blocked_regions, ''), p.fade_out,
 COUNT(DISTINCT p3.id) AS children_count,
 COUNT(DISTINCT pv1.id) AS vote_up_count,
 COUNT(DISTINCT pv2.id) AS vote_down_count,
@@ -773,6 +775,7 @@ GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.crea
 			&item.Locked,
 			&item.NullPinnedExpireAt,
 			&blockedRegions,
+			&item.FadeOut,
 			&item.ChildrenCount,
 
 			&item.VoteUp,
@@ -884,7 +887,7 @@ WITH RECURSIVE articleTree AS (
     OFFSET $2
     LIMIT $3
 )
-SELECT ar.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title AS root_article_title, p.locked, p.pinned_expire_at, COALESCE(p.blocked_regions, ''),
+SELECT ar.id, p.title, COALESCE(p.url, ''), u.username AS author_name, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title AS root_article_title, p.locked, p.pinned_expire_at, COALESCE(p.blocked_regions, ''), p.fade_out,
 COUNT(DISTINCT p3.id) AS children_count,
 COUNT(DISTINCT pv1.id) AS vote_up_count,
 COUNT(DISTINCT pv2.id) AS vote_down_count,
@@ -970,6 +973,7 @@ GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.crea
 			&item.Locked,
 			&item.NullPinnedExpireAt,
 			&blockedRegions,
+			&item.FadeOut,
 			&item.ChildrenCount,
 
 			&item.VoteUp,
@@ -1664,7 +1668,7 @@ ORDER BY ph.version_num DESC`
 	return list, nil
 }
 
-func (a *Article) Lock(id int) error {
+func (a *Article) ToggleLock(id int) error {
 	locked, err := a.CheckLocked(id)
 	if err != nil {
 		return err
@@ -1691,6 +1695,35 @@ func (a *Article) CheckLocked(id int) (bool, error) {
 		return false, err
 	}
 	return locked, nil
+}
+
+func (a *Article) ToggleFadeOut(id int) error {
+	isFadeOut, err := a.checkFadeOut(id)
+	if err != nil {
+		return err
+	}
+
+	newFadeOutState := true
+	if isFadeOut {
+		newFadeOutState = false
+	}
+
+	_, err = a.dbPool.Exec(context.Background(), `UPDATE posts SET fade_out = $2 WHERE id = $1`, id, newFadeOutState)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *Article) checkFadeOut(id int) (bool, error) {
+	var fadeOut bool
+	err := a.dbPool.QueryRow(context.Background(), `SELECT fade_out FROM posts WHERE id = $1`, id).Scan(&fadeOut)
+	if err != nil {
+		return false, err
+	}
+	return fadeOut, nil
 }
 
 func (a *Article) Pin(id int, expireAt time.Time) error {

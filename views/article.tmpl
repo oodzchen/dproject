@@ -163,11 +163,28 @@
 			    {{- if or (and $isSelf (permit "article" "edit_mine")) (permit "article" "edit_others") -}}
 				&nbsp;|&nbsp;<a class="btn-edit text-lighten-3" href="/articles/{{.article.Id}}/edit">{{local "BtnEdit" | lower}}</a>
 			    {{- end -}}
-			    {{- if (permit "article" "edit_others") -}}
-				&nbsp;|&nbsp;<a class="btn-edit text-lighten-3" href="/articles/{{.article.Id}}/block_regions">{{local "BtnBlockRegions" | lower}}</a>
-			    {{- end -}}
 			    {{- if or (and $isSelf (permit "article" "delete_mine")) (permit "article" "delete_others") -}}
 				&nbsp;|&nbsp;<a class="btn-del text-lighten-3" href="/articles/{{.article.Id}}/delete">{{local "BtnDelete" | lower}}</a>
+			    {{- end -}}
+
+			    {{- if (permit "article" "edit_others") -}}
+				&nbsp;|&nbsp;<a class="btn-edit text-lighten-3" href="/articles/{{.article.Id}}/block_regions">{{local "BtnBlockRegions" | lower}}</a>
+				&nbsp;|&nbsp;<form class="btn-form" action="/articles/{{.article.Id}}/lock" method="POST" >
+				{{- .CSRFField -}}
+				{{- $btnText := local "BtnLock" -}}
+				{{- if .article.Locked -}}
+				    {{$btnText = local "BtnUnlock"}}
+				{{- end -}}
+				<button class="text-lighten-3" title="{{$btnText}}" type="submit">{{$btnText | lower}}</button>
+				</form>
+				&nbsp;|&nbsp;<form class="btn-form" action="/articles/{{.article.Id}}/fade_out" method="POST" >
+				{{- .CSRFField -}}
+				{{- $btnText := local "BtnFadeOut" -}}
+				{{- if .article.FadeOut -}}
+				    {{$btnText = local "BtnCancelFadeOut"}}
+				{{- end -}}
+				<button class="text-lighten-3" title="{{$btnText}}" type="submit">{{$btnText | lower}}</button>
+				</form>
 			    {{- end -}}
 			{{- end -}}
 		    {{- end -}}
@@ -190,7 +207,7 @@
 	{{- end -}}
 	
 	{{if or (not .article.Deleted) (permit "article" "delete_others") -}}
-	    <section class="{{if lt .article.VoteScore 0}}text-lighten-3{{else}}text-lighten{{end}}" style="white-space: break-spaces">{{- replaceLink .article.Content -}}</section>
+	    <section class="{{if or (lt .article.VoteScore 0) .article.FadeOut }}text-lighten-3{{else}}text-lighten{{end}}" style="white-space: break-spaces">{{- replaceLink .article.Content -}}</section>
 	{{- end -}}
 
 	{{if and (not $delPage) (not $blockRegionsPage) -}}
@@ -293,7 +310,7 @@
 	    {{- end -}}
 
 	    {{- if and (.article.BlockedRegionsISOCode) (permit "article" "edit_others") -}}
-		<i class="text-lighten-2">&lt;{{local "BlockedRegions"}}: {{joinStrArr .article.BlockedRegionsISOCode ", "}}&gt;</i>
+		&nbsp;&nbsp;<i class="text-lighten-2">&lt;{{local "BlockedRegions"}}: {{joinStrArr .article.BlockedRegionsISOCode ", "}}&gt;</i>
 	    {{- end -}}
 
 	    {{$replyPage := eq .pageType "reply"}}

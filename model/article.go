@@ -211,6 +211,7 @@ type Article struct {
 	PinnedExpireAt            time.Time
 	BlockedRegionsISOCode     []string
 	Blocked                   bool
+	FadeOut                   bool
 }
 
 type ArticleReact struct {

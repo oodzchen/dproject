@@ -784,5 +784,4 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "BlockedRegions",
 		Other: "Blocked Regions",
 	})
-
 }

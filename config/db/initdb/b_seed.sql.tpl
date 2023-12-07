@@ -81,7 +81,8 @@ CREATE TABLE posts (
     category_id INTEGER REFERENCES categories(id) NOT NULL,
     locked BOOLEAN NOT NULL DEFAULT false,
     pinned_expire_at TIMESTAMP,
-    blocked_regions TEXT
+    blocked_regions TEXT,
+    fade_out BOOLEAN NOT NULL DEFAULT false
 );
 
 CREATE INDEX idx_posts_reply_to ON posts (reply_to);

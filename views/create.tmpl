@@ -13,6 +13,7 @@
     {{- $article := .Data.Article -}}
     {{- $currCategoryFrontId := .Data.CurrCategoryFrontId -}}
     {{- $isReply := ne $article.ReplyToId 0 -}}
+    {{- $showLockRow := false -}}
 
     <div class="tip-block">
 	{{local "SubmitContentTip"}}
@@ -90,7 +91,7 @@
 		{{local "PinExpireAt" "Time" $timeInput}}
 	    </div>
 	{{- end -}}
-	{{- if permit "article" "lock" -}}
+	{{- if and $showLockRow (permit "article" "lock") -}}
 	    <div class="form__row">
 		<label class="form__label" for="locked">{{local "Lock"}} <small class="text-lighten-2" style="font-weight: normal">({{local "FormOptional"}})</small></label>
 		<label><input name="locked" type="checkbox" autocomplete="off" {{if $article.Locked}}checked{{end}} value="1"/> {{local "Lock"}}</label>

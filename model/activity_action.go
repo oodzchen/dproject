@@ -26,6 +26,8 @@ ENUM(
    toggle_hide_history, // Toggle hide history
    recover, // Recover article
    block_regions, // Block regions
+   lock_article, // Lock article
+   fade_out_article, // Fade out article
 )
 */
 type AcAction string

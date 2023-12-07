@@ -112,4 +112,24 @@ func (ic *I18nCustom) AddBtnConfigs() {
 		ID:    "BtnBlockRegions",
 		Other: "Block Regions",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnLock",
+		Other: "Lock",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnUnlock",
+		Other: "Unlock",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnFadeOut",
+		Other: "Fade Out",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnCancelFadeOut",
+		Other: "Cancel Fade Out",
+	})
 }

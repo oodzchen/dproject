@@ -26,6 +26,14 @@ other = "記事を編集する"
 hash = "sha1-61dd63e9c31ca35cccae0cb058e6d6f3710c448e"
 other = "ロールを編集する"
 
+[AcAction_fade_out_article]
+hash = "sha1-9799dbeebf633af8612e9abd71acab0f809cee0d"
+other = "記事をフェードアウトする"
+
+[AcAction_lock_article]
+hash = "sha1-d490f9f6ea5d8dcf9bcd38e31e941f321496f266"
+other = "記事をロックする"
+
 [AcAction_login]
 hash = "sha1-4e5a2893bdcc7d239c1db72e4c4ffbe4bea73174"
 other = "ログイン"
@@ -250,6 +258,10 @@ other = "DizKaz"
 hash = "sha1-fac26d551cd1b46d04bb9460e6dd805cd357c2b3"
 other = "ブロックされた地域"
 
+[BtnCancelFadeOut]
+hash = "sha1-887f2fbdc8c4c5a1af554bc331cfd39b5e1560b1"
+other = "フェードアウトをキャンセルする"
+
 [BtnClose]
 hash = "sha1-bbfa773e5a63a5ea58c9b6207e608ca0120e592a"
 other = "閉じる"
@@ -262,6 +274,10 @@ other = "削除"
 hash = "sha1-5301648dcf6b53cefc9ed52999aaa92d4603cae0"
 other = "編集"
 
+[BtnFadeOut]
+hash = "sha1-5809884436e4db61ee8435bf58f20a45c7523538"
+other = "フェードアウト"
+
 [BtnFold]
 hash = "sha1-b6ba0db1f814179114ec82fbf188b2eb5be2596e"
 other = "折りたたむ"
@@ -269,6 +285,10 @@ other = "折りたたむ"
 [BtnHide]
 hash = "sha1-34d8b60fe25332f7b98585e82e753eaf502c3e50"
 other = "Hide"
+
+[BtnLock]
+hash = "sha1-891ebccd5baa32daed16fb5a0825ca7a4464931f"
+other = "ロックする"
 
 [BtnMore]
 hash = "sha1-4bab2d8fe13fa6ab57f80098b414f0f734c5dd25"
@@ -321,6 +341,10 @@ other = "購読"
 [BtnUnhide]
 hash = "sha1-37f0297a2ed2f8c33d53336d888f92a37422700d"
 other = "Unhide"
+
+[BtnUnlock]
+hash = "sha1-1526a17ee7570e6235eb76a6fef8ce4b6d9a3486"
+other = "アンロックする"
 
 [BtnUnsave]
 hash = "sha1-65fd5f084b91ec4872711c6bc55c0be01801032f"

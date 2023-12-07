@@ -165,6 +165,18 @@ func (ar *ArticleResource) Routes() http.Handler {
 		).Post("/recover", ar.Recover)
 
 		r.Get("/share", ar.Share)
+
+		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.srv.Permission, []string{
+			"article.edit_others",
+		}, ar), mdw.UserLogger(
+			ar.uLogger, model.AcTypeManage, model.AcActionLockArticle, model.AcModelArticle, mdw.ULogURLArticleId),
+		).Post("/lock", ar.ToggleLock)
+
+		r.With(mdw.AuthCheck(ar.sessStore), mdw.PermitCheck(ar.srv.Permission, []string{
+			"article.edit_others",
+		}, ar), mdw.UserLogger(
+			ar.uLogger, model.AcTypeManage, model.AcActionFadeOutArticle, model.AcModelArticle, mdw.ULogURLArticleId),
+		).Post("/fade_out", ar.ToggleFadeOut)
 	})
 
 	return rt
@@ -1852,4 +1864,36 @@ func (ar *ArticleResource) BlockRegions(w http.ResponseWriter, r *http.Request) 
 	}
 
 	http.Redirect(w, r, fmt.Sprintf("/articles/%d", articleId), http.StatusFound)
+}
+
+func (ar *ArticleResource) ToggleLock(w http.ResponseWriter, r *http.Request) {
+	articleId, err := strconv.Atoi(chi.URLParam(r, "articleId"))
+	if err != nil {
+		ar.Error("", err, w, r, http.StatusBadRequest)
+		return
+	}
+
+	err = ar.store.Article.ToggleLock(articleId)
+	if err != nil {
+		ar.ServerErrorp("", err, w, r)
+		return
+	}
+
+	ar.ToRefererUrl(w, r)
+}
+
+func (ar *ArticleResource) ToggleFadeOut(w http.ResponseWriter, r *http.Request) {
+	articleId, err := strconv.Atoi(chi.URLParam(r, "articleId"))
+	if err != nil {
+		ar.Error("", err, w, r, http.StatusBadRequest)
+		return
+	}
+
+	err = ar.store.Article.ToggleFadeOut(articleId)
+	if err != nil {
+		ar.ServerErrorp("", err, w, r)
+		return
+	}
+
+	ar.ToRefererUrl(w, r)
 }

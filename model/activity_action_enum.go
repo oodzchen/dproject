@@ -78,6 +78,12 @@ const (
 	// AcActionBlockRegions is a AcAction of type block_regions.
 	// Block regions
 	AcActionBlockRegions AcAction = "block_regions"
+	// AcActionLockArticle is a AcAction of type lock_article.
+	// Lock article
+	AcActionLockArticle AcAction = "lock_article"
+	// AcActionFadeOutArticle is a AcAction of type fade_out_article.
+	// Fade out article
+	AcActionFadeOutArticle AcAction = "fade_out_article"
 )
 
 var ErrInvalidAcAction = fmt.Errorf("not a valid AcAction, try [%s]", strings.Join(_AcActionNames, ", "))
@@ -104,6 +110,8 @@ var _AcActionNames = []string{
 	string(AcActionToggleHideHistory),
 	string(AcActionRecover),
 	string(AcActionBlockRegions),
+	string(AcActionLockArticle),
+	string(AcActionFadeOutArticle),
 }
 
 // AcActionNames returns a list of possible string values of AcAction.
@@ -137,6 +145,8 @@ func AcActionValues() []AcAction {
 		AcActionToggleHideHistory,
 		AcActionRecover,
 		AcActionBlockRegions,
+		AcActionLockArticle,
+		AcActionFadeOutArticle,
 	}
 }
 
@@ -174,6 +184,8 @@ var _AcActionValue = map[string]AcAction{
 	"toggle_hide_history": AcActionToggleHideHistory,
 	"recover":             AcActionRecover,
 	"block_regions":       AcActionBlockRegions,
+	"lock_article":        AcActionLockArticle,
+	"fade_out_article":    AcActionFadeOutArticle,
 }
 
 // ParseAcAction attempts to convert a string to a AcAction.
@@ -210,6 +222,8 @@ var _AcActionTextMap = map[AcAction]string{
 	AcActionToggleHideHistory: "Toggle hide history",
 	AcActionRecover:           "Recover article",
 	AcActionBlockRegions:      "Block regions",
+	AcActionLockArticle:       "Lock article",
+	AcActionFadeOutArticle:    "Fade out article",
 }
 
 func (x AcAction) Text(upCaseHead bool, i18nCustom *i18nc.I18nCustom) string {
@@ -314,5 +328,13 @@ func AcActionAddI18nConfigs(ic *i18nc.I18nCustom) {
 	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "AcAction_block_regions",
 		Other: "Block regions",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_lock_article",
+		Other: "Lock article",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_fade_out_article",
+		Other: "Fade out article",
 	})
 }
