@@ -218,10 +218,16 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var sortType model.ArticleSortType
+	defaultSort := model.DefaultArticleListSortType
+
+	if uiSettings, ok := r.Context().Value("ui_settings").(*model.UISettings); ok {
+		defaultSort = uiSettings.DefaultArticleSortType
+	}
+
 	if model.ValidArticleSort(sort) {
 		sortType = model.ArticleSortType(sort)
 	} else {
-		sortType = model.ListSortBest
+		sortType = defaultSort
 	}
 	// fmt.Println("paramPage:", paramPage)
 	page, err := strconv.Atoi(paramPage)
@@ -319,13 +325,16 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 	// }
 
 	type ListData struct {
-		Articles     []*model.Article
-		ArticleTotal int
-		CurrPage     int
-		PageSize     int
-		TotalPage    int
-		SortType     model.ArticleSortType
-		Category     *model.Category
+		Articles        []*model.Article
+		ArticleTotal    int
+		CurrPage        int
+		PageSize        int
+		TotalPage       int
+		SortType        model.ArticleSortType
+		DefaultSortType model.ArticleSortType
+		Category        *model.Category
+		SortTabList     []model.ArticleSortType
+		SortTabNames    map[model.ArticleSortType]string
 	}
 
 	pageData := &model.PageData{
@@ -336,7 +345,10 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 			pageSize,
 			CeilInt(total, pageSize),
 			sortType,
+			defaultSort,
 			category,
+			model.GetSortTypeList(false, defaultSort),
+			model.GetSortTypeNames(ar.i18nCustom),
 		},
 	}
 
@@ -888,14 +900,23 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	page, _ := strconv.Atoi(pageQ)
 
 	var sortType model.ArticleSortType
+	defaultSort := model.DefaultReplyListSortType
+
 	if page < 1 {
 		page = 1
+	}
+
+	repliesLayout := model.RepliesLayoutTree
+	if uiSettings, ok := r.Context().Value("ui_settings").(*model.UISettings); ok {
+		// fmt.Println("replies layout:", string(uiSettings.RepliesLayout))
+		repliesLayout = uiSettings.RepliesLayout
+		defaultSort = uiSettings.DefaultReplySortType
 	}
 
 	if model.ValidArticleSort(sortTypeQ) {
 		sortType = model.ArticleSortType(sortTypeQ)
 	} else {
-		sortType = model.ReplySortBest
+		sortType = defaultSort
 	}
 
 	// fmt.Println("sort type", sortType)
@@ -949,12 +970,6 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		for _, region := range regionList {
 			regionMap[region.Value] = region
 		}
-	}
-
-	repliesLayout := model.RepliesLayoutTree
-	if uiSettings, ok := r.Context().Value("ui_settings").(*model.UISettings); ok {
-		fmt.Println("replies layout:", string(uiSettings.RepliesLayout))
-		repliesLayout = uiSettings.RepliesLayout
 	}
 
 	startTime := time.Now()
@@ -1163,12 +1178,15 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	type itemPageData struct {
 		Article *model.Article
 		// DelPage  bool
-		MaxDepth      int
-		PageType      ArticlePageType
-		ReactOptions  []*model.ArticleReact
-		ReactMap      map[string]*model.ArticleReact
-		RegionOptions []*Region
-		RegionMap     map[string]*Region
+		MaxDepth        int
+		PageType        ArticlePageType
+		ReactOptions    []*model.ArticleReact
+		ReactMap        map[string]*model.ArticleReact
+		RegionOptions   []*Region
+		RegionMap       map[string]*Region
+		DefaultSortType model.ArticleSortType
+		SortTabList     []model.ArticleSortType
+		SortTabNames    map[model.ArticleSortType]string
 	}
 
 	ar.Render(w, r, "article", &model.PageData{
@@ -1182,6 +1200,9 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 			reactMap,
 			regionList,
 			regionMap,
+			defaultSort,
+			model.GetSortTypeList(true, defaultSort),
+			model.GetSortTypeNames(ar.i18nCustom),
 		},
 		BreadCrumbs: []*model.BreadCrumb{
 			{

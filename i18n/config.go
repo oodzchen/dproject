@@ -784,4 +784,15 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "BlockedRegions",
 		Other: "Blocked Regions",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "ArticleListDefaultSort",
+		Other: "Article List Default Sort Type",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "ReplyListDefaultSort",
+		Other: "Reply List Default Sort Type",
+	})
+
 }

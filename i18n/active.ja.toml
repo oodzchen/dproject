@@ -222,6 +222,10 @@ other = "記事の内容"
 hash = "sha1-a42d0ce65e79af4a4185fa475e7a2f9a7831eb18"
 other = "最大{{.Num}}文字まで。"
 
+[ArticleListDefaultSort]
+hash = "sha1-79eea2f89557fb83fd235091edc6c396a87667ed"
+other = "記事一覧のデフォルトの並び替えタイプ"
+
 [ArticleTitle]
 hash = "sha1-1462c5df3e3961c5a25d0e87e872c270196e4576"
 other = "記事のタイトル"
@@ -713,6 +717,10 @@ other = "木構造の再帰"
 [Reply]
 hash = "sha1-c8a103c73005ccd029f388a9b7336a994cad85ba"
 other = "返信"
+
+[ReplyListDefaultSort]
+hash = "sha1-ac54bdd9320dac0c9910ed9dbdaf74f0c3650be5"
+other = "返信リストのデフォルトの並び替えタイプ"
 
 [ReplyNum]
 hash = "sha1-2cbee60b1478eae565b6780bee631ab1100e8954"

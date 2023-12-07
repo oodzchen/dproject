@@ -13,6 +13,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/microcosm-cc/bluemonday"
+	i18nc "github.com/oodzchen/dproject/i18n"
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
@@ -56,10 +57,10 @@ type ArticleSortType string
 
 const (
 	ReplySortBest  ArticleSortType = "best"
-	ListSortOldest                 = "oldest"
-	ListSortLatest                 = "latest"
-	ListSortBest                   = "list_best"
-	ListSortHot                    = "list_hot"
+	ListSortOldest ArticleSortType = "oldest"
+	ListSortLatest ArticleSortType = "latest"
+	ListSortBest   ArticleSortType = "list_best"
+	ListSortHot    ArticleSortType = "list_hot"
 )
 
 var articleSortMap = map[ArticleSortType]bool{
@@ -72,6 +73,52 @@ var articleSortMap = map[ArticleSortType]bool{
 
 func ValidArticleSort(sortType string) bool {
 	return articleSortMap[ArticleSortType(sortType)]
+}
+
+var DefaultArticleListSortType = ListSortBest
+var DefaultReplyListSortType = ReplySortBest
+
+func GetSortTypeList(isReply bool, defaultSortType ArticleSortType) []ArticleSortType {
+	all := []ArticleSortType{
+		ListSortBest,
+		ListSortLatest,
+		ListSortHot,
+	}
+
+	if isReply {
+		all = []ArticleSortType{
+			ReplySortBest,
+			ListSortLatest,
+			ListSortOldest,
+		}
+	}
+
+	res := []ArticleSortType{defaultSortType}
+	for _, sort := range all {
+		if sort != defaultSortType {
+			res = append(res, sort)
+		}
+	}
+
+	return res
+}
+
+// func GetArticleSortTypeNames(ic *i18nc.I18nCustom) map[ArticleSortType]string {
+// 	return map[ArticleSortType]string{
+// 		ListSortBest:   ic.LocalTpl("Best"),
+// 		ListSortLatest: ic.LocalTpl("Latest"),
+// 		ListSortHot:    ic.LocalTpl("Hot"),
+// 	}
+// }
+
+func GetSortTypeNames(ic *i18nc.I18nCustom) map[ArticleSortType]string {
+	return map[ArticleSortType]string{
+		ReplySortBest:  ic.LocalTpl("Best"),
+		ListSortBest:   ic.LocalTpl("Best"),
+		ListSortLatest: ic.LocalTpl("Latest"),
+		ListSortOldest: ic.LocalTpl("TimeOrder"),
+		ListSortHot:    ic.LocalTpl("Hot"),
+	}
 }
 
 type ArticleList struct {

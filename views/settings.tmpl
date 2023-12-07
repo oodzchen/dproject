@@ -73,6 +73,18 @@
 		{{- end -}}
 	    </div>
 	    <div class="form__row">
+		<label class="form__label">{{local "ArticleListDefaultSort"}}:</label>
+		{{range $data.ArticleSortTabList -}}
+		    <span><label><input name="default_article_sort" required autocomplete="off" id="{{.}}" {{if and $settings (eq $settings.DefaultArticleSortType .)}}checked{{end}} type="radio" value="{{.}}"/> {{index $data.SortTabNames .}}</label></span>&nbsp;&nbsp;
+		{{- end -}}
+	    </div>
+	    <div class="form__row">
+		<label class="form__label">{{local "ReplyListDefaultSort"}}:</label>
+		{{range $data.ReplySortTabList -}}
+		    <span><label><input name="default_reply_sort" required autocomplete="off" id="{{.}}" {{if and $settings (eq $settings.DefaultReplySortType .)}}checked{{end}} type="radio" value="{{.}}"/> {{index $data.SortTabNames .}}</label></span>&nbsp;&nbsp;
+		{{- end -}}
+	    </div>
+	    <div class="form__row">
 		<label class="form__label" for="font-size-options">{{local "FontSize"}}:</label>
 		<div id="font-size-options">
 		    {{range $fontSizes -}}

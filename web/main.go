@@ -620,6 +620,8 @@ func (mr *MainResource) SaveUISettings(w http.ResponseWriter, r *http.Request) {
 	fontSizeStr := r.PostForm.Get("font_size")
 	fontSizeCustomStr := r.PostForm.Get("font_size_custom")
 	showEmoji := r.PostForm.Get("show_emoji")
+	defaultArticleSort := r.PostForm.Get("default_article_sort")
+	defaultReplySort := r.PostForm.Get("default_reply_sort")
 
 	uiSettings := &model.UISettings{}
 
@@ -663,6 +665,14 @@ func (mr *MainResource) SaveUISettings(w http.ResponseWriter, r *http.Request) {
 		uiSettings.ShowEmoji = false
 	}
 
+	if model.ValidArticleSort(defaultArticleSort) {
+		uiSettings.DefaultArticleSortType = model.ArticleSortType(defaultArticleSort)
+	}
+
+	if model.ValidArticleSort(defaultReplySort) {
+		uiSettings.DefaultReplySortType = model.ArticleSortType(defaultReplySort)
+	}
+
 	localSess := mr.Session("local", w, r)
 	settingsId := localSess.GetStringValue("ui-settings-id")
 	// fmt.Println("settings id: ", settingsId)
@@ -702,9 +712,12 @@ const (
 )
 
 type SettingsPageData struct {
-	PageKey         SettingsPageKey
-	AccountData     *model.User
-	LanguageOptions []*model.OptionItem
+	PageKey            SettingsPageKey
+	AccountData        *model.User
+	LanguageOptions    []*model.OptionItem
+	ArticleSortTabList []model.ArticleSortType
+	ReplySortTabList   []model.ArticleSortType
+	SortTabNames       map[model.ArticleSortType]string
 }
 
 func (mr *MainResource) handleSettingsPage(w http.ResponseWriter, r *http.Request, pageKey SettingsPageKey) {
@@ -720,8 +733,11 @@ func (mr *MainResource) handleSettingsPage(w http.ResponseWriter, r *http.Reques
 	}
 	langOptions := model.ConvertEnumToOPtions(langStrEnums, true, "", nil)
 	pageData := &SettingsPageData{
-		PageKey:         pageKey,
-		LanguageOptions: langOptions,
+		PageKey:            pageKey,
+		LanguageOptions:    langOptions,
+		ArticleSortTabList: model.GetSortTypeList(false, model.DefaultArticleListSortType),
+		ReplySortTabList:   model.GetSortTypeList(true, model.DefaultReplyListSortType),
+		SortTabNames:       model.GetSortTypeNames(mr.i18nCustom),
 	}
 
 	if pageKey == SettingsPageKeyAccount {

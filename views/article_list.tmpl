@@ -4,8 +4,8 @@
     
     {{- $debug := .Debug -}}
     {{- $data := .Data -}}
-    {{- $sortTabs := list "list_best" "latest" "list_hot" -}}
-    {{- $sortTabMap := dict "list_best" (local "Best") "latest" (local "Latest") "list_hot" (local "Hot") -}}
+    {{- $sortTabs := .Data.SortTabList -}}
+    {{- $sortTabMap := .Data.SortTabNames -}}
     {{- $showSummary := false -}}
     {{- $showOperation := false -}}
     {{- $routePath := .RoutePath -}}
@@ -33,7 +33,7 @@
     
     <div class="tabs">
 	{{- range $sortTabs -}}
-	    <a class="tab{{if eq $data.SortType .}} active{{end}}" title="{{get $sortTabMap .}}" href="{{$routePath}}{{if ne . "list_best"}}?sort={{.}}{{end}}">{{get $sortTabMap .}}</a>
+	    <a class="tab{{if eq $data.SortType .}} active{{end}}" title="{{index $sortTabMap .}}" href="{{$routePath}}{{if ne . $data.DefaultSortType}}?sort={{.}}{{end}}">{{index $sortTabMap .}}</a>
 	{{- end -}}
     </div>
 

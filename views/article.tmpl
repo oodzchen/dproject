@@ -1,6 +1,6 @@
 {{define "article" -}}
     {{- $pageDepth := 0 -}}
-    {{- $data := dict "currUser" .LoginedUser "article" .Data.Article "pageType" .Data.PageType "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .Data.MaxDepth "debug" .Debug "reactOptions" .Data.ReactOptions "reactMap" .Data.ReactMap "showEmoji" .UISettings.ShowEmoji "host" .Host "regions" .Data.RegionOptions "regionMap" .Data.RegionMap -}}
+    {{- $data := dict "currUser" .LoginedUser "article" .Data.Article "pageType" .Data.PageType "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .Data.MaxDepth "debug" .Debug "reactOptions" .Data.ReactOptions "reactMap" .Data.ReactMap "showEmoji" .UISettings.ShowEmoji "host" .Host "regions" .Data.RegionOptions "regionMap" .Data.RegionMap "sortTabs" .Data.SortTabList "sortTabMap" .Data.SortTabNames "defaultSortTab" .Data.DefaultSortType -}}
 
     {{template "head" . -}}
 
@@ -96,6 +96,10 @@
     {{$blockRegionsPage := eq .pageType "block_regions" -}}
     {{$regions := .regions -}}
     {{$regionMap := .regionMap -}}
+    {{$sortTabs := .sortTabs -}}
+    {{$sortTabMap := .sortTabMap -}}
+    {{$defaultSortTab := .defaultSortTab -}}
+    
     {{$data := dict "currUser" .currUser "article" .article "pageDepth" $pageDepth "CSRFField" .CSRFField "maxDepth" .maxDepth "isRootArticle" $isRoot "debug" .debug "reactOptions" .reactOptions "reactMap" .reactMap "pageType" .pageType "showEmoji" .showEmoji "host" .host -}}
     <article {{if $isRoot}}id="ar_{{.article.Id}}"{{end}}>
 	{{if $isRoot -}}
@@ -257,11 +261,9 @@
 		<div id="replies" class="reply-tab">
 		    <div class="reply-tab__title">{{local "ReplyNum" "Count" .article.TotalReplyCount}}</div>
 		    {{- $article := .article -}}
-		    {{- $sortTabs := list "best" "latest" "oldest" -}}
-		    {{- $sortTabMap := dict "best" (local "Best") "latest" (local "Latest") "oldest" (local "TimeOrder") -}}
 		    <div class="tabs">
 			{{- range $sortTabs -}}
-			    <a class="tab{{if eq $article.Replies.SortType .}} active{{end}}" href="/articles/{{$article.Id}}{{if ne . "best"}}?sort={{.}}#replies{{end}}">{{get $sortTabMap .}}</a>
+			    <a class="tab{{if eq $article.Replies.SortType .}} active{{end}}" href="/articles/{{$article.Id}}{{if ne . $defaultSortTab}}?sort={{.}}#replies{{end}}">{{index $sortTabMap .}}</a>
 			{{- end -}}
 		    </div>
 		</div>
