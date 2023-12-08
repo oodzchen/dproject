@@ -70,21 +70,21 @@ func TestArticleVote(t *testing.T) {
 	// fmt.Println("uBId: ", uBId)
 
 	t.Run("Vote up", func(t *testing.T) {
-		err = store.Article.ToggleVote(aId, uBId, "up")
+		_, err = store.Article.ToggleVote(aId, uBId, "up")
 		if err != nil {
 			t.Errorf("should vote up success but got %v", err)
 		}
 	})
 
 	t.Run("Change vote to down", func(t *testing.T) {
-		err = store.Article.ToggleVote(aId, uBId, "down")
+		_, err = store.Article.ToggleVote(aId, uBId, "down")
 		if err != nil {
 			t.Errorf("should vote down success but got %v", err)
 		}
 	})
 
 	t.Run("Revoke vote", func(t *testing.T) {
-		err = store.Article.ToggleVote(aId, uBId, "down")
+		_, err = store.Article.ToggleVote(aId, uBId, "down")
 		if err != nil {
 			t.Errorf("should revoke vote success but got %v", err)
 		}
@@ -135,7 +135,7 @@ func TestArticleCheckVote(t *testing.T) {
 	})
 
 	t.Run("Check voted article", func(t *testing.T) {
-		err = store.Article.ToggleVote(aId, uId, "down")
+		_, err = store.Article.ToggleVote(aId, uId, "down")
 		if err != nil {
 			t.Errorf("vote down article failed: %v", err)
 		}

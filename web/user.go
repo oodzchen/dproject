@@ -364,6 +364,16 @@ func (ur *UserResource) SetRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if roleFrontId == "banned_user" {
+		go func() {
+			err := ur.store.User.AddReputation(username, model.RPCTypeBanned, false)
+			if err != nil {
+				fmt.Println("add reputation error", err)
+				return
+			}
+		}()
+	}
+
 	http.Redirect(w, r, fmt.Sprintf("/users/%s", user.Name), http.StatusFound)
 }
 

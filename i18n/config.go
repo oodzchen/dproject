@@ -795,4 +795,8 @@ func (ic *I18nCustom) AddConfigs() {
 		Other: "Reply List Default Sort Type",
 	})
 
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Reputation",
+		Other: "Reputation",
+	})
 }

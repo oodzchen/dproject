@@ -175,6 +175,7 @@
 				&nbsp;|&nbsp;<a class="btn-edit text-lighten-3" href="/articles/{{.article.Id}}/block_regions">{{local "BtnBlockRegions" | lower}}</a>
 				&nbsp;|&nbsp;<form class="btn-form" action="/articles/{{.article.Id}}/lock" method="POST" >
 				{{- .CSRFField -}}
+				<input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
 				{{- $btnText := local "BtnLock" -}}
 				{{- if .article.Locked -}}
 				    {{$btnText = local "BtnUnlock"}}
@@ -182,12 +183,13 @@
 				<button class="text-lighten-3" title="{{$btnText}}" type="submit">{{$btnText | lower}}</button>
 				</form>
 				&nbsp;|&nbsp;<form class="btn-form" action="/articles/{{.article.Id}}/fade_out" method="POST" >
-				{{- .CSRFField -}}
-				{{- $btnText := local "BtnFadeOut" -}}
-				{{- if .article.FadeOut -}}
-				    {{$btnText = local "BtnCancelFadeOut"}}
-				{{- end -}}
-				<button class="text-lighten-3" title="{{$btnText}}" type="submit">{{$btnText | lower}}</button>
+				    {{- .CSRFField -}}
+				    <input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
+				    {{- $btnText := local "BtnFadeOut" -}}
+				    {{- if .article.FadeOut -}}
+					{{$btnText = local "BtnCancelFadeOut"}}
+				    {{- end -}}
+				    <button class="text-lighten-3" title="{{$btnText}}" type="submit">{{$btnText | lower}}</button>
 				</form>
 			    {{- end -}}
 			{{- end -}}

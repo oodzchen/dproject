@@ -348,7 +348,7 @@ RETURNING (id);`
 		return 0, err
 	}
 
-	err = a.ToggleVote(id, authorId, "up")
+	_, err = a.ToggleVote(id, authorId, "up")
 	if err != nil {
 		return 0, err
 	}
@@ -1153,10 +1153,12 @@ func (a *Article) Delete(id int) (rootArticleId int, err error) {
 	return
 }
 
-func (a *Article) ToggleVote(id, userId int, voteType string) error {
+// Return int value, 0 for error, -1 for canceled, 1 for added
+func (a *Article) ToggleVote(id, userId int, voteType string) (int, error) {
 	err, vt := a.VoteCheck(id, userId)
 	// fmt.Println("check error: ", err)
 	// fmt.Println("check vote type: ", vt)
+	code := 0
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			// var aId int
@@ -1172,10 +1174,12 @@ func (a *Article) ToggleVote(id, userId int, voteType string) error {
 			// fmt.Println("after insert: ", err)
 
 			if err != nil {
-				return err
+				return 0, err
 			}
+
+			code = 1
 		} else {
-			return err
+			return 0, err
 		}
 	} else {
 		if vt == voteType {
@@ -1186,8 +1190,10 @@ func (a *Article) ToggleVote(id, userId int, voteType string) error {
 				userId,
 			).Scan(nil)
 			if err != nil {
-				return err
+				return 0, err
 			}
+
+			code = -1
 		} else {
 			// fmt.Println("change vote type to: ", voteType)
 			err = a.dbPool.QueryRow(
@@ -1201,17 +1207,20 @@ func (a *Article) ToggleVote(id, userId int, voteType string) error {
 			// fmt.Println("after change vote type: ", err)
 
 			if err != nil {
-				return err
+				return 0, err
 			}
+
+			code = 2
 		}
 	}
 
 	err = a.updateWeights(id)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return code, nil
+
 }
 
 func (a *Article) VoteCheck(id, userId int) (error, string) {
@@ -1281,7 +1290,9 @@ func (a *Article) saveCheck(id, userId int) (error, bool) {
 	return nil, count > 0
 }
 
-func (a *Article) ToggleReact(id, userId, reactId int) error {
+// Return int value, 0 for error, -1 for canceled, 1 for added
+func (a *Article) ToggleReact(id, userId, reactId int) (int, error) {
+	code := 0
 	err, rt := a.ReactCheck(id, userId)
 	// fmt.Println("check error: ", err)
 	// fmt.Println("check vote type: ", rt)
@@ -1300,10 +1311,12 @@ func (a *Article) ToggleReact(id, userId, reactId int) error {
 			// fmt.Println("after insert: ", err)
 
 			if err != nil {
-				return err
+				return 0, err
 			}
+
+			code = 1
 		} else {
-			return err
+			return 0, err
 		}
 	} else {
 		if rt == reactId {
@@ -1313,9 +1326,12 @@ func (a *Article) ToggleReact(id, userId, reactId int) error {
 				id,
 				userId,
 			).Scan(nil)
+
 			if err != nil {
-				return err
+				return 0, err
 			}
+
+			code = -1
 		} else {
 			// fmt.Println("change vote type to: ", reactType)
 			err = a.dbPool.QueryRow(
@@ -1329,17 +1345,19 @@ func (a *Article) ToggleReact(id, userId, reactId int) error {
 			// fmt.Println("after change vote type: ", err)
 
 			if err != nil {
-				return err
+				return 0, err
 			}
+
+			code = 2
 		}
 	}
 
 	err = a.updateWeights(id)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return code, nil
 }
 
 func (a *Article) ReactCheck(id, userId int) (error, int) {
@@ -1697,24 +1715,28 @@ func (a *Article) CheckLocked(id int) (bool, error) {
 	return locked, nil
 }
 
-func (a *Article) ToggleFadeOut(id int) error {
+func (a *Article) ToggleFadeOut(id int) (int, error) {
+	code := 0
 	isFadeOut, err := a.checkFadeOut(id)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	newFadeOutState := true
 	if isFadeOut {
 		newFadeOutState = false
+		code = -1
+	} else {
+		code = 1
 	}
 
 	_, err = a.dbPool.Exec(context.Background(), `UPDATE posts SET fade_out = $2 WHERE id = $1`, id, newFadeOutState)
 
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return code, nil
 }
 
 func (a *Article) checkFadeOut(id int) (bool, error) {

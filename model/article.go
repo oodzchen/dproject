@@ -25,7 +25,7 @@ type VoteType string
 
 const (
 	VoteTypeUp   VoteType = "up"
-	VoteTypeDown          = "down"
+	VoteTypeDown VoteType = "down"
 )
 
 var validVoteType = map[VoteType]bool{

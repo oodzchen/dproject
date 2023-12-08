@@ -31,6 +31,30 @@ const (
 	AuthTypeMicrosoft          = "microsoft"
 )
 
+type ReputationChangeType string
+
+const (
+	RPCTypeUpvoted   ReputationChangeType = "upvoted"
+	RPCTypeDownvoted ReputationChangeType = "downvoted"
+	RPCTypeThanked   ReputationChangeType = "thanked"
+	RPCTypeLaughed   ReputationChangeType = "laughed"
+	RPCTypeFadeOut   ReputationChangeType = "fade_out"
+
+	RPCTypeBanned ReputationChangeType = "banned"
+	RPCTypeOther  ReputationChangeType = "other"
+)
+
+var ReputationChangeValues = map[ReputationChangeType]int{
+	RPCTypeUpvoted:   5,
+	RPCTypeDownvoted: -5,
+	RPCTypeThanked:   1,
+	RPCTypeLaughed:   1,
+	RPCTypeFadeOut:   -5,
+
+	RPCTypeBanned: 0,
+	RPCTypeOther:  0,
+}
+
 type User struct {
 	Id               int
 	Name             string
@@ -48,6 +72,7 @@ type User struct {
 	Permissions      []*Permission
 	Super            bool
 	AuthFrom         AuthType
+	Reputation       int
 }
 
 // func (u *User) FormatTimeStr() {

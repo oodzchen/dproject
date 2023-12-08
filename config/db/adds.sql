@@ -142,6 +142,20 @@ CREATE TABLE post_history (
 
 ALTER TABLE post_history ADD COLUMN is_hidden BOOLEAN NOT NULL DEFAULT false;
 
+ALTER TABLE users ADD COLUMN reputation INTEGER NOT NULL DEFAULT 0;
+
+CREATE TYPE reputaion_change_type AS ENUM ('upvoted', 'downvoted', 'thanked', 'laughed', 'banned', 'fade_out', 'other');
+
+CREATE TABLE reputation_log (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    value_diff INTEGER NOT NULL,
+    type reputaion_change_type,
+    is_revert BOOLEAN NOT NULL DEFAULT false,
+    comment TEXT
+);
+
 -- CREATE TABLE verification_codes (
 --     id SERIAL PRIMARY KEY,
 --     email VARCHAR(255) NOT NULL,

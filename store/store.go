@@ -59,9 +59,11 @@ type ArticleStore interface {
 	Count(categoryFrontId string) (int, error)
 	CountTotalReply(id int) (int, error)
 	VoteCheck(id, userId int) (error, string)
-	ToggleVote(id, loginedUserId int, voteType string) error
+	// Return int value, 0 for error, -1 for canceled, 1 for added, 2 for updated
+	ToggleVote(id, loginedUserId int, voteType string) (int, error)
 	ToggleSave(id, loginedUserId int) error
-	ToggleReact(id, loginedUserId, reactId int) error
+	// Return int value, 0 for error, -1 for canceled, 1 for added, 2 for updated
+	ToggleReact(id, loginedUserId, reactId int) (int, error)
 	ToggleSubscribe(id, loginedUserId int) error
 	CheckSubscribe(id, loginedUserId int) (int, error)
 	Notify(senderUserId, sourceArticleId, contentArticleId int) error
@@ -88,7 +90,8 @@ type ArticleStore interface {
 	// DeletedList() ([]*model.Article, error)
 	Recover(articleId int) error
 	SetBlockRegions(articleId int, regions []string) error
-	ToggleFadeOut(articleId int) error
+	// Return int value, 0 for error, -1 for canceled, 1 for added
+	ToggleFadeOut(articleId int) (int, error)
 }
 
 type UserStore interface {
@@ -112,6 +115,8 @@ type UserStore interface {
 	SetRoleManyWithFrontId([]*model.User) error
 	GetPassword(usernameEmail string) (string, error)
 	UpdatePassword(email, password string) (int, error)
+	AddReputation(username string, changeType model.ReputationChangeType, isRevert bool) error
+	AddReputationVal(username string, value int, comment string, isRevert bool) error
 }
 
 type PermissionStore interface {

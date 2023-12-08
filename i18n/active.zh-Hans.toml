@@ -726,6 +726,10 @@ other = "回复列表默认排序类型"
 hash = "sha1-2cbee60b1478eae565b6780bee631ab1100e8954"
 other = "{{.Count}} 回复"
 
+[Reputation]
+hash = "sha1-5f21606b3a35dec46265211d6ac0d97d19af18d2"
+other = "声誉"
+
 [Required]
 hash = "sha1-1d2cc27d94564c97fda931d16fc110dcd9db0d09"
 other = "{{.FieldNames}}是必须的"

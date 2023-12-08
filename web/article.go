@@ -1417,30 +1417,15 @@ func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// confirmText := r.Form.Get("confirm_del")
-	// if confirmText != "yes" {
-	// 	if confirmText == "no" {
-	// 		http.Redirect(w, r, fmt.Sprintf("/articles/%d", rId), http.StatusFound)
-	// 	} else {
-	// 		ar.Error("Delete failed", err, w, r, http.StatusBadRequest)
-	// 	}
-	// 	return
-	// }
+	currUser := ar.GetLoginedUserData(r)
 
-	currUserId, err := GetLoginUserId(ar.sessStore, w, r)
-	if err != nil {
-		// ar.Error("", err, w, r, http.StatusUnauthorized)
-		ar.ToLogin(w, r)
-		return
-	}
-
-	article, err := ar.store.Article.Item(rId, currUserId)
+	article, err := ar.store.Article.Item(rId, currUser.Id)
 	if err != nil {
 		ar.Error("", err, w, r, http.StatusInternalServerError)
 		return
 	}
 
-	if (article.AuthorId != currUserId && !ar.srv.Permission.Permit("article", "delete_others")) || !ar.srv.Permission.Permit("article", "delete_mine") {
+	if (article.AuthorId != currUser.Id && !ar.srv.Permission.Permit("article", "delete_others")) || !ar.srv.Permission.Permit("article", "delete_mine") {
 		// http.Redirect(w, r, fmt.Sprintf("/articles/%d", rId), http.StatusFound)
 		ar.Error("", err, w, r, http.StatusForbidden)
 		return
@@ -1450,6 +1435,18 @@ func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		ar.Error("", err, w, r, http.StatusBadRequest)
 		return
+	}
+
+	if article.VoteDown > 0 || article.FadeOut {
+		go func() {
+			recoverRPCVal := -article.VoteDown*model.ReputationChangeValues[model.RPCTypeDownvoted] - model.ReputationChangeValues[model.RPCTypeFadeOut]
+			// fmt.Println("recover reputation:", recoverRPCVal)
+			err := ar.store.User.AddReputationVal(article.AuthorName, recoverRPCVal, "recover_on_delete", false)
+			if err != nil {
+				fmt.Println("add reputation error", err)
+				return
+			}
+		}()
 	}
 
 	ar.Session("one", w, r).Flash(ar.Local("DeleteSuccess"))
@@ -1492,13 +1489,56 @@ func (ar *ArticleResource) Vote(w http.ResponseWriter, r *http.Request) {
 
 	rootId := r.Form.Get("root")
 
-	userId := ar.GetLoginedUserId(w, r)
-	if userId != 0 {
-		err = ar.store.Article.ToggleVote(articleId, userId, voteType)
+	// userId := ar.GetLoginedUserId(w, r)
+	user := ar.GetLoginedUserData(r)
+	if user.Id != 0 {
+		code, err := ar.store.Article.ToggleVote(articleId, user.Id, voteType)
 		if err != nil {
 			ar.ServerErrorp("", err, w, r)
 			return
 		}
+
+		go func() {
+			article, err := ar.store.Article.Item(articleId, 0)
+			if err != nil {
+				fmt.Println("add reputation error", err)
+				return
+			}
+
+			if article.AuthorId == user.Id {
+				return
+			}
+
+			changeType := model.RPCTypeUpvoted
+			if voteType == "down" {
+				changeType = model.RPCTypeDownvoted
+			}
+			var isRevert bool
+			if code == -1 {
+				isRevert = true
+			}
+
+			if code == 2 {
+				var prevChangeType model.ReputationChangeType
+				if changeType == model.RPCTypeUpvoted {
+					prevChangeType = model.RPCTypeDownvoted
+				} else {
+					prevChangeType = model.RPCTypeUpvoted
+				}
+
+				err = ar.store.User.AddReputation(article.AuthorName, prevChangeType, true)
+				if err != nil {
+					fmt.Println("add reputation error", err)
+					return
+				}
+			}
+
+			err = ar.store.User.AddReputation(article.AuthorName, changeType, isRevert)
+			if err != nil {
+				fmt.Println("add reputation error", err)
+				return
+			}
+		}()
 	} else {
 		ar.ToLogin(w, r)
 		return
@@ -1580,7 +1620,7 @@ func (ar *ArticleResource) React(w http.ResponseWriter, r *http.Request) {
 	// 	ar.Error("react type error", nil, w, r, http.StatusBadRequest)
 	// 	return
 	// }
-	_, err = ar.store.Article.ReactItem(reactId)
+	reactItem, err := ar.store.Article.ReactItem(reactId)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			ar.Error("react type error", nil, w, r, http.StatusBadRequest)
@@ -1593,10 +1633,46 @@ func (ar *ArticleResource) React(w http.ResponseWriter, r *http.Request) {
 
 	userId := ar.GetLoginedUserId(w, r)
 	if userId != 0 {
-		err = ar.store.Article.ToggleReact(articleId, userId, reactId)
+		code, err := ar.store.Article.ToggleReact(articleId, userId, reactId)
 		if err != nil {
 			ar.ServerErrorp("", err, w, r)
 			return
+		}
+
+		if code != 2 {
+			go func() {
+				article, err := ar.store.Article.Item(articleId, 0)
+				if err != nil {
+					fmt.Println("add reputation error", err)
+					return
+				}
+
+				if article.AuthorId == userId {
+					return
+				}
+
+				var changeType model.ReputationChangeType
+				var isRevert bool
+				if code == -1 {
+					isRevert = true
+				}
+
+				switch reactItem.FrontId {
+				case "thanks":
+					changeType = model.RPCTypeThanked
+				case "happy":
+					changeType = model.RPCTypeLaughed
+				}
+
+				// fmt.Println("react changeType:", changeType)
+
+				if string(changeType) != "" {
+					err = ar.store.User.AddReputation(article.AuthorName, changeType, isRevert)
+					if err != nil {
+						fmt.Println("add reputation error", err)
+					}
+				}
+			}()
 		}
 	} else {
 		ar.ToLogin(w, r)
@@ -1894,13 +1970,25 @@ func (ar *ArticleResource) ToggleLock(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	rootId, _ := strconv.Atoi(r.Form.Get("root"))
+
 	err = ar.store.Article.ToggleLock(articleId)
 	if err != nil {
 		ar.ServerErrorp("", err, w, r)
 		return
 	}
 
-	ar.ToRefererUrl(w, r)
+	ar.toReplyAnchor(rootId, articleId, w, r)
+}
+
+func (ar *ArticleResource) toReplyAnchor(rootId, replyId int, w http.ResponseWriter, r *http.Request) {
+	referer := r.Referer()
+	refererUrl, _ := url.Parse(r.Referer())
+	if IsRegisterdPage(refererUrl, ar.router) && rootId != 0 && rootId != replyId {
+		http.Redirect(w, r, fmt.Sprintf("%s#ar_%d", referer, replyId), http.StatusFound)
+	} else {
+		http.Redirect(w, r, referer, http.StatusFound)
+	}
 }
 
 func (ar *ArticleResource) ToggleFadeOut(w http.ResponseWriter, r *http.Request) {
@@ -1910,11 +1998,32 @@ func (ar *ArticleResource) ToggleFadeOut(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	err = ar.store.Article.ToggleFadeOut(articleId)
+	rootId, _ := strconv.Atoi(r.Form.Get("root"))
+
+	code, err := ar.store.Article.ToggleFadeOut(articleId)
 	if err != nil {
 		ar.ServerErrorp("", err, w, r)
 		return
 	}
 
-	ar.ToRefererUrl(w, r)
+	go func() {
+		article, err := ar.store.Article.Item(articleId, 0)
+		if err != nil {
+			fmt.Println("add reputation error", err)
+			return
+		}
+
+		var isRevert bool
+		if code == -1 {
+			isRevert = true
+		}
+
+		err = ar.store.User.AddReputation(article.AuthorName, model.RPCTypeFadeOut, isRevert)
+		if err != nil {
+			fmt.Println("add reputation error", err)
+			return
+		}
+	}()
+
+	ar.toReplyAnchor(rootId, articleId, w, r)
 }

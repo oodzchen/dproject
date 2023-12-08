@@ -71,6 +71,12 @@
 		    <time title="{{.RegisteredAt}}">{{timeFormat .RegisteredAt "YYYY/MM/DD"}}</time>
 		</div>
 	    </div>
+	    <div class="data-list__row">
+		<div class="data-list__label">{{local "Reputation"}}:</div>
+		<div class="data-list__content">
+		    <time title="{{.Reputation}}">{{.Reputation}}</time>
+		</div>
+	    </div>
 	    {{if .Introduction -}}
 		<div class="data-list__row">
 		    <div class="data-list__label">{{local "Introduction"}}:</div>

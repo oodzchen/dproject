@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"regexp"
 	"strings"
 
@@ -267,7 +268,7 @@ func (u *User) queryItem(fieldName string, val any) (*model.User, error) {
 		return nil, errors.New("wrong field name")
 	}
 
-	sqlStr := `SELECT u.id, u.username, u.email, u.created_at, u.super_admin, COALESCE(u.introduction, '') as introduction, u.auth_from,
+	sqlStr := `SELECT u.id, u.username, u.email, u.created_at, u.super_admin, COALESCE(u.introduction, '') as introduction, u.auth_from, u.reputation,
 COALESCE(r.name, '') as role_name, COALESCE(r.front_id, '') AS role_front_id,
 COALESCE(p.id, 0) AS p_id, COALESCE(p.name, '') AS p_name, COALESCE(p.front_id, '') AS p_front_id, COALESCE(p.module, 'user') AS p_module, COALESCE(p.created_at, NOW()) AS p_created_at
 FROM users u
@@ -296,6 +297,7 @@ LEFT JOIN permissions p ON p.id = rp.permission_id WHERE ` + conditionStr
 			&uItem.Super,
 			&uItem.Introduction,
 			&uItem.AuthFrom,
+			&uItem.Reputation,
 			&uItem.RoleName,
 			&uItem.RoleFrontId,
 			&pItem.Id,
@@ -693,4 +695,73 @@ ORDER BY ps.created_at DESC`
 	}
 
 	return posts, nil
+}
+
+func (u *User) doAddReputation(username string, value int, comment string, changeType model.ReputationChangeType, isRevert bool) error {
+	var args = []any{username, value}
+	sqlStr := `UPDATE users SET reputation = reputation + $2 WHERE username = $1 RETURNING (id)`
+
+	var userId int
+	err := u.dbPool.QueryRow(context.Background(), sqlStr, args...).Scan(&userId)
+	if err != nil {
+		return err
+	}
+
+	err = u.logReputation(userId, value, changeType, comment, isRevert)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *User) AddReputation(username string, changeType model.ReputationChangeType, isRevert bool) error {
+	preReputation, err := u.getReputation(username)
+	if err != nil {
+		return err
+	}
+
+	changeVal := model.ReputationChangeValues[changeType]
+	if changeType == model.RPCTypeBanned {
+		changeVal = -int(math.Round(float64(preReputation) / 2))
+	}
+
+	if isRevert {
+		changeVal = -changeVal
+	}
+
+	err = u.doAddReputation(username, changeVal, "", changeType, isRevert)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *User) AddReputationVal(username string, value int, comment string, isRevert bool) error {
+	err := u.doAddReputation(username, value, comment, model.RPCTypeOther, isRevert)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *User) getReputation(username string) (int, error) {
+	var reputation int
+	err := u.dbPool.QueryRow(context.Background(), `SELECT reputation FROM users WHERE username = $1`, username).Scan(&reputation)
+	if err != nil {
+		return 0, err
+	}
+	return reputation, nil
+}
+
+func (u *User) logReputation(userId, value int, changeType model.ReputationChangeType, comment string, isRevert bool) error {
+	sqlStr := `INSERT INTO reputation_log (user_id, value_diff, type, comment, is_revert) VALUES ($1, $2, $3, $4, $5)`
+
+	_, err := u.dbPool.Exec(context.Background(), sqlStr, userId, value, changeType, comment, isRevert)
+	if err != nil {
+		return err
+	}
+	return nil
 }
