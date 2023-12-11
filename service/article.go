@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/microcosm-cc/bluemonday"
@@ -12,6 +13,7 @@ import (
 type Article struct {
 	Store         *store.Store
 	SantizePolicy *bluemonday.Policy
+	WG            *sync.WaitGroup
 }
 
 func (a *Article) Create(title, url, content string, authorId, replyToId int, categoryFrontId string, pinnedExpireAt time.Time, locked bool) (int, error) {
@@ -45,6 +47,10 @@ func (a *Article) Create(title, url, content string, authorId, replyToId int, ca
 	}
 
 	go func() {
+		if a.WG != nil {
+			defer a.WG.Done()
+		}
+
 		// fmt.Println("store:", a.Store, a.Store.Category)
 		// fmt.Println("args:", categoryFrontId, authorId, id)
 		err = a.Store.Category.Notify(categoryFrontId, authorId, id)
@@ -87,13 +93,16 @@ func (a *Article) Reply(target int, content string, authorId int, pinnedExpireAt
 	// fmt.Println("check subscribe count: ", count)
 	if count == 0 {
 		err = a.Store.Article.ToggleSubscribe(id, authorId)
-	}
-
-	if err != nil {
-		return 0, err
+		if err != nil {
+			return 0, err
+		}
 	}
 
 	go func() {
+		if a.WG != nil {
+			defer a.WG.Done()
+		}
+
 		err = a.Store.Article.Notify(authorId, target, id)
 		if err != nil {
 			// ar.ServerErrorp("", err, w, r)

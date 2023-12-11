@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/microcosm-cc/bluemonday"
@@ -108,10 +109,12 @@ func main() {
 
 	dataStore := store.New(pg.Article, pg.User, pg.Role, pg.Permission, pg.Activity, pg.Message, pg.Category)
 
+	var wg sync.WaitGroup
 	policy := bluemonday.UGCPolicy()
 	userSrv := &service.User{Store: dataStore, SantizePolicy: policy}
-	articleSrv := &service.Article{Store: dataStore, SantizePolicy: policy}
+	articleSrv := &service.Article{Store: dataStore, SantizePolicy: policy, WG: &wg}
 
+	// var wg sync.WaitGroup
 	fmt.Println("os.Args", os.Args)
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
@@ -123,11 +126,17 @@ func main() {
 			if replyToId == 0 {
 				log.Fatal("Article id is required")
 			}
+
+			wg.Add(replyNum)
 			replyArticle(userSrv, articleSrv)
 		default:
+			wg.Add(articleNum)
 			seedArticles(userSrv, articleSrv, startTime, categoryType)
 		}
 	} else {
+		wg.Add(articleNum)
 		seedArticles(userSrv, articleSrv, startTime, categoryType)
 	}
+
+	wg.Wait()
 }
