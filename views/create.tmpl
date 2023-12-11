@@ -51,6 +51,7 @@
 	    <div class="form__row">
 		<label class="form__label" for="category">{{local "Category" "Count" 1}} <small class="text-lighten-2" style="font-weight: normal">({{local "FormRequired"}})</small></label>
 		<select id="category" name="category_front_id" autocomplete="off">
+		    <option hidden disabled selected value>{{local "PleaseSelect"}}</option>
 		    {{- range .Data.Categories -}}
 			<option {{if or (eq .FrontId $article.CategoryFrontId) (eq .FrontId $currCategoryFrontId)}}selected{{end}} value="{{.FrontId}}">{{.Name}}</option>
 		    {{- end -}}

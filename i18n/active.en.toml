@@ -161,6 +161,7 @@ PasswordFormatTip = "Password must be at least {{.LeastLen}} characters long and
 Pin = "Pin"
 PinExpireAt = "Pin expires at {{.Time}}"
 PinExpireTime = "Pin expires time"
+PleaseSelect = "-- select an option --"
 PublishInfo = "By {{.Username}} "
 PublishSuccess = "Content published successfully"
 Re = "Re"

@@ -674,6 +674,10 @@ other = "置顶过期于{{.Time}}"
 hash = "sha1-c44e8c72150aca772eb3b0266831277de40dc724"
 other = "置顶过期时间"
 
+[PleaseSelect]
+hash = "sha1-88029a936db79df13179edba5c5bb2ccd2fd7241"
+other = "-- 请选择 --"
+
 [PublishInfo]
 hash = "sha1-31e59c380622bbad26b8f01bc14b9ebac08dbe95"
 other = "{{.Username}} 发布"

@@ -805,4 +805,9 @@ func (ic *I18nCustom) AddConfigs() {
 		Other: "Guide",
 	})
 
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "PleaseSelect",
+		Other: "-- select an option --",
+	})
+
 }
