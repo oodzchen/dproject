@@ -236,7 +236,7 @@ func main() {
 	newReply := gofakeit.Sentence(5 + rand.Intn(10))
 	err = runTasks("reply article", ctx,
 		chp.Navigate(mock.ServerURL),
-		chp.Click(`body > .tabs > a[title^="Hot"]`),
+		chp.Click(`body .page-tab .tabs > a[title^="Hot"]`),
 		mock.WaitFooterReady(),
 		chp.Click(`body > .article-list > li .article-list__title`),
 		mock.WaitFooterReady(),
@@ -259,7 +259,7 @@ func main() {
 	newReply = gofakeit.Sentence(5 + rand.Intn(10))
 	err = runTasks("reply comment", ctx,
 		chp.Navigate(mock.ServerURL),
-		chp.Click(`body > .tabs > a[title^="Hot"]`),
+		chp.Click(`body .page-tab .tabs > a[title^="Hot"]`),
 		mock.WaitFooterReady(),
 		chp.Click(`body > .article-list > li .article-list__title`),
 		mock.WaitFooterReady(),
