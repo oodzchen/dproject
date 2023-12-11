@@ -28,3 +28,4 @@ nginx/logs/*.pid
 tls-cache
 bin
 translate.*.toml
+.vscode

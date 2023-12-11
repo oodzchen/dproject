@@ -482,6 +482,10 @@ other = "去主頁"
 hash = "sha1-b49acb618383a8ff82afe57ddbf49c204da3b22d"
 other = "去"
 
+[Guide]
+hash = "sha1-bf073fae640ded81eeb7a4cee70faff4a623c16c"
+other = "使用說明"
+
 [HideChanges]
 hash = "sha1-58516b587981ccb2368490c86af92a91a7fc50b6"
 other = "從編輯歷史中隱藏變更"

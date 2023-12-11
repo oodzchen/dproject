@@ -30,11 +30,16 @@
 	    </div>
 	</div>
     {{- end -}}
-    
-    <div class="tabs">
+
+    <div class="page-tab">
+	<div class="tabs">
 	{{- range $sortTabs -}}
 	    <a class="tab{{if eq $data.SortType .}} active{{end}}" title="{{index $sortTabMap .}}" href="{{$routePath}}{{if ne . $data.DefaultSortType}}?sort={{.}}{{end}}">{{index $sortTabMap .}}</a>
 	{{- end -}}
+	</div>
+	<div>
+	    <a class="text-lighten" href="/guide">{{local "Guide"}}</a>
+	</div>
     </div>
 
     {{$currUser := .LoginedUser -}}

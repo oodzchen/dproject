@@ -105,6 +105,10 @@ hr{
     border-color: var(--border-color);
 }
 
+p{
+    margin-top: 0.6rem;
+}
+
 label[for]{
     white-space: nowrap;
 }

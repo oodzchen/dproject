@@ -799,4 +799,10 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "Reputation",
 		Other: "Reputation",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Guide",
+		Other: "Guide",
+	})
+
 }

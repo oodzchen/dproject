@@ -112,6 +112,7 @@ func (mr *MainResource) Routes() http.Handler {
 	})
 
 	rt.Get("/about", mr.About)
+	rt.Get("/guide", mr.Guide)
 
 	if config.Config.Debug {
 		rt.With(mdw.UserLogger(mr.uLogger, model.AcTypeDev, model.AcActionLogin, model.AcModelEmpty, mdw.ULogEmpty)).Post("/login_debug", mr.LoginDebug)
@@ -1425,6 +1426,17 @@ func (mr *MainResource) CategoryList(w http.ResponseWriter, r *http.Request) {
 		BreadCrumbs: []*model.BreadCrumb{
 			{
 				Name: mr.Local("Category", "Count", 2),
+			},
+		},
+	})
+}
+
+func (mr *MainResource) Guide(w http.ResponseWriter, r *http.Request) {
+	mr.Render(w, r, "guide", &model.PageData{
+		Title: mr.Local("Guide"),
+		BreadCrumbs: []*model.BreadCrumb{
+			{
+				Name: mr.Local("Guide"),
 			},
 		},
 	})
