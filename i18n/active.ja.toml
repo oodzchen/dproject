@@ -6,6 +6,10 @@ other = "アバウト"
 hash = "sha1-d8d5d55c4c9d25c9ac455cfdf8e691f899c49e01"
 other = "ロールを追加"
 
+[AcAction_ban_user]
+hash = "sha1-f1476b41fa29a56bfe9620ae7dcc33ce6d6fd7c3"
+other = "ユーザーを禁止しました"
+
 [AcAction_block_regions]
 hash = "sha1-ddef78212017d023b6d1b18dca61ecb8db1a50e6"
 other = "ブロックされた地域"
@@ -85,6 +89,10 @@ other = "記事を購読する"
 [AcAction_toggle_hide_history]
 hash = "sha1-5d4fa535999647127742973d933bb64d63ac05c5"
 other = "Toggle hide history"
+
+[AcAction_unban_user]
+hash = "sha1-163f3ff224ddbdbd4f4ebeaa49766641bb027499"
+other = "ユーザーの禁止を解除しました"
 
 [AcAction_update_intro]
 hash = "sha1-b763c995ee533940f9722582fd0e7386b294392e"
@@ -166,9 +174,17 @@ other = "追加"
 hash = "sha1-6a72085653e4c5be8c7640c868ef787cbcf063d1"
 other = "すべて"
 
+[AlreadyBan]
+hash = "sha1-566ab09c9de263e45078076f5f274b2f9189d76c"
+other = "既に禁止されています"
+
 [AlreadyExists]
 hash = "sha1-45e9b256082a5147e111a0316a945de71823f64e"
 other = "{{.FieldNames}}は既に存在します"
+
+[AlreadyUnban]
+hash = "sha1-39ccca5124aa94a3612c1e58afab50d4ff59c1db"
+other = "既に禁止解除されています"
 
 [Anchor]
 hash = "sha1-8f8c77e7404ca30dcccf92c73c985f04a86420e7"
@@ -242,6 +258,22 @@ other = "直接リンクを提供してください。リダイレクトのな�
 hash = "sha1-5fda23d62015b99fb2a9f86b38bcdf2bdf7609c8"
 other = "著者"
 
+[BannedDuration]
+hash = "sha1-e2778049dc6fd459dc12b7a39718d561524d70b7"
+other = "禁止期間"
+
+[BannedForeverTip]
+hash = "sha1-0bf20bafb31211c5519b4a751daaf286ecdece05"
+other = "このアカウントは永久に禁止されています"
+
+[BannedStatusTip]
+hash = "sha1-5feae18f7153a759cb6ce5feb47c11786a84aeb0"
+other = "このアカウントは{{.CountDays}}日間禁止されています"
+
+[BannedTimes]
+hash = "sha1-55de25fb2bd3d9ae718afc1c092d0d205b7ff563"
+other = "禁止回数"
+
 [Best]
 hash = "sha1-77003d07271f14977f2cf290c9d16c81e05ab6dd"
 other = "最高"
@@ -258,6 +290,10 @@ other = "既にブロックされた地域"
 hash = "sha1-89dd3635b4b67d2f0953f56dc2f801b15588dd10"
 other = "DizKaz"
 
+[BtnBan]
+hash = "sha1-bfa1bfbf6c1cd85f3d2b4f696a8d5761ff6c91ee"
+other = "禁止"
+
 [BtnBlockRegions]
 hash = "sha1-fac26d551cd1b46d04bb9460e6dd805cd357c2b3"
 other = "ブロックされた地域"
@@ -270,6 +306,10 @@ other = "フェードアウトをキャンセルする"
 hash = "sha1-bbfa773e5a63a5ea58c9b6207e608ca0120e592a"
 other = "閉じる"
 
+[BtnConfirm]
+hash = "sha1-04a212215ef9fbf686d280802eb81ee7a6e681cd"
+other = "確認"
+
 [BtnDelete]
 hash = "sha1-f6fdbe48dc54dd86f63097a03bd24094dedd713a"
 other = "削除"
@@ -277,6 +317,10 @@ other = "削除"
 [BtnEdit]
 hash = "sha1-5301648dcf6b53cefc9ed52999aaa92d4603cae0"
 other = "編集"
+
+[BtnEditIntro]
+hash = "sha1-06a27c5099d7f3a48585d75a1d0422cd0f4124c4"
+other = "紹介文を編集"
 
 [BtnFadeOut]
 hash = "sha1-5809884436e4db61ee8435bf58f20a45c7523538"
@@ -342,6 +386,10 @@ other = "送信"
 hash = "sha1-d6981f74767d6c63d6062ad21b3bdfcd0d0d6602"
 other = "購読"
 
+[BtnUnban]
+hash = "sha1-d2671bfbfdd28d9143047f6a5239296f8a690156"
+other = "禁止解除"
+
 [BtnUnhide]
 hash = "sha1-37f0297a2ed2f8c33d53336d888f92a37422700d"
 other = "Unhide"
@@ -366,6 +414,10 @@ other = "投票を取り消す"
 hash = "sha1-6ccb60071be8f00760a3824d9f7d0fad57de789f"
 other = "カテゴリー"
 
+[ConfirmBan]
+hash = "sha1-1e7f1794ef60c65c4581f9b5ec14bf587d3b4ead"
+other = "{{.Name}}を禁止しますか？"
+
 [ConfirmDelete]
 hash = "sha1-5c3d4418dea97785194bdc8d2ba60ca6dec1c61a"
 other = "削除を確認"
@@ -373,6 +425,10 @@ other = "削除を確認"
 [ConfirmNewPassword]
 hash = "sha1-f85039fd8e49f782229c7c4e0f1b3b2a0f95e9e4"
 other = "新しいパスワードを確認する"
+
+[ConfirmUnban]
+hash = "sha1-68b2c9ba2a9fdb998938c497ee07c6a9b652edbd"
+other = "{{.Name}}の禁止を解除しますか？"
 
 [Content]
 hash = "sha1-4f9be057f0ea5d2ba72fd2c810e8d7b9aa98b469"
@@ -457,6 +513,10 @@ other = "フォントサイズ"
 [FontSmall]
 hash = "sha1-c74fd9714e38b26dbf7f58d75f93cfc977a05ba6"
 other = "小さい"
+
+[Forever]
+hash = "sha1-2502483d832cd812cb8342e1e9630c3fc9b01539"
+other = "永久に"
 
 [FormOptional]
 hash = "sha1-0c6c4102d4dfec3b1aa41117e0e344046c58a151"
@@ -849,6 +909,18 @@ other = "ユーザーインターフェースの設定が保存されました"
 [URL]
 hash = "sha1-0e2d9b0777a485c1276de0803c12a7d76fbc5c39"
 other = "URL"
+
+[UnbanSuccessTip]
+hash = "sha1-73ae81339e2c295cb3ee421cec8ca69e0037e5a8"
+other = "禁止解除が成功しました"
+
+[UnbanTime]
+hash = "sha1-0f3a9ece3731e86690ce0bdb59f7080e7a294d64"
+other = "禁止解除の時間"
+
+[UnitDay]
+hash = "sha1-48c94d339865c8fbfadeb9bcbfe2a3d57d961ce3"
+other = "{{.Count}}日間"
 
 [UnitedStates]
 hash = "sha1-768685ca582abd0af2fbb57ca37752aa98c9372b"

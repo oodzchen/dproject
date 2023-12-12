@@ -28,6 +28,8 @@ ENUM(
    block_regions, // Block regions
    lock_article, // Lock article
    fade_out_article, // Fade out article
+   ban_user, // Ban user
+   unban_user, // Unban user
 )
 */
 type AcAction string

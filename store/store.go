@@ -106,7 +106,8 @@ type UserStore interface {
 	ItemWithUsernameEmail(usernameEmail string) (*model.User, error)
 	Exists(email, username string) (int, error)
 	// Delete(int) error
-	// Ban(int) error
+	Ban(username string, bannedDays int) (int, error)
+	Unban(username string) (int, error)
 	GetPosts(username string, listType string) ([]*model.Article, error)
 	GetSavedPosts(username string) ([]*model.Article, error)
 	GetSubscribedPosts(username string) ([]*model.Article, error)

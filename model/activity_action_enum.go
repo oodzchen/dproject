@@ -84,6 +84,12 @@ const (
 	// AcActionFadeOutArticle is a AcAction of type fade_out_article.
 	// Fade out article
 	AcActionFadeOutArticle AcAction = "fade_out_article"
+	// AcActionBanUser is a AcAction of type ban_user.
+	// Ban user
+	AcActionBanUser AcAction = "ban_user"
+	// AcActionUnbanUser is a AcAction of type unban_user.
+	// Unban user
+	AcActionUnbanUser AcAction = "unban_user"
 )
 
 var ErrInvalidAcAction = fmt.Errorf("not a valid AcAction, try [%s]", strings.Join(_AcActionNames, ", "))
@@ -112,6 +118,8 @@ var _AcActionNames = []string{
 	string(AcActionBlockRegions),
 	string(AcActionLockArticle),
 	string(AcActionFadeOutArticle),
+	string(AcActionBanUser),
+	string(AcActionUnbanUser),
 }
 
 // AcActionNames returns a list of possible string values of AcAction.
@@ -147,6 +155,8 @@ func AcActionValues() []AcAction {
 		AcActionBlockRegions,
 		AcActionLockArticle,
 		AcActionFadeOutArticle,
+		AcActionBanUser,
+		AcActionUnbanUser,
 	}
 }
 
@@ -186,6 +196,8 @@ var _AcActionValue = map[string]AcAction{
 	"block_regions":       AcActionBlockRegions,
 	"lock_article":        AcActionLockArticle,
 	"fade_out_article":    AcActionFadeOutArticle,
+	"ban_user":            AcActionBanUser,
+	"unban_user":          AcActionUnbanUser,
 }
 
 // ParseAcAction attempts to convert a string to a AcAction.
@@ -224,6 +236,8 @@ var _AcActionTextMap = map[AcAction]string{
 	AcActionBlockRegions:      "Block regions",
 	AcActionLockArticle:       "Lock article",
 	AcActionFadeOutArticle:    "Fade out article",
+	AcActionBanUser:           "Ban user",
+	AcActionUnbanUser:         "Unban user",
 }
 
 func (x AcAction) Text(upCaseHead bool, i18nCustom *i18nc.I18nCustom) string {
@@ -336,5 +350,13 @@ func AcActionAddI18nConfigs(ic *i18nc.I18nCustom) {
 	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "AcAction_fade_out_article",
 		Other: "Fade out article",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_ban_user",
+		Other: "Ban user",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AcAction_unban_user",
+		Other: "Unban user",
 	})
 }

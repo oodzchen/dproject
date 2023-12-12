@@ -25,29 +25,12 @@ func (u *User) List(page, pageSize int, oldest bool, username, roleFrontId strin
 		pageSize = DefaultPage
 	}
 
-	// 	sqlStr := `SELECT
-	//     u.id, u.username, u.email, u.created_at,
-	//     COALESCE(u.introduction, ''),
-	//     COALESCE(r.name, '') as role_name,
-	//     COALESCE(r.front_id, '') AS role_front_id,
-	//     COALESCE(p.id, 0) AS p_id,
-	//     COALESCE(p.name, '') AS p_name,
-	//     COALESCE(p.front_id, '') AS p_front_id,
-	//     COALESCE(p.module, 'user') AS p_module,
-	//     COALESCE(p.created_at, NOW()) AS p_created_at
-	// FROM users u
-	// LEFT JOIN user_roles ur ON ur.user_id = u.id
-	// LEFT JOIN roles r ON ur.role_id = r.id
-	// LEFT JOIN role_permissions rp ON rp.role_id = r.id
-	// LEFT JOIN permissions p ON p.id = rp.permission_id
-	// WHERE u.id IN ( SELECT id FROM users OFFSET $1 LIMIT $2)`
-
 	sqlStr := `SELECT 
-    u.id, u.username, u.email, u.created_at, 
+    u.id, u.username, u.email, u.created_at, u.banned_start_at, COALESCE(u.banned_day_num, 0), u.banned_count,
     COALESCE(u.introduction, ''),
     COALESCE(r.name, '') as role_name, 
     COALESCE(r.front_id, '') AS role_front_id,
-COUNT(*) OVER() AS total
+    COUNT(*) OVER() AS total
 FROM users u
 LEFT JOIN user_roles ur ON ur.user_id = u.id
 LEFT JOIN roles r ON ur.role_id = r.id
@@ -103,6 +86,9 @@ LEFT JOIN roles r ON ur.role_id = r.id
 			&item.Name,
 			&item.Email,
 			&item.RegisteredAt,
+			&item.NullBannedStartAt,
+			&item.BannedDayNum,
+			&item.BannedCount,
 			&item.Introduction,
 			&item.RoleName,
 			&item.RoleFrontId,
@@ -118,22 +104,8 @@ LEFT JOIN roles r ON ur.role_id = r.id
 			return nil, 0, err
 		}
 
-		// if v, ok := listMap[item.Id]; ok {
-		// 	if pItem.Id > 0 {
-		// 		if v.Permissions != nil {
-		// 			v.Permissions = append(v.Permissions, &pItem)
-		// 		} else {
-		// 			v.Permissions = []*model.Permission{&pItem}
-		// 		}
-		// 	}
-		// } else {
-		// 	if pItem.Id > 0 {
-		// 		item.Permissions = []*model.Permission{&pItem}
-		// 	}
-
-		// 	listMap[item.Id] = &item
-		// 	list = append(list, &item)
-		// }
+		item.FormatNullVals()
+		item.UpdateBannedState()
 		list = append(list, &item)
 	}
 
@@ -197,41 +169,6 @@ func validUserUpdateField(key string) bool {
 	return false
 }
 
-// func (u *User) Update(item *model.User, fieldNames []string) (int, error) {
-// 	for _, field := range fieldNames {
-// 		if !validUserUpdateField(field) {
-// 			return 0, errors.New(fmt.Sprintf("'%s' is not allowed to update", field))
-// 		}
-// 	}
-
-// 	var updateStr []string
-// 	var updateVals []any
-// 	itemVal := reflect.ValueOf(*item)
-
-// 	dbFieldNameMap := map[string]string{
-// 		"Introduction": "introduction",
-// 		"Banned":       "banned",
-// 	}
-// 	for idx, field := range fieldNames {
-// 		updateStr = append(updateStr, fmt.Sprintf("%s = $%d", dbFieldNameMap[field], idx+1))
-// 		updateVals = append(updateVals, itemVal.FieldByName(field))
-// 	}
-
-// 	sqlStr := "UPDATE users SET " + strings.Join(updateStr, ", ") + fmt.Sprintf(" WHERE id = $%d RETURNING(id)", len(updateStr)+1)
-// 	updateVals = append(updateVals, item.Id)
-
-// 	// fmt.Println("update sql string: ", sqlStr)
-// 	// fmt.Println("update vals: ", updateVals)
-
-// 	var id int
-// 	err := u.dbPool.QueryRow(context.Background(), sqlStr, updateVals...).Scan(&id)
-// 	if err != nil {
-// 		return 0, err
-// 	}
-
-// 	return id, nil
-// }
-
 func (u *User) UpdateIntroduction(username, introduction string) error {
 	_, err := u.dbPool.Exec(context.Background(), `UPDATE users SET introduction = $1 WHERE username = $2`, introduction, username)
 	if err != nil {
@@ -268,7 +205,7 @@ func (u *User) queryItem(fieldName string, val any) (*model.User, error) {
 		return nil, errors.New("wrong field name")
 	}
 
-	sqlStr := `SELECT u.id, u.username, u.email, u.created_at, u.super_admin, COALESCE(u.introduction, '') as introduction, u.auth_from, u.reputation,
+	sqlStr := `SELECT u.id, u.username, u.email, u.created_at, u.super_admin, COALESCE(u.introduction, '') as introduction, u.auth_from, u.reputation, u.banned_start_at, COALESCE(u.banned_day_num, 0), u.banned_count,
 COALESCE(r.name, '') as role_name, COALESCE(r.front_id, '') AS role_front_id,
 COALESCE(p.id, 0) AS p_id, COALESCE(p.name, '') AS p_name, COALESCE(p.front_id, '') AS p_front_id, COALESCE(p.module, 'user') AS p_module, COALESCE(p.created_at, NOW()) AS p_created_at
 FROM users u
@@ -298,6 +235,9 @@ LEFT JOIN permissions p ON p.id = rp.permission_id WHERE ` + conditionStr
 			&uItem.Introduction,
 			&uItem.AuthFrom,
 			&uItem.Reputation,
+			&uItem.NullBannedStartAt,
+			&uItem.BannedDayNum,
+			&uItem.BannedCount,
 			&uItem.RoleName,
 			&uItem.RoleFrontId,
 			&pItem.Id,
@@ -330,10 +270,8 @@ LEFT JOIN permissions p ON p.id = rp.permission_id WHERE ` + conditionStr
 		return nil, model.AppErrUserNotExist
 	}
 
-	// fmt.Println("user data: ", item)
-
-	// item.FormatTimeStr()
 	item.FormatNullVals()
+	item.UpdateBannedState()
 
 	return &item, nil
 }
@@ -392,12 +330,38 @@ func (u *User) DeleteHard(id int) error {
 	return nil
 }
 
-func (u *User) Ban(id int) error {
-	err := u.dbPool.QueryRow(context.Background(), "UPDATE users SET banned = true WHERE id = $1", id).Scan(nil)
+func (u *User) Ban(username string, bannedDays int) (int, error) {
+	var userId int
+	sqlStr := `UPDATE users SET banned_count = banned_count + 1, banned_start_at = NOW(), banned_day_num = $2 WHERE username = $1 RETURNING (id)`
+
+	err := u.dbPool.QueryRow(context.Background(), sqlStr, username, bannedDays).Scan(&userId)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return nil
+
+	_, err = u.SetRole(userId, "banned_user")
+	if err != nil {
+		return 0, err
+	}
+
+	return userId, nil
+}
+
+func (u *User) Unban(username string) (int, error) {
+	var userId int
+	sqlStr := `UPDATE users SET banned_start_at = null, banned_day_num = 0 WHERE username = $1 RETURNING (id)`
+
+	err := u.dbPool.QueryRow(context.Background(), sqlStr, username).Scan(&userId)
+	if err != nil {
+		return 0, err
+	}
+
+	_, err = u.SetRole(userId, "common_user")
+	if err != nil {
+		return 0, err
+	}
+
+	return userId, nil
 }
 
 func (u *User) GetPassword(username string) (string, error) {
@@ -424,43 +388,6 @@ func (u *User) GetPassword(username string) (string, error) {
 
 	return hasedPwd, nil
 }
-
-// func (u *User) Login(username string, pwd string) (int, error) {
-// 	var id int
-// 	var hasedPwd string
-// 	var isEmail = false
-
-// 	if regexp.MustCompile(`@`).Match([]byte(username)) {
-// 		isEmail = true
-// 	}
-
-// 	sqlStr := `SELECT id, password FROM users `
-// 	if isEmail {
-// 		sqlStr += "WHERE email = $1"
-// 	} else {
-// 		sqlStr += "WHERE username ILIKE $1"
-// 	}
-
-// 	sqlStr += " AND auth_from = 'self'"
-
-// 	err := u.dbPool.QueryRow(context.Background(), sqlStr, username).Scan(&id, &hasedPwd)
-// 	if err != nil {
-// 		return 0, err
-// 	}
-
-// 	// fmt.Printf("query result: password: %s\n", hasedPwd)
-// 	// fmt.Printf("query result: id: %d\n", id)
-
-// 	err = bcrypt.CompareHashAndPassword([]byte(hasedPwd), []byte(pwd))
-
-// 	if err != nil {
-// 		return 0, err
-// 	}
-
-// 	// fmt.Println("pass! user id: ", id)
-
-// 	return id, nil
-// }
 
 func (u *User) GetPosts(username string, listType string) ([]*model.Article, error) {
 	sqlStrHead := `

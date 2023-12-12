@@ -1,19 +1,46 @@
 {{define "user_item" -}}
 
+    {{- $data := .Data -}}
+    {{- $userInfo := $data.UserInfo -}}
+    {{- $csrfField := .CSRFField -}}
+    {{- $tabs := list "all" "article" "reply" -}}
+    {{- $tabsMap := dict "all" (local "All") "article" (local "Article" "Count" 2) "reply" (local "Reply" "Count" 2) "saved" (local "Saved") "subscribed" (local "Subscribed") "activity" (local "Activity" "Count" 2) -}}
+    {{- $isCurrUser := false -}}
+
+    {{- if .LoginedUser -}}
+	{{- if eq .LoginedUser.Id $userInfo.Id -}}
+	    {{- $isCurrUser = true -}}
+	    {{- $tabs = append $tabs "saved" -}}
+	    {{- $tabs = append $tabs "subscribed" -}}
+	{{- end -}}
+
+	{{- if permit "user" "access_activity" -}}
+	    {{- $tabs = append $tabs "activity" -}}
+	{{- end -}}
+    {{- end -}}
+
     {{template "head" . -}}
 
     {{- if permit "user" "manage" -}}
 	<fieldset>
 	    <legend>{{local "UserManage"}}</legend>
-	    {{if permit "user" "update_role"}}<a href="/users/{{.Data.UserInfo.Name}}/set_role">{{local "UpdateRole"}}</a>&nbsp;&nbsp;{{end}}
-	    {{if permit "user" "update_intro_others"}}<a href="/users/{{.Data.UserInfo.Name}}/edit">{{local "BtnEdit"}}{{local "Introduction"}}</a>&nbsp;&nbsp;{{end}}
+	    {{if and (permit "user" "update_role") (not $userInfo.Banned)}}<a href="/users/{{$userInfo.Name}}/set_role">{{local "UpdateRole"}}</a>&nbsp;&nbsp;{{end}}
+	    {{if permit "user" "update_intro_others"}}<a href="/users/{{$userInfo.Name}}/edit">{{local "BtnEditIntro"}}</a>&nbsp;&nbsp;{{end}}
+	    
+	    {{if permit "user" "update_intro_others" -}}
+		{{- if not $userInfo.Banned -}}
+		    <a href="/users/{{$userInfo.Name}}/ban">{{local "BtnBan"}}</a>&nbsp;&nbsp;
+		{{- else -}}
+		    <a href="/users/{{$userInfo.Name}}/unban">{{local "BtnUnban"}}</a>&nbsp;&nbsp;
+		{{- end -}}
+	    {{end -}}
 	    <hr/>
 	    <div>
 		<small>
 		    <div>
 			<b>{{local "Role" "Count" 2}}</b>:
 			<br/>
-			<span {{if eq .Data.UserInfo.RoleFrontId "banned_user"}}style="color:red"{{end}}>{{.Data.UserInfo.RoleName}}</span>
+			<span {{if eq $userInfo.RoleFrontId "banned_user"}}style="color:red"{{end}}>{{$userInfo.RoleName}}</span>
 		    </div>
 		    <br/>
 		    <div>
@@ -26,23 +53,19 @@
 	</fieldset>
     {{- end -}}
 
-    {{template "user_basic_info" .Data.UserInfo -}}
-
-    {{- $data := .Data -}}
-    {{- $csrfField := .CSRFField -}}
-    {{- $tabs := list "all" "article" "reply" -}}
-    {{- $tabsMap := dict "all" (local "All") "article" (local "Article" "Count" 2) "reply" (local "Reply" "Count" 2) "saved" (local "Saved") "subscribed" (local "Subscribed") "activity" (local "Activity" "Count" 2) -}}
-
-    {{- if .LoginedUser -}}
-	{{- if eq .LoginedUser.Id .Data.UserInfo.Id -}}
-	    {{- $tabs = append $tabs "saved" -}}
-	    {{- $tabs = append $tabs "subscribed" -}}
-	{{- end -}}
-
-	{{- if permit "user" "access_activity" -}}
-	    {{- $tabs = append $tabs "activity" -}}
+    {{- if or $isCurrUser (permit "user" "manage") -}}
+	{{- if $userInfo.Banned -}}
+	    <div id="page-flash" class="page-flash" style="color:red">
+		{{- if lt $userInfo.BannedDayNum 0 -}}
+		    <span>{{local "BannedForeverTip"}}</span>
+		{{- else -}}
+		    <span>{{local "BannedStatusTip" "CountDays" (local "UnitDay" "Count" $userInfo.BannedDayNum)}}</span>
+		{{- end -}}
+	    </div>
 	{{- end -}}
     {{- end -}}
+    
+    {{template "user_basic_info" $userInfo -}}
 
     <div class="tabs">
 	{{- range $tabs -}}
@@ -68,7 +91,7 @@
 	    <div class="data-list__row">
 		<div class="data-list__label">{{local "JoinAt"}}:</div>
 		<div class="data-list__content">
-		    <time title="{{.RegisteredAt}}">{{timeFormat .RegisteredAt "YYYY/MM/DD"}}</time>
+		    <time title="{{.RegisteredAt}}">{{timeFormat .RegisteredAt "YYYY-MM"}}</time>
 		</div>
 	    </div>
 	    <div class="data-list__row">

@@ -810,4 +810,65 @@ func (ic *I18nCustom) AddConfigs() {
 		Other: "-- select an option --",
 	})
 
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AlreadyBan",
+		Other: "Already banned",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AlreadyUnban",
+		Other: "Already unbanned",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "ConfirmBan",
+		Other: "Confirm to ban {{.Name}}?",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "ConfirmUnban",
+		Other: "Confirm to unban {{.Name}}?",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "UnbanTime",
+		Other: "Unban time",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "UnitDay",
+		One:   "{{.Count}} day",
+		Other: "{{.Count}} days",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Forever",
+		Other: "Forever",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BannedDuration",
+		Other: "Banned duration",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BannedTimes",
+		Other: "Banned times",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BannedStatusTip",
+		Other: "This account is banned for {{.CountDays}}",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BannedForeverTip",
+		Other: "This account is banned forever",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "UnbanSuccessTip",
+		Other: "Unbanned successfully",
+	})
+
 }

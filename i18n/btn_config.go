@@ -132,4 +132,24 @@ func (ic *I18nCustom) AddBtnConfigs() {
 		ID:    "BtnCancelFadeOut",
 		Other: "Cancel Fade Out",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnBan",
+		Other: "Ban",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnUnban",
+		Other: "Unban",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnEditIntro",
+		Other: "Edit Introduction",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "BtnConfirm",
+		Other: "Confirm",
+	})
 }

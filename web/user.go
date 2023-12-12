@@ -52,7 +52,14 @@ func (ur *UserResource) Routes() http.Handler {
 			[]string{"user.update_role"},
 			ur,
 		)).Group(func(r chi.Router) {
-			// r.Get("/ban", ur.BanPage)
+			r.Get("/ban", ur.BanPage)
+			r.Get("/unban", ur.UnbanPage)
+			r.With(mdw.UserLogger(
+				ur.uLogger, model.AcTypeManage, model.AcActionBanUser, model.AcModelUser, mdw.ULogLoginedUserId),
+			).Post("/ban", ur.Ban)
+			r.With(mdw.UserLogger(
+				ur.uLogger, model.AcTypeManage, model.AcActionUnbanUser, model.AcModelUser, mdw.ULogLoginedUserId),
+			).Post("/unban", ur.Unban)
 			r.Get("/set_role", ur.SetRolePage)
 			r.With(mdw.UserLogger(
 				ur.uLogger, model.AcTypeManage, model.AcActionSetRole, model.AcModelUser, mdw.ULogLoginedUserId),
@@ -275,47 +282,6 @@ func (ur *UserResource) handleItemPage(w http.ResponseWriter, r *http.Request, p
 	})
 }
 
-func (ur *UserResource) BanPage(w http.ResponseWriter, r *http.Request) {
-	userId, err := strconv.Atoi(chi.URLParam(r, "userId"))
-	if err != nil {
-		ur.Error("", errors.WithStack(err), w, r, http.StatusBadRequest)
-		return
-	}
-
-	user, err := ur.store.User.Item(userId)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			ur.Error("", nil, w, r, http.StatusNotFound)
-		} else {
-			ur.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
-		}
-		return
-	}
-
-	if user.RoleFrontId == model.DefaultUserRoleBanned {
-		ur.Session("one", w, r).Flash("Already banned")
-		http.Redirect(w, r, fmt.Sprintf("/users/%d", user.Id), http.StatusFound)
-		return
-	}
-
-	type pageData struct {
-		UserData *model.User
-	}
-
-	ur.Render(w, r, "user_role_form", &model.PageData{
-		Title: "Confirm to ban " + user.Name,
-		Data: &pageData{
-			UserData: user,
-		},
-		BreadCrumbs: []*model.BreadCrumb{
-			{
-				Path: fmt.Sprintf("/users/%s", user.Name),
-				Name: user.Name,
-			},
-		},
-	})
-}
-
 func (ur *UserResource) SetRole(w http.ResponseWriter, r *http.Request) {
 	username := chi.URLParam(r, "username")
 	if username == "" {
@@ -396,6 +362,11 @@ func (ur *UserResource) SetRolePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if user.Banned {
+		ur.Error("Please continue after unbanned the user.", nil, w, r, http.StatusForbidden)
+		return
+	}
+
 	wholeRoleList, err := ur.store.Role.List(1, 999)
 	if err != nil {
 		ur.Error("", err, w, r, http.StatusInternalServerError)
@@ -412,6 +383,10 @@ func (ur *UserResource) SetRolePage(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if item.FrontId == "admin" && !canSetAdmin {
+			continue
+		}
+
+		if item.FrontId == "banned_user" {
 			continue
 		}
 
@@ -519,6 +494,146 @@ func (ur *UserResource) UpdateUserProfile(w http.ResponseWriter, r *http.Request
 	oneSess := ur.Session("one", w, r)
 	oneSess.Raw.AddFlash(ur.i18nCustom.MustLocalize("AccountSaveSuccess", "", ""))
 	oneSess.Raw.Save(r, w)
+
+	http.Redirect(w, r, fmt.Sprintf("/users/%s", username), http.StatusFound)
+}
+
+func (ur *UserResource) BanPage(w http.ResponseWriter, r *http.Request) {
+	username := chi.URLParam(r, "username")
+	if username == "" {
+		ur.Error("", errors.New("username is empty"), w, r, http.StatusBadRequest)
+		return
+	}
+	user, err := ur.store.User.ItemWithUsername(username)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			ur.Error("", nil, w, r, http.StatusNotFound)
+		} else {
+			ur.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if user.Banned {
+		ur.Session("one", w, r).Flash(ur.Local("AlreadyBan"))
+		http.Redirect(w, r, fmt.Sprintf("/users/%d", user.Id), http.StatusFound)
+		return
+	}
+
+	type pageData struct {
+		UserData *model.User
+	}
+
+	ur.Render(w, r, "user_ban", &model.PageData{
+		Title: ur.Local("ConfirmBan", "Name", user.Name),
+		Data: &pageData{
+			UserData: user,
+		},
+		BreadCrumbs: []*model.BreadCrumb{
+			{
+				Path: fmt.Sprintf("/users/%s", user.Name),
+				Name: user.Name,
+			},
+		},
+	})
+}
+
+func (ur *UserResource) Ban(w http.ResponseWriter, r *http.Request) {
+	username := chi.URLParam(r, "username")
+	bannedDays := r.FormValue("banned_days")
+	comment := strings.TrimSpace(r.FormValue("comment"))
+
+	if bannedDays == "" {
+		ur.Error(
+			ur.Local("Required", "FieldNames", ur.Local("BannedDuration")),
+			errors.New("banned_days is required"),
+			w,
+			r,
+			http.StatusBadRequest,
+		)
+		return
+	}
+
+	if comment == "" {
+		ur.Error(
+			ur.Local("Required", "FieldNames", ur.Local("Reason")),
+			errors.New("comment is required"),
+			w,
+			r,
+			http.StatusBadRequest,
+		)
+		return
+	}
+
+	dayNum, err := strconv.Atoi(bannedDays)
+	if err != nil {
+		ur.ServerErrorp("", err, w, r)
+		return
+	}
+
+	// fmt.Println("username:", username)
+	// fmt.Println("banned days:", bannedDays)
+	// fmt.Println("comment:", comment)
+
+	_, err = ur.store.User.Ban(username, dayNum)
+	if err != nil {
+		ur.ServerErrorp("", err, w, r)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/users/%s", username), http.StatusFound)
+}
+
+func (ur *UserResource) UnbanPage(w http.ResponseWriter, r *http.Request) {
+	username := chi.URLParam(r, "username")
+	if username == "" {
+		ur.Error("", errors.New("username is empty"), w, r, http.StatusBadRequest)
+		return
+	}
+	user, err := ur.store.User.ItemWithUsername(username)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			ur.Error("", nil, w, r, http.StatusNotFound)
+		} else {
+			ur.Error("", errors.WithStack(err), w, r, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if !user.Banned {
+		ur.Session("one", w, r).Flash(ur.Local("AlreadyUnban"))
+		http.Redirect(w, r, fmt.Sprintf("/users/%d", user.Id), http.StatusFound)
+		return
+	}
+
+	type pageData struct {
+		UserData *model.User
+	}
+
+	ur.Render(w, r, "user_unban", &model.PageData{
+		Title: ur.Local("ConfirmUnban", "Name", user.Name),
+		Data: &pageData{
+			UserData: user,
+		},
+		BreadCrumbs: []*model.BreadCrumb{
+			{
+				Path: fmt.Sprintf("/users/%s", user.Name),
+				Name: user.Name,
+			},
+		},
+	})
+}
+
+func (ur *UserResource) Unban(w http.ResponseWriter, r *http.Request) {
+	username := chi.URLParam(r, "username")
+
+	_, err := ur.store.User.Unban(username)
+	if err != nil {
+		ur.ServerErrorp("", err, w, r)
+		return
+	}
+
+	ur.Session("one", w, r).Flash(ur.Local("UnbanSuccessTip"))
 
 	http.Redirect(w, r, fmt.Sprintf("/users/%s", username), http.StatusFound)
 }

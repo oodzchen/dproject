@@ -56,23 +56,28 @@ var ReputationChangeValues = map[ReputationChangeType]int{
 }
 
 type User struct {
-	Id               int
-	Name             string
-	Email            string
-	Password         string
-	RegisteredAt     time.Time
-	RegisteredAtStr  string
-	NullIntroduction pgtype.Text
-	Introduction     string
-	Deleted          bool
-	Banned           bool
-	PasswordHased    bool
-	RoleName         string
-	RoleFrontId      string
-	Permissions      []*Permission
-	Super            bool
-	AuthFrom         AuthType
-	Reputation       int
+	Id                int
+	Name              string
+	Email             string
+	Password          string
+	RegisteredAt      time.Time
+	RegisteredAtStr   string
+	NullIntroduction  pgtype.Text
+	Introduction      string
+	Deleted           bool
+	Banned            bool
+	PasswordHased     bool
+	RoleName          string
+	RoleFrontId       string
+	Permissions       []*Permission
+	Super             bool
+	AuthFrom          AuthType
+	Reputation        int
+	NullBannedStartAt pgtype.Timestamp
+	BannedStartAt     time.Time
+	BannedEndAt       time.Time
+	BannedDayNum      int
+	BannedCount       int
 }
 
 // func (u *User) FormatTimeStr() {
@@ -82,6 +87,19 @@ type User struct {
 func (u *User) FormatNullVals() {
 	if u.NullIntroduction.Valid {
 		u.Introduction = u.NullIntroduction.String
+	}
+
+	if u.NullBannedStartAt.Valid {
+		u.BannedStartAt = u.NullBannedStartAt.Time
+		u.BannedEndAt = u.BannedStartAt.Add(time.Duration(u.BannedDayNum) * 24 * time.Hour)
+	}
+}
+
+func (u *User) UpdateBannedState() {
+	if (!u.BannedEndAt.IsZero() && u.BannedEndAt.Compare(time.Now()) > 0) || u.RoleFrontId == "banned_user" {
+		u.Banned = true
+	} else {
+		u.Banned = false
 	}
 }
 

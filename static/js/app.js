@@ -77,6 +77,48 @@
         }
     })
 
+    // addEvents('.ban-form input[type="radio"]', 'change', function(ev) {
+    //     const timeEl = document.querySelector('input.ban-expire')
+    //     console.log(ev, timeEl)
+    //     console.log(ev.target.value)
+    //     const dayNum = parseInt(ev.target.value, 10)
+    //     if (dayNum > 0) {
+    //         const expTime = new Date(Date.now() + dayNum * 24 * 60 * 60 * 1000)
+    //         const [year, month, day, hour, minute] = [expTime.getFullYear(), expTime.getMonth() + 1, expTime.getDate(), expTime.getHours(), expTime.getMinutes()]
+    //         let expTimeStr = year
+    //         if (month < 10) {
+    //             expTimeStr += '-0' + month
+    //         } else {
+    //             expTimeStr += '-' + month
+    //         }
+
+    //         if (day < 10) {
+    //             expTimeStr += '-0' + day
+    //         } else {
+    //             expTimeStr += '-' + day
+    //         }
+
+    //         expTimeStr += 'T'
+
+    //         if (hour < 10) {
+    //             expTimeStr += '0' + hour
+    //         } else {
+    //             expTimeStr += '' + hour
+    //         }
+
+    //         if (minute < 10) {
+    //             expTimeStr += ':0' + minute
+    //         } else {
+    //             expTimeStr += ':' + minute
+    //         }
+
+    //         // console.log("expTimeStr:", expTimeStr)
+    //         timeEl.value = expTimeStr
+    //     } else {
+    //         timeEl.value = ""
+    //     }
+    // })
+
     document.querySelectorAll('.input-select-text').forEach(function(el) {
         // console.log('el:', el)
         el.focus()

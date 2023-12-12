@@ -200,3 +200,7 @@ VALUES
 ('emacs', 'Emacs', 1, '', true),
 ('ai', '人工智能', 1, '', true),
 ('typescript', 'TypeScript', 1, '', true);
+
+ALTER TABLE users ADD COLUMN banned_start_at TIMESTAMP;
+ALTER TABLE users ADD COLUMN banned_day_num INTEGER;
+ALTER TABLE users ADD COLUMN banned_count INTEGER NOT NULL DEFAULT 0;

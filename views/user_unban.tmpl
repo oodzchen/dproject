@@ -1,0 +1,22 @@
+{{ define "user_unban" }}
+    {{template "head" . -}}
+
+    {{template "user_basic_info" .Data.UserData -}}
+    
+    {{- $userData := .Data.UserData -}}
+
+    <div class="card">
+	<form class="form" action="/users/{{$userData.Name}}/unban" method="POST">
+	    {{.CSRFField}}
+	    <div>{{local "ConfirmUnban" "Name" $userData.Name}}</div>
+	    <br/>
+	    <div class="form__row">
+		<label for="comment" class="form__label">{{local "Reason"}}: <small class="text-lighten-2" style="font-weight: normal">({{local "FormOptional"}})</small></label>
+		<input id="comment" name="comment" type="text" value=""/>
+	    </div>
+	    <button type="submit">{{local "BtnConfirm"}}</button>
+	</form>
+    </div>
+
+    {{template "foot" . -}}
+{{end}}

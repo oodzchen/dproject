@@ -1,0 +1,34 @@
+{{ define "user_ban" }}
+    {{template "head" . -}}
+
+    {{template "user_basic_info" .Data.UserData -}}
+    
+    {{- $userData := .Data.UserData -}}
+
+    <div class="card">
+	<form class="form" action="/users/{{$userData.Name}}/ban" method="POST">
+	    {{.CSRFField}}
+	    <div>{{local "ConfirmBan" "Name" $userData.Name}}</div>
+	    <br/>
+	    <div><span class="text-lighten-2">{{local "BannedTimes"}}:</span> {{$userData.BannedCount}}</div>
+	    <br/>
+	    <div class="form__row ban-form">
+		<label class="form__label" for="banned">{{local "BannedDuration"}}: <small class="text-lighten-2" style="font-weight: normal">({{local "FormRequired"}})</small></label>
+		<br/>
+		<label><input required autocomplete="off" name="banned_days" type="radio" value="1"/> {{local "UnitDay" "Count"  1}}</label>&nbsp;&nbsp;
+		<label><input required autocomplete="off" name="banned_days" type="radio" value="3"/> {{local "UnitDay" "Count"  3}}</label>&nbsp;&nbsp;
+		<label><input required autocomplete="off" name="banned_days" type="radio" value="5"/> {{local "UnitDay" "Count"  5}}</label>&nbsp;&nbsp;
+		<label><input required autocomplete="off" name="banned_days" type="radio" value="-1"/> {{local "Forever"}}</label>&nbsp;&nbsp;
+		<br/>
+	    </div>
+	    <div class="form__row">
+		<label for="comment" class="form__label">{{local "Reason"}}: <small class="text-lighten-2" style="font-weight: normal">({{local "FormRequired"}})</small></label>
+		<input required id="comment" required name="comment" type="text" value=""/>
+	    </div>
+	    
+	    <button type="submit">{{local "BtnConfirm"}}</button>
+	</form>
+    </div>
+
+    {{template "foot" . -}}
+{{end}}
