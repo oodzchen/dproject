@@ -116,8 +116,9 @@ type UserStore interface {
 	SetRoleManyWithFrontId([]*model.User) error
 	GetPassword(usernameEmail string) (string, error)
 	UpdatePassword(email, password string) (int, error)
-	AddReputation(username string, changeType model.ReputationChangeType, isRevert bool) error
-	AddReputationVal(username string, value int, comment string, isRevert bool) error
+	// AddReputation(username string, changeType model.ReputationChangeType, isRevert bool) error
+	// AddReputationVal(username string, value int, comment string, isRevert bool) error
+	UpdateReputation(username string) error
 }
 
 type PermissionStore interface {
