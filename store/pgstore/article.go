@@ -540,6 +540,7 @@ SELECT
   END
  FROM post_subs WHERE post_id = p.id AND user_id = $2
 ) AS subscribed,
+
 COALESCE(r2.front_id, '') AS curr_react_front_id,
 
 COALESCE(r.id, 0) AS react_id,
@@ -564,7 +565,7 @@ LEFT JOIN post_reacts pr2 ON pr2.post_id = p.id AND pr2.user_id = $2
 LEFT JOIN reacts r2 ON r2.id = pr2.react_id
 LEFT JOIN categories c ON c.id = p.category_id
 WHERE p.id = $1
-GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title, pv.type, r.id,  c.id, r2.id;`
+GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p2.title, pv.type, pr.id, r.id,  c.id, r2.id;`
 
 	var article *model.Article
 	rows, err := a.dbPool.Query(context.Background(), sqlStr, id, userId)
@@ -728,7 +729,7 @@ LEFT JOIN post_reacts pr ON pr.post_id = p.id
 LEFT JOIN reacts r ON r.id = pr.react_id
 LEFT JOIN categories c ON c.id = p.category_id
 WHERE (ar.cur_depth = 1 AND ar.rn BETWEEN $3 AND $4) OR (ar.cur_depth > 1 AND ar.rn BETWEEN 0 AND $5)
-GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title, r.id,  c.id
+GROUP BY ar.id, p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at, p.updated_at, p.deleted, p.reply_to, p.depth, p.root_article_id, p.reply_weight, p2.title, pr.id, r.id,  c.id
 ` + orderSqlStrTail
 
 	if page < 1 {
