@@ -201,6 +201,11 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (mr *MainResource) VerifyRegisterPage(w http.ResponseWriter, r *http.Request) {
+	if IsLogin(mr.sessStore, w, r) {
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
+
 	email := mr.Session("one", w, r).GetStringValue("register_email")
 	if email == "" {
 		mr.Error("", errors.New("get register email failed"), w, r, http.StatusInternalServerError)
@@ -217,10 +222,6 @@ func (mr *MainResource) VerifyRegisterPage(w http.ResponseWriter, r *http.Reques
 		Email        string
 		Username     string
 		CodeLifeTime int
-	}
-	if IsLogin(mr.sessStore, w, r) {
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
 	}
 
 	mr.Render(w, r, "register_verify", &model.PageData{
@@ -419,14 +420,15 @@ func (mr *MainResource) LoginPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	targetUrl := mr.Session("one", w, r).GetValue("target_url")
+	targetUrl := mr.Session("one", w, r).GetStringValue("target_url")
 	referer := r.Referer()
 	refererUrl, _ := url.Parse(referer)
+
 	// fmt.Println("exist target_url: ", targetUrl)
 	// fmt.Println("target_url is empty string: ", targetUrl == "")
+	// fmt.Println("referer:", referer)
 
-	if (targetUrl == nil || targetUrl == "") && IsRegisterdPage(refererUrl, mr.router) {
-		// fmt.Println("Matched!", "target:", referer)
+	if targetUrl == "" && IsRegisterdPage(refererUrl, mr.router) {
 		targetUrl = referer
 	}
 
