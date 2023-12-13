@@ -63,7 +63,8 @@ type ArticleStore interface {
 	ToggleVote(id, loginedUserId int, voteType string) (int, error)
 	ToggleSave(id, loginedUserId int) error
 	// Return int value, 0 for error, -1 for canceled, 1 for added, 2 for updated
-	ToggleReact(id, loginedUserId, reactId int) (int, error)
+	// String value for previous react id
+	ToggleReact(id, loginedUserId, reactId int) (int, string, error)
 	ToggleSubscribe(id, loginedUserId int) error
 	CheckSubscribe(id, loginedUserId int) (int, error)
 	Notify(senderUserId, sourceArticleId, contentArticleId int) error
@@ -116,9 +117,9 @@ type UserStore interface {
 	SetRoleManyWithFrontId([]*model.User) error
 	GetPassword(usernameEmail string) (string, error)
 	UpdatePassword(email, password string) (int, error)
-	// AddReputation(username string, changeType model.ReputationChangeType, isRevert bool) error
-	// AddReputationVal(username string, value int, comment string, isRevert bool) error
-	UpdateReputation(username string) error
+	AddReputation(username string, changeType model.ReputationChangeType, isRevert bool) error
+	AddReputationVal(username string, value int, comment string, isRevert bool) error
+	// UpdateReputation(username string) error
 }
 
 type PermissionStore interface {

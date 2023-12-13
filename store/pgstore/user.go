@@ -624,55 +624,55 @@ ORDER BY ps.created_at DESC`
 	return posts, nil
 }
 
-// func (u *User) doAddReputation(username string, value int, comment string, changeType model.ReputationChangeType, isRevert bool) error {
-// 	var args = []any{username, value}
-// 	sqlStr := `UPDATE users SET reputation = reputation + $2 WHERE username = $1 RETURNING (id)`
+func (u *User) doAddReputation(username string, value int, comment string, changeType model.ReputationChangeType, isRevert bool) error {
+	var args = []any{username, value}
+	sqlStr := `UPDATE users SET reputation = reputation + $2 WHERE username = $1 RETURNING (id)`
 
-// 	var userId int
-// 	err := u.dbPool.QueryRow(context.Background(), sqlStr, args...).Scan(&userId)
-// 	if err != nil {
-// 		return err
-// 	}
+	var userId int
+	err := u.dbPool.QueryRow(context.Background(), sqlStr, args...).Scan(&userId)
+	if err != nil {
+		return err
+	}
 
-// 	err = u.logReputation(userId, value, changeType, comment, isRevert)
-// 	if err != nil {
-// 		return err
-// 	}
+	err = u.logReputation(userId, value, changeType, comment, isRevert)
+	if err != nil {
+		return err
+	}
 
-// 	return nil
-// }
+	return nil
+}
 
-// func (u *User) AddReputation(username string, changeType model.ReputationChangeType, isRevert bool) error {
-// 	preReputation, err := u.getReputation(username)
-// 	if err != nil {
-// 		return err
-// 	}
+func (u *User) AddReputation(username string, changeType model.ReputationChangeType, isRevert bool) error {
+	preReputation, err := u.getReputation(username)
+	if err != nil {
+		return err
+	}
 
-// 	changeVal := model.ReputationChangeValues[changeType]
-// 	if changeType == model.RPCTypeBanned {
-// 		changeVal = -int(math.Round(float64(preReputation) / 2))
-// 	}
+	changeVal := model.ReputationChangeValues[changeType]
+	if changeType == model.RPCTypeBanned {
+		changeVal = -int(math.Round(float64(preReputation) / 2))
+	}
 
-// 	if isRevert {
-// 		changeVal = -changeVal
-// 	}
+	if isRevert {
+		changeVal = -changeVal
+	}
 
-// 	err = u.doAddReputation(username, changeVal, "", changeType, isRevert)
-// 	if err != nil {
-// 		return err
-// 	}
+	err = u.doAddReputation(username, changeVal, "", changeType, isRevert)
+	if err != nil {
+		return err
+	}
 
-// 	return nil
-// }
+	return nil
+}
 
-// func (u *User) AddReputationVal(username string, value int, comment string, isRevert bool) error {
-// 	err := u.doAddReputation(username, value, comment, model.RPCTypeOther, isRevert)
-// 	if err != nil {
-// 		return err
-// 	}
+func (u *User) AddReputationVal(username string, value int, comment string, isRevert bool) error {
+	err := u.doAddReputation(username, value, comment, model.RPCTypeOther, isRevert)
+	if err != nil {
+		return err
+	}
 
-// 	return nil
-// }
+	return nil
+}
 
 func (u *User) getReputation(username string) (int, error) {
 	var reputation int
@@ -683,85 +683,85 @@ func (u *User) getReputation(username string) (int, error) {
 	return reputation, nil
 }
 
-// func (u *User) logReputation(userId, value int, changeType model.ReputationChangeType, comment string, isRevert bool) error {
-// 	sqlStr := `INSERT INTO reputation_log (user_id, value_diff, type, comment, is_revert) VALUES ($1, $2, $3, $4, $5)`
+func (u *User) logReputation(userId, value int, changeType model.ReputationChangeType, comment string, isRevert bool) error {
+	sqlStr := `INSERT INTO reputation_log (user_id, value_diff, type, comment, is_revert) VALUES ($1, $2, $3, $4, $5)`
 
-// 	_, err := u.dbPool.Exec(context.Background(), sqlStr, userId, value, changeType, comment, isRevert)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
-
-func (u *User) UpdateReputation(username string) error {
-	user, err := u.ItemWithUsername(username)
+	_, err := u.dbPool.Exec(context.Background(), sqlStr, userId, value, changeType, comment, isRevert)
 	if err != nil {
 		return err
 	}
-	fmt.Println("username:", user.Name)
-	voteUpCount, voteDownCount, fadeOutCount, err := u.getVoteCount(user.Id)
-	if err != nil {
-		return err
-	}
-
-	thankedCount, happyCount, err := u.getReactCount(user.Id)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("voteUp, voteDown, fadeOut, thanked, happy, banned", voteUpCount, voteDownCount, fadeOutCount, thankedCount, happyCount, user.BannedCount)
-
-	reputation := voteUpCount*model.ReputationChangeValues[model.RPCTypeUpvoted] +
-		voteDownCount*model.ReputationChangeValues[model.RPCTypeDownvoted] +
-		fadeOutCount*model.ReputationChangeValues[model.RPCTypeFadeOut] +
-		thankedCount*model.ReputationChangeValues[model.RPCTypeThanked] +
-		happyCount*model.ReputationChangeValues[model.RPCTypeLaughed]
-
-	// fmt.Println("before reputation:", reputation)
-	// fmt.Println("math pow:", math.Pow(0.5, float64(user.BannedCount)))
-
-	reputation = int(float64(reputation) * math.Pow(0.5, float64(user.BannedCount)))
-
-	sqlStr := `UPDATE users SET reputation = $2 WHERE id = $1`
-	_, err = u.dbPool.Exec(context.Background(), sqlStr, user.Id, reputation)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
-func (u *User) getVoteCount(userId int) (int, int, int, error) {
-	sqlStr := `SELECT COUNT(DISTINCT pv.id) AS vote_up_count, COUNT(DISTINCT pv1.id) AS vote_down_count, COUNT(DISTINCT p1.id) AS fade_out_count
-FROM posts p
-LEFT JOIN post_votes pv ON pv.post_id = p.id AND pv.type = 'up' AND pv.user_id != $1
-LEFT JOIN post_votes pv1 ON pv1.post_id = p.id AND pv1.type = 'down' AND pv1.user_id != $1
-FULL OUTER JOIN posts p1 ON p1.author_id = $1 AND p1.fade_out = true AND p1.deleted = false
-WHERE p.author_id = $1 AND p.deleted = false;`
-	var voteUpCount, voteDownCount, fadeOutCount int
-	err := u.dbPool.QueryRow(context.Background(), sqlStr, userId).Scan(&voteUpCount, &voteDownCount, &fadeOutCount)
-	if err != nil {
-		return 0, 0, 0, err
-	}
+// func (u *User) UpdateReputation(username string) error {
+// 	user, err := u.ItemWithUsername(username)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	fmt.Println("username:", user.Name)
+// 	voteUpCount, voteDownCount, fadeOutCount, err := u.getVoteCount(user.Id)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return voteUpCount, voteDownCount, fadeOutCount, nil
-}
+// 	thankedCount, happyCount, err := u.getReactCount(user.Id)
+// 	if err != nil {
+// 		return err
+// 	}
 
-func (u *User) getReactCount(userId int) (int, int, error) {
-	sqlStr := `SELECT COUNT(DISTINCT pr.id) AS react_thanks_count, COUNT(DISTINCT pr1.id) AS react_happy_count
-FROM posts p
-LEFT JOIN post_reacts pr ON pr.post_id = p.id AND pr.react_id IN (
-  SELECT id FROM reacts WHERE front_id = 'thanks'
-)
-LEFT JOIN post_reacts pr1 ON pr1.post_id = p.id AND pr1.react_id IN (
-  SELECT id FROM reacts WHERE front_id = 'happy'
-)
-WHERE p.author_id = $1 AND p.deleted = false;`
-	var thanksCount, happyCount int
-	err := u.dbPool.QueryRow(context.Background(), sqlStr, userId).Scan(&thanksCount, &happyCount)
-	if err != nil {
-		return 0, 0, err
-	}
+// 	fmt.Println("voteUp, voteDown, fadeOut, thanked, happy, banned", voteUpCount, voteDownCount, fadeOutCount, thankedCount, happyCount, user.BannedCount)
 
-	return thanksCount, happyCount, nil
-}
+// 	reputation := voteUpCount*model.ReputationChangeValues[model.RPCTypeUpvoted] +
+// 		voteDownCount*model.ReputationChangeValues[model.RPCTypeDownvoted] +
+// 		fadeOutCount*model.ReputationChangeValues[model.RPCTypeFadeOut] +
+// 		thankedCount*model.ReputationChangeValues[model.RPCTypeThanked] +
+// 		happyCount*model.ReputationChangeValues[model.RPCTypeLaughed]
+
+// 	// fmt.Println("before reputation:", reputation)
+// 	// fmt.Println("math pow:", math.Pow(0.5, float64(user.BannedCount)))
+
+// 	reputation = int(float64(reputation) * math.Pow(0.5, float64(user.BannedCount)))
+
+// 	sqlStr := `UPDATE users SET reputation = $2 WHERE id = $1`
+// 	_, err = u.dbPool.Exec(context.Background(), sqlStr, user.Id, reputation)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	return nil
+// }
+
+// func (u *User) getVoteCount(userId int) (int, int, int, error) {
+// 	sqlStr := `SELECT COUNT(DISTINCT pv.id) AS vote_up_count, COUNT(DISTINCT pv1.id) AS vote_down_count, COUNT(DISTINCT p1.id) AS fade_out_count
+// FROM posts p
+// LEFT JOIN post_votes pv ON pv.post_id = p.id AND pv.type = 'up' AND pv.user_id != $1
+// LEFT JOIN post_votes pv1 ON pv1.post_id = p.id AND pv1.type = 'down' AND pv1.user_id != $1
+// FULL OUTER JOIN posts p1 ON p1.author_id = $1 AND p1.fade_out = true AND p1.deleted = false
+// WHERE p.author_id = $1 AND p.deleted = false;`
+// 	var voteUpCount, voteDownCount, fadeOutCount int
+// 	err := u.dbPool.QueryRow(context.Background(), sqlStr, userId).Scan(&voteUpCount, &voteDownCount, &fadeOutCount)
+// 	if err != nil {
+// 		return 0, 0, 0, err
+// 	}
+
+// 	return voteUpCount, voteDownCount, fadeOutCount, nil
+// }
+
+// func (u *User) getReactCount(userId int) (int, int, error) {
+// 	sqlStr := `SELECT COUNT(DISTINCT pr.id) AS react_thanks_count, COUNT(DISTINCT pr1.id) AS react_happy_count
+// FROM posts p
+// LEFT JOIN post_reacts pr ON pr.post_id = p.id AND pr.react_id IN (
+//   SELECT id FROM reacts WHERE front_id = 'thanks'
+// )
+// LEFT JOIN post_reacts pr1 ON pr1.post_id = p.id AND pr1.react_id IN (
+//   SELECT id FROM reacts WHERE front_id = 'happy'
+// )
+// WHERE p.author_id = $1 AND p.deleted = false;`
+// 	var thanksCount, happyCount int
+// 	err := u.dbPool.QueryRow(context.Background(), sqlStr, userId).Scan(&thanksCount, &happyCount)
+// 	if err != nil {
+// 		return 0, 0, err
+// 	}
+
+// 	return thanksCount, happyCount, nil
+// }

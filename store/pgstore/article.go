@@ -578,10 +578,11 @@ GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at,
 		var category model.Category
 		var react model.ArticleReact
 		var blockedRegions string
-		item := model.Article{
-			CurrUserState: &userState,
-			Category:      &category,
-		}
+		var item model.Article
+		// item := model.Article{
+		// 	CurrUserState: &userState,
+		// 	Category:      &category,
+		// }
 
 		err = rows.Scan(
 			&item.Id,
@@ -643,16 +644,21 @@ GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at,
 		if blockedRegions != "" {
 			article.BlockedRegionsISOCode = strings.Split(blockedRegions, ",")
 		}
+
+		article.CurrUserState = &userState
+		article.Category = &category
 	}
 
-	article.CurrUserState.FormatNullValues()
-	article.FormatNullValues()
-	article.FormatReactCounts()
-	article.CalcScore()
-	article.CheckShowScore(userId)
-	article.UpdatePinnedState()
-	article.UpdateDisplayTitle()
-	article.GenSummary(100)
+	if article != nil {
+		article.CurrUserState.FormatNullValues()
+		article.FormatNullValues()
+		article.FormatReactCounts()
+		article.CalcScore()
+		article.CheckShowScore(userId)
+		article.UpdatePinnedState()
+		article.UpdateDisplayTitle()
+		article.GenSummary(100)
+	}
 
 	return article, nil
 }
@@ -1292,11 +1298,11 @@ func (a *Article) saveCheck(id, userId int) (error, bool) {
 }
 
 // Return int value, 0 for error, -1 for canceled, 1 for added
-func (a *Article) ToggleReact(id, userId, reactId int) (int, error) {
+// String value for previous react id
+func (a *Article) ToggleReact(id, userId, reactId int) (int, string, error) {
 	code := 0
-	err, rt := a.ReactCheck(id, userId)
+	rt, rFrontId, err := a.ReactCheck(id, userId)
 	// fmt.Println("check error: ", err)
-	// fmt.Println("check vote type: ", rt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			// var aId int
@@ -1312,12 +1318,12 @@ func (a *Article) ToggleReact(id, userId, reactId int) (int, error) {
 			// fmt.Println("after insert: ", err)
 
 			if err != nil {
-				return 0, err
+				return 0, "", err
 			}
 
 			code = 1
 		} else {
-			return 0, err
+			return 0, "", err
 		}
 	} else {
 		if rt == reactId {
@@ -1329,7 +1335,7 @@ func (a *Article) ToggleReact(id, userId, reactId int) (int, error) {
 			).Scan(nil)
 
 			if err != nil {
-				return 0, err
+				return 0, "", err
 			}
 
 			code = -1
@@ -1346,7 +1352,7 @@ func (a *Article) ToggleReact(id, userId, reactId int) (int, error) {
 			// fmt.Println("after change vote type: ", err)
 
 			if err != nil {
-				return 0, err
+				return 0, "", err
 			}
 
 			code = 2
@@ -1355,25 +1361,28 @@ func (a *Article) ToggleReact(id, userId, reactId int) (int, error) {
 
 	err = a.updateWeights(id)
 	if err != nil {
-		return 0, err
+		return 0, "", err
 	}
 
-	return code, nil
+	return code, rFrontId, nil
 }
 
-func (a *Article) ReactCheck(id, userId int) (error, int) {
+func (a *Article) ReactCheck(id, userId int) (int, string, error) {
 	var rt int
+	var frontId string
 	err := a.dbPool.QueryRow(
 		context.Background(),
-		`SELECT react_id FROM post_reacts WHERE post_id = $1 AND user_id = $2`,
+		`SELECT react_id, r.front_id FROM post_reacts
+LEFT JOIN reacts r ON r.id = react_id
+WHERE post_id = $1 AND user_id = $2`,
 		id,
 		userId,
-	).Scan(&rt)
+	).Scan(&rt, &frontId)
 	if err != nil {
-		return err, 0
+		return 0, "", err
 	}
 
-	return nil, rt
+	return rt, frontId, nil
 }
 
 func (a *Article) ReactItem(reactId int) (*model.ArticleReact, error) {

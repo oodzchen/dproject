@@ -1171,6 +1171,24 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		}
 	}
 
+	if pageType == ArticlePageDel && rootArticle.AuthorId == currUserId {
+		go func() {
+			recoverRPC := -rootArticle.VoteDown * model.ReputationChangeValues[model.RPCTypeDownvoted]
+
+			if rootArticle.FadeOut {
+				recoverRPC += -model.ReputationChangeValues[model.RPCTypeFadeOut]
+			}
+
+			// fmt.Println("recover reputation", recoverRPC)
+
+			err := ar.store.User.AddReputationVal(rootArticle.AuthorName, recoverRPC, "recover reputation on deletion by user", false)
+			if err != nil {
+				fmt.Println("recover reputation error:", err)
+				return
+			}
+		}()
+	}
+
 	// if rootArticle.Deleted {
 	// 	w.WriteHeader(http.StatusGone)
 	// }
@@ -1492,33 +1510,16 @@ func (ar *ArticleResource) Vote(w http.ResponseWriter, r *http.Request) {
 	// userId := ar.GetLoginedUserId(w, r)
 	user := ar.GetLoginedUserData(r)
 	if user.Id != 0 {
-		_, err := ar.store.Article.ToggleVote(articleId, user.Id, voteType)
+		code, err := ar.store.Article.ToggleVote(articleId, user.Id, voteType)
 		if err != nil {
 			ar.ServerErrorp("", err, w, r)
 			return
 		}
 
-		go func() {
-			article, err := ar.store.Article.Item(articleId, 0)
-			if err != nil {
-				fmt.Println("update reputation error", err)
-				return
-			}
-
-			if article.AuthorId == user.Id {
-				return
-			}
-
-			err = ar.store.User.UpdateReputation(article.AuthorName)
-			if err != nil {
-				fmt.Println("update reputation error:", err)
-			}
-		}()
-
 		// go func() {
 		// 	article, err := ar.store.Article.Item(articleId, 0)
 		// 	if err != nil {
-		// 		fmt.Println("add reputation error", err)
+		// 		fmt.Println("update reputation error", err)
 		// 		return
 		// 	}
 
@@ -1526,36 +1527,53 @@ func (ar *ArticleResource) Vote(w http.ResponseWriter, r *http.Request) {
 		// 		return
 		// 	}
 
-		// 	changeType := model.RPCTypeUpvoted
-		// 	if voteType == "down" {
-		// 		changeType = model.RPCTypeDownvoted
-		// 	}
-		// 	var isRevert bool
-		// 	if code == -1 {
-		// 		isRevert = true
-		// 	}
-
-		// 	if code == 2 {
-		// 		var prevChangeType model.ReputationChangeType
-		// 		if changeType == model.RPCTypeUpvoted {
-		// 			prevChangeType = model.RPCTypeDownvoted
-		// 		} else {
-		// 			prevChangeType = model.RPCTypeUpvoted
-		// 		}
-
-		// 		err = ar.store.User.AddReputation(article.AuthorName, prevChangeType, true)
-		// 		if err != nil {
-		// 			fmt.Println("add reputation error", err)
-		// 			return
-		// 		}
-		// 	}
-
-		// 	err = ar.store.User.AddReputation(article.AuthorName, changeType, isRevert)
+		// 	err = ar.store.User.UpdateReputation(article.AuthorName)
 		// 	if err != nil {
-		// 		fmt.Println("add reputation error", err)
-		// 		return
+		// 		fmt.Println("update reputation error:", err)
 		// 	}
 		// }()
+
+		go func() {
+			article, err := ar.store.Article.Item(articleId, 0)
+			if err != nil {
+				fmt.Println("add reputation error", err)
+				return
+			}
+
+			if article.AuthorId == user.Id {
+				return
+			}
+
+			changeType := model.RPCTypeUpvoted
+			if voteType == "down" {
+				changeType = model.RPCTypeDownvoted
+			}
+			var isRevert bool
+			if code == -1 {
+				isRevert = true
+			}
+
+			if code == 2 {
+				var prevChangeType model.ReputationChangeType
+				if changeType == model.RPCTypeUpvoted {
+					prevChangeType = model.RPCTypeDownvoted
+				} else {
+					prevChangeType = model.RPCTypeUpvoted
+				}
+
+				err = ar.store.User.AddReputation(article.AuthorName, prevChangeType, true)
+				if err != nil {
+					fmt.Println("add reputation error", err)
+					return
+				}
+			}
+
+			err = ar.store.User.AddReputation(article.AuthorName, changeType, isRevert)
+			if err != nil {
+				fmt.Println("add reputation error", err)
+				return
+			}
+		}()
 	} else {
 		ar.ToLogin(w, r)
 		return
@@ -1608,6 +1626,23 @@ func (ar *ArticleResource) Save(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Check the react front id count reputation
+func reactCountRPC(frontId string) bool {
+	return frontId == "thanks" || frontId == "happy"
+}
+
+// React front id to change type
+func reactToChangeType(frontId string) model.ReputationChangeType {
+	switch frontId {
+	case "thanks":
+		return model.RPCTypeThanked
+	case "happy":
+		return model.RPCTypeLaughed
+	default:
+		return ""
+	}
+}
+
 func (ar *ArticleResource) React(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
@@ -1637,7 +1672,7 @@ func (ar *ArticleResource) React(w http.ResponseWriter, r *http.Request) {
 	// 	ar.Error("react type error", nil, w, r, http.StatusBadRequest)
 	// 	return
 	// }
-	_, err = ar.store.Article.ReactItem(reactId)
+	reactItem, err := ar.store.Article.ReactItem(reactId)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			ar.Error("react type error", nil, w, r, http.StatusBadRequest)
@@ -1650,16 +1685,36 @@ func (ar *ArticleResource) React(w http.ResponseWriter, r *http.Request) {
 
 	userId := ar.GetLoginedUserId(w, r)
 	if userId != 0 {
-		_, err := ar.store.Article.ToggleReact(articleId, userId, reactId)
+		code, prevFrontId, err := ar.store.Article.ToggleReact(articleId, userId, reactId)
 		if err != nil {
 			ar.ServerErrorp("", err, w, r)
 			return
 		}
 
+		// fmt.Println("prev react:", prevFrontId)
+		// fmt.Println("curr react:", reactItem.FrontId)
+
+		// go func() {
+		// 	article, err := ar.store.Article.Item(articleId, 0)
+		// 	if err != nil {
+		// 		fmt.Println("update reputation error", err)
+		// 		return
+		// 	}
+
+		// 	if article.AuthorId == userId {
+		// 		return
+		// 	}
+
+		// 	err = ar.store.User.UpdateReputation(article.AuthorName)
+		// 	if err != nil {
+		// 		fmt.Println("update reputation error:", err)
+		// 	}
+		// }()
+
 		go func() {
 			article, err := ar.store.Article.Item(articleId, 0)
 			if err != nil {
-				fmt.Println("update reputation error", err)
+				fmt.Println("add reputation error", err)
 				return
 			}
 
@@ -1667,47 +1722,57 @@ func (ar *ArticleResource) React(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			err = ar.store.User.UpdateReputation(article.AuthorName)
-			if err != nil {
-				fmt.Println("update reputation error:", err)
+			var changeType model.ReputationChangeType
+			var isRevert bool
+
+			switch code {
+			case -1:
+				if !reactCountRPC(reactItem.FrontId) {
+					return
+				}
+				changeType = reactToChangeType(reactItem.FrontId)
+				isRevert = true
+			case 1:
+				if !reactCountRPC(reactItem.FrontId) {
+					return
+				}
+				changeType = reactToChangeType(reactItem.FrontId)
+				isRevert = false
+			case 2:
+				if !reactCountRPC(prevFrontId) && !reactCountRPC(reactItem.FrontId) {
+					return
+				} else if reactCountRPC(prevFrontId) && !reactCountRPC(reactItem.FrontId) {
+					changeType = reactToChangeType(prevFrontId)
+					isRevert = true
+				} else if !reactCountRPC(prevFrontId) && reactCountRPC(reactItem.FrontId) {
+					changeType = reactToChangeType(reactItem.FrontId)
+					isRevert = false
+				} else {
+					changeType = reactToChangeType(prevFrontId)
+					isRevert = true
+					if string(changeType) != "" {
+						err = ar.store.User.AddReputation(article.AuthorName, changeType, isRevert)
+						if err != nil {
+							fmt.Println("add reputation error", err)
+							return
+						}
+					}
+
+					changeType = reactToChangeType(reactItem.FrontId)
+					isRevert = false
+				}
+			}
+
+			// fmt.Println("react changeType:", changeType)
+
+			if string(changeType) != "" {
+				err = ar.store.User.AddReputation(article.AuthorName, changeType, isRevert)
+				if err != nil {
+					fmt.Println("add reputation error", err)
+					return
+				}
 			}
 		}()
-
-		// if code != 2 {
-		// 	go func() {
-		// 		article, err := ar.store.Article.Item(articleId, 0)
-		// 		if err != nil {
-		// 			fmt.Println("add reputation error", err)
-		// 			return
-		// 		}
-
-		// 		if article.AuthorId == userId {
-		// 			return
-		// 		}
-
-		// 		var changeType model.ReputationChangeType
-		// 		var isRevert bool
-		// 		if code == -1 {
-		// 			isRevert = true
-		// 		}
-
-		// 		switch reactItem.FrontId {
-		// 		case "thanks":
-		// 			changeType = model.RPCTypeThanked
-		// 		case "happy":
-		// 			changeType = model.RPCTypeLaughed
-		// 		}
-
-		// 		// fmt.Println("react changeType:", changeType)
-
-		// 		if string(changeType) != "" {
-		// 			err = ar.store.User.AddReputation(article.AuthorName, changeType, isRevert)
-		// 			if err != nil {
-		// 				fmt.Println("add reputation error", err)
-		// 			}
-		// 		}
-		// 	}()
-		// }
 	} else {
 		ar.ToLogin(w, r)
 		return
@@ -2034,30 +2099,13 @@ func (ar *ArticleResource) ToggleFadeOut(w http.ResponseWriter, r *http.Request)
 
 	rootId, _ := strconv.Atoi(r.Form.Get("root"))
 
-	_, err = ar.store.Article.ToggleFadeOut(articleId)
+	code, err := ar.store.Article.ToggleFadeOut(articleId)
 	if err != nil {
 		ar.ServerErrorp("", err, w, r)
 		return
 	}
 
-	userId := ar.GetLoginedUserId(w, r)
-	go func() {
-		article, err := ar.store.Article.Item(articleId, 0)
-		if err != nil {
-			fmt.Println("add reputation error", err)
-			return
-		}
-
-		if article.AuthorId == userId {
-			return
-		}
-
-		err = ar.store.User.UpdateReputation(article.AuthorName)
-		if err != nil {
-			fmt.Println("update reputation error:", err)
-		}
-	}()
-
+	// userId := ar.GetLoginedUserId(w, r)
 	// go func() {
 	// 	article, err := ar.store.Article.Item(articleId, 0)
 	// 	if err != nil {
@@ -2065,17 +2113,34 @@ func (ar *ArticleResource) ToggleFadeOut(w http.ResponseWriter, r *http.Request)
 	// 		return
 	// 	}
 
-	// 	var isRevert bool
-	// 	if code == -1 {
-	// 		isRevert = true
-	// 	}
-
-	// 	err = ar.store.User.AddReputation(article.AuthorName, model.RPCTypeFadeOut, isRevert)
-	// 	if err != nil {
-	// 		fmt.Println("add reputation error", err)
+	// 	if article.AuthorId == userId {
 	// 		return
 	// 	}
+
+	// 	err = ar.store.User.UpdateReputation(article.AuthorName)
+	// 	if err != nil {
+	// 		fmt.Println("update reputation error:", err)
+	// 	}
 	// }()
+
+	go func() {
+		article, err := ar.store.Article.Item(articleId, 0)
+		if err != nil {
+			fmt.Println("add reputation error", err)
+			return
+		}
+
+		var isRevert bool
+		if code == -1 {
+			isRevert = true
+		}
+
+		err = ar.store.User.AddReputation(article.AuthorName, model.RPCTypeFadeOut, isRevert)
+		if err != nil {
+			fmt.Println("add reputation error", err)
+			return
+		}
+	}()
 
 	ar.toReplyAnchor(rootId, articleId, w, r)
 }

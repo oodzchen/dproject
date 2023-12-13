@@ -582,9 +582,10 @@ func (ur *UserResource) Ban(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		err := ur.store.User.UpdateReputation(username)
+		err := ur.store.User.AddReputation(username, model.RPCTypeBanned, false)
 		if err != nil {
-			fmt.Println("update reputation error:", err)
+			fmt.Println("add reputation error", err)
+			return
 		}
 	}()
 
