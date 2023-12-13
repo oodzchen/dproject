@@ -499,9 +499,16 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 
 		article, err := ar.store.Article.Item(rId, currUserId)
 		if err != nil {
-			ar.Error("", err, w, r, http.StatusInternalServerError)
+			if errors.Is(err, model.AppErrArticleNotExist) {
+				ar.NotFound(w, r)
+			} else {
+				ar.Error("", err, w, r, http.StatusInternalServerError)
+			}
 			return
 		}
+
+		// fmt.Println("article:", article)
+		// fmt.Println("ar.srv.Permission:", ar.srv.Permission)
 
 		if (article.AuthorId != currUserId && !ar.srv.Permission.Permit("article", "edit_others")) || !ar.srv.Permission.Permit("article", "edit_mine") {
 			// http.Redirect(w, r, fmt.Sprintf("/articles/%d", articleId), http.StatusFound)
@@ -1031,9 +1038,8 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		switch v := result.(type) {
 		case error:
 			if v != nil {
-				if errors.Is(v, pgx.ErrNoRows) {
-					// http.Redirect(w, r, "/404", http.StatusNotFound)
-					ar.Error("", nil, w, r, http.StatusNotFound)
+				if errors.Is(v, pgx.ErrNoRows) || errors.Is(v, model.AppErrArticleNotExist) {
+					ar.NotFound(w, r)
 				} else {
 					ar.Error("", v, w, r, http.StatusInternalServerError)
 				}

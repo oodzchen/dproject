@@ -16,6 +16,7 @@ package model
    CategoryValidFailed, // category data validation failed
 
    UserNotExist, // user dose not exist
+   ArticleNotExist, // article dose not exist
    )
 */
 type AppErrCode int

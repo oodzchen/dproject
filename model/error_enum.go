@@ -42,11 +42,14 @@ const (
 	// AppErrCodeUserNotExist is a AppErrCode of type UserNotExist.
 	// user dose not exist
 	AppErrCodeUserNotExist
+	// AppErrCodeArticleNotExist is a AppErrCode of type ArticleNotExist.
+	// article dose not exist
+	AppErrCodeArticleNotExist
 )
 
 var ErrInvalidAppErrCode = fmt.Errorf("not a valid AppErrCode, try [%s]", strings.Join(_AppErrCodeNames, ", "))
 
-const _AppErrCodeName = "AlreadyRegisteredNotRegisteredUserValidFailedArticleValidFailedPermissionValidFailedRoleValidFailedActivityValidFailedCategoryValidFailedUserNotExist"
+const _AppErrCodeName = "AlreadyRegisteredNotRegisteredUserValidFailedArticleValidFailedPermissionValidFailedRoleValidFailedActivityValidFailedCategoryValidFailedUserNotExistArticleNotExist"
 
 var _AppErrCodeNames = []string{
 	_AppErrCodeName[0:17],
@@ -58,6 +61,7 @@ var _AppErrCodeNames = []string{
 	_AppErrCodeName[99:118],
 	_AppErrCodeName[118:137],
 	_AppErrCodeName[137:149],
+	_AppErrCodeName[149:164],
 }
 
 // AppErrCodeNames returns a list of possible string values of AppErrCode.
@@ -79,6 +83,7 @@ func AppErrCodeValues() []AppErrCode {
 		AppErrCodeActivityValidFailed,
 		AppErrCodeCategoryValidFailed,
 		AppErrCodeUserNotExist,
+		AppErrCodeArticleNotExist,
 	}
 }
 
@@ -92,6 +97,7 @@ var _AppErrCodeMap = map[AppErrCode]string{
 	AppErrCodeActivityValidFailed:   _AppErrCodeName[99:118],
 	AppErrCodeCategoryValidFailed:   _AppErrCodeName[118:137],
 	AppErrCodeUserNotExist:          _AppErrCodeName[137:149],
+	AppErrCodeArticleNotExist:       _AppErrCodeName[149:164],
 }
 
 // String implements the Stringer interface.
@@ -119,6 +125,7 @@ var _AppErrCodeValue = map[string]AppErrCode{
 	_AppErrCodeName[99:118]:  AppErrCodeActivityValidFailed,
 	_AppErrCodeName[118:137]: AppErrCodeCategoryValidFailed,
 	_AppErrCodeName[137:149]: AppErrCodeUserNotExist,
+	_AppErrCodeName[149:164]: AppErrCodeArticleNotExist,
 }
 
 // ParseAppErrCode attempts to convert a string to a AppErrCode.
@@ -139,6 +146,7 @@ var (
 	AppErrActivityValidFailed   = NewAppError(AppErrCodeActivityValidFailed)
 	AppErrCategoryValidFailed   = NewAppError(AppErrCodeCategoryValidFailed)
 	AppErrUserNotExist          = NewAppError(AppErrCodeUserNotExist)
+	AppErrArticleNotExist       = NewAppError(AppErrCodeArticleNotExist)
 )
 
 func (x AppErrCode) I18nID() string {
@@ -155,6 +163,7 @@ var _AppErrCodeTextMap = map[AppErrCode]string{
 	AppErrCodeActivityValidFailed:   "activity data validation failed",
 	AppErrCodeCategoryValidFailed:   "category data validation failed",
 	AppErrCodeUserNotExist:          "user dose not exist",
+	AppErrCodeArticleNotExist:       "article dose not exist",
 }
 
 func (x AppErrCode) Text(upCaseHead bool, i18nCustom *i18nc.I18nCustom) string {
@@ -211,5 +220,9 @@ func AppErrCodeAddI18nConfigs(ic *i18nc.I18nCustom) {
 	ic.AddLocalizeConfig(&i18n.Message{
 		ID:    "AppErrCode_UserNotExist",
 		Other: "user dose not exist",
+	})
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AppErrCode_ArticleNotExist",
+		Other: "article dose not exist",
 	})
 }

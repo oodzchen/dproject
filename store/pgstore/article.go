@@ -649,7 +649,9 @@ GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at,
 		article.Category = &category
 	}
 
-	if article != nil {
+	if article == nil {
+		return nil, model.AppErrArticleNotExist
+	} else {
 		article.CurrUserState.FormatNullValues()
 		article.FormatNullValues()
 		article.FormatReactCounts()
@@ -658,9 +660,8 @@ GROUP BY p.id, p.title, p.url, u.username, p.author_id, p.content, p.created_at,
 		article.UpdatePinnedState()
 		article.UpdateDisplayTitle()
 		article.GenSummary(100)
+		return article, nil
 	}
-
-	return article, nil
 }
 
 func (a *Article) ReplyTree(page, pageSize, id int, sortType model.ArticleSortType, pinned bool) ([]*model.Article, error) {
