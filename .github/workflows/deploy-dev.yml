@@ -61,7 +61,9 @@ jobs:
         id: vars
         run: |
           echo "GITHUB_REF: $GITHUB_REF"
-          echo "tag=${GITHUB_REF#refs/*/v}" >> $GITHUB_OUTPUT
+          TAG="${GITHUB_REF#refs/*/v}"
+          echo "TAG: $TAG"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
         
       - name: Executing remote ssh commands
         uses: appleboy/ssh-action@v1.0.0
