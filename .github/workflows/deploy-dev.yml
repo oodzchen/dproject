@@ -56,10 +56,14 @@ jobs:
     needs: [push_to_registry]
     runs-on: ubuntu-latest
     steps:
+      - name: Extract tag
+        uses: actions/checkout@v4
+        run: echo "tag=$(echo $GITHUB_REF | sed -e 's|refs/.*/||' -e 's|^v||')" >> $GITHUB_OUTPUT
+        
       - name: Executing remote ssh commands
         uses: appleboy/ssh-action@v1.0.0
         env:
-          APP_VERSION: ${{ steps.meta.outputs.version }}
+          APP_VERSION: ${{ steps.meta.outputs.tag }}
         with:
           host: ${{ secrets.DEV_APP_HOST }}
           username: ${{ secrets.DEV_HOST_USERNAME }}
@@ -67,5 +71,5 @@ jobs:
           port: ${{ secrets.DEV_HOST_SSH_PORT }}
           script: |
             echo "APP_VERSION: $APP_VERSION"
-            APP_VERSION=$APP_VERSION $HOME/go/src/github.com/oodzchen/dproject/scripts/restart_app.sh
+            $HOME/go/src/github.com/oodzchen/dproject/scripts/restart_app.sh
             docker ps
