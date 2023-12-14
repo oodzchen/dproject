@@ -29,4 +29,3 @@ tls-cache
 bin
 translate.*.toml
 .vscode
-*.mmdb
