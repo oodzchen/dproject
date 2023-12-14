@@ -87,6 +87,7 @@ type SMTPConfig struct {
 	Server     string `env:"SMTP_SERVER"`
 	ServerPort string `env:"SMTP_SERVER_PORT"`
 	User       string `env:"SMTP_USER"`
+	Sender     string `env:"SMTP_SENDER"`
 	Password   string `env:"SMTP_PASSWORD"`
 }
 

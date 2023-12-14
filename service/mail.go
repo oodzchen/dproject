@@ -16,6 +16,7 @@ import (
 
 type Mail struct {
 	LoginEmail     string
+	SenderMail     string
 	auth           sasl.Client
 	SMTPServer     string
 	SMTPServerPort string
@@ -60,10 +61,10 @@ var VerifCodeTypeMap = map[VerifCodeType]bool{
 	VerifCodeResetPassword: true,
 }
 
-func NewMail(userEmail, password string, smtpServer, smtpServerPort string, i18nCustom *i18nc.I18nCustom) *Mail {
+func NewMail(userEmail, password, smtpServer, smtpServerPort, senderAddress string, i18nCustom *i18nc.I18nCustom) *Mail {
 	auth := sasl.NewPlainClient("", userEmail, password)
 
-	return &Mail{userEmail, auth, smtpServer, smtpServerPort, i18nCustom}
+	return &Mail{userEmail, senderAddress, auth, smtpServer, smtpServerPort, i18nCustom}
 }
 
 func (m *Mail) SendVerificationCode(email, code string, codeType VerifCodeType) error {
@@ -90,7 +91,7 @@ func (m *Mail) SendVerificationCode(email, code string, codeType VerifCodeType) 
 
 	err := headTpl.Execute(writer, &MailHead{
 		To:      email,
-		From:    m.LoginEmail,
+		From:    m.SenderMail,
 		Subject: m.i18nCustom.LocalTpl(mailTitleTplId),
 	})
 	if err != nil {
@@ -116,7 +117,7 @@ func (m *Mail) SendVerificationCode(email, code string, codeType VerifCodeType) 
 	msg := strings.NewReader(buf.String())
 	to := []string{email}
 
-	err = smtp.SendMail(addr, m.auth, m.LoginEmail, to, msg)
+	err = smtp.SendMail(addr, m.auth, m.SenderMail, to, msg)
 	// err := smtp.SendMail(email, m.auth, m.LoginEmail, to, msg)
 	if err != nil {
 		return err

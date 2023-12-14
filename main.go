@@ -166,7 +166,14 @@ func main() {
 	sanitizePolicy := bluemonday.UGCPolicy()
 	// sanitizePolicy.AllowElements("b")
 
-	mail := service.NewMail(appCfg.SMTP.User, appCfg.SMTP.Password, appCfg.SMTP.Server, appCfg.SMTP.ServerPort, i18nCustom)
+	mail := service.NewMail(
+		appCfg.SMTP.User,
+		appCfg.SMTP.Password,
+		appCfg.SMTP.Server,
+		appCfg.SMTP.ServerPort,
+		appCfg.SMTP.Sender,
+		i18nCustom,
+	)
 
 	server := &http.Server{
 		Addr: addr,
