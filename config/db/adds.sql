@@ -104,27 +104,27 @@ CREATE TABLE activities (
     details TEXT
 );
 
-CREATE TABLE tags (
-    id SERIAL PRIMARY KEY,
-    front_id VARCHAR(255) NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    describe TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    author_id INTEGER REFERENCES users(id) NOT NULL,
-    approved BOOLEAN NOT NULL DEFAULT false,
-    approval_comment TEXT,
-    deleted BOOLEAN NOT NULL DEFAULT false,
-    UNIQUE(front_id)
-);
+-- CREATE TABLE tags (
+--     id SERIAL PRIMARY KEY,
+--     front_id VARCHAR(255) NOT NULL,
+--     name VARCHAR(255) NOT NULL,
+--     describe TEXT,
+--     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+--     author_id INTEGER REFERENCES users(id) NOT NULL,
+--     approved BOOLEAN NOT NULL DEFAULT false,
+--     approval_comment TEXT,
+--     deleted BOOLEAN NOT NULL DEFAULT false,
+--     UNIQUE(front_id)
+-- );
 
-CREATE TABLE post_tags (
-    id SERIAL PRIMARY KEY,
-    post_id INTEGER REFERENCES posts(id) NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    tag_id INTEGER REFERENCES tags(id) NOT NULL
-);
+-- CREATE TABLE post_tags (
+--     id SERIAL PRIMARY KEY,
+--     post_id INTEGER REFERENCES posts(id) NOT NULL,
+--     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+--     tag_id INTEGER REFERENCES tags(id) NOT NULL
+-- );
 
-CREATE INDEX idx_post_tags_post_id ON post_tags (post_id);
+-- CREATE INDEX idx_post_tags_post_id ON post_tags (post_id);
 
 CREATE TABLE post_history (
     id SERIAL PRIMARY KEY,
@@ -191,15 +191,15 @@ INSERT INTO reacts (emoji, front_id, describe) VALUES
 ('🎉', 'party', 'Yeah');
 
 
-INSERT INTO tags (front_id, name, author_id, describe, approved)
-VALUES
-('linux', 'Linux', 1, '', true),
-('golang', 'Go', 1, '', true),
-('clang', 'C', 1, '', true),
-('cpp', 'C++', 1, '', true),
-('emacs', 'Emacs', 1, '', true),
-('ai', '人工智能', 1, '', true),
-('typescript', 'TypeScript', 1, '', true);
+-- INSERT INTO tags (front_id, name, author_id, describe, approved)
+-- VALUES
+-- ('linux', 'Linux', 1, '', true),
+-- ('golang', 'Go', 1, '', true),
+-- ('clang', 'C', 1, '', true),
+-- ('cpp', 'C++', 1, '', true),
+-- ('emacs', 'Emacs', 1, '', true),
+-- ('ai', '人工智能', 1, '', true),
+-- ('typescript', 'TypeScript', 1, '', true);
 
 ALTER TABLE users ADD COLUMN banned_start_at TIMESTAMP;
 ALTER TABLE users ADD COLUMN banned_day_num INTEGER;
