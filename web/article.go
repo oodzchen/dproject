@@ -360,6 +360,7 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 				Name: category.Name,
 			},
 		}
+		pageData.Description = category.Describe
 	}
 
 	ar.Render(w, r, "article_list", pageData)
@@ -1214,7 +1215,8 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 	}
 
 	ar.Render(w, r, "article", &model.PageData{
-		Title: rootArticle.DisplayTitle,
+		Title:       rootArticle.DisplayTitle,
+		Description: rootArticle.Summary,
 		Data: &itemPageData{
 			rootArticle,
 			// delPage,

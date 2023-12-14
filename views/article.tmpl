@@ -117,31 +117,31 @@
 		    &#128204;&nbsp;
 		{{- end -}}
 		{{- if or (permit "article" "view_score") (and .article.ShowScore (gt .article.VoteScore 0)) -}}
-		    {{local "VoteScore" "Score" .article.VoteScore | upHead 1}} |&nbsp;
+		    {{local "VoteScore" "Score" .article.VoteScore | lower}} |&nbsp;
 		{{- end -}}
 		{{- $author := print  "<a class=\"text-lighten-3\" href=\"/users/" .article.AuthorName "\">" .article.AuthorName "</a>" -}}
 		{{- if .article.Deleted -}}
 		    {{- $author = print "<span>" (local "Deleted" | lower) "</span>" -}}
 		{{- end -}}
-		{{- local "PublishInfo" "Username" $author -}}
+		{{- local "PublishInfo" "Username" $author | downHead 1 -}}
 		<time title="{{.article.CreatedAt}}">{{timeAgo .article.CreatedAt}}</time>
 		{{- if ne .article.CreatedAt .article.UpdatedAt -}}
 		    &nbsp;|&nbsp;
 		    <a class="text-lighten-3" href="/articles/{{.article.Id}}/history">
-			{{local "Modified"}}<time title="{{.article.UpdatedAt}}">{{timeAgo .article.UpdatedAt}}</time>
+			{{local "Modified" | lower}}<time title="{{.article.UpdatedAt}}">{{timeAgo .article.UpdatedAt}}</time>
 		    </a>
 		{{- end -}}
 		{{- if $isRoot -}}&nbsp;|&nbsp;<span>{{- local "ReplyNum" "Count" .article.TotalReplyCount -}}</span>{{- end -}}
 		{{- if or (not .article.Deleted) (permit "article" "delete_others") -}}
 		    &nbsp;|&nbsp;<a class="text-lighten-3" href="/articles/{{.article.Id}}">{{local "Link" | lower}}</a> |&nbsp;
-		    <a class="text-lighten-3" href="#ar_{{.article.Id}}">{{local "Anchor" | lower}}</a> |&nbsp;
+		    <a class="text-lighten-3" href="#ar_{{.article.Id}}">{{local "Anchor" | lower}}</a>
 		    {{- if gt .pageDepth 1 -}}
-			<a title="{{local "BtnParent"}}" class="btn-parent text-lighten-3" href="#ar_{{.article.ReplyToId}}">{{local "BtnParent" | lower}}</a> |&nbsp;
+			&nbsp|&nbsp;<a title="{{local "BtnParent"}}" class="btn-parent text-lighten-3" href="#ar_{{.article.ReplyToId}}">{{local "BtnParent" | lower}}</a> |&nbsp;
 		    {{- end -}}
 
 		    {{- if or (not .article.Locked) (permit "article" "lock") -}}
 			{{- if permit "article" "save" -}}
-			    <form class="btn-form" action="/articles/{{.article.Id}}/save" method="POST" >
+			    &nbsp|&nbsp;<form class="btn-form" action="/articles/{{.article.Id}}/save" method="POST" >
 				{{- .CSRFField -}}
 				<input name="root" type="hidden" value="{{.article.ReplyRootArticleId}}"/>
 				{{- $btnSaveText := local "BtnSave" -}}

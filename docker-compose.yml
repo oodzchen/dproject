@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   webapp:
-    image: kholinchen/dproject:latest
+    image: kholinchen/dproject:$APP_VERSION
     container_name: "webapp-app-1"
     restart: always
     environment:
@@ -96,7 +96,7 @@ services:
       - SSL_KEY=/etc/letsencrypt/live/${SECOND_LEVEL_DOMAIN_NAME}/privkey.pem
     volumes:
       - /var/www/goaccess:/var/www/goaccess:rw
-      - /usr/share/geoip/GeoLite2-City.mmdb:/data/GeoLite2-City.mmdb
+      - ./geoip/GeoLite2-City.mmdb:/data/GeoLite2-City.mmdb
       - /etc/letsencrypt:/etc/letsencrypt
       - ./goaccess.conf:/etc/goaccess/goaccess.conf
       - ./nginx/logs:/data/logs

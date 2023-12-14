@@ -1,6 +1,8 @@
 {
-  "name": "",
-  "short_name": "",
+  "name": "笛卡",
+  "short_name": "笛卡",
+  "background_color": "#fff",
+  "display": "standalone",
   "icons": [
     {
       "src": "/static/android-chrome-192x192.png",
@@ -12,6 +14,5 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ],
-  "display": "standalone"
+  ]
 }

@@ -52,6 +52,7 @@ type BreadCrumb struct {
 
 type PageData struct {
 	Title                 string
+	Description           string
 	Data                  any
 	TipMsg                []string
 	LoginedUser           *User
