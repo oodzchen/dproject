@@ -66,5 +66,6 @@ jobs:
           key: ${{ secrets.DEV_HOST_KEY }}
           port: ${{ secrets.DEV_HOST_SSH_PORT }}
           script: |
-            $HOME/go/src/github.com/oodzchen/dproject/scripts/restart_app.sh
+            echo "APP_VERSION: $APP_VERSION"
+            APP_VERSION=$APP_VERSION $HOME/go/src/github.com/oodzchen/dproject/scripts/restart_app.sh
             docker ps
