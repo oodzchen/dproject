@@ -14,8 +14,6 @@ name: Deploy to prod
 on:
   release:
     types: [published]
-    tags:
-      - v*
 
 jobs:
   restart_app:
