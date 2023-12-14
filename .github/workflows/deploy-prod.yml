@@ -22,14 +22,15 @@ jobs:
     name: Restart app
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Extract tag
-        uses: actions/checkout@v4
+        id: vars
         run: echo "tag=$(echo $GITHUB_REF | sed -e 's|refs/.*/||' -e 's|^v||')" >> $GITHUB_OUTPUT
             
       - name: Executing remote ssh commands
         uses: appleboy/ssh-action@v1.0.0
         env:
-          APP_VERSION: ${{ steps.meta.outputs.tag }}
+          APP_VERSION: ${{ steps.vars.outputs.tag }}
         with:
           host: ${{ secrets.PROD_APP_HOST }}
           username: ${{ secrets.PROD_HOST_USERNAME }}
