@@ -33,14 +33,14 @@ jobs:
             
       - name: Executing remote ssh commands
         uses: appleboy/ssh-action@v1.0.0
-        env:
-          APP_VERSION: ${{ steps.vars.outputs.tag }}
         with:
           host: ${{ secrets.PROD_APP_HOST }}
           username: ${{ secrets.PROD_HOST_USERNAME }}
           key: ${{ secrets.PROD_HOST_KEY }}
           port: ${{ secrets.PROD_HOST_SSH_PORT }}
           script: |
+            echo "output tag: " ${{ steps.vars.outputs.tag }}
+            APP_VERSION=${{ steps.vars.outputs.tag }}
             echo "APP_VERSION: $APP_VERSION"
             $HOME/go/src/github.com/oodzchen/dproject/scripts/restart_app.sh
             docker ps
