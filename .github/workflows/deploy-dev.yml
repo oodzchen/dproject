@@ -72,6 +72,7 @@ jobs:
           username: ${{ secrets.DEV_HOST_USERNAME }}
           key: ${{ secrets.DEV_HOST_KEY }}
           port: ${{ secrets.DEV_HOST_SSH_PORT }}
+          script_stop: true
           script: |
             echo "output tag: " ${{ steps.vars.outputs.tag }}
             APP_VERSION=${{ steps.vars.outputs.tag }}
