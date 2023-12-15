@@ -28,3 +28,8 @@ echo "Restarting Docker Compose services..."
 docker compose --env-file $ENV_FILE -f $DOCKER_COMPOSE_PATH up -d $APP_SERVICE_NAME
 
 echo "Deployment completed successfully."
+
+echo "Clean unused images..."
+docker image prune
+
+echo "Clean unused images successfully"
