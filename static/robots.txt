@@ -1,2 +1,7 @@
 User-agent: *
-Disallow: /
+Disallow: /register
+Disallow: /login
+Disallow: /settings
+Disallow: /articles/*/reply
+Disallow: /articles/*/history
+Disallow: /articles/*/share

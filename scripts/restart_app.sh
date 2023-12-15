@@ -19,7 +19,7 @@ cd $GIT_REPO_PATH
 echo "Pulling latest code from Git..."
 git pull
 
-sed -i 's/APP_VERSION=.*/APP_VERSION=$APP_VERSION/' $ENV_FILE
+sed -i "s/APP_VERSION=.*/APP_VERSION=$APP_VERSION/" $ENV_FILE
 
 echo "Pulling latest Docker images..."
 docker compose --env-file $ENV_FILE -f $DOCKER_COMPOSE_PATH pull
