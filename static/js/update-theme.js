@@ -1,4 +1,9 @@
 (function() {
+    const themeColorMap = {
+        light: "#E8F4FF",
+        dark: "#2E3841"
+    }
+
     var rawTheme = getRawTheme()
     if (rawTheme == 'system') {
         setTheme(rawTheme)
@@ -19,5 +24,6 @@
             }
         }
         document.documentElement.setAttribute("data-theme", themeName)
+        document.querySelector('meta[name="theme-color"]').content = themeColorMap[themeName]
     }
 })()

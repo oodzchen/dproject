@@ -24,6 +24,7 @@
 
     --link: #1111FE;
     --link-visited: #9A3D9A;
+    --link-visited-lighten: #925992;
     --link-active: #CE3535;
 
     --border-color: #CCC;
@@ -49,7 +50,8 @@
     --text-lighten-4: #666;
 
     --link: #A3A3FF;
-    --link-visited: #A35FA3;
+    --link-visited: #E993E9;
+    --link-visited-lighten: #D46ED4;
     --link-active: #EE7C7C;
 
     --border-color: #666;
@@ -172,6 +174,7 @@ a.text-lighten-2{
 a.text-lighten-3{
     color: var(--text-lighten-3)
 }
+
 .page-flash{
     display:flex;
     padding: 10px;
@@ -199,6 +202,10 @@ a.text-lighten-3{
 }
 .article-list .article-list__title{
     font-size: 1.1rem;
+}
+.article-list a.article-list__source:visited,
+a.link-source:visited{
+    color: var(--link-visited-lighten);
 }
 .article-list .article-list__summary{
     font-size: 0.8rem;

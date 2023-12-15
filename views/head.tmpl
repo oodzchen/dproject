@@ -1,7 +1,7 @@
 {{define "head" -}}
-    {{- $bgColorLight := "white" -}}
+    {{- $bgColorLight := "#FFFFFF" -}}
     {{- $bgColorDark := "#282A36" -}}
-    {{- $colorThemeMap := dict "light" $bgColorLight "dark" $bgColorDark -}}
+    {{- $colorThemeMap := dict "light" "#E8F4FF" "dark" "#2E3841" -}}
     <!DOCTYPE html>
     <html lang="{{.UISettings.Lang}}" data-raw-theme="{{.UISettings.Theme}}" data-theme="{{if eq .UISettings.Theme "dark"}}dark{{else}}light{{end}}">
 	<head>
@@ -44,7 +44,6 @@
 		{{- $breadIdx := 0 -}}
 		<ul class="nav-menu nav-menu--left">
 		    <li><a class="brand" href="/">
-			<!-- <span class="logo">D</span> -->
 			<svg width="1.2rem" xmlns="http://www.w3.org/2000/svg" version="1.0" viewBox="0.00 0.00 180.00 180.00">
 			    <g stroke-width="2.00" fill="none" stroke-linecap="butt">
 				<path stroke="#91aac4" vector-effect="non-scaling-stroke" d="
