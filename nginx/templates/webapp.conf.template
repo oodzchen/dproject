@@ -14,6 +14,11 @@ server {
 
     location / {
         limit_req zone=one burst=5;
+
+        if ($host = www.${SECOND_LEVEL_DOMAIN_NAME}) {
+            return 301 https://${SECOND_LEVEL_DOMAIN_NAME}$request_uri;
+        }
+	
         return 301 https://$host$request_uri;
     }
 
@@ -44,6 +49,17 @@ server {
     
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
+    location / {
+        limit_req zone=one burst=5;
+        proxy_pass http://backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+
+        if ($host = www.${SECOND_LEVEL_DOMAIN_NAME}) {
+            return 301 https://${SECOND_LEVEL_DOMAIN_NAME}$request_uri;
+        }
+    }
+
     location /static {
         alias /data/static;
     }
@@ -55,17 +71,5 @@ server {
     location /robots.txt {
         alias /data/static/robots.txt;
     }
-
-    
-    location / {
-        limit_req zone=one burst=5;
-        proxy_pass http://backend;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
 }
 
-server {
-    server_name www.${SECOND_LEVEL_DOMAIN_NAME};
-    return 301 $scheme://${SECOND_LEVEL_DOMAIN_NAME}$request_uri;
-}
