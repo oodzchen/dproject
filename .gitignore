@@ -30,3 +30,4 @@ bin
 translate.*.toml
 .vscode
 geoip/*.mmdb
+static/analysis/*.html
