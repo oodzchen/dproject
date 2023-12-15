@@ -64,9 +64,6 @@ func main() {
 	}
 
 	// fmt.Println("permissionData: ", permissionData)
-	// fmt.Println("create articler enabled: ", permissionData.Permit("article", "create"))
-	// fmt.Println("ban user enabled: ", permissionData.Permit("user", "ban"))
-
 	roleData, err := config.ParseRoleData("./config/roles.yml")
 	if err != nil {
 		log.Fatal(err)

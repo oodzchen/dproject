@@ -438,7 +438,7 @@ func (mr *ManageResource) getFilteredPermissionList(w http.ResponseWriter, r *ht
 	}
 
 	// userPermittedIdList := mr.Session("one", w, r).GetValue("user_permitted_id_list")
-	userPermittedIdList := mr.getUserPermittedFrontIds(r)
+	userPermittedIdList := mr.srv.Permission.GetEnabledIdList(mr.GetLoginedUserData(r))
 
 	userPermittedIdMap := make(map[string]bool)
 	for _, frontId := range userPermittedIdList {

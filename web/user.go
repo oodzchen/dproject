@@ -233,7 +233,7 @@ func (ur *UserResource) handleItemPage(w http.ResponseWriter, r *http.Request, p
 	if tab != "activity" {
 		postList, err = ur.userSrv.GetPosts(username, service.UserListType(tab))
 	} else {
-		if !ur.srv.Permission.PermissionData.Permit("user", "access_activity") {
+		if !ur.CheckPermit(r, "user", "access_activity") {
 			ur.Error("", nil, w, r, http.StatusForbidden)
 			return
 		}
@@ -375,8 +375,8 @@ func (ur *UserResource) SetRolePage(w http.ResponseWriter, r *http.Request) {
 
 	var roleList []*model.Role
 
-	canSetModerate := ur.srv.Permission.PermissionData.Permit("user", "set_moderator")
-	canSetAdmin := ur.srv.Permission.PermissionData.Permit("user", "set_admin")
+	canSetModerate := ur.CheckPermit(r, "user", "set_moderator")
+	canSetAdmin := ur.CheckPermit(r, "user", "set_admin")
 	for _, item := range wholeRoleList {
 		if item.FrontId == "moderator" && !canSetModerate {
 			continue

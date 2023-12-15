@@ -66,7 +66,9 @@ func Service(c *ServiceConfig) http.Handler {
 	// fmt.Println("templates directory: ", path.Join(wd, "./views/*.tmpl"))
 	tmplPath := path.Join(wd, "./views/*.tmpl")
 	tmplFuncs := template.FuncMap{
-		"permit":  c.permisisonSrv.PermissionData.Permit,
+		"permit": func(module, action string) bool {
+			return c.permisisonSrv.Permit(nil, module, action)
+		},
 		"local":   c.i18nCustom.LocalTpl,
 		"timeAgo": c.i18nCustom.TimeAgo.Format,
 	}

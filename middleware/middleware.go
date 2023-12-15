@@ -24,6 +24,7 @@ import (
 type Renderer interface {
 	ServerErrorp(msg string, err error, w http.ResponseWriter, r *http.Request)
 	Forbidden(err error, w http.ResponseWriter, r *http.Request)
+	GetLoginedUserData(r *http.Request) *model.User
 }
 
 func logSessError(sessName string, err error) {
@@ -61,7 +62,7 @@ func FetchUserData(store *store.Store, sessStore *sessions.CookieStore, permissi
 					return
 				}
 				userData = user
-				permissionSrv.SetLoginedUser(user)
+				// permissionSrv.SetLoginedUser(user)
 			} else {
 				userData = nil
 			}
@@ -95,16 +96,12 @@ func AuthCheck(sessStore *sessions.CookieStore) func(http.Handler) http.Handler 
 	}
 }
 
-func toForbiddenPage(renderer any, w http.ResponseWriter, r *http.Request) {
-	if v, ok := renderer.(Renderer); ok {
-		v.Forbidden(nil, w, r)
-	} else {
-		http.Redirect(w, r, "/403", http.StatusFound)
-	}
+func toForbiddenPage(renderer Renderer, w http.ResponseWriter, r *http.Request) {
+	renderer.Forbidden(nil, w, r)
 }
 
 // User must have at least one permisison id in needPermissionIds
-func PermitCheck(permissionSrv *service.Permission, needPermissionIds []string, renderer any) func(http.Handler) http.Handler {
+func PermitCheck(permissionSrv *service.Permission, needPermissionIds []string, renderer Renderer) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if len(needPermissionIds) == 0 {
@@ -124,7 +121,7 @@ func PermitCheck(permissionSrv *service.Permission, needPermissionIds []string, 
 					// fmt.Println("module", module)
 					// fmt.Println("action", action)
 
-					if permissionSrv.PermissionData.Permit(module, action) {
+					if permissionSrv.Permit(renderer.GetLoginedUserData(r), module, action) {
 						next.ServeHTTP(w, r)
 						return
 					}

@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/oodzchen/dproject/config"
 	"github.com/oodzchen/dproject/model"
@@ -12,19 +13,19 @@ type Permission struct {
 	Store          *store.Store
 	PermissionData *config.PermissionData
 	RoleData       *config.RoleData
-	loginedUser    *model.User
+	// loginedUser    *model.User
 }
 
-func (pm *Permission) SetLoginedUser(u *model.User) {
-	pm.loginedUser = u
+// func (pm *Permission) SetLoginedUser(u *model.User) {
+// 	pm.loginedUser = u
 
-	var permittedIdList []string
-	for _, item := range u.Permissions {
-		permittedIdList = append(permittedIdList, item.FrontId)
-	}
+// 	var permittedIdList []string
+// 	for _, item := range u.Permissions {
+// 		permittedIdList = append(permittedIdList, item.FrontId)
+// 	}
 
-	pm.PermissionData.Update(permittedIdList, u.Super)
-}
+// 	// pm.PermissionData.Update(permittedIdList, u.Super)
+// }
 
 func (pm *Permission) InitPermissionTable() error {
 	// fmt.Println("permission store: ", pm.Store)
@@ -148,9 +149,41 @@ func (pm *Permission) ResetPermissionData() error {
 	return nil
 }
 
-func (pm *Permission) Permit(module string, action string) bool {
+// func (pm *Permission) Permit(module string, action string) bool {
+// 	if pm.PermissionData == nil {
+// 		return false
+// 	}
+// 	return pm.PermissionData.Permit(module, action)
+// }
+
+func (pm *Permission) GetEnabledIdList(u *model.User) []string {
+	var enabledList []string
+
+	if u != nil {
+		var permittedIdList []string
+		for _, item := range u.Permissions {
+			permittedIdList = append(permittedIdList, item.FrontId)
+		}
+		enabledList = pm.PermissionData.GetEnabledFrontIdList(permittedIdList, u.Super)
+	} else {
+		enabledList = pm.PermissionData.GetDefaultEnabledFrontIdList()
+	}
+
+	return enabledList
+}
+
+func (pm *Permission) Permit(u *model.User, module string, action string) bool {
 	if pm.PermissionData == nil {
 		return false
 	}
-	return pm.PermissionData.Permit(module, action)
+
+	enabledIdList := pm.GetEnabledIdList(u)
+
+	for _, id := range enabledIdList {
+		if fmt.Sprintf("%s.%s", module, action) == id {
+			return true
+		}
+	}
+
+	return false
 }

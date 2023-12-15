@@ -102,6 +102,10 @@ func (rd *Renderer) GetLoginedUserData(r *http.Request) *model.User {
 	return nil
 }
 
+func (rd *Renderer) CheckPermit(r *http.Request, module, action string) bool {
+	return rd.srv.Permission.Permit(rd.GetLoginedUserData(r), module, action)
+}
+
 func (rd *Renderer) Error(msg string, err error, w http.ResponseWriter, r *http.Request, code int) {
 	fmt.Printf("render err: %+v\n", err)
 	fmt.Println("msg: ", msg)
@@ -178,11 +182,9 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	data.CSRFField = string(csrf.TemplateField(r))
 	data.RoutePath = r.URL.Path
 	data.Debug = config.Config.Debug
-	// data.BrandName = config.Config.BrandName
-	data.BrandName = rd.Local("BrandName")
 	data.BrandDomainName = config.Config.BrandDomainName
 	data.Slogan = config.Config.Slogan
-	data.PermissionEnabledList = rd.srv.Permission.PermissionData.EnabledFrondIdList
+	data.PermissionEnabledList = rd.srv.Permission.GetEnabledIdList(data.LoginedUser)
 	data.RouteRawQuery = r.URL.RawQuery
 	data.RouteQuery = r.URL.Query()
 	data.Host = config.Config.GetServerURL()
@@ -204,15 +206,18 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	// fmt.Println("start time before render: ", startTime)
 
 	rd.tmpl = rd.tmpl.Funcs(template.FuncMap{
-		"permit":  rd.srv.Permission.PermissionData.Permit,
+		"permit": func(module, action string) bool {
+			return rd.srv.Permission.Permit(data.LoginedUser, module, action)
+		},
 		"local":   rd.i18nCustom.LocalTpl,
 		"timeAgo": rd.i18nCustom.TimeAgo.Format,
 	})
 
+	data.BrandName = rd.Local("BrandName")
 	if data.Title != "" {
-		data.Title += fmt.Sprintf(" - %s", config.Config.BrandName)
+		data.Title += fmt.Sprintf(" - %s", data.BrandName)
 	} else {
-		data.Title = fmt.Sprintf("%s", config.Config.BrandName)
+		data.Title = fmt.Sprintf("%s", data.BrandName)
 	}
 
 	if data.Debug {
@@ -261,24 +266,24 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	}
 }
 
-func (rd *Renderer) getUserPermittedFrontIds(r *http.Request) []string {
-	var frontIdList []string
-	if userData, ok := r.Context().Value("user_data").(*model.User); ok {
-		if userData.Super {
-			return rd.srv.Permission.PermissionData.EnabledFrondIdList
-		}
+// func (rd *Renderer) getUserPermittedFrontIds(r *http.Request) []string {
+// 	var frontIdList []string
+// 	if userData, ok := r.Context().Value("user_data").(*model.User); ok {
+// 		if userData.Super {
+// 			return rd.srv.Permission.PermissionData.EnabledFrondIdList
+// 		}
 
-		if userData.Permissions != nil && len(userData.Permissions) > 0 {
+// 		if userData.Permissions != nil && len(userData.Permissions) > 0 {
 
-			for _, item := range userData.Permissions {
-				frontIdList = append(frontIdList, item.FrontId)
-			}
+// 			for _, item := range userData.Permissions {
+// 				frontIdList = append(frontIdList, item.FrontId)
+// 			}
 
-			return frontIdList
-		}
-	}
-	return nil
-}
+// 			return frontIdList
+// 		}
+// 	}
+// 	return nil
+// }
 
 func (rd *Renderer) Session(name string, w http.ResponseWriter, r *http.Request) *Session {
 	sess, err := rd.sessStore.Get(r, name)

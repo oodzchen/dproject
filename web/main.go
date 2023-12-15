@@ -533,7 +533,7 @@ func (mr *MainResource) doLoginOAuth(w http.ResponseWriter, r *http.Request, ema
 }
 
 func (mr *MainResource) saveUserInfo(w http.ResponseWriter, r *http.Request, user *model.User) {
-	mr.srv.Permission.SetLoginedUser(user)
+	// mr.srv.Permission.SetLoginedUser(user)
 
 	sess, err := mr.sessStore.Get(r, "one")
 	if err != nil {

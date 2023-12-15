@@ -313,7 +313,7 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	canEditOthers := ar.srv.Permission.Permit("article", "edit_others")
+	canEditOthers := ar.CheckPermit(r, "article", "edit_others")
 	list = filterArray(list, func(item *model.Article) bool {
 		return canEditOthers || !item.Blocked
 	})
@@ -511,7 +511,7 @@ func (ar *ArticleResource) FormPage(w http.ResponseWriter, r *http.Request) {
 		// fmt.Println("article:", article)
 		// fmt.Println("ar.srv.Permission:", ar.srv.Permission)
 
-		if (article.AuthorId != currUserId && !ar.srv.Permission.Permit("article", "edit_others")) || !ar.srv.Permission.Permit("article", "edit_mine") {
+		if (article.AuthorId != currUserId && !ar.CheckPermit(r, "article", "edit_others")) || !ar.CheckPermit(r, "article", "edit_mine") {
 			// http.Redirect(w, r, fmt.Sprintf("/articles/%d", articleId), http.StatusFound)
 			ar.Forbidden(nil, w, r)
 			return
@@ -619,7 +619,7 @@ func (ar *ArticleResource) handleSubmit(w http.ResponseWriter, r *http.Request, 
 		}
 
 		if isReply {
-			err = ar.checkLocked(replyToId)
+			err = ar.checkLocked(replyToId, r)
 			if err != nil {
 				ar.Forbidden(err, w, r)
 				return
@@ -700,7 +700,7 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = ar.checkLocked(id)
+	err = ar.checkLocked(id, r)
 	if err != nil {
 		ar.Forbidden(err, w, r)
 		return
@@ -791,7 +791,7 @@ func (ar *ArticleResource) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (oldArticle.AuthorId != currUserId && !ar.srv.Permission.Permit("article", "edit_others")) || !ar.srv.Permission.Permit("article", "edit_mine") {
+	if (oldArticle.AuthorId != currUserId && !ar.CheckPermit(r, "article", "edit_others")) || !ar.CheckPermit(r, "article", "edit_mine") {
 		ar.Forbidden(nil, w, r)
 		return
 	}
@@ -1089,7 +1089,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		}
 	}
 
-	canEditOthers := ar.srv.Permission.Permit("article", "edit_others")
+	canEditOthers := ar.CheckPermit(r, "article", "edit_others")
 	// fmt.Println("can edit others:", canEditOthers)
 	articleList = filterArray(articleList, func(item *model.Article) bool {
 		return canEditOthers || !item.Blocked
@@ -1113,7 +1113,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 
 	fmt.Printf("format article item duration: %dms\n", time.Since(start1).Milliseconds())
 
-	if rootArticle.Blocked && !ar.srv.Permission.Permit("article", "edit_others") {
+	if rootArticle.Blocked && !ar.CheckPermit(r, "article", "edit_others") {
 		ar.Error("", errors.New(fmt.Sprintf("blocke in the contry:%v\n", requestRegionCode)), w, r, http.StatusUnavailableForLegalReasons)
 		return
 	}
@@ -1132,7 +1132,7 @@ func (ar *ArticleResource) handleItem(w http.ResponseWriter, r *http.Request, pa
 		// 	return
 		// }
 
-		if (rootArticle.AuthorId != currUserId && !ar.srv.Permission.Permit("article", "delete_others")) || !ar.srv.Permission.Permit("article", "delete_mine") {
+		if (rootArticle.AuthorId != currUserId && !ar.CheckPermit(r, "article", "delete_others")) || !ar.CheckPermit(r, "article", "delete_mine") {
 			// http.Redirect(w, r, fmt.Sprintf("/articles/%d", articleId), http.StatusFound)
 			ar.Error("", err, w, r, http.StatusForbidden)
 			return
@@ -1437,7 +1437,7 @@ func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = ar.checkLocked(rId)
+	err = ar.checkLocked(rId, r)
 	if err != nil {
 		ar.Forbidden(err, w, r)
 		return
@@ -1451,7 +1451,7 @@ func (ar *ArticleResource) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (article.AuthorId != currUser.Id && !ar.srv.Permission.Permit("article", "delete_others")) || !ar.srv.Permission.Permit("article", "delete_mine") {
+	if (article.AuthorId != currUser.Id && !ar.CheckPermit(r, "article", "delete_others")) || !ar.CheckPermit(r, "article", "delete_mine") {
 		// http.Redirect(w, r, fmt.Sprintf("/articles/%d", rId), http.StatusFound)
 		ar.Error("", err, w, r, http.StatusForbidden)
 		return
@@ -1507,7 +1507,7 @@ func (ar *ArticleResource) Vote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = ar.checkLocked(articleId)
+	err = ar.checkLocked(articleId, r)
 	if err != nil {
 		ar.Forbidden(err, w, r)
 		return
@@ -1606,7 +1606,7 @@ func (ar *ArticleResource) Save(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = ar.checkLocked(articleId)
+	err = ar.checkLocked(articleId, r)
 	if err != nil {
 		ar.Forbidden(err, w, r)
 		return
@@ -1661,7 +1661,7 @@ func (ar *ArticleResource) React(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = ar.checkLocked(articleId)
+	err = ar.checkLocked(articleId, r)
 	if err != nil {
 		ar.Forbidden(err, w, r)
 		return
@@ -1807,7 +1807,7 @@ func (ar *ArticleResource) Subscribe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = ar.checkLocked(articleId)
+	err = ar.checkLocked(articleId, r)
 	if err != nil {
 		ar.Forbidden(err, w, r)
 		return
@@ -1943,16 +1943,16 @@ func (ar *ArticleResource) HistoryPage(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (ar *ArticleResource) checkLocked(articleId int) error {
+func (ar *ArticleResource) checkLocked(articleId int, r *http.Request) error {
 	locked, err := ar.store.Article.CheckLocked(articleId)
 	if err != nil {
 		return err
 	}
 
 	// fmt.Println("locked:", locked)
-	// fmt.Println("lock permission:", ar.srv.Permission.Permit("article", "lock"))
+	// fmt.Println("lock permission:", ar.CheckPermit(r, "article", "lock"))
 
-	if !ar.srv.Permission.Permit("article", "lock") && locked {
+	if !ar.CheckPermit(r, "article", "lock") && locked {
 		return errors.New("article is locked, you have no permission to update it")
 	}
 
