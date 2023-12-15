@@ -30,6 +30,6 @@ docker compose --env-file $ENV_FILE -f $DOCKER_COMPOSE_PATH up -d $APP_SERVICE_N
 echo "Deployment completed successfully."
 
 echo "Clean unused images..."
-docker image prune
+docker image prune -af
 
 echo "Clean unused images successfully"
