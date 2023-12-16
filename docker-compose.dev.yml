@@ -14,6 +14,7 @@ services:
       - DB_NAME=$DB_NAME
       - DB_USER=$DB_USER
       - ADMIN_PASSWORD=$ADMIN_PASSWORD
+      - USER_DEFAULT_PASSWORD=$USER_DEFAULT_PASSWORD
       - PGTZ=UTC
     ports:
       - $DB_PORT:5432
