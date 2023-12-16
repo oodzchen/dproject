@@ -19,7 +19,7 @@
 	    </div>
 	    <p>{{$category.Describe}}</p>
 	    <div>
-		<form class="btn-form" action="/categories/{{$category.FrontId}}/subscribe" method="POST" >
+		<form class="btn-form" style="display:inline" action="/categories/{{$category.FrontId}}/subscribe" method="POST" >
 		    {{- .CSRFField -}}
 		    {{- $btnSubText := local "BtnSubscribe" -}}
 		    {{- if and $category.UserState $category.UserState.Subscribed -}}
@@ -49,7 +49,7 @@
 	{{- placehold .Data.Articles (print "<i class='text-lighten'>" (local "NoData") "</i>") -}}
 	{{range $idx, $item := .Data.Articles -}}
 	    <li>
-		<form class="vote-form{{if and $currUser (eq $item.CurrUserState.VoteType "up")}} voted{{end}}" action="/articles/{{$item.Id}}/vote" method="POST">
+		<form class="vote-form{{if and $currUser (eq $item.CurrUserState.VoteType "up")}} voted{{end}}" style="display:inline" action="/articles/{{$item.Id}}/vote" method="POST">
 		    {{- if not $item.Locked -}}
 			{{$csrfField}}
 			<input name="type" type="hidden" value="up"/>
@@ -84,7 +84,7 @@
 		    {{- if $showOperation -}}
 			<div class="article-operation">
 			    <small>
-				<form class="vote-form{{if and $currUser (eq $item.CurrUserState.VoteType "up")}} voted{{end}}" action="/articles/{{$item.Id}}/vote" method="POST">
+				<form class="vote-form{{if and $currUser (eq $item.CurrUserState.VoteType "up")}} voted{{end}}" style="display:inline" action="/articles/{{$item.Id}}/vote" method="POST">
 				    {{$csrfField}}
 				    <input name="type" type="hidden" value="up"/>
 				    <button {{if not (permit "article" "vote_up")}}disabled{{end}} class="btn-vote--up" type="submit" title="Upvote"><svg width="14" viewBox="0 1 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M1 21h22L12 2"/></svg></button>
