@@ -871,4 +871,9 @@ func (ic *I18nCustom) AddConfigs() {
 		Other: "Unbanned successfully",
 	})
 
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AnalysisReport",
+		Other: "Analysis Report",
+	})
+
 }

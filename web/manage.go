@@ -2,6 +2,8 @@ package web
 
 import (
 	"net/http"
+	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -80,12 +82,32 @@ func (mr *ManageResource) Routes() http.Handler {
 			"activity.access",
 		}, mr)).Get("/activities", mr.ActivityList)
 
-		r.With(mdw.PermitCheck(mr.srv.Permission, []string{
-			"manage.access",
-		}, mr)).Get("/trash", mr.TrashPage)
+		r.Get("/trash", mr.TrashPage)
+
+		rootDir, _ := os.Getwd()
+		FileServer(r, "/static", http.Dir(filepath.Join(rootDir, "manage_static")))
 	})
 
 	return rt
+}
+
+func FileServer(r chi.Router, path string, root http.FileSystem) {
+	if strings.ContainsAny(path, "{}*") {
+		panic("FileServer does not permit any URL parameters.")
+	}
+
+	if path != "/" && path[len(path)-1] != '/' {
+		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
+		path += "/"
+	}
+	path += "*"
+
+	r.Get(path, func(w http.ResponseWriter, r *http.Request) {
+		rctx := chi.RouteContext(r.Context())
+		pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
+		fs := http.StripPrefix(pathPrefix, http.FileServer(root))
+		fs.ServeHTTP(w, r)
+	})
 }
 
 func (mr *ManageResource) PermissionListPage(w http.ResponseWriter, r *http.Request) {

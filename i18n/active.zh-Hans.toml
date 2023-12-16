@@ -186,6 +186,10 @@ other = "{{.FieldNames}}已存在"
 hash = "sha1-39ccca5124aa94a3612c1e58afab50d4ff59c1db"
 other = "已经是解封状态"
 
+[AnalysisReport]
+hash = "sha1-a42b1635ea86c336d5fe4e85bd0468ce49569ab8"
+other = "分析报告"
+
 [Anchor]
 hash = "sha1-8f8c77e7404ca30dcccf92c73c985f04a86420e7"
 other = "锚点"
@@ -197,6 +201,10 @@ other = "操作记录数据校验失败"
 [AppErrCode_AlreadyRegistered]
 hash = "sha1-6351ef4c8e2af37b471b2289823ac9d21eb80452"
 other = "已注册"
+
+[AppErrCode_ArticleNotExist]
+hash = "sha1-83e34cf1156a95a126cabe61167aff59d8b3972c"
+other = "文章不存在"
 
 [AppErrCode_ArticleValidFailed]
 hash = "sha1-28b79d62521142f818df6c69c148bb69bcaa3e45"
