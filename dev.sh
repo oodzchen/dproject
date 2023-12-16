@@ -7,7 +7,7 @@ compose_file=${2:-./docker-compose.dev.yml}
 
 export DEV=1
 
-source ./scripts/init_env.sh $env_file
+source ./scripts/encrypt_user_pass.sh $env_file
 source ./scripts/run_docker.sh $env_file $compose_file
 source ./scripts/pre_test.sh 
 
