@@ -85,7 +85,7 @@ func (mr *ManageResource) Routes() http.Handler {
 		r.Get("/trash", mr.TrashPage)
 
 		rootDir, _ := os.Getwd()
-		FileServer(r, "/static", http.Dir(filepath.Join(rootDir, "manage_static")))
+		FileServer(r, "/static", http.Dir(filepath.Join(rootDir, "/manage_static")))
 	})
 
 	return rt
