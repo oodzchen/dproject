@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -85,15 +86,20 @@ func (mr *ManageResource) Routes() http.Handler {
 		r.Get("/trash", mr.TrashPage)
 
 		rootDir, _ := os.Getwd()
-		FileServer(r, "/static", http.Dir(filepath.Join(rootDir, "/manage_static")))
+		manageStaticPath := filepath.Join(rootDir, "/manage_static")
+		fmt.Println("manage static path:", manageStaticPath)
+		err := FileServer(r, "/static", http.Dir(manageStaticPath))
+		if err != nil {
+			fmt.Println("manage static route init error:", err)
+		}
 	})
 
 	return rt
 }
 
-func FileServer(r chi.Router, path string, root http.FileSystem) {
+func FileServer(r chi.Router, path string, root http.FileSystem) error {
 	if strings.ContainsAny(path, "{}*") {
-		panic("FileServer does not permit any URL parameters.")
+		return errors.New("FileServer does not permit any URL parameters.")
 	}
 
 	if path != "/" && path[len(path)-1] != '/' {
@@ -108,6 +114,8 @@ func FileServer(r chi.Router, path string, root http.FileSystem) {
 		fs := http.StripPrefix(pathPrefix, http.FileServer(root))
 		fs.ServeHTTP(w, r)
 	})
+
+	return nil
 }
 
 func (mr *ManageResource) PermissionListPage(w http.ResponseWriter, r *http.Request) {
