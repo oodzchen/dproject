@@ -334,10 +334,10 @@
     }
 
     function onReactChange(ev, sel) {
-        /* console.log(sel.value) */
-        /* sel.style.visibility = "hidden" */
         sel.closest('form').submit()
-        sel.value = ""
+        setTimeout(function() {
+            sel.value = ""
+        }, 0)
     }
 
     /*--------------------- role edit page  ---------------------------------------------------*/

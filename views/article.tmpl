@@ -136,7 +136,7 @@
 		    &nbsp;|&nbsp;<a class="text-lighten-3" href="/articles/{{.article.Id}}">{{local "Link" | lower}}</a>
 		    &nbsp;|&nbsp;<a class="text-lighten-3" href="#ar_{{.article.Id}}">{{local "Anchor" | lower}}</a>
 		    {{- if gt .pageDepth 1 -}}
-			&nbsp;|&nbsp;<a title="{{local "BtnParent"}}" class="btn-parent text-lighten-3" href="#ar_{{.article.ReplyToId}}">{{local "BtnParent" | lower}}</a>;
+			&nbsp;|&nbsp;<a title="{{local "BtnParent"}}" class="btn-parent text-lighten-3" href="#ar_{{.article.ReplyToId}}">{{local "BtnParent" | lower}}</a>
 		    {{- end -}}
 
 		    {{- if or (not .article.Locked) (permit "article" "lock") -}}
