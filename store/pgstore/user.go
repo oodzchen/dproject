@@ -465,13 +465,14 @@ p.created_at,
 p.updated_at,
 p.reply_to,
 p.author_id,
-u.username AS author_name,
+u2.username AS author_name,
 p.depth,
 p3.title AS root_article_title
 FROM post_saves ps
 JOIN users u ON u.id = ps.user_id AND u.username = $1
 LEFT JOIN posts p ON p.id = ps.post_id
 LEFT JOIN posts p3 ON p.root_article_id = p3.id
+LEFT JOIN users u2 ON u2.id = p.author_id
 WHERE p.deleted = false
 ORDER BY ps.created_at DESC`
 	rows, err := u.dbPool.Query(context.Background(), sqlStr, username)
@@ -572,7 +573,7 @@ p.created_at,
 p.updated_at,
 p.reply_to,
 p.author_id,
-u.username AS author_name,
+u2.username AS author_name,
 p.depth,
 p3.title AS root_article_title,
 true
@@ -580,6 +581,7 @@ FROM post_subs ps
 JOIN users u ON u.id = ps.user_id AND u.username = $1
 LEFT JOIN posts p ON p.id = ps.post_id
 LEFT JOIN posts p3 ON p.root_article_id = p3.id
+LEFT JOIN users u2 ON u2.id = p.author_id
 WHERE p.deleted = false
 ORDER BY ps.created_at DESC`
 	rows, err := u.dbPool.Query(context.Background(), sqlStr, username)
@@ -691,6 +693,71 @@ func (u *User) logReputation(userId, value int, changeType model.ReputationChang
 		return err
 	}
 	return nil
+}
+
+func (u *User) GetVotedPosts(username string, voteType model.VoteType) ([]*model.Article, error) {
+	sqlStr := `
+SELECT
+p.id,
+p.title,
+p.content,
+p.created_at,
+p.updated_at,
+p.reply_to,
+p.author_id,
+u2.username AS author_name,
+p.depth,
+p3.title AS root_article_title
+FROM post_votes pv
+JOIN users u ON u.id = pv.user_id AND u.username = $1
+LEFT JOIN posts p ON p.id = pv.post_id AND pv.type = `
+	if voteType == model.VoteTypeUp {
+		sqlStr += `'up' `
+	} else {
+		sqlStr += `'down' `
+	}
+	sqlStr += `
+LEFT JOIN posts p3 ON p.root_article_id = p3.id
+LEFT JOIN users u2 ON p.author_id = u2.id
+WHERE p.deleted = false AND p.author_id != u.id
+ORDER BY pv.created_at DESC`
+
+	// fmt.Println("get vote post sql:", sqlStr)
+
+	rows, err := u.dbPool.Query(context.Background(), sqlStr, username)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var posts []*model.Article
+	for rows.Next() {
+		var item model.Article
+		err = rows.Scan(
+			&item.Id,
+			&item.NullTitle,
+			&item.Content,
+			&item.CreatedAt,
+			&item.UpdatedAt,
+			&item.ReplyToId,
+			&item.AuthorId,
+			&item.AuthorName,
+			&item.ReplyDepth,
+			&item.NullReplyRootArticleTitle,
+		)
+
+		if err != nil {
+			fmt.Printf("query user's saved posts error: %v", err)
+			return nil, err
+		}
+
+		item.FormatNullValues()
+
+		posts = append(posts, &item)
+	}
+
+	return posts, nil
 }
 
 // func (u *User) UpdateReputation(username string) error {

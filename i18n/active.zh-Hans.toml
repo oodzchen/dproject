@@ -1002,6 +1002,10 @@ other = "版本"
 hash = "sha1-8a59b65d21e42409585cf850b64587e2ee783489"
 other = "{{.Score}} 分"
 
+[Voted]
+hash = "sha1-958115f04d0c4f41e39ea44dc883957c34821e01"
+other = "投过票"
+
 [Weight]
 hash = "sha1-c3c6f9c00570e41e9c3305fce571e511593c5eb4"
 other = "{{.Weight}} 权重"

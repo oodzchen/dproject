@@ -876,4 +876,9 @@ func (ic *I18nCustom) AddConfigs() {
 		Other: "Analysis Report",
 	})
 
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Voted",
+		Other: "Voted",
+	})
+
 }

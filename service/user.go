@@ -17,12 +17,14 @@ const (
 	UserListReply                   = "reply"
 	UserListActivity                = "activity"
 	UserListSubscribed              = "subscribed"
+	UserListVoteUp                  = "vote_up"
 )
 
 var AuthRequiedUserTabMap = map[UserListType]bool{
 	UserListSaved:      true,
 	UserListSubscribed: true,
 	UserListActivity:   true,
+	UserListVoteUp:     true,
 }
 
 func CheckUserTabAuthRequired(tab UserListType) bool {
@@ -58,6 +60,8 @@ func (u *User) GetPosts(username string, listType UserListType) ([]*model.Articl
 		return u.Store.User.GetSavedPosts(username)
 	case UserListSubscribed:
 		return u.Store.User.GetSubscribedPosts(username)
+	case UserListVoteUp:
+		return u.Store.User.GetVotedPosts(username, model.VoteTypeUp)
 	default:
 		return u.Store.User.GetPosts(username, string(listType))
 	}

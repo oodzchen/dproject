@@ -237,6 +237,7 @@ VerificationResetPassMailTitle = "Verification code for resetting password"
 VerificationResetPassMailTpl = "<html>\n<body>\n<p>You are resetting the password on {{.DomainName}}, here's the verfication code:</p>\n<p><large><b>{{.Code}}</b></large></p>\n<p>Valid for {{.Minutes}} minutes.</p>\n<hr>\n<p style=\"color:#666\">{{.DomainName}}</p>\n</body>\n</html>"
 Version = "Version"
 VoteScore = "vote score {{.Score}}"
+Voted = "Voted"
 Weight = "weight {{.Weight}}"
 
 [Activity]

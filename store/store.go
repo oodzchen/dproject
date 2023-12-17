@@ -120,6 +120,7 @@ type UserStore interface {
 	AddReputation(username string, changeType model.ReputationChangeType, isRevert bool) error
 	AddReputationVal(username string, value int, comment string, isRevert bool) error
 	// UpdateReputation(username string) error
+	GetVotedPosts(username string, voteType model.VoteType) ([]*model.Article, error)
 }
 
 type PermissionStore interface {

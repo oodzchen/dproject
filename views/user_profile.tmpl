@@ -4,7 +4,7 @@
     {{- $userInfo := $data.UserInfo -}}
     {{- $csrfField := .CSRFField -}}
     {{- $tabs := list "all" "article" "reply" -}}
-    {{- $tabsMap := dict "all" (local "All") "article" (local "Article" "Count" 2) "reply" (local "Reply" "Count" 2) "saved" (local "Saved") "subscribed" (local "Subscribed") "activity" (local "Activity" "Count" 2) -}}
+    {{- $tabsMap := dict "all" (local "All") "article" (local "Article" "Count" 2) "reply" (local "Reply" "Count" 2) "saved" (local "Saved") "subscribed" (local "Subscribed") "activity" (local "Activity" "Count" 2) "vote_up" (local "Voted") -}}
     {{- $isCurrUser := false -}}
 
     {{- if .LoginedUser -}}
@@ -12,6 +12,7 @@
 	    {{- $isCurrUser = true -}}
 	    {{- $tabs = append $tabs "saved" -}}
 	    {{- $tabs = append $tabs "subscribed" -}}
+	    {{- $tabs = append $tabs "vote_up" -}}
 	{{- end -}}
 
 	{{- if permit "user" "access_activity" -}}
@@ -120,6 +121,10 @@
 	    <li>
 		<div>
 		    <a href="/articles/{{.Id}}">{{.DisplayTitle}}</a>
+		    {{- if or (eq $tab "saved") (eq $tab "subscribed") (eq $tab "vote_up")  -}}
+			{{- $author :=  (print "<a class=\"text-lighten-3\" href=\"/users/" .AuthorName "\">" .AuthorName "</a>") -}}
+			&nbsp;{{local "PublishInfo" "Username" $author}}
+		    {{- end -}}
 		    <time title="{{.CreatedAt}}">{{timeAgo .CreatedAt}}</time>
 		    {{- if and (eq $tab "subscribed") (and .CurrUserState .CurrUserState.Subscribed) -}}
 			&nbsp;&nbsp;<form class="btn-form" action="/articles/{{.Id}}/subscribe" method="POST" >

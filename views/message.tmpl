@@ -10,7 +10,10 @@
 		{{- $title := "" -}}
 		{{- if eq .Type "reply" -}}
 		    {{- $title = print "<a href='/articles/" .SourceArticle.Id "'>" .SourceArticle.DisplayTitle "</a>" -}}
-		    {{- local "NewReply" "ArticleTitle" $title}}{{timeAgo .CreatedAt}}
+		    {{- local "NewReply" "ArticleTitle" $title}}
+		    {{- $author :=  (print "<a class=\"text-lighten-3\" href=\"/users/" .ContentArticle.AuthorName "\">" .ContentArticle.AuthorName "</a>") -}}
+		    &nbsp;{{local "PublishInfo" "Username" $author}}
+		    {{timeAgo .CreatedAt}}
 		{{- else if eq .Type "category" -}}
 		    {{- $title = print "<a href='/categories/" .SourceCategory.FrontId "'>" .SourceCategory.Name "</a>" -}}
 		    {{- $authorName := print "<a href='/users/" .ContentArticle.AuthorName "'>" .ContentArticle.AuthorName "</a>" -}}
