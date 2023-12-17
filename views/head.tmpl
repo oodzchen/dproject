@@ -1,9 +1,7 @@
 {{define "head" -}}
-    {{- $bgColorLight := "#FFFFFF" -}}
-    {{- $bgColorDark := "#282A36" -}}
     {{- $colorThemeMap := dict "light" "#E8F4FF" "dark" "#2E3841" -}}
     <!DOCTYPE html>
-    <html lang="{{.UISettings.Lang}}" data-raw-theme="{{.UISettings.Theme}}" data-theme="{{if eq .UISettings.Theme "dark"}}dark{{else}}light{{end}}">
+    <html lang="{{.UISettings.Lang}}" data-raw-theme="{{.UISettings.Theme}}" data-theme="{{if eq .UISettings.Theme "light"}}light{{else}}dark{{end}}">
 	<head>
 	    <meta charset="UTF-8">
 	    <meta name="description" content="{{.Description}}" />
@@ -19,12 +17,6 @@
 	    <style>
 	     :root{
 		 font-size: {{.UISettings.FontSize}}px;
-	     }
-	     :root[data-theme="light"] {
-		 --background: {{$bgColorLight}};
-	     }
-	     :root[data-theme="dark"] {
-		 --background: {{$bgColorDark}};
 	     }
 	    </style>
 	    <link href="/static/css/style.css" rel="stylesheet"/>

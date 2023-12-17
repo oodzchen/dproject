@@ -881,4 +881,8 @@ func (ic *I18nCustom) AddConfigs() {
 		Other: "Voted",
 	})
 
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Matrix",
+		Other: "Matrix",
+	})
 }

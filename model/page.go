@@ -9,6 +9,7 @@ const (
 	PageThemeLight  string = "light"
 	PageThemeDark          = "dark"
 	PageThemeSystem        = "system"
+	PageThemeMatrix        = "matrix"
 )
 
 const (

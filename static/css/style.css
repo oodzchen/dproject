@@ -1,6 +1,5 @@
 :root{
     --font-size: 16px;
-    --flash-bg: #E5E4BE;
     --theme-color: #2F71AC;
     --theme-color-darken: #5050DC;
     --border-color-active: var(--theme-color);
@@ -10,6 +9,8 @@
 :root[data-theme="light"] {
     color-scheme: light;
     --text: black;
+
+    --background: #FFFFFF;
     --background-hover: #FAFAFA;
 
     --page-tip-bg: #FDF2E1;
@@ -31,19 +32,23 @@
 
     --diff-ins-bg: #e6ffe6;
     --diff-del-bg: #ffe6e6;
+
+    --flash-bg: #E5E4BE;
 }
 :root[data-theme="dark"] {
     color-scheme: dark;
     --theme-color: #74BCFB;
     --theme-color-darken: #8C8CDC;
     --text: #EEE;
+
+    --background: #282A36;
     --background-hover: #383A45;
 
     --page-tip-bg: #4F4940;
     --text-bg: #363948;
     --nav-bg: #2E3841;
     
-    --text-with-background: black;
+    --text-with-background: var(--text);
     --text-lighten: #DDD;
     --text-lighten-2: #CCC;
     --text-lighten-3: #9D9B9B;
@@ -58,6 +63,60 @@
 
     --diff-ins-bg: #3d463d;
     --diff-del-bg: #4a3b3b;
+
+    --flash-bg: #4D4C37;
+}
+:root[data-theme="matrix"] {
+    color-scheme: dark;
+    --theme-color: #00FF2B;
+    --theme-color-darken: #222;
+    --text: #00FF2B;
+
+    --background: #000;
+    --background-hover: #111;
+
+    --page-tip-bg: #111;
+    --text-bg: #111;
+    --nav-bg: #111;
+    
+    --text-with-background: #00FF2B;
+    --text-lighten: #00FF2B;
+    --text-lighten-2: #009A22;
+    --text-lighten-3: #009A22;
+    --text-lighten-4: #009A22;
+
+    --link: #00FF2B;
+    --link-visited: #36BA01;
+    --link-visited-lighten: #009A22;
+    --link-active: #36BA01;
+
+    --border-color: #009A22;
+
+    --diff-ins-bg: #3d463d;
+    --diff-del-bg: #4a3b3b;
+
+    --flash-bg: #333;
+
+    .brand svg{
+	box-sizing: border-box;
+	border: 1px solid var(--text);
+	border-radius: 2px;
+    }
+    .brand svg path:nth-child(2),
+    .brand svg path:nth-child(4){
+	fill: var(--background);
+    }
+    .brand svg path:nth-child(3){
+	fill: var(--text);
+    }
+
+    input,
+    textarea,
+    button,
+    select{
+	border: 1px solid var(--border-color);
+	border-radius: 4px;
+    }
 }
 h1{
     margin-bottom: 0.6rem;
@@ -84,6 +143,7 @@ select{
     box-sizing: border-box;
     max-width: calc(100vw - 24px);
     font-size: 1rem;
+    color: var(--text);
 }
 
 *:disabled{
@@ -390,7 +450,7 @@ a.link-source:visited{
     display: inline-block;
     margin: 0;
     padding: 0;
-    border: none;
+    border: none!important;
     background: transparent;
     cursor: pointer;
     font-family: inherit;

@@ -5,12 +5,11 @@
     }
 
     var rawTheme = getRawTheme()
-    if (rawTheme == 'system') {
+    setTheme(rawTheme)
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
         setTheme(rawTheme)
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
-            setTheme(rawTheme)
-        });
-    }
+    });
+    
     function getRawTheme() {
         return document.documentElement.getAttribute('data-raw-theme')
     }

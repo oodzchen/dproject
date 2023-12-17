@@ -634,7 +634,7 @@ func (mr *MainResource) SaveUISettings(w http.ResponseWriter, r *http.Request) {
 		model.UpdateErrI18n()
 	}
 
-	if regexp.MustCompile(`^light|dark|system$`).Match([]byte(theme)) {
+	if regexp.MustCompile(`^light|dark|system|matrix$`).Match([]byte(theme)) {
 		uiSettings.Theme = theme
 	}
 

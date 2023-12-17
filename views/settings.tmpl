@@ -31,8 +31,8 @@
 
     {{- if eq .Data.PageKey "ui" -}}
 	<form class="form" method="POST" action="/settings/ui">
-	    {{- $themeDict := dict "light" (local "ThemeLight") "dark" (local "ThemeDark") "system" (local "ThemeSystem")}}
-	    {{- $themes := list "light" "dark" "system"}}
+	    {{- $themeDict := dict "light" (local "ThemeLight") "dark" (local "ThemeDark") "system" (local "ThemeSystem") "matrix" (local "Matrix")}}
+	    {{- $themes := list "light" "dark" "system" "matrix"}}
 	    {{- $contentLayoutDict := dict "full" (local "PageLayoutFull") "centered" (local "PageLayoutCentered")}}
 	    {{- $contentLayouts := list "centered" "full"}}
 	    {{- $repliesLayoutDict := dict "tree" (local "RepliesLayoutTree") "tile" (local "RepliesLayoutTile")}}
