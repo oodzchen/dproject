@@ -43,6 +43,11 @@ func TestUserValid(t *testing.T) {
 			valid: false,
 		},
 		{
+			desc:  "Email format valid",
+			in:    &userData{Name: "Mark", Email: "abc123@outlook.com", Password: "111abc@222"},
+			valid: true,
+		},
+		{
 			desc:  "Name format",
 			in:    &userData{Name: "@", Email: "aaa@test.com", Password: "111abc@222"},
 			valid: false,

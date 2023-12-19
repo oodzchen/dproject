@@ -885,4 +885,10 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "Matrix",
 		Other: "Matrix",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "AuthFrom",
+		Other: "Auth From",
+	})
+
 }

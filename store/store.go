@@ -96,7 +96,7 @@ type ArticleStore interface {
 }
 
 type UserStore interface {
-	List(page, pageSize int, oldest bool, username, roleForntId string) ([]*model.User, int, error)
+	List(page, pageSize int, oldest bool, username, roleForntId string, authType model.AuthType) ([]*model.User, int, error)
 	Create(email, password, name, roleFrontId string) (int, error)
 	CreateWithOAuth(email, name, roleFrontId, authTyp string) (int, error)
 	// Update(u *model.User, fields []string) (int, error)

@@ -14,6 +14,7 @@
     </style>
 
     {{- $data := .Data -}}
+    {{- $authTypeMap := .Data.AuthTypeNames -}}
     
     <form class="filter-box" action="/manage/users" method="GET">
 	<div class="filter-box__item">
@@ -26,6 +27,15 @@
 		<option value="">{{local "All"}}</option>
 		{{- range .Data.RoleOptions -}}
 		    <option value="{{.Value}}" {{if eq .Value $data.Query.Role}}selected{{end}}>{{.Name}}</option>
+		{{- end -}}
+	    </select>
+	</div>
+	<div class="filter-box__item">
+	    <label id="filter-auth-type" class="filter-box__label">{{local "AuthFrom"}}:</label>
+	    <select id="filter-auth-type" name="auth_from" autocomplete="off">
+		<option value="">{{local "All"}}</option>
+		{{- range .Data.AuthTypeOptions -}}
+		    <option value="{{.Value}}" {{if eq .Value $data.Query.AuthType}}selected{{end}}>{{.Name}}</option>
 		{{- end -}}
 	    </select>
 	</div>
@@ -57,6 +67,11 @@
 		<div>
 		    <small>
 			<b>{{local "Role"}}</b>: <span {{if eq .RoleFrontId "banned_user"}}style="color:red"{{end}}>{{.RoleName}}</span>
+		    </small>
+		</div>
+		<div>
+		    <small>
+			<b>{{local "AuthFrom"}}</b>: <span>{{index $authTypeMap .AuthFrom}}</span>
 		    </small>
 		</div>
 		{{- if $debug -}}

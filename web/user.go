@@ -99,6 +99,7 @@ func (ur *UserResource) List(w http.ResponseWriter, r *http.Request) {
 	username := r.URL.Query().Get("username")
 	roleFrontId := r.URL.Query().Get("role")
 	sort := r.URL.Query().Get("sort")
+	authType := r.URL.Query().Get("auth_from")
 
 	var oldest bool
 	if sort == "oldest" {
@@ -108,7 +109,7 @@ func (ur *UserResource) List(w http.ResponseWriter, r *http.Request) {
 		sort = "latest"
 	}
 
-	list, total, err := ur.store.User.List(page, pageSize, oldest, username, roleFrontId)
+	list, total, err := ur.store.User.List(page, pageSize, oldest, username, roleFrontId, model.AuthType(authType))
 	if err != nil {
 		ur.Error("", err, w, r, http.StatusInternalServerError)
 	}
@@ -120,8 +121,8 @@ func (ur *UserResource) List(w http.ResponseWriter, r *http.Request) {
 	// }
 
 	type UserQueryData struct {
-		UserName, Role, Sort   string
-		Total, Page, TotalPage int
+		UserName, Role, Sort, AuthType string
+		Total, Page, TotalPage         int
 	}
 
 	type UserListPage struct {
@@ -131,8 +132,10 @@ func (ur *UserResource) List(w http.ResponseWriter, r *http.Request) {
 		// TotalPage int
 		// PageSize  int
 
-		Query       *UserQueryData
-		RoleOptions []*model.OptionItem
+		Query           *UserQueryData
+		RoleOptions     []*model.OptionItem
+		AuthTypeOptions []*model.OptionItem
+		AuthTypeNames   map[model.AuthType]string
 	}
 
 	ur.SavePrevPage(w, r)
@@ -147,6 +150,14 @@ func (ur *UserResource) List(w http.ResponseWriter, r *http.Request) {
 		roleOptions = append(roleOptions, &model.OptionItem{
 			Name:  item.Name,
 			Value: item.FrontId,
+		})
+	}
+
+	var authTypeOpitons []*model.OptionItem
+	for _, item := range model.GetAuthTypeList() {
+		authTypeOpitons = append(authTypeOpitons, &model.OptionItem{
+			Name:  model.AuthTypeNames[item],
+			Value: item,
 		})
 	}
 
@@ -165,8 +176,11 @@ func (ur *UserResource) List(w http.ResponseWriter, r *http.Request) {
 				Total:     total,
 				Page:      page,
 				TotalPage: CeilInt(total, pageSize),
+				AuthType:  authType,
 			},
-			RoleOptions: roleOptions,
+			RoleOptions:     roleOptions,
+			AuthTypeOptions: authTypeOpitons,
+			AuthTypeNames:   model.AuthTypeNames,
 		},
 		BreadCrumbs: []*model.BreadCrumb{
 			{

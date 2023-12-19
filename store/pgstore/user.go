@@ -16,7 +16,7 @@ type User struct {
 	dbPool *pgxpool.Pool
 }
 
-func (u *User) List(page, pageSize int, oldest bool, username, roleFrontId string) ([]*model.User, int, error) {
+func (u *User) List(page, pageSize int, oldest bool, username, roleFrontId string, authType model.AuthType) ([]*model.User, int, error) {
 	if page < 1 {
 		page = DefaultPage
 	}
@@ -26,7 +26,7 @@ func (u *User) List(page, pageSize int, oldest bool, username, roleFrontId strin
 	}
 
 	sqlStr := `SELECT 
-    u.id, u.username, u.email, u.created_at, u.banned_start_at, COALESCE(u.banned_day_num, 0), u.banned_count,
+    u.id, u.username, u.email, u.created_at, u.banned_start_at, COALESCE(u.banned_day_num, 0), u.banned_count, u.auth_from,
     COALESCE(u.introduction, ''),
     COALESCE(r.name, '') as role_name, 
     COALESCE(r.front_id, '') AS role_front_id,
@@ -45,6 +45,11 @@ LEFT JOIN roles r ON ur.role_id = r.id
 	if strings.TrimSpace(roleFrontId) != "" {
 		args = append(args, roleFrontId)
 		conditions = append(conditions, fmt.Sprintf(" r.front_id = $%d ", len(args)))
+	}
+
+	if strings.TrimSpace(string(authType)) != "" {
+		args = append(args, authType)
+		conditions = append(conditions, fmt.Sprintf(" auth_from = $%d ", len(args)))
 	}
 
 	if len(conditions) > 0 {
@@ -89,6 +94,7 @@ LEFT JOIN roles r ON ur.role_id = r.id
 			&item.NullBannedStartAt,
 			&item.BannedDayNum,
 			&item.BannedCount,
+			&item.AuthFrom,
 			&item.Introduction,
 			&item.RoleName,
 			&item.RoleFrontId,

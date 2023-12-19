@@ -26,10 +26,26 @@ type AuthType string
 
 const (
 	AuthTypeSelf      AuthType = "self"
-	AuthTypeGoogle             = "google"
-	AuthTypeGithub             = "github"
-	AuthTypeMicrosoft          = "microsoft"
+	AuthTypeGoogle    AuthType = "google"
+	AuthTypeGithub    AuthType = "github"
+	AuthTypeMicrosoft AuthType = "microsoft"
 )
+
+var AuthTypeNames = map[AuthType]string{
+	AuthTypeSelf:      "Self",
+	AuthTypeGoogle:    "Google",
+	AuthTypeGithub:    "GitHub",
+	AuthTypeMicrosoft: "Microsoft",
+}
+
+func GetAuthTypeList() []AuthType {
+	return []AuthType{
+		AuthTypeSelf,
+		AuthTypeGoogle,
+		AuthTypeGithub,
+		AuthTypeMicrosoft,
+	}
+}
 
 type ReputationChangeType string
 
@@ -169,7 +185,7 @@ func (u *User) Valid(withPassword bool) error {
 	if withPassword {
 		err := ValidPassword(u.Password)
 		if err != nil {
-			return errors.Join(AppErrUserValidFailed, ErrEmailValidFailed)
+			return errors.Join(AppErrUserValidFailed, errors.New(", "), err)
 		}
 	}
 

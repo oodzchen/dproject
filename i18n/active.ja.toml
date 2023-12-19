@@ -262,6 +262,10 @@ other = "最大{{.Num}}文字まで、簡潔に表現してください。目を
 hash = "sha1-ccaa51c0648fc07ca09a941bbfcdd1e5f7835582"
 other = "直接リンクを提供してください。リダイレクトのないウェブサイトを使用してください。第一情報源を提供してください。"
 
+[AuthFrom]
+hash = "sha1-f5de1a75cac46973f5e8075b5998d5d918a8dcb1"
+other = "承認済みから"
+
 [Author]
 hash = "sha1-5fda23d62015b99fb2a9f86b38bcdf2bdf7609c8"
 other = "著者"
