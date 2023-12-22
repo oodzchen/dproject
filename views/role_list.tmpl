@@ -1,6 +1,8 @@
 {{define "role_list"}}
 
     {{template "head" .}}
+
+    {{- $isSuperAdmin := (and .LoginedUser .LoginedUser.Super) -}}
     <div class="page-tab">
 	<div></div>
 	<div>
@@ -44,7 +46,7 @@
 			{{- placehold .FormattedPermissions (print "<i class=\"text-lighten-2\">" (local "NoData") "</i>") -}}
 		    </td>
 		    <td>
-			{{- if not .IsDefault -}}
+			{{- if or (not .IsDefault) $isSuperAdmin -}}
 			    <a href="/manage/roles/{{$role.Id}}/edit">Edit</a>&nbsp;&nbsp;
 			{{- end -}}
 		    </td>

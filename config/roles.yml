@@ -16,13 +16,6 @@ data:
       - article.delete_mine
       - article.vote_up
       - article.subscribe
-      - reply.create
-      - reply.reply
-      - reply.edit_mine
-      - reply.save
-      - reply.react
-      - reply.delete_mine
-      - reply.vote_up
       - user.update_intro_mine
   
   banned_user:
@@ -41,14 +34,8 @@ data:
       - article.react
       - article.delete_mine
       - article.vote_up
+      - article.vote_down
       - article.subscribe
-      - reply.create
-      - reply.reply
-      - reply.edit_mine
-      - reply.save
-      - reply.react
-      - reply.delete_mine
-      - reply.vote_up
       - user.update_intro_mine
       
       - article.edit_others
@@ -74,14 +61,8 @@ data:
       - article.react
       - article.delete_mine
       - article.vote_up
+      - article.vote_down
       - article.subscribe
-      - reply.create
-      - reply.reply
-      - reply.edit_mine
-      - reply.save
-      - reply.react
-      - reply.delete_mine
-      - reply.vote_up
       - user.update_intro_mine
       
       - article.edit_others

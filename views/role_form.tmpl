@@ -8,6 +8,7 @@
     {{- $role := .Data.Role -}}
     {{- $isDefault := and $role $role.IsDefault -}}
     {{- $rolePermissionIdList := .Data.RolePermissionIdList -}}
+    {{- $isSuperAdmin := (and .LoginedUser .LoginedUser.Super) -}}
 
     <form class="form" action="/manage/roles{{if $isEdit}}/{{$role.Id}}/edit{{end}}" method="POST">
 	{{- $csrfField -}}
@@ -17,7 +18,7 @@
 	</div>
 	<div class="form__row">
 	    <label class="form__label" for="name">Name</label>
-	    <input required id="name" name="name" type="text" value="{{if $isEdit}}{{$role.Name}}{{end}}" {{if $isDefault}}disabled{{end}}/>
+	    <input required id="name" name="name" type="text" value="{{if $isEdit}}{{$role.Name}}{{end}}" {{if and $isDefault (not $isSuperAdmin)}}disabled{{end}}/>
 	</div>
 	<div class="form__row">
 	    <label class="form__label">Permissions</label>
@@ -29,14 +30,14 @@
 		    <label for="{{.Module}}-all"><b>{{.Module}}</b></label>
 		</legend>
 		{{- range .List -}}
-		    <input name="permissions" id="{{.FrontId}}" class="btn-check-permission" type="checkbox" value="{{.FrontId}}" {{if and $isEdit (has .Id $rolePermissionIdList)}}checked{{end}} {{if $isDefault}}disabled{{end}}/>
+		    <input name="permissions" id="{{.FrontId}}" class="btn-check-permission" type="checkbox" autocomplete="off" value="{{.FrontId}}" {{if and $isEdit (has .Id $rolePermissionIdList)}}checked{{end}} {{if and $isDefault (not $isSuperAdmin)}}disabled{{end}}/>
 		    <label for="{{.FrontId}}">{{.Name}}</label>&nbsp;&nbsp;&nbsp;&nbsp;
 		{{- end -}}
 	    </fieldset>
 	    {{- end -}}
 	</div>
 
-	{{if not $isDefault}}<button type="submit">Submit</button>{{end}}
+	{{if or (not $isDefault) $isSuperAdmin}}<button type="submit">Submit</button>{{end}}
     </form>
 
     {{template "foot" .}}

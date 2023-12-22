@@ -558,7 +558,9 @@ func (mr *ManageResource) RoleEditSubmit(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if role.IsDefault {
+	currUser := mr.GetLoginedUserData(r)
+
+	if role.IsDefault && !currUser.Super {
 		mr.Error("", nil, w, r, http.StatusForbidden)
 		return
 	}
