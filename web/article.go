@@ -253,7 +253,7 @@ func (ar *ArticleResource) List(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		defer wg.Done()
-		total, err := ar.store.Article.Count(categoryFrontId)
+		total, err := ar.store.Article.Count(categoryFrontId, false)
 		if err != nil {
 			ch <- err
 			return

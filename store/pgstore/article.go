@@ -239,15 +239,19 @@ WHERE p.id = ANY($2)
 	return list, nil
 }
 
-func (a *Article) Count(frontId string) (int, error) {
+func (a *Article) Count(frontId string, includePinned bool) (int, error) {
 	var count int
 	var args []any
-	sqlStr := `SELECT COUNT(*) FROM posts WHERE reply_to = 0 AND deleted = false`
+	sqlStr := `SELECT COUNT(*) FROM posts p WHERE p.reply_to = 0 AND p.deleted = false`
 	if frontId != "" {
 		args = append(args, frontId)
 		sqlStr = `SELECT COUNT(p.*) FROM posts p
 LEFT JOIN categories c ON c.front_id = $1
 WHERE p.reply_to = 0 AND p.deleted = false AND p.category_id = c.id`
+	}
+
+	if !includePinned {
+		sqlStr += ` AND (p.pinned_expire_at IS NULL OR p.pinned_expire_at <= NOW())`
 	}
 
 	err := a.dbPool.QueryRow(context.Background(), sqlStr, args...).Scan(&count)

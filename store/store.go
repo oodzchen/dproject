@@ -56,7 +56,7 @@ type ArticleStore interface {
 	ReplyTree(page, pageSize, ariticleId int, sortType model.ArticleSortType, pinned bool) ([]*model.Article, error)
 	ReplyList(page, pageSize, ariticleId int, sortType model.ArticleSortType, pinned bool) ([]*model.Article, error)
 	ItemTreeUserState(ids []int, userId int) ([]*model.Article, error)
-	Count(categoryFrontId string) (int, error)
+	Count(categoryFrontId string, includePinned bool) (int, error)
 	CountTotalReply(id int) (int, error)
 	VoteCheck(id, userId int) (error, string)
 	// Return int value, 0 for error, -1 for canceled, 1 for added, 2 for updated
