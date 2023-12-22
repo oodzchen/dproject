@@ -101,7 +101,7 @@ func (rr *RSSResource) Atom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("atom:", atom)
+	// fmt.Println("atom:", atom)
 
 	w.Header().Set("Content-Type", "application/xml;charset=utf-8")
 

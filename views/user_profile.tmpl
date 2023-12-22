@@ -47,7 +47,15 @@
 		    <div>
 			<b>{{local "Permission" "Count" 2}}</b>
 			<br/>
-			{{joinStrArr .Data.PermissionNames ", &nbsp;&nbsp;"}}
+			{{- range $module, $item := $data.PermissionData -}}
+			    {{upHead 1 $module}}
+			    <br />
+			    {{- range $index, $p := $item -}}
+				{{.FrontId}}{{if ne $index (add (len $item) -1)}},&nbsp;&nbsp;{{end}}
+			    {{- end -}}
+			    <br />
+			    <br />
+			{{- end -}}
 		    </div>
 		</small>
 	    </div>

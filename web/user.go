@@ -25,13 +25,15 @@ type queryData struct {
 }
 
 type userProfile struct {
-	UserInfo        *model.User
-	Posts           []*model.Article
-	CurrTab         service.UserListType
-	PermissionNames []string
-	Activities      []*model.Activity
-	Query           *queryData
-	PageType        string
+	UserInfo *model.User
+	Posts    []*model.Article
+	CurrTab  service.UserListType
+	// PermissionNames  []string
+	// PermissionIdList []string
+	PermissionData map[string][]*model.Permission
+	Activities     []*model.Activity
+	Query          *queryData
+	PageType       string
 }
 
 func NewUserResource(renderer *Renderer) *UserResource {
@@ -267,20 +269,25 @@ func (ur *UserResource) handleItemPage(w http.ResponseWriter, r *http.Request, p
 		activity.Format(ur.i18nCustom)
 	}
 
-	var permissionNames []string
+	// var permissionIdList []string
+	permissionData := make(map[string][]*model.Permission)
 	for _, item := range user.Permissions {
-		permissionNames = append(permissionNames, item.Name)
+		// permissionNames = append(permissionNames, item.Name)
+		// permissionIdList = append(permissionIdList, item.FrontId)
+		permissionData[item.Module] = append(permissionData[item.Module], item)
 	}
 
 	ur.Render(w, r, "user_item", &model.PageData{
 		Title: user.Name,
 		Data: &userProfile{
-			UserInfo:        user,
-			Posts:           postList,
-			CurrTab:         service.UserListType(tab),
-			PermissionNames: permissionNames,
-			Activities:      activityList,
-			PageType:        pageType,
+			UserInfo: user,
+			Posts:    postList,
+			CurrTab:  service.UserListType(tab),
+			// PermissionNames:  permissionNames,
+			// PermissionIdList: permissionIdList,
+			PermissionData: permissionData,
+			Activities:     activityList,
+			PageType:       pageType,
 			Query: &queryData{
 				Total:     total,
 				Page:      page,

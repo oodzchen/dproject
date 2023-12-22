@@ -4,6 +4,7 @@ modules:
   - manage
   - role
   - permission
+  - activity
 
 data:
   article:
