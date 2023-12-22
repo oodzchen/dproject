@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"html"
 	"net/url"
 	"reflect"
 	"regexp"
@@ -24,7 +23,7 @@ var TmplFuncs = template.FuncMap{
 	"downHead":     downCaseHead,
 	"pageStr":      pageStr,
 	"calcDuration": calcDuration,
-	"replaceLink":  replaceLink,
+	"replaceLink":  utils.ReplaceLink,
 	"getDomain":    getDomain,
 }
 
@@ -130,46 +129,6 @@ func pageStr(path string, page int, query url.Values) string {
 
 func calcDuration(start time.Time) string {
 	return fmt.Sprintf("%dms", time.Since(start).Milliseconds())
-}
-
-const maxDisplayURLLength = 100
-
-// https://stackoverflow.com/a/3809435
-var urlRegex = regexp.MustCompile(`https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)`)
-
-func replaceLink(str string) string {
-	rawStr := html.UnescapeString(str)
-	idxArr := urlRegex.FindAllStringIndex(rawStr, -1)
-
-	// fmt.Println("idx arr:", idxArr)
-
-	if len(idxArr) > 0 {
-		var result string
-
-		for idx, matched := range idxArr {
-			if idx == 0 {
-				result += html.EscapeString(rawStr[0:matched[0]])
-			}
-
-			urlStr := rawStr[matched[0]:matched[1]]
-			shortenUrl := urlStr
-			if len(urlStr) > maxDisplayURLLength {
-				shortenUrl = string([]rune(urlStr)[:maxDisplayURLLength]) + "..."
-			}
-
-			result += fmt.Sprintf("<a title=\"%s\" href=\"%s\">%s</a>", urlStr, urlStr, shortenUrl)
-
-			if idx < len(idxArr)-1 {
-				nextMatch := idxArr[idx+1]
-				result += html.EscapeString(rawStr[matched[1]:nextMatch[0]])
-			} else {
-				result += html.EscapeString(rawStr[matched[1]:])
-			}
-		}
-		return result
-	} else {
-		return str
-	}
 }
 
 var urlDomainRegex = regexp.MustCompile(`[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}`)

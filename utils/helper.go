@@ -3,6 +3,9 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"html"
+	"regexp"
+	"strings"
 
 	"github.com/oodzchen/dproject/config"
 )
@@ -28,4 +31,48 @@ func GetReplyDepthSize() int {
 
 func IsDebug() bool {
 	return config.Config.Debug
+}
+
+const maxDisplayURLLength = 100
+
+// https://stackoverflow.com/a/3809435
+var urlRegex = regexp.MustCompile(`https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)`)
+
+func ReplaceLink(str string) string {
+	rawStr := html.UnescapeString(str)
+	idxArr := urlRegex.FindAllStringIndex(rawStr, -1)
+
+	// fmt.Println("idx arr:", idxArr)
+
+	if len(idxArr) > 0 {
+		var result string
+
+		for idx, matched := range idxArr {
+			if idx == 0 {
+				result += html.EscapeString(rawStr[0:matched[0]])
+			}
+
+			urlStr := rawStr[matched[0]:matched[1]]
+			shortenUrl := urlStr
+			if len(urlStr) > maxDisplayURLLength {
+				shortenUrl = string([]rune(urlStr)[:maxDisplayURLLength]) + "..."
+			}
+
+			result += fmt.Sprintf("<a title=\"%s\" href=\"%s\">%s</a>", urlStr, urlStr, shortenUrl)
+
+			if idx < len(idxArr)-1 {
+				nextMatch := idxArr[idx+1]
+				result += html.EscapeString(rawStr[matched[1]:nextMatch[0]])
+			} else {
+				result += html.EscapeString(rawStr[matched[1]:])
+			}
+		}
+		return result
+	} else {
+		return str
+	}
+}
+
+func NewLine2BR(source string) string {
+	return strings.ReplaceAll(source, "\r", "<br>")
 }

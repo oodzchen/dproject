@@ -467,11 +467,6 @@ func (a *Article) FormatTimeStr() {
 	a.UpdatedAtStr = translator.TimeAgo.Format(a.UpdatedAt)
 }
 
-// func (a *Article) TransformNewlines() {
-// 	re := regexp.MustCompile(`\r`)
-// 	a.Content = re.ReplaceAllString(a.Content, "<br/>")
-// }
-
 func (a *Article) Sanitize(p *bluemonday.Policy) {
 	// a.Title = p.Sanitize(a.Title)
 	// a.Content = p.Sanitize(a.Content)

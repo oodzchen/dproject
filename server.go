@@ -142,6 +142,7 @@ func Service(c *ServiceConfig) http.Handler {
 	userResource := web.NewUserResource(renderer)
 	mainResource := web.NewMainResource(renderer, articleResource)
 	manageResource := web.NewManageResource(renderer, userResource)
+	rssResource := web.NewRSSResource(renderer, articleResource)
 
 	rateLimit := 100
 	if utils.IsDebug() {
@@ -188,6 +189,7 @@ func Service(c *ServiceConfig) http.Handler {
 	}))
 	r.Mount("/users", userResource.Routes())
 	r.Mount("/manage", manageResource.Routes())
+	r.Mount("/feed", rssResource.Routes())
 
 	// chi.Walk(r, func(method, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
 	// 	////
