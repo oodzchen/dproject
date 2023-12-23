@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+	"html"
 	"net/http"
 	"sync"
 	"time"
@@ -84,7 +85,7 @@ func (rr *RSSResource) Atom(w http.ResponseWriter, r *http.Request) {
 
 		feed.Items = append(feed.Items, &feeds.Item{
 			Id:          fmt.Sprintf("article:%d", item.Id),
-			Title:       item.Title,
+			Title:       html.UnescapeString(item.Title),
 			Link:        &feeds.Link{Href: fmt.Sprintf("%s/articles/%d", serverUrl, item.Id)},
 			Source:      &feeds.Link{Href: item.Link},
 			Description: item.Summary,
