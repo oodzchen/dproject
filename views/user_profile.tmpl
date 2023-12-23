@@ -48,12 +48,13 @@
 			<b>{{local "Permission" "Count" 2}}</b>
 			<br/>
 			{{- range $module, $item := $data.PermissionData -}}
-			    {{upHead 1 $module}}
-			    <br />
-			    {{- range $index, $p := $item -}}
-				{{.FrontId}}{{if ne $index (add (len $item) -1)}},&nbsp;&nbsp;{{end}}
-			    {{- end -}}
-			    <br />
+			    <div>
+				{{upHead 1 $module}}
+				<br />
+				{{- range $index, $p := $item -}}
+				    {{.FrontId}}{{if ne $index (add (len $item) -1)}},&nbsp; {{end}}
+				{{- end -}}
+			    </div>
 			    <br />
 			{{- end -}}
 		    </div>
