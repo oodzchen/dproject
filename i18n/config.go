@@ -891,4 +891,9 @@ func (ic *I18nCustom) AddConfigs() {
 		Other: "Auth From",
 	})
 
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "CharCount",
+		Zero:  "No Content",
+		Other: "Content Character Count {{.Count}}",
+	})
 }

@@ -254,6 +254,10 @@ other = "Articles"
 one = "Category"
 other = "Categories"
 
+[CharCount]
+other = "Content Character Count {{.Count}}"
+zero = "No Content"
+
 [Keyword]
 one = "Keyword"
 other = "Keywords"

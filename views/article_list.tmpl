@@ -70,6 +70,7 @@
 			    {{- local "VoteScore" "Score" $item.VoteScore | upHead 1}} |&nbsp;
 			{{- end -}}
 			{{local "PublishInfo" "Username" $author}}<time title="{{$item.CreatedAt}}">{{timeAgo $item.CreatedAt}}</time>&nbsp;
+			|&nbsp;{{local "CharCount" "Count" (runeLen $item.Content) | lower}}&nbsp;
 			{{- if eq $item.TotalReplyCount 0 -}}
 			    | <a class="text-lighten-3" href="/articles/{{$item.Id}}">{{local "Discuss"}}</a>&nbsp;
 			{{- else -}}

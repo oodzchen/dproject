@@ -25,10 +25,15 @@ var TmplFuncs = template.FuncMap{
 	"calcDuration": calcDuration,
 	"replaceLink":  utils.ReplaceLink,
 	"getDomain":    getDomain,
+	"runeLen":      runeLen,
 }
 
 func joinStrArr(arr []string, sep string) string {
 	return strings.Join(arr, sep)
+}
+
+func runeLen(str string) int {
+	return len([]rune(str))
 }
 
 // func formatTimeAgo(t time.Time) string {

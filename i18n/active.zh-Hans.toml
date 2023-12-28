@@ -426,6 +426,10 @@ other = "取消投票"
 hash = "sha1-6ccb60071be8f00760a3824d9f7d0fad57de789f"
 other = "分类"
 
+[CharCount]
+hash = "sha1-39e03ebd7bce98eda51a7677359bc7254a811de5"
+other = "内容 {{.Count}} 字"
+
 [ConfirmBan]
 hash = "sha1-1e7f1794ef60c65c4581f9b5ec14bf587d3b4ead"
 other = "确定封禁{{.Name}}？"
