@@ -138,7 +138,7 @@ func (mr *MainResource) RegisterPage(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-type TrustileVerifyResult struct {
+type TurnstileVerifyResult struct {
 	Success bool `json:"success"`
 }
 
@@ -146,16 +146,21 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 	email := r.PostFormValue("email")
 	username := r.PostFormValue("username")
 	password := r.PostFormValue("password")
-	cfTrustileResponse := r.PostFormValue("cf-turnstile-response")
+	cfTurnstileResponse := r.PostFormValue("cf-turnstile-response")
 
 	if !config.Config.Debug && !config.Config.Testing {
+		if cfTurnstileResponse == "" {
+			mr.Error("", errors.New("cloudflare turnstile response is required"), w, r, http.StatusBadRequest)
+			return
+		}
+
 		client := &http.Client{
 			Timeout: 5 * time.Second,
 		}
 
 		payload := []byte(`{
                     "secret":"` + config.Config.CloudflareSecret + `",
-                    "response":"` + cfTrustileResponse + `",
+                    "response":"` + cfTurnstileResponse + `",
                     "remoteip":"` + utils.GetRealIP(r) + `"
     	        }`)
 
@@ -177,13 +182,13 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 		}
 		defer resp.Body.Close()
 
-		// fmt.Println("cloudflare trustile response status: ", resp.Status)
+		// fmt.Println("cloudflare turnstile response status: ", resp.Status)
 
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(resp.Body)
 
-		// fmt.Println("cloudflare trustile response body: ", buf.String())
-		var trutileVerifyResult TrustileVerifyResult
+		// fmt.Println("cloudflare turnstile response body: ", buf.String())
+		var trutileVerifyResult TurnstileVerifyResult
 		err = json.Unmarshal(buf.Bytes(), &trutileVerifyResult)
 		if err != nil {
 			mr.ServerErrorp("", err, w, r)
