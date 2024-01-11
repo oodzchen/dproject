@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html"
+	"net/http"
 	"regexp"
 	"strings"
 
@@ -75,4 +76,26 @@ func ReplaceLink(str string) string {
 
 func NewLine2BR(source string) string {
 	return strings.ReplaceAll(source, "\r", "<br>")
+}
+
+func GetRealIP(r *http.Request) string {
+	realIP := r.Header.Get("CF-Connecting-IP")
+
+	if realIP == "" {
+		realIP = r.Header.Get("X-Real-IP")
+		// fmt.Println("x-real-ip:", realIP)
+	}
+
+	if realIP == "" {
+		realIP = r.Header.Get("X-Forwarded-For")
+		// fmt.Println("x-Forwarded-for:", realIP)
+	}
+
+	if realIP == "" {
+		realIP = strings.Split(r.RemoteAddr, ":")[0]
+		// ip := "38.59.236.10"
+		// fmt.Println("geo db metadata:", geoDB.Metadata())
+		// fmt.Println("r.RemoteAddr:", realIP)
+	}
+	return realIP
 }

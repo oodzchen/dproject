@@ -36,6 +36,8 @@ type AppConfig struct {
 	GoogleClientSecret string `env:"GOOGLE_CLIENT_SECRET"`
 	GithubClientID     string `env:"GITHUB_CLIENT_ID"`
 	GithubClientSecret string `env:"GITHUB_CLIENT_SECRET"`
+	CloudflareSiteKey  string `env:"CLOUDFLARE_SITE_KEY"`
+	CloudflareSecret   string `env:"CLOUDFLARE_SECRET"`
 }
 
 func (ac *AppConfig) GetServerURL() string {

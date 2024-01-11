@@ -74,4 +74,5 @@ type PageData struct {
 	RespStart             time.Time
 	RenderStart           time.Time
 	Host                  string
+	CFSiteKey             string
 }

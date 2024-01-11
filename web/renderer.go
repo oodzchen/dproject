@@ -188,6 +188,7 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	data.RouteRawQuery = r.URL.RawQuery
 	data.RouteQuery = r.URL.Query()
 	data.Host = config.Config.GetServerURL()
+	data.CFSiteKey = config.Config.CloudflareSiteKey
 
 	loginedUseId := rd.GetLoginedUserId(w, r)
 	if loginedUseId > 0 {
@@ -242,11 +243,13 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 		"default-src 'self'",
 		"img-src 'self' https://*",
 		"style-src 'self' 'unsafe-inline'",
-		"child-src 'none'",
+		"child-src 'none' https://challenges.cloudflare.com/",
 	}
 
 	if data.Debug {
-		contentSecurity = append(contentSecurity, "script-src 'self' 'unsafe-inline'")
+		contentSecurity = append(contentSecurity, "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com/")
+	} else {
+		contentSecurity = append(contentSecurity, "script-src 'self' https://challenges.cloudflare.com/")
 	}
 	// header.Set("Content-Type", "text/html")
 	header.Add("Content-Security-Policy", strings.Join(contentSecurity, ";"))
