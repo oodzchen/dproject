@@ -136,7 +136,7 @@ func calcDuration(start time.Time) string {
 	return fmt.Sprintf("%dms", time.Since(start).Milliseconds())
 }
 
-var urlDomainRegex = regexp.MustCompile(`[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}`)
+var urlDomainRegex = regexp.MustCompile(`[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-z]{2,4}`)
 
 func getDomain(url string) string {
 	return urlDomainRegex.FindString(url)
