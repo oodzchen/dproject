@@ -148,50 +148,52 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 	password := r.PostFormValue("password")
 	cfTrustileResponse := r.PostFormValue("cf-turnstile-response")
 
-	client := &http.Client{
-		Timeout: 5 * time.Second,
-	}
+	if !config.Config.Debug && !config.Config.Testing {
+		client := &http.Client{
+			Timeout: 5 * time.Second,
+		}
 
-	payload := []byte(`{
-		"secret":"` + config.Config.CloudflareSecret + `",
-                "response":"` + cfTrustileResponse + `",
-                "remoteip":"` + utils.GetRealIP(r) + `"
-	}`)
+		payload := []byte(`{
+                    "secret":"` + config.Config.CloudflareSecret + `",
+                    "response":"` + cfTrustileResponse + `",
+                    "remoteip":"` + utils.GetRealIP(r) + `"
+    	        }`)
 
-	// fmt.Println("payload: ", string(payload))
+		// fmt.Println("payload: ", string(payload))
 
-	req, err := http.NewRequest("POST", "https://challenges.cloudflare.com/turnstile/v0/siteverify", bytes.NewBuffer(payload))
-	if err != nil {
-		mr.ServerErrorp("", err, w, r)
-		return
-	}
+		req, err := http.NewRequest("POST", "https://challenges.cloudflare.com/turnstile/v0/siteverify", bytes.NewBuffer(payload))
+		if err != nil {
+			mr.ServerErrorp("", err, w, r)
+			return
+		}
 
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Accept", "application/json")
 
-	resp, err := client.Do(req)
-	if err != nil {
-		mr.ServerErrorp("", err, w, r)
-		return
-	}
-	defer resp.Body.Close()
+		resp, err := client.Do(req)
+		if err != nil {
+			mr.ServerErrorp("", err, w, r)
+			return
+		}
+		defer resp.Body.Close()
 
-	// fmt.Println("cloudflare trustile response status: ", resp.Status)
+		// fmt.Println("cloudflare trustile response status: ", resp.Status)
 
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(resp.Body)
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(resp.Body)
 
-	// fmt.Println("cloudflare trustile response body: ", buf.String())
-	var trutileVerifyResult TrustileVerifyResult
-	err = json.Unmarshal(buf.Bytes(), &trutileVerifyResult)
-	if err != nil {
-		mr.ServerErrorp("", err, w, r)
-		return
-	}
+		// fmt.Println("cloudflare trustile response body: ", buf.String())
+		var trutileVerifyResult TrustileVerifyResult
+		err = json.Unmarshal(buf.Bytes(), &trutileVerifyResult)
+		if err != nil {
+			mr.ServerErrorp("", err, w, r)
+			return
+		}
 
-	if !trutileVerifyResult.Success {
-		mr.Error("", err, w, r, http.StatusBadRequest)
-		return
+		if !trutileVerifyResult.Success {
+			mr.Error("", err, w, r, http.StatusBadRequest)
+			return
+		}
 	}
 
 	user := &model.User{
@@ -207,7 +209,7 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user.Sanitize(mr.sanitizePolicy)
-	err = user.Valid(true)
+	err := user.Valid(true)
 	if err != nil {
 		errStr := err.Error()
 		if errors.Is(err, model.ErrEmailValidFailed) {
