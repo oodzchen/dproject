@@ -35,6 +35,8 @@ services:
       GITHUB_CLIENT_ID: $GITHUB_CLIENT_ID
       GITHUB_CLIENT_SECRET: $GITHUB_CLIENT_SECRET
       APP_VERSION: $APP_VERSION
+      CLOUDFLARE_SITE_KEY: $CLOUDFLARE_SITE_KEY
+      CLOUDFLARE_SECRET: $CLOUDFLARE_SECRET
     volumes:
       - ./manage_static:/app/manage_static
     depends_on:

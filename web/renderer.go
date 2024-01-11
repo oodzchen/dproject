@@ -243,7 +243,7 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 		"default-src 'self'",
 		"img-src 'self' https://*",
 		"style-src 'self' 'unsafe-inline'",
-		"child-src 'none' https://challenges.cloudflare.com/",
+		"child-src  https://challenges.cloudflare.com/",
 	}
 
 	if data.Debug {
