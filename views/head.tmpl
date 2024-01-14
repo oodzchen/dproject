@@ -20,7 +20,6 @@
 	     }
 	    </style>
 	    <link href="/static/css/style.css" rel="stylesheet"/>
-	    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 	</head>
 	<body {{if and .UISettings (eq .UISettings.ContentLayout "centered") -}}style="max-width:1000px"{{end}}>
 	    {{- if and .Debug .JSONStr -}}

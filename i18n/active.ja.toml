@@ -502,6 +502,10 @@ other = "メールアドレスの確認"
 hash = "sha1-5090a9e78c899272a10648b39e7689bc40072825"
 other = "絵文字"
 
+[EnableJavaScriptTip]
+hash = "sha1-279ff465b21df4aa114acd5656a2ed4fe4a7cd5b"
+other = "この機能はJavaScriptを有効にする必要があります"
+
 [FontCustom]
 hash = "sha1-081ae3fdc403609cf6e760849ebb14117b7a50cb"
 other = "カスタマイズ"
@@ -778,6 +782,10 @@ other = "コンテンツに対する反応"
 hash = "sha1-f219cc0614ae6860f43a3cd84b5cf31fc312cd9d"
 other = "理由"
 
+[Refresh]
+hash = "sha1-56e3badc4e6c5cc95e0ea5a9a878b9bd09f319d4"
+other = "リフレッシュ"
+
 [Register]
 hash = "sha1-d672995a14650d0e018026b64f297663d8c71c8d"
 other = "登録"
@@ -897,10 +905,6 @@ other = "ライトモード"
 [ThemeSystem]
 hash = "sha1-8b97460c8967dc926f18b9e679496d859b299858"
 other = "システムデフォルト"
-
-[ThemeSystemTip]
-hash = "sha1-279ff465b21df4aa114acd5656a2ed4fe4a7cd5b"
-other = "この機能はJavaScriptを有効にする必要があります"
 
 [TimeOrder]
 hash = "sha1-fa054a183304da9104580cf5dc51a65694953d27"

@@ -126,34 +126,13 @@ func (mr *MainResource) RegisterPage(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	mr.Render(w, r, "register", &model.PageData{
-		Title: mr.Local("Register"),
-		Data:  "",
-		BreadCrumbs: []*model.BreadCrumb{
-			{
-				Path: "/register",
-				Name: mr.Local("Register"),
-			},
-		},
-	})
-}
 
-type TurnstileVerifyResult struct {
-	Success bool `json:"success"`
-}
+	cfTurnstileResponse := r.URL.Query().Get("cf_ts_resp")
 
-func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
-	email := r.PostFormValue("email")
-	username := r.PostFormValue("username")
-	password := r.PostFormValue("password")
-	cfTurnstileResponse := r.PostFormValue("cf-turnstile-response")
+	// fmt.Println("turnstile response:", cfTurnstileResponse)
 
-	if !config.Config.Debug && !config.Config.Testing {
-		if cfTurnstileResponse == "" {
-			mr.Error("", errors.New("cloudflare turnstile response is required"), w, r, http.StatusBadRequest)
-			return
-		}
-
+	var isHuman, verifiedOnce bool
+	if !config.Config.Debug && !config.Config.Testing && cfTurnstileResponse != "" {
 		client := &http.Client{
 			Timeout: 5 * time.Second,
 		}
@@ -199,7 +178,46 @@ func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
 			mr.Error("", err, w, r, http.StatusBadRequest)
 			return
 		}
+
+		isHuman = true
 	}
+
+	if cfTurnstileResponse != "" {
+		verifiedOnce = true
+	}
+
+	if config.Config.Debug || config.Config.Testing {
+		isHuman = true
+	}
+
+	type PageData struct {
+		Human        bool
+		VerifiedOnce bool
+	}
+
+	mr.Render(w, r, "register", &model.PageData{
+		Title: mr.Local("Register"),
+		Data: &PageData{
+			Human:        isHuman,
+			VerifiedOnce: verifiedOnce,
+		},
+		BreadCrumbs: []*model.BreadCrumb{
+			{
+				Path: "/register",
+				Name: mr.Local("Register"),
+			},
+		},
+	})
+}
+
+type TurnstileVerifyResult struct {
+	Success bool `json:"success"`
+}
+
+func (mr *MainResource) Register(w http.ResponseWriter, r *http.Request) {
+	email := r.PostFormValue("email")
+	username := r.PostFormValue("username")
+	password := r.PostFormValue("password")
 
 	user := &model.User{
 		Email:    email,

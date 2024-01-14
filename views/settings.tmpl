@@ -54,7 +54,7 @@
 		<label class="form__label" for="theme-options">{{local "Theme"}}:</label>
 		<div id="theme-options">
 		    {{range $themes -}}
-			<span><label><input name="theme" required autocomplete="off" id="{{.}}" {{if and $settings (eq $settings.Theme .)}}checked{{end}} type="radio" value="{{.}}"/> {{get $themeDict .}} {{if eq . "system"}}<span class="noscript-inline"><noscript>({{local "ThemeSystemTip"}})</noscript></span>{{end}}</label></span>&nbsp;&nbsp;
+			<span><label><input name="theme" required autocomplete="off" id="{{.}}" {{if and $settings (eq $settings.Theme .)}}checked{{end}} type="radio" value="{{.}}"/> {{get $themeDict .}} {{if eq . "system"}}<span class="noscript-inline"><noscript>({{local "EnableJavaScriptTip"}})</noscript></span>{{end}}</label></span>&nbsp;&nbsp;
 		    {{- end -}}
 		</div>
 	    </div>

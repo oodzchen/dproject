@@ -2,35 +2,55 @@
 
     {{template "head" . -}}
 
-    <form class="form" method="post" action="/register">
-	{{.CSRFField -}}
-	<div class="form__row">
-	    <label class="form__label" for="email">{{local "Email"}} <small class="text-lighten-2" style="font-weight: normal">({{local "FormRequired"}})</small></label>
-	    <input required name="email" id="email" type="email"/>
-	</div>
-	<div class="form__row">
-	    <label class="form__label" for="password">{{local "Password"}} <small class="text-lighten-2" style="font-weight: normal">({{local "FormRequired"}})</small></label>
-	    <input required name="password" id="password" type="password" />
+    {{- if .Data.Human -}}
+	<form class="form" method="post" action="/register">
+	    {{.CSRFField -}}
+	    <div class="form__row">
+		<label class="form__label" for="email">{{local "Email"}} <small class="text-lighten-2" style="font-weight: normal">({{local "FormRequired"}})</small></label>
+		<input required name="email" id="email" type="email"/>
+	    </div>
+	    <div class="form__row">
+		<label class="form__label" for="password">{{local "Password"}} <small class="text-lighten-2" style="font-weight: normal">({{local "FormRequired"}})</small></label>
+		<input required name="password" id="password" type="password" />
+		<br/>
+		<small class="text-lighten-2">{{local "PasswordFormatTip" "LeastLen" 8}}</small>
+	    </div>
+	    <div class="form__row">
+		<label class="form__label" for="username">{{local "Username"}} <small class="text-lighten-2" style="font-weight: normal">({{local "FormOptional"}})</small></label>
+		<input name="username" id="username" type="text"/>
+		<br/>
+		<small class="text-lighten-2">{{local "UsernameFormatTip"}}</small>
+	    </div>
 	    <br/>
-	    <small class="text-lighten-2">{{local "PasswordFormatTip" "LeastLen" 8}}</small>
-	</div>
-	<div class="form__row">
-	    <label class="form__label" for="username">{{local "Username"}} <small class="text-lighten-2" style="font-weight: normal">({{local "FormOptional"}})</small></label>
-	    <input name="username" id="username" type="text"/>
+	    <button type="submit">{{local "BtnNextStep"}}</button>
 	    <br/>
-	    <small class="text-lighten-2">{{local "UsernameFormatTip"}}</small>
-	</div>
-	<br/>
-	<div class="cf-turnstile" data-sitekey="{{.CFSiteKey}}"></div>
-	<br/>
-	<button type="submit">{{local "BtnNextStep"}}</button>
-	<br/>
-	<br/>
-	<div>
-	    {{- $loginLink :=  print "<a href=\"/login\">" (local "Login" | lower) "</a>" -}}
-	    {{local "LoginTip" "LoginLink" $loginLink}}
-	</div>
-    </form>
+	    <br/>
+	    <div>
+		{{- $loginLink :=  print "<a href=\"/login\">" (local "Login" | lower) "</a>" -}}
+		{{local "LoginTip" "LoginLink" $loginLink}}
+	    </div>
+	</form>
+    {{- else -}}
+	{{- if .Data.VerifiedOnce -}}
+	    <a href="/register">{{local "Refresh"}}</a>
+	{{- else -}}
+	    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
+	    <div id="human-verify">
+		<noscript>{{local "EnableJavaScriptTip"}}</noscript>
+	    </div>
+	    <script>
+	     turnstile.ready(function () {
+		 turnstile.render('#human-verify', {
+		     sitekey: '{{.CFSiteKey}}',
+		     callback: function(token) {
+			 console.log(`Challenge Success ${token}`);
+			 window.location = "/register?cf_ts_resp=" + window.encodeURIComponent(token)
+		     },
+		 });
+	     });
+	    </script>
+	{{- end -}}
+    {{- end -}}
 
     {{template "foot" . -}}
 {{end -}}

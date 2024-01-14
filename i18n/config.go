@@ -151,7 +151,7 @@ func (ic *I18nCustom) AddConfigs() {
 	})
 
 	ic.AddLocalizeConfig(&i18n.Message{
-		ID:    "ThemeSystemTip",
+		ID:    "EnableJavaScriptTip",
 		Other: "Must enable JavaScript",
 	})
 
@@ -895,5 +895,10 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "CharCount",
 		Zero:  "No Content",
 		Other: "Content Character Count {{.Count}}",
+	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "Refresh",
+		Other: "Refresh",
 	})
 }
