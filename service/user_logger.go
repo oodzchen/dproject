@@ -20,10 +20,13 @@ type UserLogData struct {
 	IPAddr, DeviceInfo, Details string
 }
 
-type UserLogHandler func(r *http.Request) *UserLogData
+type UserLogHandler func(r *http.Request) (*UserLogData, error)
 
 func (ul *UserLogger) Log(u *model.User, handler UserLogHandler, r *http.Request) error {
-	logData := handler(r)
+	logData, err := handler(r)
+	if err != nil {
+		return err
+	}
 
 	var userId int
 
@@ -46,7 +49,7 @@ func (ul *UserLogger) Log(u *model.User, handler UserLogHandler, r *http.Request
 	// fmt.Println("userId :", userId)
 	// fmt.Printf("logger data: %#v\n", logData)
 
-	_, err := ul.Store.Activity.Create(
+	_, err = ul.Store.Activity.Create(
 		userId,
 		string(logData.ActionType),
 		string(logData.Action),

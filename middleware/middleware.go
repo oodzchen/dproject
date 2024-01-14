@@ -223,8 +223,15 @@ func UserLogger(uLogger *service.UserLogger, actType model.AcType, action model.
 			}
 
 			go func() {
-				err := uLogger.Log(user, func(r *http.Request) *service.UserLogData {
+				err := uLogger.Log(user, func(r *http.Request) (*service.UserLogData, error) {
 					postData := make(map[string]any)
+					if r.Method == "POST" {
+						if r.PostForm["tk"][0] == "" {
+							// fmt.Println("csrf token is required")
+							return nil, errors.New("csrf token is required")
+						}
+					}
+
 					for k, v := range r.PostForm {
 						if k == "tk" || k == "password" || k == "confirm-password" {
 							continue
@@ -239,7 +246,7 @@ func UserLogger(uLogger *service.UserLogger, actType model.AcType, action model.
 
 					details := utils.SprintJSONf(postData, "", "")
 					uLogData.Details = details
-					return uLogData
+					return uLogData, nil
 				}, r)
 				if err != nil {
 					fmt.Println("user activity logger error:", err)
