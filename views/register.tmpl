@@ -38,17 +38,8 @@
 	    <div id="human-verify">
 		<noscript>{{local "EnableJavaScriptTip"}}</noscript>
 	    </div>
-	    <script>
-	     turnstile.ready(function () {
-		 turnstile.render('#human-verify', {
-		     sitekey: '{{.CFSiteKey}}',
-		     callback: function(token) {
-			 console.log(`Challenge Success ${token}`);
-			 window.location = "/register?cf_ts_resp=" + window.encodeURIComponent(token)
-		     },
-		 });
-	     });
-	    </script>
+	    <input id="cf-site-key" type="hidden" value="{{.CFSiteKey}}"/>
+	    <script src="/static/js/turnstile.js"></script>
 	{{- end -}}
     {{- end -}}
 
