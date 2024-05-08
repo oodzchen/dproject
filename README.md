@@ -8,6 +8,8 @@ A web system write in golang.
 
 不管是本地开发还是生产环境，主要用 docker compose 来管理各个服务，所以在开发前请确保本机安装了 docker。
 
+本项目中的密码加密使用了[bcrypt](https://en.wikipedia.org/wiki/Bcrypt)算法，[htpasswd](https://httpd.apache.org/docs/2.4/programs/htpasswd.html)命令可提供该算法，用于生成样例数据，请确保机器上安装了相应的工具，一般Linux发行版上的`apache2-utils`可提供该命令。
+
 启动服务之前需要自定义环境变量，请直接参考[.env.example](./.env.example.dev)，根据里面的示例新建一个文件，如`.env.local.dev`，切记：**不要把本地开发用的环境变量文件提交到仓库**。
 
 以上这些准备好之后，先安装依赖
@@ -16,7 +18,7 @@ A web system write in golang.
 go mod download
 ```
 
-然后运行
+以上步骤完成后，运行
 
 ```bash
 ./dev.sh .env.local.dev
