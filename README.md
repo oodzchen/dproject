@@ -1,6 +1,6 @@
 # dproject
 
-A web system write in golang.
+A web system like reddit and hacker news for discussing topics online.
 
 ## 开发说明
 
