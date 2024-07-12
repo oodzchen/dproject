@@ -6,13 +6,20 @@ upstream backend{
 
 # base on https://ssl-config.mozilla.org/#server=nginx&version=1.25.2&config=intermediate&openssl=3.0.9&guideline=5.7
 
+map $host $redirect_to_second_level {
+    default 0;
+    www.${SECOND_LEVEL_DOMAIN_NAME} 1;
+    "~^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$" 1;
+    "~^[0-9a-fA-F:]+$" 1;
+}
+
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
     
     server_name dev.${SECOND_LEVEL_DOMAIN_NAME} cf.${SECOND_LEVEL_DOMAIN_NAME} ${SECOND_LEVEL_DOMAIN_NAME} www.${SECOND_LEVEL_DOMAIN_NAME};
 
-    if ($host = www.${SECOND_LEVEL_DOMAIN_NAME}) {
+    if ($host = $redirect_to_second_level) {
         return 301 https://${SECOND_LEVEL_DOMAIN_NAME}$request_uri;
     }
 
@@ -48,7 +55,7 @@ server {
     
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
-    if ($host = www.${SECOND_LEVEL_DOMAIN_NAME}) {
+    if ($host = $redirect_to_second_level) {
         return 301 https://${SECOND_LEVEL_DOMAIN_NAME}$request_uri;
     }
 

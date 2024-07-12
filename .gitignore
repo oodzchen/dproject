@@ -20,6 +20,7 @@ tmp
 *~
 .env.local*
 .env.testing*
+.env.prod*
 *_password.txt
 .secrets*
 *local_testing.yml
