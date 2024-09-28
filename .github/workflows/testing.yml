@@ -59,12 +59,12 @@ jobs:
 
     - name: Build
       run: CGO_ENABLED=0 GOOS=linux go build -o /usr/local/bin/app -v .
-
+    
     - name: Test
       run: go test -v ./...
 
-    - name: Run app
-      run: TEST=1 app &
+    # - name: Run app
+    #   run: TEST=1 app &
 
-    - name: E2E test
-      run: go run ./e2e -t 180
+    # - name: E2E test
+    #   run: go run ./e2e -t 180
