@@ -7,7 +7,7 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/brianvoe/gofakeit/v6 v6.23.1
 	github.com/caarlos0/env/v9 v9.0.0
-	github.com/chromedp/chromedp v0.10.0
+	github.com/chromedp/chromedp v0.9.5
 	github.com/emersion/go-sasl v0.0.0-20220912192320-0145f2c60ead
 	github.com/emersion/go-smtp v0.18.1
 	github.com/go-chi/chi/v5 v5.0.8
