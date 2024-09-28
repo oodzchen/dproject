@@ -165,6 +165,7 @@ func main() {
 
 	err = runTasks("create article as anonymous", ctx,
 		mock.Logout(),
+		mock.WaitFooterReady(),
 		chp.Click(`ul.nav-menu:nth-child(2) > li > a[href^="/articles/new"]`),
 		mock.WaitFooterReady(),
 		chp.TextContent(`button[type=submit]`, &resultText),
