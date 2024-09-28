@@ -162,7 +162,7 @@ func main() {
 		appTLS = true
 	}
 
-	localHost := "localhost"
+	localHost := ""
 
 	if appCfg.Debug{
 		localHost = "0.0.0.0"
