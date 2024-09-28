@@ -112,6 +112,8 @@ func main() {
 		log.Fatal(err)
 	}
 
+	fmt.Println("pg module init successfully")
+
 	// dataStore, err := store.New(pg, redisDB)
 	// if err != nil {
 	// 	log.Fatal(err)
@@ -133,23 +135,26 @@ func main() {
 	for {
 		err := pg.Ping(context.Background())
 		// fmt.Println("ping database error: ", err)
-		if err == nil {
-			err = permissionSrv.InitPermissionTable()
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			err = permissionSrv.InitRoleTable()
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			err = permissionSrv.InitUserRoleTable()
-			if err != nil {
-				log.Fatal(err)
-			}
-			break
+		if err != nil{
+			log.Fatal(err)
+			return
 		}
+		
+		err = permissionSrv.InitPermissionTable()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = permissionSrv.InitRoleTable()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = permissionSrv.InitUserRoleTable()
+		if err != nil {
+			log.Fatal(err)
+		}
+		break
 	}
 
 	appTLS := false
@@ -157,8 +162,14 @@ func main() {
 		appTLS = true
 	}
 
+	localHost := "localhost"
+
+	if appCfg.Debug{
+		localHost = "0.0.0.0"
+	}
+	
 	port := appCfg.AppPort
-	addr := fmt.Sprintf(":%d", port)
+	addr := fmt.Sprintf("%s:%d", localHost, port)
 
 	sanitizePolicy := bluemonday.UGCPolicy()
 	// sanitizePolicy.AllowElements("b")
@@ -216,6 +227,7 @@ func main() {
 		serverStopCtx()
 	}()
 
+	fmt.Println("starting server...")
 	if appTLS {
 		go func() {
 			log.Fatal(http.ListenAndServe(":http", tlsManager.HTTPHandler(nil)))
