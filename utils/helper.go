@@ -37,7 +37,7 @@ func IsDebug() bool {
 const maxDisplayURLLength = 100
 
 // https://stackoverflow.com/a/3809435
-var urlRegex = regexp.MustCompile(`https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)`)
+var urlRegex = regexp.MustCompile(`https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9]{1,63}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)`)
 
 func ReplaceLink(str string) string {
 	rawStr := html.UnescapeString(str)
