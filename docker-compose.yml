@@ -65,7 +65,7 @@ services:
       - USER_DEFAULT_PASSWORD=$USER_DEFAULT_PASSWORD
       - PGTZ=UTC
     healthcheck:
-      test: [ "CMD", "pg_isready" ]
+      test: ["CMD", "pg_isready"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -83,9 +83,7 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/templates/webapp.conf.template:/etc/nginx/templates/webapp.conf.template:ro
       - ./nginx/logs:/etc/nginx/logs
-      # - ./nginx/certbot/conf:/etc/letsencrypt
-      # - ./nginx/certbot/www:/var/www/certbot
-      # - ./nginx/40-reload-cron.sh:/docker-entrypoint.d/40-reload-cron.sh
+      - /var/www/certbot:/var/www/certbot
       - /etc/letsencrypt:/etc/letsencrypt
     ports:
       - $NGINX_SSL_PORT:443
@@ -96,7 +94,7 @@ services:
     image: allinurl/goaccess:1.7.2
     container_name: "local-goaccess"
     restart: always
-    entrypoint: "sh -c \"/bin/goaccess /data/logs/access.log -o /data/static/report.html --real-time-html --port=9880 --ssl-cert=$$SSL_CERT --ssl-key=$$SSL_KEY\""
+    entrypoint: 'sh -c "/bin/goaccess /data/logs/access.log -o /data/static/report.html --real-time-html --port=9880 --ssl-cert=$$SSL_CERT --ssl-key=$$SSL_KEY"'
     environment:
       - TZ="China/Shanghai"
       - SSL_CERT=/etc/letsencrypt/live/${SECOND_LEVEL_DOMAIN_NAME}/fullchain.pem
@@ -118,7 +116,7 @@ services:
   #   volumes:
   #     - ./nginx/certbot/conf:/etc/letsencrypt
   #     - ./nginx/certbot/www:/var/www/certbot
-  
+
   redis:
     image: kholinchen/credis:latest
     container_name: "local-redis"
@@ -130,7 +128,7 @@ services:
       - redis-data:/data
       - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
