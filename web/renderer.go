@@ -276,6 +276,15 @@ func (rd *Renderer) isHuman(w http.ResponseWriter, r *http.Request) (bool, error
 	cfTurnstileCookie, _ := r.Cookie("cf_ts_resp")
 	if cfTurnstileCookie != nil {
 		cfTurnstileResponse, _ = url.QueryUnescape(cfTurnstileCookie.Value)
+
+		// fmt.Println("turnstile response:", cfTurnstileResponse)
+
+		http.SetCookie(w, &http.Cookie{
+			Name:    "cf_ts_resp",
+			Value:   "",
+			Expires: time.Now().Add(-1 * time.Hour),
+			Path:    "/",
+		})
 	}
 
 	// cfTurnstileResponse := r.URL.Query().Get("cf_ts_resp")
