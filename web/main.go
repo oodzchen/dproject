@@ -519,10 +519,21 @@ func (mr *MainResource) LoginPage(w http.ResponseWriter, r *http.Request) {
 		targetUrl = referer
 	}
 
+	type PageData struct {
+		Human bool
+	}
+
+	isHuman, err := mr.isHuman(w, r)
+	if err != nil {
+		return
+	}
+
 	mr.Session("one", w, r).SetValue("target_url", targetUrl)
 	mr.Render(w, r, "login", &model.PageData{
 		Title: mr.i18nCustom.LocalTpl("Login"),
-		Data:  "",
+		Data: &PageData{
+			Human: isHuman,
+		},
 		BreadCrumbs: []*model.BreadCrumb{
 			{
 				Path: "/login",

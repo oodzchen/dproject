@@ -8,7 +8,7 @@
           document.cookie =
             "cf_ts_resp=" + window.encodeURIComponent(token) + ";path=/";
           setTimeout(function () {
-            window.location = "/register";
+            window.location.reload();
           }, 0);
         },
       });

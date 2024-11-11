@@ -2,6 +2,7 @@
 
     {{template "head" . -}}
 
+    {{- if .Data.Human -}}
     <form class="form" id="login-form" method="post" action="/login">
 	{{.CSRFField -}}
 	<div class="form__row">
@@ -24,6 +25,14 @@
 	    &nbsp;&nbsp;&nbsp;<a href="/login_auth?type=github">GitHub</a>
 	</div>
     </form>
+	{{else}}
+	<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
+	<div id="human-verify">
+		<noscript>{{local "EnableJavaScriptTip"}}</noscript>
+	</div>
+	<input id="cf-site-key" type="hidden" value="{{.CFSiteKey}}"/>
+	<script src="/static/js/turnstile.js"></script>
+    {{end}}
 
     {{template "foot" . -}}
 
