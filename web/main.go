@@ -127,79 +127,90 @@ func (mr *MainResource) RegisterPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cfTurnstileResponse := r.URL.Query().Get("cf_ts_resp")
+	// var cfTurnstileResponse string
 
+	// cfTurnstileCookie, _ := r.Cookie("cf_ts_resp")
+	// if cfTurnstileCookie != nil {
+	// 	cfTurnstileResponse, _ = url.QueryUnescape(cfTurnstileCookie.Value)
+	// }
+
+	// cfTurnstileResponse := r.URL.Query().Get("cf_ts_resp")
 	// fmt.Println("turnstile response:", cfTurnstileResponse)
 
-	var isHuman, verifiedOnce bool
-	if !config.Config.Debug && !config.Config.Testing && cfTurnstileResponse != "" {
-		client := &http.Client{
-			Timeout: 5 * time.Second,
-		}
+	// 	var isHuman, verifiedOnce bool
+	// 	if !config.Config.Debug && !config.Config.Testing && cfTurnstileResponse != "" {
+	// 		client := &http.Client{
+	// 			Timeout: 5 * time.Second,
+	// 		}
 
-		payload := []byte(`{
-                    "secret":"` + config.Config.CloudflareSecret + `",
-                    "response":"` + cfTurnstileResponse + `",
-                    "remoteip":"` + utils.GetRealIP(r) + `"
-    	        }`)
+	// 		payload := []byte(`{
+	// "secret":"` + config.Config.CloudflareSecret + `",
+	// "response":"` + cfTurnstileResponse + `",
+	// "remoteip":"` + utils.GetRealIP(r) + `"
+	//     	        }`)
 
-		// fmt.Println("payload: ", string(payload))
+	// 		// fmt.Println("payload: ", string(payload))
 
-		req, err := http.NewRequest("POST", "https://challenges.cloudflare.com/turnstile/v0/siteverify", bytes.NewBuffer(payload))
-		if err != nil {
-			mr.ServerErrorp("", err, w, r)
-			return
-		}
+	// 		req, err := http.NewRequest("POST", "https://challenges.cloudflare.com/turnstile/v0/siteverify", bytes.NewBuffer(payload))
+	// 		if err != nil {
+	// 			mr.ServerErrorp("", err, w, r)
+	// 			return
+	// 		}
 
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Accept", "application/json")
+	// 		req.Header.Set("Content-Type", "application/json")
+	// 		req.Header.Set("Accept", "application/json")
 
-		resp, err := client.Do(req)
-		if err != nil {
-			mr.ServerErrorp("", err, w, r)
-			return
-		}
-		defer resp.Body.Close()
+	// 		resp, err := client.Do(req)
+	// 		if err != nil {
+	// 			mr.ServerErrorp("", err, w, r)
+	// 			return
+	// 		}
+	// 		defer resp.Body.Close()
 
-		// fmt.Println("cloudflare turnstile response status: ", resp.Status)
+	// 		// fmt.Println("cloudflare turnstile response status: ", resp.Status)
 
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(resp.Body)
+	// 		buf := new(bytes.Buffer)
+	// 		buf.ReadFrom(resp.Body)
 
-		// fmt.Println("cloudflare turnstile response body: ", buf.String())
-		var trutileVerifyResult TurnstileVerifyResult
-		err = json.Unmarshal(buf.Bytes(), &trutileVerifyResult)
-		if err != nil {
-			mr.ServerErrorp("", err, w, r)
-			return
-		}
+	// 		// fmt.Println("cloudflare turnstile response body: ", buf.String())
+	// 		var trutileVerifyResult TurnstileVerifyResult
+	// 		err = json.Unmarshal(buf.Bytes(), &trutileVerifyResult)
+	// 		if err != nil {
+	// 			mr.ServerErrorp("", err, w, r)
+	// 			return
+	// 		}
 
-		if !trutileVerifyResult.Success {
-			mr.Error("", err, w, r, http.StatusBadRequest)
-			return
-		}
+	// 		if !trutileVerifyResult.Success {
+	// 			mr.Error("", err, w, r, http.StatusBadRequest)
+	// 			return
+	// 		}
 
-		isHuman = true
-	}
+	// 		isHuman = true
+	// 	}
 
-	if cfTurnstileResponse != "" {
-		verifiedOnce = true
-	}
+	// 	if cfTurnstileResponse != "" {
+	// 		verifiedOnce = true
+	// 	}
 
-	if config.Config.Debug || config.Config.Testing {
-		isHuman = true
-	}
+	// 	if config.Config.Debug || config.Config.Testing {
+	// 		isHuman = true
+	// 	}
 
 	type PageData struct {
-		Human        bool
-		VerifiedOnce bool
+		Human bool
+		// VerifiedOnce bool
+	}
+
+	isHuman, err := mr.isHuman(w, r)
+	if err != nil {
+		return
 	}
 
 	mr.Render(w, r, "register", &model.PageData{
 		Title: mr.Local("Register"),
 		Data: &PageData{
-			Human:        isHuman,
-			VerifiedOnce: verifiedOnce,
+			Human: isHuman,
+			// VerifiedOnce: verifiedOnce,
 		},
 		BreadCrumbs: []*model.BreadCrumb{
 			{

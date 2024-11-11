@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -267,6 +268,76 @@ func (rd *Renderer) doRender(w http.ResponseWriter, r *http.Request, name string
 	if err != nil {
 		HttpError("", errors.WithStack(err), w, http.StatusInternalServerError)
 	}
+}
+
+func (rd *Renderer) isHuman(w http.ResponseWriter, r *http.Request) (bool, error) {
+	var cfTurnstileResponse string
+
+	cfTurnstileCookie, _ := r.Cookie("cf_ts_resp")
+	if cfTurnstileCookie != nil {
+		cfTurnstileResponse, _ = url.QueryUnescape(cfTurnstileCookie.Value)
+	}
+
+	// cfTurnstileResponse := r.URL.Query().Get("cf_ts_resp")
+	// fmt.Println("turnstile response:", cfTurnstileResponse)
+
+	var isHuman bool
+	if !config.Config.Debug && !config.Config.Testing && cfTurnstileResponse != "" {
+		client := &http.Client{
+			Timeout: 5 * time.Second,
+		}
+
+		payload := []byte(`{
+"secret":"` + config.Config.CloudflareSecret + `",
+"response":"` + cfTurnstileResponse + `",
+"remoteip":"` + utils.GetRealIP(r) + `"
+    	        }`)
+
+		// fmt.Println("payload: ", string(payload))
+
+		req, err := http.NewRequest("POST", "https://challenges.cloudflare.com/turnstile/v0/siteverify", bytes.NewBuffer(payload))
+		if err != nil {
+			rd.ServerErrorp("", err, w, r)
+			return false, err
+		}
+
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Accept", "application/json")
+
+		resp, err := client.Do(req)
+		if err != nil {
+			rd.ServerErrorp("", err, w, r)
+			return false, err
+		}
+		defer resp.Body.Close()
+
+		// fmt.Println("cloudflare turnstile response status: ", resp.Status)
+
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(resp.Body)
+
+		// fmt.Println("cloudflare turnstile response body: ", buf.String())
+		var trutileVerifyResult TurnstileVerifyResult
+		err = json.Unmarshal(buf.Bytes(), &trutileVerifyResult)
+		if err != nil {
+			rd.ServerErrorp("", err, w, r)
+			return false, err
+		}
+
+		if !trutileVerifyResult.Success {
+			err = errors.New("cloudflare challenge result: " + buf.String())
+			rd.Error("", err, w, r, http.StatusBadRequest)
+			return false, err
+		}
+
+		isHuman = true
+	}
+
+	if config.Config.Debug || config.Config.Testing {
+		isHuman = true
+	}
+
+	return isHuman, nil
 }
 
 // func (rd *Renderer) getUserPermittedFrontIds(r *http.Request) []string {
