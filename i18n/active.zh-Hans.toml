@@ -858,6 +858,10 @@ other = "角色"
 hash = "sha1-c0ae8f6ea84111498894729659051ce9713aab42"
 other = "已保存"
 
+[SearchSite]
+hash = "sha1-bce06414177f72ab70e6387b6af9f8ceef0d6049"
+other = "搜索本站"
+
 [Settings]
 hash = "sha1-c7f73bb54d928922c3838bb789ee9fb8a5b1eb37"
 other = "设置"

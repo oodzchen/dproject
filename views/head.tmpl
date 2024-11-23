@@ -128,6 +128,16 @@
 		    {{- end -}}
 		</ul>
 		<ul class="nav-menu nav-menu--right">
+			<li>
+				<form id="search-form" method="GET">
+				<select id="search-engine" name="search">
+					<option value="bing">Bing</option>
+					<option value="google">Google</option>
+				</select>
+				<input required id="keywords" name="keywords" type="text" value="" placeholder="{{local "SearchSite"}}" style="width:120px"/>
+				<button type="submit">Go</button>
+				</form>
+			</li>
 		    {{- if permit "article" "create" -}}
 			<li><a href="/articles/new">&plus;{{local "AddNew"}}</a></li>
 		    {{- end -}}

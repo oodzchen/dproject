@@ -135,11 +135,11 @@ func main() {
 	for {
 		err := pg.Ping(context.Background())
 		// fmt.Println("ping database error: ", err)
-		if err != nil{
+		if err != nil {
 			log.Fatal(err)
 			return
 		}
-		
+
 		err = permissionSrv.InitPermissionTable()
 		if err != nil {
 			log.Fatal(err)
@@ -164,10 +164,10 @@ func main() {
 
 	localHost := ""
 
-	if appCfg.Debug{
+	if appCfg.Debug {
 		localHost = "0.0.0.0"
 	}
-	
+
 	port := appCfg.AppPort
 	addr := fmt.Sprintf("%s:%d", localHost, port)
 

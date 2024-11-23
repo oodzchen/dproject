@@ -901,4 +901,9 @@ func (ic *I18nCustom) AddConfigs() {
 		ID:    "Refresh",
 		Other: "Refresh",
 	})
+
+	ic.AddLocalizeConfig(&i18n.Message{
+		ID:    "SearchSite",
+		Other: "Search",
+	})
 }
